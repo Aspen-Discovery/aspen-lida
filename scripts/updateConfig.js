@@ -1,7 +1,7 @@
 const fs = require('fs');
 const data = require('../app-configs/apps.json');
 const owner = require('../app-configs/projectOwner.json');
-const version = require('../app-configs/version.json');
+const version = require('../version.json');
 
 function getArgs() {
      const args = {};
