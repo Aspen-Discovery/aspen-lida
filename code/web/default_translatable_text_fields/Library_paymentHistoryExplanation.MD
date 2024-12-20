@@ -1,1 +1,0 @@
-This page only reflects payments made through your online library catalog. If you have questions about payments made at the library in person or through other means, please contact your library.
