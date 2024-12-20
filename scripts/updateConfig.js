@@ -1,7 +1,7 @@
 const fs = require('fs');
-const data = require('./apps.json');
-const owner = require('./projectOwner.json');
-const version = require('./version.json');
+const data = require('../app-configs/apps.json');
+const owner = require('../app-configs/projectOwner.json');
+const version = require('../app-configs/version.json');
 
 function getArgs() {
      const args = {};
@@ -25,33 +25,10 @@ function getArgs() {
 
 const args = getArgs();
 const instance = args.instance;
-const env = args.env;
 
 const app = data[instance];
 
-/* if (env === 'production' || env === 'beta') {
- fs.readFile('app-configs/projectOwner.json', 'utf8', function (err, data) {
- if (err) {
- return console.log(err);
- } else {
- console.log('✅ Found projectOwner.json');
- let json = JSON.stringify(data);
- let curBuildCode = owner['buildCode'];
- curBuildCode = parseInt(curBuildCode);
- curBuildCode = curBuildCode + 1;
- json = json.replace(owner['buildCode'], curBuildCode);
- const obj = JSON.parse(json);
- fs.writeFile('app-configs/projectOwner.json', obj, 'utf8', function (err) {
- if (err) {
- return console.log(err);
- }
- console.log('✅ Updated build number in projectOwner.json');
- });
- }
- });
- } */
-
-fs.readFile('eas_template.json', 'utf8', function (err, data) {
+fs.readFile('../code/eas.json', 'utf8', function (err, data) {
      if (err) {
           return console.log(err);
      } else {
@@ -65,7 +42,7 @@ fs.readFile('eas_template.json', 'utf8', function (err, data) {
           json = json.replace('{{DEV_APPLE_API_KEY_ID}}', app['ascApiKeyId']);
           json = json.replace('{{DEV_GOOGLE_SERVICE_KEY_PATH}}', app['googleServiceKeyPath']);
           const obj = JSON.parse(json);
-          fs.writeFile('eas.json', obj, 'utf8', function (err) {
+          fs.writeFile('../code/eas.json', obj, 'utf8', function (err) {
                if (err) {
                     return console.log(err);
                }
@@ -219,13 +196,13 @@ const app_config = {
      ],
 };
 
-fs.readFile('app.config_template.js', 'utf8', function (err, data) {
+fs.readFile('../code/app.config.js', 'utf8', function (err, data) {
      if (err) {
           return console.log(err);
      } else {
           console.log('✅ Found app.config.js');
           const result = data.replace('{{LOAD_APP_CONFIG}}', JSON.stringify(app_config));
-          fs.writeFile('app.config.js', result, 'utf8', function (err) {
+          fs.writeFile('../code/app.config.js', result, 'utf8', function (err) {
                if (err) {
                     return console.log(err);
                }
