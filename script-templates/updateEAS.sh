@@ -45,23 +45,23 @@ then
           for site in ${sites[@]}
               do
                 eval site=$site
-                  node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-                  node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$site --env=$channel
+                  node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+                  node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
                   sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
                   printf "\nDeleting branch %s... \n" "$deleteBranch"
                     APP_ENV=$site eas branch:delete "$deleteBranch"
-                  node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$site
+                  node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
                   sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
               done
         else
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$slug --env=$channel
+          node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+          node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
           sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
           printf "\nDeleting branch %s... \n" "$deleteBranch"
           APP_ENV=$slug eas branch:delete "$deleteBranch"
 
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$slug
+          node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
           sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
         fi
 fi
@@ -77,23 +77,23 @@ then
         for site in ${sites[@]}
             do
               eval site=$site
-                node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-                node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$site --env=$channel
+                node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+                node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
                 sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
                 printf "\nCreating new channel %s... \n" "$newChannel"
                   APP_ENV=$site eas channel:create "$newChannel"
-                node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$site
+                node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
                 sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
             done
       else
-        node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-        node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$slug --env=$channel
+        node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+        node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
         sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
         printf "\nCreating new channel %s... \n" "$newChannel"
         APP_ENV=$slug eas channel:create "$newChannel"
 
-        node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$slug
+        node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
         sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
       fi
 fi
@@ -109,19 +109,19 @@ then
       for site in ${sites[@]}
           do
             eval site=$site
-              node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-              node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$site --env=$channel
+              node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+              node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
               sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
               printf "\nCreating new branch %s... \n" "$branch"
                 APP_ENV=$site eas branch:create "$branch"
               printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
                 APP_ENV=$site eas channel:edit "$channel" --branch "$branch"
-              node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$site
+              node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
               sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
           done
     else
-      node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-      node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$slug --env=$channel
+      node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+      node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
       sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
       printf "\nCreating new branch %s... \n" "$branch"
@@ -129,7 +129,7 @@ then
       printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
       APP_ENV=$slug eas channel:edit "$channel" --branch "$branch"
 
-      node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$slug
+      node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
       sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
     fi
 fi

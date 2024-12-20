@@ -23,8 +23,8 @@ do
         *) serverOption=$item; break;;
     esac
 done
-node /web/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-node /web/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$site --env=none
+node /web/aspen-lida/code/app-configs/copyConfig.js
+node /web/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=none
 sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
 if [[ $serverOption == 'development' ]]
 then
@@ -35,6 +35,6 @@ then
 else
     APP_ENV=$site npx expo start --clear
   fi
-node /web/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$site --env=none
+node /web/aspen-lida/code/app-configs/restoreConfig.js --instance=$site --env=none
 sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
 rm -f "eas.json.bak"

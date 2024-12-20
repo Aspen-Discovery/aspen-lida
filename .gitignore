@@ -234,3 +234,6 @@ phpstorm_project
 code/aspen_app/updaterInternal.sh
 code/aspen_app/%ProgramData%/Microsoft/Windows/UUS/State/_active.uusver
 /.idea
+/app-configs/apps.json
+/app-configs/projectOwner.json
+scripts/*.sh

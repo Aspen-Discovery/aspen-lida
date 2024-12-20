@@ -51,7 +51,7 @@ const app = data[instance];
  });
  } */
 
-fs.readFile('eas.json', 'utf8', function (err, data) {
+fs.readFile('eas_template.json', 'utf8', function (err, data) {
      if (err) {
           return console.log(err);
      } else {
@@ -94,9 +94,7 @@ const app_config = {
           fallbackToCacheTimeout: 250000,
           url: 'https://u.expo.dev/' + app['easId'],
      },
-     runtimeVersion: {
-          policy: 'sdkVersion',
-     },
+     runtimeVersion: version['build'],
      splash: {
           image: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appSplash&slug=' + app['slug'],
           resizeMode: 'contain',
@@ -221,7 +219,7 @@ const app_config = {
      ],
 };
 
-fs.readFile('app.config.js', 'utf8', function (err, data) {
+fs.readFile('app.config_template.js', 'utf8', function (err, data) {
      if (err) {
           return console.log(err);
      } else {

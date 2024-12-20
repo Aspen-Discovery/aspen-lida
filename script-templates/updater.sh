@@ -62,8 +62,8 @@ then
       do
         eval site=$site
          printf "\nUpdating %s in channel %s for %s platform(s)... \n" "$site" "$channel" "$osPlatform"
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$site --env=$channel
+          node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+          node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
           sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
           if [[ $otaUpdate == 'yes' ]]
           then
@@ -71,13 +71,13 @@ then
           else
             APP_ENV=$site eas build --platform $osPlatform --profile $channel --no-wait
           fi
-          node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$site
+          node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
           sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
       done
 else
   printf "\nUpdating %s in channel %s for %s platform(s)... \n" "$slug" "$channel" "$osPlatform"
-  node /usr/local/aspen-discovery/code/aspen_app/app-configs/copyConfig.js
-  node /usr/local/aspen-discovery/code/aspen_app/app-configs/updateConfig.js --instance=$slug --env=$channel
+  node /usr/local/aspen-lida/code/app-configs/copyConfig.js
+  node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
   sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
   if [[ $otaUpdate == 'yes' ]]
   then
@@ -87,7 +87,7 @@ else
     APP_ENV=$slug npx expo prebuild
     APP_ENV=$slug eas build --platform $osPlatform --profile $channel --no-wait
   fi
-  node /usr/local/aspen-discovery/code/aspen_app/app-configs/restoreConfig.js --instance=$slug
+  node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
   sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
 fi
 
