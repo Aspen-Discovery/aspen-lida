@@ -2,7 +2,7 @@
 printf "\n******************************\n"
 printf "Starting EAS Updater...\n"
 printf "******************************\n"
-readarray -t instances < <(jq -c 'keys' 'app-configs/apps.json' | jq -r '.[]')
+readarray -t instances < <(jq -c 'keys' '../app-configs/apps.json' | jq -r '.[]')
 declare -a instances
 printf "Select instance:\n"
 PS3="> "
@@ -40,28 +40,28 @@ then
   read -r deleteBranch
   if [[ $slug == 'all' ]]
       then
-        readarray -t sites < <(jq -c 'keys' 'app-configs/apps.json' | jq @sh | jq -r)
+        readarray -t sites < <(jq -c 'keys' '../app-configs/apps.json' | jq @sh | jq -r)
           declare -a sites
           for site in ${sites[@]}
               do
                 eval site=$site
-                  node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-                  node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
-                  sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
+                  node /usr/local/aspen-lida/scripts/copyConfig.js
+                  node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
+                  sed -i "s/{{APP_ENV}}/$site/g" eas.json
                   printf "\nDeleting branch %s... \n" "$deleteBranch"
-                    APP_ENV=$site eas branch:delete "$deleteBranch"
-                  node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
-                  sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
+                  APP_ENV=$site eas branch:delete "$deleteBranch"
+                  node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
+                  sed -i "s/$site/{{APP_ENV}}/g" eas.json
               done
         else
-          node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-          node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
+          node /usr/local/aspen-lida/scripts/copyConfig.js
+          node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
           sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
           printf "\nDeleting branch %s... \n" "$deleteBranch"
           APP_ENV=$slug eas branch:delete "$deleteBranch"
 
-          node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
+          node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
           sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
         fi
 fi
@@ -77,23 +77,23 @@ then
         for site in ${sites[@]}
             do
               eval site=$site
-                node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-                node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
+                node /usr/local/aspen-lida/scripts/copyConfig.js
+                node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
                 sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
                 printf "\nCreating new channel %s... \n" "$newChannel"
                   APP_ENV=$site eas channel:create "$newChannel"
-                node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
+                node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
                 sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
             done
       else
-        node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-        node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
+        node /usr/local/aspen-lida/scripts/copyConfig.js
+        node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
         sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
         printf "\nCreating new channel %s... \n" "$newChannel"
         APP_ENV=$slug eas channel:create "$newChannel"
 
-        node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
+        node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
         sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
       fi
 fi
@@ -109,19 +109,19 @@ then
       for site in ${sites[@]}
           do
             eval site=$site
-              node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-              node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$site --env=$channel
+              node /usr/local/aspen-lida/scripts/copyConfig.js
+              node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
               sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
               printf "\nCreating new branch %s... \n" "$branch"
                 APP_ENV=$site eas branch:create "$branch"
               printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
                 APP_ENV=$site eas channel:edit "$channel" --branch "$branch"
-              node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$site
+              node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
               sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
           done
     else
-      node /usr/local/aspen-lida/code/app-configs/copyConfig.js
-      node /usr/local/aspen-lida/code/app-configs/updateConfig.js --instance=$slug --env=$channel
+      node /usr/local/aspen-lida/scripts/copyConfig.js
+      node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
       sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
       printf "\nCreating new branch %s... \n" "$branch"
@@ -129,14 +129,14 @@ then
       printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
       APP_ENV=$slug eas channel:edit "$channel" --branch "$branch"
 
-      node /usr/local/aspen-lida/code/app-configs/restoreConfig.js --instance=$slug
+      node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
       sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
     fi
 fi
 
 
 
-rm -f "eas.json.bak"
+#rm -f "eas.json.bak"
 printf "******************************\n"
 printf " 👌 Finished. Bye! \n"
 exit

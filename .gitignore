@@ -40,3 +40,4 @@ code/app.config.js
 code/eas.json
 
 scripts/*.sh
+app-configs/google-services.json

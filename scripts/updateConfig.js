@@ -129,7 +129,7 @@ const app_config = {
                backgroundColor: app['background'],
           },
           icon: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appIcon&slug=' + app['slug'],
-          googleServicesFile: './google-services.json',
+          googleServicesFile: '../app-configs/google-services.json',
           config: {
                googleMaps: {
                     apiKey: owner['googleApiKeyAndroid'],
