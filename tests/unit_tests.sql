@@ -1,1 +1,0 @@
-insert into account_profiles (name, driver, loginConfiguration, authenticationMethod, vendorOpacUrl, patronApiUrl, recordSource, weight, ils) VALUES ('ils', 'MockILS', 'barcode_pin', 'ils', 'http://unit_test.localhost', 'http://unit_test.localhost', 'ils', 2, 'mock');

@@ -1,1 +1,0 @@
-Location where marc records will be output that have changed within a specific interval

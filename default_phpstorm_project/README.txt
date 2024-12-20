@@ -1,1 +1,0 @@
-To use this project with PhpStorm, copy the default_phpstorm_project directory to phpstorm_project and then open the phpstorm_project within PhpStorm (https://www.jetbrains.com/phpstorm/). 

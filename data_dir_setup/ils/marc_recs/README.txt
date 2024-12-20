@@ -1,1 +1,0 @@
-Location where marc records will be split into individual files for easier runtime access
