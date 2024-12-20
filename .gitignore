@@ -36,6 +36,7 @@ code/.env
 app-configs/apps.json
 app-configs/projectOwner.json
 code/credentials.json
-/app-configs/apps.json
-/app-configs/projectOwner.json
+code/app.config.js
+code/eas.json
+
 scripts/*.sh
