@@ -45,24 +45,24 @@ then
           for site in ${sites[@]}
               do
                 eval site=$site
-                  node /usr/local/aspen-lida/scripts/copyConfig.js
-                  node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
-                  sed -i "s/{{APP_ENV}}/$site/g" eas.json
+                  node copyConfig.js
+                  node updateConfig.js --instance=$site --env=$channel
+                  sed -i "s/{{APP_ENV}}/$site/g" ../code/eas.json
+                  cd ../code
                   printf "\nDeleting branch %s... \n" "$deleteBranch"
                   APP_ENV=$site eas branch:delete "$deleteBranch"
-                  node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
-                  sed -i "s/$site/{{APP_ENV}}/g" eas.json
+                  cd ../scripts
               done
         else
-          node /usr/local/aspen-lida/scripts/copyConfig.js
-          node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
-          sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
+          node copyConfig.js
+          node updateConfig.js --instance=$slug --env=$channel
+          sed -i "s/{{APP_ENV}}/$slug/g" ../code/eas.json
+          cd ../code
 
           printf "\nDeleting branch %s... \n" "$deleteBranch"
           APP_ENV=$slug eas branch:delete "$deleteBranch"
 
-          node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
-          sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
+          cd ../scripts
         fi
 fi
 
@@ -72,29 +72,30 @@ then
   read -r newChannel
   if [[ $slug == 'all' ]]
     then
-      readarray -t sites < <(jq -c 'keys' 'app-configs/apps.json' | jq @sh | jq -r)
+      readarray -t sites < <(jq -c 'keys' '../app-configs/apps.json' | jq @sh | jq -r)
         declare -a sites
         for site in ${sites[@]}
             do
               eval site=$site
-                node /usr/local/aspen-lida/scripts/copyConfig.js
-                node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
-                sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
+                node copyConfig.js
+                node updateConfig.js --instance=$site --env=$channel
+                sed -i "s/{{APP_ENV}}/$site/g" ../code/eas.json
+
+                cd ../code
                 printf "\nCreating new channel %s... \n" "$newChannel"
                   APP_ENV=$site eas channel:create "$newChannel"
-                node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
-                sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
+                cd ../scripts
             done
       else
         node /usr/local/aspen-lida/scripts/copyConfig.js
         node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
         sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
 
+        cd ../code
         printf "\nCreating new channel %s... \n" "$newChannel"
         APP_ENV=$slug eas channel:create "$newChannel"
 
-        node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
-        sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
+        cd ../scripts
       fi
 fi
 
@@ -109,28 +110,30 @@ then
       for site in ${sites[@]}
           do
             eval site=$site
-              node /usr/local/aspen-lida/scripts/copyConfig.js
-              node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$site --env=$channel
-              sed -i'.bak' "s/{{APP_ENV}}/$site/g" eas.json
+              node copyConfig.js
+              node updateConfig.js --instance=$site --env=$channel
+              sed -i "s/{{APP_ENV}}/$site/g" cd ../code/eas.json
+
+              cd ../code
               printf "\nCreating new branch %s... \n" "$branch"
                 APP_ENV=$site eas branch:create "$branch"
               printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
                 APP_ENV=$site eas channel:edit "$channel" --branch "$branch"
-              node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$site
-              sed -i'.bak' "s/$site/{{APP_ENV}}/g" eas.json
+              cd ../scripts
           done
     else
-      node /usr/local/aspen-lida/scripts/copyConfig.js
-      node /usr/local/aspen-lida/scripts/updateConfig.js --instance=$slug --env=$channel
-      sed -i'.bak' "s/{{APP_ENV}}/$slug/g" eas.json
+      node copyConfig.js
+      node updateConfig.js --instance=$slug --env=$channel
+      sed -i "s/{{APP_ENV}}/$slug/g" eas.json
+
+      cd ../code
 
       printf "\nCreating new branch %s... \n" "$branch"
       APP_ENV=$slug eas branch:create "$branch"
       printf "\nUpdating %s to point to %s... \n" "$channel" "$branch"
       APP_ENV=$slug eas channel:edit "$channel" --branch "$branch"
 
-      node /usr/local/aspen-lida/app-configs/restoreConfig.js --instance=$slug
-      sed -i'.bak' "s/$slug/{{APP_ENV}}/g" eas.json
+      cd ../scripts
     fi
 fi
 

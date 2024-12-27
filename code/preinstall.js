@@ -1,6 +1,8 @@
 const fs = require('fs');
+console.log("Running preinstall.js");
 fs.readFile('app.config.js', 'utf8', function (err, data) {
 	if (err) {
+          console.log("☒ Could not load app.config.js");
 		return console.log(err);
 	} else {
 		console.log('✅ Found app.config.js');
