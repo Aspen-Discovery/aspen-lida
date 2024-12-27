@@ -1,0 +1,41 @@
+# Specific locations within Aspen LiDA to exclude from git   #
+# Files are excluded either because                               #
+#  - they contain sensitive data (i.e. passwords)                 #
+#  - they can change at runtime                                   #
+#  - they can be easily downloaded or are machine specfic         #
+###################################################################
+code/.expo/**
+code/.expo-shared/**
+code/node_modules/**
+.vscode
+
+# IDE Files #
+#################
+.buildpath
+.project
+.classpath
+org.eclipse.*.prefs
+*.css.map
+.settings/
+out/
+.idea/**
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+~$*.docx
+~$*.doc
+documentation/~*.tmp
+# Word Tempory File
+.vagrant/
+
+code/.env
+app-configs/apps.json
+app-configs/projectOwner.json
+code/credentials.json
+
+scripts/*.sh
+app-configs/google-services.json
