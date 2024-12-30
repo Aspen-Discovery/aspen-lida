@@ -41,3 +41,5 @@ code/eas.json
 
 scripts/*.sh
 app-configs/google-services.json
+app-configs/.env
+code/%ProgramData%/Microsoft/Windows/UUS/State/_active.uusver

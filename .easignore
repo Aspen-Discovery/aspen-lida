@@ -32,7 +32,6 @@ documentation/~*.tmp
 # Word Tempory File
 .vagrant/
 
-code/.env
 app-configs/apps.json
 app-configs/projectOwner.json
 code/credentials.json
