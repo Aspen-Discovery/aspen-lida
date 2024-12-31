@@ -7,7 +7,7 @@ import { Actionsheet, Box, Button, Center, Checkbox, HStack, Icon, Pressable, Te
 import React from 'react';
 import { popAlert } from '../../../components/loadError';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
-import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getStatus, getTitle, getType, getCollectionName } from '../../../helpers/item';
+import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getStatus, getTitle, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { cancelHold, cancelHolds, cancelVdxRequest, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/accountActions';
@@ -20,6 +20,8 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyHold = (props) => {
      const hold = props.data;
+     //console.log("Hold raw data");
+     //console.log(hold);
      const resetGroup = props.resetGroup;
      const pickupLocations = props.pickupLocations;
      const section = props.section;
@@ -278,6 +280,7 @@ export const MyHold = (props) => {
           }
      };
 
+     //console.log("Out of hold group message for " + hold.title + " is " + hold.outOfHoldGroupMessage);
      return (
           <>
                <Pressable onPress={onOpen} borderBottomWidth="1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="4" pr="20" py="2">
@@ -293,7 +296,8 @@ export const MyHold = (props) => {
                               {getOnHoldFor(hold.user)}
                               {getPickupLocation(hold.currentPickupName, hold.source)}
                               {getExpirationDate(hold.expirationDate, hold.available)}
-                              {getPosition(hold.position, hold.available, hold.holdQueueLength, holdPosition, usesHoldPosition)}
+                              {getOutOfHoldGroupMessage(hold.outOfHoldGroupMessage)}
+                              {getPosition(hold.position, hold.available, hold.holdQueueLength, holdPosition, usesHoldPosition,hold.outOfHoldGroupMessage)}
                               {getStatus(hold.status, hold.source)}
                          </VStack>
                     </HStack>

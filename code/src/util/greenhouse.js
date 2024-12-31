@@ -92,7 +92,7 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
      let url = Constants.expoConfig.extra.greenhouseUrl;
      let latitude,
           longitude = 0;
-	let slug = GLOBALS.slug;
+     let slug = GLOBALS.slug;
      if (!slug.startsWith('aspen-lida')) {
           method = 'getLibrary';
           isBranded = true;
@@ -127,11 +127,30 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
           timeout: GLOBALS.timeoutSlow,
           headers: getHeaders(),
      });
-     const response = await api.get('/GreenhouseAPI?method=' + method, {
+     //console.log("Calling " + url + '/API/GreenhouseAPI?method=' + method);
+     let params = {
           latitude: PATRON.coords.lat,
           longitude: PATRON.coords.long,
           release_channel: channel,
-     });
+     };
+     console.log("Making call with fetch");
+     try {
+          const response1 = await fetch(url + '/API/GreenhouseAPI?method=' + method).then((response) => {
+               if (response.status === 200) {
+                    const json = response.json();
+                    console.log("Response from fetch");
+                    console.log(json);
+               } else {
+                    console.log("Something went wrong on API server!" + response.status);
+               }
+          });
+     }catch (e) {
+          console.log("Error getting libraries with fetch");
+          console.log(e);
+     }
+
+     const response = await api.get('/GreenhouseAPI?method=' + method, params);
+
      if (response.ok) {
           const data = response.data;
           let libraries;
@@ -169,6 +188,9 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
                shouldShowSelectLibrary: showSelectLibrary,
           };
      } else {
+          console.log("Fetching nearby libraries failed " + response.originalError);
+          //console.log("Status " + response.status);
+          console.log(response);
           const problem = problemCodeMap(response.problem);
           popToast(problem.title, problem.message, 'error');
      }

@@ -72,10 +72,22 @@ const getThemeId = () => {
 };
 
 export async function getThemeInfo(url = null) {
+     //console.log("Library Url " + LIBRARY.url);
+     //console.log("Globals URL " + GLOBALS.url);
      let libraryUrl = LIBRARY.url ?? GLOBALS.url;
-     if (url) {
+     if (url !== null && url !== '') {
+          //console.log("url passed to getThemeInfo is " + url);
           libraryUrl = url;
      }
+     if (libraryUrl === '') {
+          console.log("No library URL provided, returning backup theme ");
+          const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
+          const palettes = COLOR_SCHEMES.map(generateSwatches);
+          //console.log('Backup theme loaded.');
+          //console.log(response);
+          return palettes;
+     }
+     //console.log("Getting App settings from " + libraryUrl + GLOBALS.slug);
      await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
      const api = create({
           baseURL: GLOBALS.url + '/API',
@@ -83,6 +95,7 @@ export async function getThemeInfo(url = null) {
           headers: getHeaders(),
           auth: createAuthTokens(),
      });
+     //console.log("Getting Theme info");
      const response = await api.get('/SystemAPI?method=getThemeInfo', {
           id: GLOBALS.themeId ?? 1,
      });
@@ -176,7 +189,9 @@ function generateSwatches(swatch) {
 }
 
 export async function createTheme(colorMode) {
+     //console.log("Getting Theme Information");
      const response = await getThemeInfo();
+     //console.log("Extending Theme");
      const theme = extendTheme({
           colors: {
                primary: response[0],
@@ -197,6 +212,7 @@ export async function createTheme(colorMode) {
 }
 
 export async function createGlueTheme(url) {
+     //console.log("Creating Glue Theme");
      const response = await getThemeInfo(url);
      const theme = extendTheme({
           colors: {
@@ -205,7 +221,7 @@ export async function createGlueTheme(url) {
                tertiary: response[2],
           },
      });
-     console.log('Glue theme created and saved.');
+     //console.log('Glue theme created and saved.');
      return theme;
 }
 
@@ -224,6 +240,8 @@ export async function saveTheme(response) {
                console.log('Unable to save essential colors to async storage in theme.js');
                console.log(e);
           }
+     }else{
+          console.log("No response provided for saving theme");
      }
 }
 

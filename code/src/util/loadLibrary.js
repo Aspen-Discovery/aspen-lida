@@ -39,6 +39,7 @@ export const ALL_BRANCHES = {};
  **/
 export async function getLocationInfo() {
      let profile = [];
+     console.log("Loading location info for patron");
 
      const api = create({
           baseURL: LIBRARY.url + '/API',
@@ -82,28 +83,35 @@ export async function getLocationInfo() {
  * Fetch library information
  **/
 export async function getLibraryInfo(libraryId, libraryUrl, timeout) {
+     //console.log("Loading library info for libraryId " + libraryId + " libraryUrl " + libraryUrl);
      let profile = [];
-     const api = create({
-          baseURL: libraryUrl + '/API',
-          timeout,
-          headers: getHeaders(),
-          auth: createAuthTokens(),
-     });
-     const response = await api.get('/SystemAPI?method=getLibraryInfo', {
-          id: libraryId,
-     });
-     if (response.ok) {
-          if (response.data.result.success) {
-               if (typeof response.data.result.library !== 'undefined') {
-                    profile = response.data.result.library;
+     try {
+          const api = create({
+               baseURL: libraryUrl + '/API',
+               timeout,
+               headers: getHeaders(),
+               auth: createAuthTokens(),
+          });
+          const response = await api.get('/SystemAPI?method=getLibraryInfo', {
+               id: libraryId,
+          });
+          if (response.ok) {
+               if (response.data.result.success) {
+                    if (typeof response.data.result.library !== 'undefined') {
+                         profile = response.data.result.library;
+                    }
+                    await AsyncStorage.setItem('@libraryInfo', JSON.stringify(profile));
+                    return profile;
                }
-               await AsyncStorage.setItem('@libraryInfo', JSON.stringify(profile));
+               return profile;
+          } else {
+               console.log('Unable to fetch library.');
+               console.log(response);
                return profile;
           }
-          return profile;
-     } else {
-          console.log('Unable to fetch library.');
-          console.log(response);
+     } catch (err) {
+          console.log("Exception loading library");
+          console.log(err);
           return profile;
      }
 }
@@ -112,26 +120,44 @@ export async function getLibraryInfo(libraryId, libraryUrl, timeout) {
  * Fetch settings for app that are maintained by the library
  **/
 export async function getAppSettings(url, timeout, slug) {
-     const api = create({
-          baseURL: url + '/API',
-          timeout,
-          headers: getHeaders(),
-          auth: createAuthTokens(),
-     });
-     const response = await api.get('/SystemAPI?method=getAppSettings', {
-          slug,
-     });
-     if (response.ok) {
-          //await AsyncStorage.setItem('@appSettings', JSON.stringify(appSettings));
-          LIBRARY.appSettings = response.data.result.settings;
-          console.log('App settings saved');
-          return response.data?.result?.settings ?? [];
-     } else {
-          console.log(response);
+     //console.log("Getting App Settings from url: " + url + " slug: " + slug);
+     try {
+          const api = create({
+               baseURL: url + '/API',
+               timeout,
+               headers: getHeaders(),
+               auth: createAuthTokens(),
+          });
+          //console.log("API call: ");
+          //console.log(api);
+          const response = await api.get('/SystemAPI?method=getAppSettings', {
+               slug
+          });
+          //console.log("Response from getAppSettings: ");
+          //console.log(response);
+          if (response !== undefined && response.ok) {
+               //console.log("Got response from getAppSettings");
+               //await AsyncStorage.setItem('@appSettings', JSON.stringify(appSettings));
+               LIBRARY.appSettings = response.data?.result?.settings ?? [];
+               //console.log('App settings saved');
+               return response.data?.result?.settings ?? [];
+          } else {
+               console.log("Did not get valid response from getAppSettings");
+               if (response === undefined) {
+                    console.log("Response was undefined :(");
+               }else{
+                    console.log(response);
+               }
+               return [];
+          }
+     }catch (err) {
+          console.log("Exception in getAppSettings " + err);
+          return [];
      }
 }
 
 export async function getLocationAppSettings(url, timeout, slug) {
+     //console.log("Getting location app settings");
      const api = create({
           baseURL: url + '/API',
           timeout,
@@ -156,6 +182,7 @@ export async function getLocationAppSettings(url, timeout, slug) {
  * Fetch valid pickup locations for the patron
  **/
 export async function getPickupLocations(url = null) {
+     //console.log("Getting pickup locations");
      let baseUrl = url ?? LIBRARY.url;
      const postBody = await postData();
      const api = create({
@@ -195,6 +222,7 @@ export async function getPickupLocations(url = null) {
  * Fetch active browse categories for the branch/location
  **/
 export async function getBrowseCategories(libraryUrl, discoveryVersion, limit = null) {
+     //console.log("Getting Browse Categories");
      if (libraryUrl) {
           const postBody = await postData();
           const api = create({

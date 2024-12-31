@@ -339,9 +339,27 @@ export const getPickupLocation = (location, source) => {
      }
 };
 
-export const getPosition = (position, available, length, holdPosition, usesHoldPosition) => {
+export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      const { language } = React.useContext(LanguageContext);
-     if (position && !available && position !== 0 && position !== '0') {
+     console.log("Out of hold group message is " + outOfHoldGroupMessage);
+     if (outOfHoldGroupMessage) {
+          return (
+               <Text
+                    fontSize={{
+                         base: 'xs',
+                         lg: 'sm',
+                    }}>
+                    <Text bold>{getTermFromDictionary(language, 'interlibrary_loan')}:</Text> {outOfHoldGroupMessage}
+               </Text>
+          );
+     } else {
+          return null;
+     }
+}
+
+export const getPosition = (position, available, length, holdPosition, usesHoldPosition, outOfHoldGroupMessage) => {
+     const { language } = React.useContext(LanguageContext);
+     if (!outOfHoldGroupMessage && position && !available && position !== 0 && position !== '0') {
           if (length && usesHoldPosition) {
                return (
                     <Text

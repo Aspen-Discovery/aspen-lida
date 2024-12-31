@@ -87,6 +87,8 @@ export function getHeaders(isPost = false, language = 'en') {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
      }
 
+     //console.log("Headers are ");
+     //console.log(headers);
      return headers;
 }
 
@@ -173,6 +175,9 @@ function makeNewSecret() {
           tokens = [process.env.API_KEY_1, process.env.API_KEY_2, process.env.API_KEY_3, process.env.API_KEY_4, process.env.API_KEY_5];
      }
      const thisKey = _.sample(_.shuffle(tokens));
+     if (thisKey === undefined) {
+          console.log("Token was undefined, you must have a .env with tokens matching those on the greenhouse.");
+     }
      return base64.encode(thisKey);
 }
 
