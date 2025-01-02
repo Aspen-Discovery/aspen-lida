@@ -334,22 +334,26 @@ export async function submitVdxRequest(url, request) {
 
 export async function submitLocalIllRequest(url, request) {
      const postBody = await postData();
+     let params = {
+        //title: request.title,
+        acceptFee: request.acceptFee,
+        pickupLocation: request.pickupLocation,
+        catalogKey: request.catalogKey,
+        volumeId: request.volumeId,
+        note: request.note,
+     }
      const api = create({
           baseURL: url + '/API',
           timeout: GLOBALS.timeoutAverage,
           headers: getHeaders(true),
           auth: createAuthTokens(),
-          params: {
-               title: request.title,
-               acceptFee: request.acceptFee,
-               pickupLocation: request.pickupLocation,
-               catalogKey: request.catalogKey,
-               note: request.note,
-          },
+          params: params,
      });
-     console.log("Submitting Local ILL Request for catalog key " + request.catalogKey);
+     console.log("Submitting Local ILL Request " + url + "/API/UserAPI?method=submitLocalIllRequest for catalog key " + request.catalogKey);
+     console.log(params)
      const response = await api.post('/UserAPI?method=submitLocalIllRequest', postBody);
      if (response.ok) {
+          console.log("Local ILL Response");
           console.dir(response.data);
           if (response.data.result?.success === true) {
                popAlert(response.data.result.title, response.data.result.message, 'success');
@@ -359,6 +363,7 @@ export async function submitLocalIllRequest(url, request) {
                return response.data.result;
           }
      } else {
+          console.log("Did not get a good response submitting local ILL request");
           const problem = problemCodeMap(response.problem);
           popAlert(problem.title, problem.message, 'error');
           console.log(response);

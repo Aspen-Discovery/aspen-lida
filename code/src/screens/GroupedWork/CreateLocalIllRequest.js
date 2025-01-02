@@ -16,28 +16,31 @@ export const CreateLocalIllRequest = () => {
      const route = useRoute();
      const id = route.params.id;
      const title = route.params.workTitle ?? null;
+     const volumeId = route.params.volumeId ?? null;
+     const volumeName = route.params.volumeName ?? null;
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
-     const { updateUser } = React.useContext(UserContext);
 
      if (location.localIllFormId === '-1' || _.isNull(location.localIllFormId)) {
           return loadError('The ILL System is not setup properly, please contact your library to place a request', '');
      }
 
-     console.log("Local ILL Form Id " + location.localIllFormId);
-     console.log("ID " + route.params.id);
+     //console.log("Local ILL Form Id " + location.localIllFormId);
+     //console.log("ID " + route.params.id);
+     //console.log("Volume ID " + volumeId);
+     //console.log("Volume Name " + volumeName);
 
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['localIllForm', location.localIllFormId, library.baseUrl],
           queryFn: () => getLocalIllForm(library.baseUrl, location.localIllFormId),
      });
 
-     return <>{status === 'loading' || isFetching ? loadingSpinner() : status === 'error' ? loadError('Error', '') : <Request config={data} workId={id} workTitle={title} />}</>;
+     return <>{status === 'loading' || isFetching ? loadingSpinner() : status === 'error' ? loadError('Error', '') : <Request config={data} workId={id} workTitle={title} volumeId={volumeId} volumeName={volumeName} />}</>;
 };
 
 const Request = (payload) => {
      const navigation = useNavigation();
-     const { config, workId, workTitle } = payload;
+     const { config, workId, workTitle, volumeId, volumeName } = payload;
      const { library } = React.useContext(LibrarySystemContext);
      const { updateUser } = React.useContext(UserContext);
      const { updateHolds } = React.useContext(HoldsContext);
@@ -56,6 +59,7 @@ const Request = (payload) => {
                note: note ?? null,
                catalogKey: workId ?? null,
                pickupLocation: pickupLocation ?? null,
+               volumeId: volumeId,
           };
           await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
@@ -88,12 +92,16 @@ const Request = (payload) => {
      const getTitleField = () => {
           const field = config.fields.title;
           if (field.display === 'show') {
+               let fullTitle = title;
+               if (volumeName != undefined) {
+                    fullTitle += " " + volumeName;
+               }
                return (
                     <FormControl my={2} isRequired={field.required}>
                          <FormControl.Label>{field.label}</FormControl.Label>
                          <Input
                               name={field.property}
-                              defaultValue={title}
+                              defaultValue={fullTitle}
                               accessibilityLabel={field.description ?? field.label}
                               onChangeText={(value) => {
                                    setTitle(value);
@@ -174,7 +182,7 @@ const Request = (payload) => {
                                    setPickupLocation(itemValue);
                               }}>
                               {locations.map((location, index) => {
-                                   return <Select.Item label={location.displayName} value={location.locationId} />;
+                                   return <Select.Item label={location.displayName} value={location.code} />;
                               })}
                          </Select>
                     </FormControl>
@@ -190,6 +198,19 @@ const Request = (payload) => {
                     <FormControl my={2} isDisabled isRequired={field.required}>
                          <FormControl.Label>{field.label}</FormControl.Label>
                          <Input name={field.property} defaultValue={catalogKey} accessibilityLabel={field.description ?? field.label} />
+                    </FormControl>
+               );
+          }
+          return null;
+     };
+
+     const getVolumeIdField = () => {
+          const field = config.fields.volumeId;
+          if (field.display === 'show') {
+               return (
+                    <FormControl my={2} isDisabled isRequired={field.required}>
+                         <FormControl.Label>{field.label}</FormControl.Label>
+                         <Input name={field.property} defaultValue={volumeId} accessibilityLabel={field.description ?? field.label} />
                     </FormControl>
                );
           }
@@ -226,6 +247,7 @@ const Request = (payload) => {
                     {getAcceptFeeCheckbox()}
                     {getPickupLocations()}
                     {getCatalogKeyField()}
+                    {getVolumeIdField()}
                     {getActions()}
                </Box>
           </ScrollView>

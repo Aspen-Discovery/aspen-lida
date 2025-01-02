@@ -126,6 +126,9 @@ export const ActionButton = (data) => {
                          workTitle={title}
                          holdTypeForFormat={holdTypeForFormat}
                          variationId={variationId}
+                         volumeInfo={volumeInfo}
+                         volumeId={action.volumeId}
+                         volumeName={action.volumeName}
                          prevRoute={prevRoute}
                          setResponseIsOpen={setResponseIsOpen}
                          responseIsOpen={responseIsOpen}

@@ -592,7 +592,8 @@
   "confirm_delete_account_message": "This will only delete your Aspen Discovery account with your library, including any personal data on Aspen Discovery such as lists and saved searches, but will not delete your card with the library. If you want to close your library account, you must contact your library.",
   "confirm_delete_account": "Yes, Delete Account",
   "deleting": "Deleting",
-	"collection": "Collection",
-	"view_now": "View Now",
-	"year_in_review": "Year In Review"
+  "collection": "Collection",
+  "view_now": "View Now",
+  "year_in_review": "Year In Review",
+  "volume": "Volume"
 }

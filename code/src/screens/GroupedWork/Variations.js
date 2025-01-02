@@ -263,9 +263,11 @@ const Variation = (payload) => {
      const { id, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef, prevRoute, format, volumeInfo, holdConfirmationResponse, setHoldConfirmationResponse, holdConfirmationIsOpen, setHoldConfirmationIsOpen, onHoldConfirmationClose, cancelHoldConfirmationRef, holdSelectItemResponse, setHoldSelectItemResponse, holdItemSelectIsOpen, setHoldItemSelectIsOpen, onHoldItemSelectClose, cancelHoldItemSelectRef } = payload;
      const variation = payload.records;
      const actions = variation.actions;
+     //console.log("Actions for variation:");
+     //console.log(actions);
      const source = variation.source;
      const status = getStatusIndicator(variation.statusIndicator, language);
-	 const statusIndicator = variation.statusIndicator;
+     const statusIndicator = variation.statusIndicator;
      const holdTypeForFormat = variation.holdType ?? 'default';
      const variationId = variation.variationId ?? null;
      const title = variation.title ?? null;

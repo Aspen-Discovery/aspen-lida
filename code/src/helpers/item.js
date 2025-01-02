@@ -58,6 +58,24 @@ export function getCleanTitle(title) {
      return 'Unknown';
 }
 
+export const getVolume = (volume) => {
+     const { language } = React.useContext(LanguageContext);
+     if (volume) {
+          return (
+               <Text
+                    maxW="100%"
+                    flexWrap="wrap"
+                    fontSize={{
+                         base: 'xs',
+                         lg: 'sm',
+                    }}>
+                    <Text bold>{getTermFromDictionary(language, 'volume')}:</Text> {volume}
+               </Text>
+          );
+     }
+     return null;
+}
+
 export const getAuthor = (author) => {
      const { language } = React.useContext(LanguageContext);
      if (author) {

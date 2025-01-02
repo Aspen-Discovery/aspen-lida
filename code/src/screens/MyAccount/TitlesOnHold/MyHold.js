@@ -7,7 +7,7 @@ import { Actionsheet, Box, Button, Center, Checkbox, HStack, Icon, Pressable, Te
 import React from 'react';
 import { popAlert } from '../../../components/loadError';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
-import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getStatus, getTitle, getType, getCollectionName } from '../../../helpers/item';
+import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getStatus, getTitle, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { cancelHold, cancelHolds, cancelVdxRequest, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/accountActions';
@@ -289,9 +289,10 @@ export const MyHold = (props) => {
                          <VStack>
                               {getTitle(hold.title)}
                               {getBadge(hold.status, hold.frozen, hold.available, hold.source, hold.statusMessage ?? '')}
+                              {getVolume(hold.volume)}
                               {getAuthor(hold.author)}
                               {getFormat(hold.format)}
-							 {getCollectionName(hold.source, hold.collectionName ?? null)}
+                              {getCollectionName(hold.source, hold.collectionName ?? null)}
                               {getType(hold.type)}
                               {getOnHoldFor(hold.user)}
                               {getPickupLocation(hold.currentPickupName, hold.source)}
