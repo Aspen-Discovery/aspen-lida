@@ -113,7 +113,7 @@
   },
   "private": true,
   "name": "aspen-lida",
-  "version": "25.01.00",
+  "version": "25.02.00",
   "repository": "https://github.com/Aspen-Discovery/aspen-lida",
   "author": "Aspen Discovery Community",
   "eslintConfig": {
