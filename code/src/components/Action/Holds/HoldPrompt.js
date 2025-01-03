@@ -46,6 +46,7 @@ export const HoldPrompt = (props) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           recordSource,
+          setIllRequestResponse,
      } = props;
 
      const [userHasAlternateLibraryCard, setUserHasAlternateLibraryCard] = React.useState(props.userHasAlternateLibraryCard ?? false);
@@ -549,9 +550,9 @@ export const HoldPrompt = (props) => {
                                                             if (result.success === true || result.success === 'true') {
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', activeAccount, library.baseUrl, language] });
                                                                  queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                                 /*await refreshProfile(library.baseUrl).then((profile) => {
-                                                        updateUser(profile);
-                                                        });*/
+                                                            }else{
+                                                                 console.log("Placing hold failed");
+                                                                 console.log(result);
                                                             }
 
                                                             if (result?.confirmationNeeded && result.confirmationNeeded === true) {
@@ -582,13 +583,24 @@ export const HoldPrompt = (props) => {
                                                                  setHoldSelectItemResponse(tmp);
                                                             }
 
+                                                            //Decided to hold off on redirecting to ILL Request for failed holds for now and just show a better message
+                                                            if (result?.needsIllRequest && result.needsIllRequest === true) {
+                                                                 result.message = result.message + "\n" + "You may be able to request this title from another library using our web based catalog or by visiting the library.";
+                                                                 setResponse(result);
+                                                            }
+
                                                             setLoading(false);
                                                             setShowModal(false);
                                                             if (result?.confirmationNeeded && result.confirmationNeeded) {
                                                                  setHoldConfirmationIsOpen(true);
                                                             } else if (result?.shouldBeItemHold && result.shouldBeItemHold) {
                                                                  setHoldItemSelectIsOpen(true);
-                                                            } else {
+                                                            //Decided to hold off on redirecting to ILL Request for failed holds for now and just show a better message
+                                                            } else if (result?.needsIllRequest && result.needsIllRequest === true) {
+                                                                 console.log("Need to show local ILL form");
+                                                                 console.log("Response is:");
+                                                                 console.log(response);
+                                                            } {
                                                                  setResponseIsOpen(true);
                                                             }
                                                        }
