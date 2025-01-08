@@ -162,7 +162,7 @@ export const AddAlternateLibraryCard = (props) => {
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);
-                                        await completeAction(id, action, activeAccount, '', '', location, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                        await completeAction(id, action, activeAccount, '', '', location, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              if (result) {
                                                   if (result.success === true || result.success === 'true') {

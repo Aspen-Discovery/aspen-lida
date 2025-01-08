@@ -147,7 +147,7 @@ const SelectPickupLocation = (props) => {
                                         isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, null, null, location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {

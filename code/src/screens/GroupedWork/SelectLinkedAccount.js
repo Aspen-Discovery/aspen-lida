@@ -153,7 +153,7 @@ const SelectLinkedAccount = (props) => {
                                         isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
                                         onPress={async () => {
                                              setResponseLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowPrompt(false);
                                                   if (result) {

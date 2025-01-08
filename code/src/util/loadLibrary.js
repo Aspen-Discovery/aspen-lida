@@ -218,6 +218,48 @@ export async function getPickupLocations(url = null) {
      }
 }
 
+export async function getPickupSublocations(url = null) {
+     //console.log("In getPickupSublocations");
+     let baseUrl = url ?? LIBRARY.url;
+     const postBody = await postData();
+     const api = create({
+          baseURL: baseUrl + '/API',
+          timeout: GLOBALS.timeoutAverage,
+          headers: getHeaders(true),
+          auth: createAuthTokens()
+     });
+     const response = await api.post('/UserAPI?method=getValidSublocations', postBody);
+
+     if (response.ok) {
+          //console.log("getValidSublocations response");
+          //console.log(response.data);
+          if (response.data.result.success) {
+               //console.log("All valid sublocations are");
+               //console.log(response.data);
+
+               const data = response.data.result.sublocations;
+
+               if (_.isObject(data) || _.isArray(data)) {
+                    sublocations = data;
+               }else{
+                    sublocations = [];
+               }
+
+               PATRON.sublocations = sublocations;
+               return sublocations;
+          }else{
+               console.log("Call to get sublocations did not succeed");
+               console.log(response);
+          }
+     } else {
+          console.log("Call to get sublocations failed");
+          console.log(response);
+     }
+     sublocations = [];
+     PATRON.sublocations = sublocations;
+     return sublocations;
+}
+
 /**
  * Fetch active browse categories for the branch/location
  **/

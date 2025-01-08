@@ -15,6 +15,7 @@ import { formatDiscoveryVersion } from '../../../util/loadLibrary';
 import { checkoutItem } from '../../../util/recordActions';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
+import { PATRON } from '../../../util/loadPatron';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -24,6 +25,7 @@ export const MyHold = (props) => {
      //console.log(hold);
      const resetGroup = props.resetGroup;
      const pickupLocations = props.pickupLocations;
+     const sublocations = PATRON.sublocations;
      const section = props.section;
      const { isOpen, onOpen, onClose } = useDisclose();
      const { user } = React.useContext(UserContext);
@@ -274,7 +276,7 @@ export const MyHold = (props) => {
 
      const createUpdatePickupLocationAction = (canUpdate, available) => {
           if (canUpdate && !available) {
-               return <SelectPickupLocation isOpen={isOpen} language={language} libraryContext={library} holdsContext={updateHolds} locations={pickupLocations} onClose={onClose} userId={hold.userId} currentPickupId={hold.pickupLocationId} holdId={hold.cancelId} resetGroup={resetGroup} />;
+               return <SelectPickupLocation isOpen={isOpen} language={language} libraryContext={library} holdsContext={updateHolds} locations={pickupLocations} sublocations={sublocations} onClose={onClose} userId={hold.userId} currentPickupId={hold.pickupLocationId} holdId={hold.cancelId} resetGroup={resetGroup} />;
           } else {
                return null;
           }

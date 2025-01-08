@@ -359,7 +359,7 @@ export const getPickupLocation = (location, source) => {
 
 export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      const { language } = React.useContext(LanguageContext);
-     console.log("Out of hold group message is " + outOfHoldGroupMessage);
+     //console.log("Out of hold group message is " + outOfHoldGroupMessage);
      if (outOfHoldGroupMessage) {
           return (
                <Text

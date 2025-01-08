@@ -7,9 +7,10 @@ import Modal from 'react-native-modal';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 import { changeHoldPickUpLocation } from '../../../util/accountActions';
+import {SelectExistingHoldSubLocation} from './SelectExistingHoldSubLocation';
 
 export const SelectPickupLocation = (props) => {
-     const { locations, onClose, currentPickupId, holdId, userId, libraryContext, holdsContext, resetGroup, language } = props;
+     const { locations, sublocations, onClose, currentPickupId, holdId, userId, libraryContext, holdsContext, resetGroup, language } = props;
      let pickupLocation = _.findIndex(locations, function (o) {
           return o.locationId === currentPickupId;
      });
@@ -29,6 +30,7 @@ export const SelectPickupLocation = (props) => {
      const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = React.useState(false);
      let [location, setLocation] = React.useState(pickupLocation);
+     let [activeSublocation, setActiveSublocation] = React.useState(null);
 
      return (
           <>
@@ -97,7 +99,7 @@ export const SelectPickupLocation = (props) => {
                                         />
                                    </Pressable>
                               </HStack>
-                              <Box p={4} _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
+                              <Box pl={4} pr={4} _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
                                    <FormControl>
                                         <FormControl.Label>{getTermFromDictionary(language, 'select_new_pickup')}</FormControl.Label>
                                         <Select
@@ -125,6 +127,7 @@ export const SelectPickupLocation = (props) => {
                                         </Select>
                                    </FormControl>
                               </Box>
+                              <SelectExistingHoldSubLocation location={location} sublocations={sublocations} language={language} activeSublocation={activeSublocation} setActiveSublocation={setActiveSublocation}/>
                               <Button.Group
                                    p={4}
                                    flexDirection="row"
@@ -149,7 +152,7 @@ export const SelectPickupLocation = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);
-                                             changeHoldPickUpLocation(holdId, location, libraryContext.baseUrl, userId, language).then((r) => {
+                                             changeHoldPickUpLocation(holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
                                                   setShowModal(false);
                                                   resetGroup();
                                                   onClose(onClose);

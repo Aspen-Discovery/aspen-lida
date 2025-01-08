@@ -36,6 +36,7 @@ export const PATRON = {
      holds: [],
      lists: [],
      browseCategories: [],
+     sublocations: [],
 };
 
 export async function getILSMessages(url) {
@@ -87,6 +88,8 @@ export async function reloadHolds(url) {
      if (response.ok) {
           //console.log(response.data);
           const allHolds = response.data.result.holds;
+          //console.log("Get Holds Response in loadPatron.js");
+          //console.log(response);
           let holds;
           let holdsReady = [];
           let holdsNotReady = [];

@@ -68,6 +68,7 @@ const SelectVolumeHold = (props) => {
      //console.log(pickupLocation);
 
      const [location, setLocation] = React.useState(pickupLocation);
+     const [sublocation, setSublocation] = React.useState(null);
 
      return (
           <>
@@ -199,7 +200,7 @@ const SelectVolumeHold = (props) => {
                                         isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(id, action, activeAccount, '', '', location, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {

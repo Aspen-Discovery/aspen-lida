@@ -171,7 +171,7 @@ export const CheckOut = (props) => {
                                              onPress={async () => {
                                                   setLoading(true);
                                                   await updateCard();
-                                                  await completeAction(record, type, user.id, null, null, null, library.baseUrl).then(async (eContentResponse) => {
+                                                  await completeAction(record, type, user.id, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
                                                        setResponse(eContentResponse);
                                                        if (eContentResponse.success) {
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
@@ -200,7 +200,7 @@ export const CheckOut = (props) => {
                          variant="solid"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(record, type, user.id, null, null, null, library.baseUrl).then(async (eContentResponse) => {
+                              await completeAction(record, type, user.id, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
                                    setResponse(eContentResponse);
                                    if (eContentResponse.success) {
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });

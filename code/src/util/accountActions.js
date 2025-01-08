@@ -654,22 +654,26 @@ export async function cancelHolds(data, url, language = 'en') {
      popAlert(getTermFromDictionary(language, 'holds_cancelled'), message, status);
 }
 
-export async function changeHoldPickUpLocation(holdId, newLocation, url = null, userId, language = 'en') {
+export async function changeHoldPickUpLocation(holdId, newLocation, newSublocation, url = null, userId, language = 'en') {
      let baseUrl = url ?? LIBRARY.url;
      const postBody = await postData();
+     const params = {
+          sessionId: GLOBALS.appSessionId,
+          holdId,
+          newLocation,
+          newSublocation,
+          userId,
+     };
      const api = create({
           baseURL: baseUrl + '/API',
           timeout: GLOBALS.timeoutFast,
           headers: getHeaders(true),
           auth: createAuthTokens(),
-          params: {
-               sessionId: GLOBALS.appSessionId,
-               holdId,
-               newLocation,
-               userId,
-          },
+          params: params,
      });
      const response = await api.post('/UserAPI?method=changeHoldPickUpLocation', postBody);
+     //console.log("Changing hold pickup location");
+     //console.log(params);
 
      if (response.ok) {
           const fetchedData = response.data;

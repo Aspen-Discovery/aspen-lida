@@ -14,6 +14,8 @@ import { getCopies } from '../../../util/api/item';
 import { HoldNotificationPreferences } from './HoldNotificationPreferences';
 import { SelectItemHold } from './SelectItem';
 import { SelectVolume } from './SelectVolume';
+import { SelectNewHoldSublocation } from './SelectNewHoldSublocation';
+import { PATRON } from '../../../util/loadPatron';
 
 export const HoldPrompt = (props) => {
      const queryClient = useQueryClient();
@@ -259,6 +261,7 @@ export const HoldPrompt = (props) => {
      // console.log(pickupLocation);
 
      const [location, setLocation] = React.useState(pickupLocation);
+     const [sublocation, setSublocation] = React.useState(null);
 
      const { width } = useWindowDimensions();
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
@@ -348,7 +351,7 @@ export const HoldPrompt = (props) => {
                                         onPress={async () => {
                                              setLoading(true);
                                              await updateCard();
-                                             await completeAction(id, action, activeAccount, '', '', location, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                   setResponse(result);
                                                   if (result) {
                                                        if (result.success === true || result.success === 'true') {
@@ -455,7 +458,7 @@ export const HoldPrompt = (props) => {
                                                   {getTermFromDictionary(language, 'select_pickup_location')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Select name="pickupLocations" selectedValue={location} minWidth={200} mt="$1" mb="$2" onValueChange={(itemValue) => setLocation(itemValue)}>
+                                        <Select name="pickupLocations" selectedValue={location} minWidth={200} mt="$1" mb="$2" onValueChange={(itemValue) => setLocation(library.baseUrl, itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
                                                   {locations.map((selectedLocation, index) => {
                                                        if (selectedLocation.code === location) {
@@ -483,6 +486,7 @@ export const HoldPrompt = (props) => {
                                         </Select>
                                    </FormControl>
                               ) : null}
+                              <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} />
                               {_.isArray(accounts) && _.size(accounts) > 0 ? (
                                    <FormControl>
                                         <FormControlLabel>
@@ -543,7 +547,7 @@ export const HoldPrompt = (props) => {
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
-                                                  await completeAction(id, action, activeAccount, '', '', location, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
                                                        if (result) {
                                                             if (result.success === true || result.success === 'true') {

@@ -9,7 +9,8 @@ import { GLOBALS } from './globals';
 import { getTermFromDictionary } from '../translations/TranslationService';
 
 // complete the action on the item, i.e. checkout, hold, or view sample
-export async function completeAction(id, actionType, patronId, formatId = '', sampleNumber = '', pickupBranch = '', url, volumeId = '', holdType = '', holdNotificationPreferences, variationId = '', bibId = '') {
+export async function completeAction(id, actionType, patronId, formatId = '', sampleNumber = '', pickupBranch = '', sublocation = '', url, volumeId = '', holdType = '', holdNotificationPreferences, variationId = '', bibId = '') {
+     console.log("Completing action " + actionType);
      const recordId = id.split(':');
      const source = recordId[0];
      let itemId = recordId[1];
@@ -30,7 +31,7 @@ export async function completeAction(id, actionType, patronId, formatId = '', sa
           return await checkoutItem(url, itemId, source, patronId);
      } else if (actionType.includes('hold')) {
           if (volumeId) {
-               return await placeHold(url, itemId, source, patronId, pickupBranch, volumeId, holdType, id, holdNotificationPreferences);
+               return await placeHold(url, itemId, source, patronId, pickupBranch, sublocation, volumeId, holdType, id, holdNotificationPreferences);
           } else if (_.isObject(patronProfile)) {
                if (!patronProfile.overdriveEmail && patronProfile.promptForOverdriveEmail === 1 && source === 'overdrive') {
                     const getPromptForOverdriveEmail = [];
@@ -43,7 +44,7 @@ export async function completeAction(id, actionType, patronId, formatId = '', sa
                     return getPromptForOverdriveEmail;
                }
           } else {
-               return await placeHold(url, itemId, source, patronId, pickupBranch, volumeId, holdType, id, holdNotificationPreferences, variationId);
+               return await placeHold(url, itemId, source, patronId, pickupBranch, sublocation, volumeId, holdType, id, holdNotificationPreferences, variationId);
           }
      } else if (actionType.includes('sample')) {
           return await overDriveSample(url, formatId, itemId, sampleNumber);
@@ -118,7 +119,7 @@ export async function checkoutItem(url, itemId, source, patronId, barcode = '', 
  * @param {string} variationId
  * @param {string} bibId
  **/
-export async function placeHold(url, itemId, source, patronId, pickupBranch, volumeId = '', holdType = '', recordId = '', holdNotificationPreferences = null, variationId = null, bibId = null) {
+export async function placeHold(url, itemId, source, patronId, pickupBranch, sublocation = '', volumeId = '', holdType = '', recordId = '', holdNotificationPreferences = null, variationId = null, bibId = null) {
      let id = itemId;
      if (variationId) {
           id = variationId;
@@ -134,7 +135,9 @@ export async function placeHold(url, itemId, source, patronId, pickupBranch, vol
           itemSource: source,
           userId: patronId,
           pickupBranch,
+          pickupSublocation: sublocation,
           volumeId: volumeId ?? '',
+          sublocation: sublocation,
           holdType,
           recordId,
           bibId,
@@ -181,8 +184,11 @@ export async function placeHold(url, itemId, source, patronId, pickupBranch, vol
           auth: createAuthTokens(),
           params: setParams,
      });
+     //console.log("Placing Hold");
+     //console.log(setParams);
      const response = await api.post('/UserAPI?method=placeHold', postBody);
      if (response.ok) {
+          //console.log(response.data.result);
           return response.data.result;
      } else {
           popToast(getTermFromDictionary('en', 'error_no_server_connection'), getTermFromDictionary('en', 'error_no_library_connection'), 'error');

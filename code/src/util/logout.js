@@ -58,6 +58,7 @@ export async function RemoveData() {
      PATRON.promptForOverdriveEmail = 1;
      PATRON.rememberHoldPickupLocation = 0;
      PATRON.pickupLocations = [];
+     PATRON.sublocations = [];
      PATRON.language = 'en';
      PATRON.coords.lat = 0;
      PATRON.coords.long = 0;

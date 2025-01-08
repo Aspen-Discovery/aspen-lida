@@ -25,6 +25,8 @@ export const UserContext = React.createContext({
      language: [],
      updatePickupLocations: () => {},
      locations: [],
+     updateSublocations: () => {},
+     sublocations: [],
      readingHistory: [],
      updateReadingHistory: () => {},
      savedEvents: [],
@@ -381,6 +383,7 @@ export const UserProvider = ({ children }) => {
      const [seenNotificationOnboardPrompt, setSeenNotificationOnboardPrompt] = useState(true);
      const [notificationHistory, setNotificationHistory] = useState([]);
      const [inbox, setInbox] = useState([]);
+     const [sublocations, setSublocations] = useState([]);
 
      const updateUser = (data) => {
           if (user !== data) {
@@ -435,6 +438,11 @@ export const UserProvider = ({ children }) => {
      const updatePickupLocations = (data) => {
           setPickupLocations(data);
           console.log('updated pickup locations in UserContext');
+     };
+
+     const updateSublocations = (data) => {
+          setSublocations(data);
+          console.log('updated sublocations in UserContext');
      };
 
      const updateReadingHistory = (data) => {
@@ -638,6 +646,8 @@ export const UserProvider = ({ children }) => {
                     updateNotificationHistory,
                     inbox,
                     updateInbox,
+                    sublocations,
+                    updateSublocations
                }}>
                {children}
           </UserContext.Provider>

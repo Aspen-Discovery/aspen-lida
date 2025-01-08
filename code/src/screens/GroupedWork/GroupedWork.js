@@ -20,7 +20,7 @@ import { getFirstRecord, getVariations } from '../../util/api/item';
 import { getLinkedAccounts } from '../../util/api/user';
 import { getGroupedWork } from '../../util/api/work';
 import { decodeHTML, urldecode } from '../../util/apiAuth';
-import { getPickupLocations } from '../../util/loadLibrary';
+import { getPickupLocations, getPickupSublocations } from '../../util/loadLibrary';
 import AddToList from '../Search/AddToList';
 import Variations from './Variations';
 
@@ -30,7 +30,7 @@ export const GroupedWorkScreen = () => {
      const route = useRoute();
      const queryClient = useQueryClient();
      const id = route.params.id;
-     const { user, locations, accounts, cards, updatePickupLocations, updateLinkedAccounts, updateLibraryCards } = React.useContext(UserContext);
+     const { user, locations, sublocations, accounts, cards, updatePickupLocations, updateSublocations, updateLinkedAccounts, updateLibraryCards } = React.useContext(UserContext);
      const { language, updateGroupedWork, updateFormat } = React.useContext(GroupedWorkContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language: userLanguage } = React.useContext(LanguageContext);
@@ -57,6 +57,11 @@ export const GroupedWorkScreen = () => {
                          await getPickupLocations(library.baseUrl).then((result) => {
                               if (locations !== result) {
                                    updatePickupLocations(result);
+                              }
+                         });
+                         await getPickupSublocations(library.baseUrl).then((result) => {
+                              if (sublocations !== result) {
+                                   updateSublocations(result);
                               }
                          });
                     }

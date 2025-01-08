@@ -24,7 +24,7 @@ export const LoadOverDriveSample = (props) => {
                borderColor={theme['colors']['primary']['500']}
                onPress={() => {
                     setLoading(true);
-                    completeAction(props.id, props.type, user.id, props.formatId, props.sampleNumber, '', library.baseUrl, '', '', '', '').then((r) => {
+                    completeAction(props.id, props.type, user.id, props.formatId, props.sampleNumber, '', null, library.baseUrl, '', '', '', '').then((r) => {
                          setLoading(false);
                     });
                }}>

@@ -122,7 +122,7 @@ export const PlaceHold = (props) => {
                          maxWidth="100%"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(record, type, user.id, null, null, pickupLocation, library.baseUrl, null, 'default').then(async (ilsResponse) => {
+                              await completeAction(record, type, user.id, null, null, pickupLocation, sublocation, library.baseUrl, null, 'default').then(async (ilsResponse) => {
                                    setResponse(ilsResponse);
                                    if (ilsResponse?.confirmationNeeded && ilsResponse.confirmationNeeded) {
                                         setHoldConfirmationResponse({

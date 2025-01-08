@@ -16,7 +16,7 @@ const endpoint = ENDPOINT.user;
  * @param {string} userId
  * @param {string} url
  **/
-export async function placeHold(itemId, source, pickupBranch, userId, url) {
+export async function placeHold(itemId, source, pickupBranch, sublocation, userId, url) {
 
 }
 
@@ -27,7 +27,7 @@ export async function placeHold(itemId, source, pickupBranch, userId, url) {
  * @param {string} userId
  * @param {string} url
  **/
-export async function placeItemHold(recordId, pickupBranch, userId, url) {
+export async function placeItemHold(recordId, pickupBranch, sublocation, userId, url) {
 	const postBody = await postData();
 	const discovery = create({
 		baseURL: url,
@@ -38,6 +38,7 @@ export async function placeItemHold(recordId, pickupBranch, userId, url) {
 			itemSource: source,
 			userId,
 			pickupBranch,
+			sublocation,
 			holdType: 'item',
 			recordId,
 		},
@@ -58,7 +59,7 @@ export async function placeItemHold(recordId, pickupBranch, userId, url) {
  * @param {string} userId
  * @param {string} url
  **/
-export async function placeVolumeHold(recordId, volumeId, pickupBranch, userId, url) {
+export async function placeVolumeHold(recordId, volumeId, pickupBranch, sublocation, userId, url) {
 	const postBody = await postData();
 	const discovery = create({
 		baseURL: url,
@@ -69,6 +70,7 @@ export async function placeVolumeHold(recordId, volumeId, pickupBranch, userId, 
 			itemSource: source,
 			userId,
 			pickupBranch,
+			sublocation,
 			holdType: 'volume',
 			volumeId,
 		},

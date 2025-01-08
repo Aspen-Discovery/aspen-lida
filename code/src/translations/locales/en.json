@@ -244,7 +244,8 @@
     "change_pickup_location": "Change Pickup Location",
     "change_hold_location": "Change Hold Location",
     "select_new_pickup": "Select a new location to pickup your hold",
-    "select_pickup_location": "Select a Pickup Location"
+    "select_pickup_location": "Select a Pickup Location",
+    "select_pickup_area": "Select a Pickup Area"
   },
   "overdrive": {
     "email_field": "Enter an email to be notified when the title is ready for you",
