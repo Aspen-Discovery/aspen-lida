@@ -1,6 +1,6 @@
-import * as WebBrowser from 'expo-web-browser';
 import { Box, Center, FlatList, HStack, Pressable, Text } from 'native-base';
 import React from 'react';
+import { Linking } from 'react-native';
 
 // custom components and helper files
 import { GLOBALS } from '../../util/globals';
@@ -30,7 +30,7 @@ export const MoreScreen = () => {
      ];
 
      const openWebsite = async (url) => {
-          WebBrowser.openBrowserAsync(url);
+          Linking.openURL(url);
      };
 
      const onPressMenuItem = (item) => {
