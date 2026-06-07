@@ -13,10 +13,8 @@ function formatDate(ms) {
      }
 }
 
-export const APIErrorLog = () => {
+export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textColor: textColorProp } = {}) => {
      const [loading, setLoading] = React.useState(false);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const [page, setPage] = React.useState(1);
      const [rows, setRows] = React.useState([]);
      const [meta, setMeta] = React.useState({
@@ -25,6 +23,14 @@ export const APIErrorLog = () => {
           hasMore: false,
           hasPrevious: false,
      });
+
+     const languageCtx = React.useContext(LanguageContext) ?? {};
+     const language = languageCtx.language ?? 'en';
+
+     const themeCtx = React.useContext(ThemeContext) ?? {};
+     const theme = themeProp ?? themeCtx.theme ?? {};
+     const colorMode = colorModeProp ?? themeCtx.colorMode ?? 'light';
+     const textColor = textColorProp ?? themeCtx.textColor ?? '#111827';
 
      const loadPage = React.useCallback(async (nextPage = 1) => {
           setLoading(true);

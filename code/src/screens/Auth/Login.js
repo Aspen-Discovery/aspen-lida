@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import { Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView } from '@gluestack-ui/themed';
+import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
@@ -26,6 +26,7 @@ import { SelfRegistration } from './SelfRegistration';
 import { SplashScreen } from './Splash';
 import { createGlueTheme } from '../../themes/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust path if your file differs
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
@@ -54,6 +55,10 @@ export const LoginScreen = () => {
      const [enableSelfRegistration, setEnableSelfRegistration] = React.useState(false);
      const [selfRegistrationFields, setSelfRegistrationFields] = React.useState([]);
      const [selfRegistrationURL, setSelfRegistrationURL] = React.useState("");
+     const [showApiErrorButton, setShowApiErrorButton] = React.useState(false);
+     const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
+     const logoTapCountRef = React.useRef(0);
+     const logoTapTimerRef = React.useRef(null);
      const { updateLibrary } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
@@ -125,6 +130,35 @@ export const LoginScreen = () => {
                });
           }, [])
      );
+
+     const onLogoTap = () => {
+          const TAP_WINDOW_MS = 1500; // 5 taps must happen within this window
+
+          logoTapCountRef.current += 1;
+
+          if (logoTapTimerRef.current) {
+               clearTimeout(logoTapTimerRef.current);
+          }
+
+          logoTapTimerRef.current = setTimeout(() => {
+               logoTapCountRef.current = 0;
+          }, TAP_WINDOW_MS);
+
+          if (logoTapCountRef.current >= 5) {
+               setShowApiErrorButton(true);
+               logoTapCountRef.current = 0;
+               clearTimeout(logoTapTimerRef.current);
+               logoTapTimerRef.current = null;
+          }
+     };
+
+     React.useEffect(() => {
+          return () => {
+               if (logoTapTimerRef.current) {
+                    clearTimeout(logoTapTimerRef.current);
+               }
+          };
+     }, []);
 
      const updateSelectedLibrary = async (data) => {
           logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
@@ -209,7 +243,9 @@ export const LoginScreen = () => {
 
      return (
           <Box flex={1} alignItems="center" justifyContent="center" pl="$5" pr="$5" mb={insets.top} mt={insets.bottom} ml={insets.left} mr={insets.right}>
-               <Image source={{ uri: logoImage }} rounded={25} size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
+               <Pressable onPress={onLogoTap}>
+                    <Image source={{ uri: logoImage }} rounded={25} size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
+               </Pressable>
                {isCommunity || shouldShowSelectLibrary ? <SelectYourLibrary updateSelectedLibrary={updateSelectedLibrary} selectedLibrary={selectedLibrary} query={query} setQuery={setQuery} showModal={showModal} setShowModal={setShowModal} isCommunity={isCommunity} setShouldRequestPermissions={setShouldRequestPermissions} shouldRequestPermissions={shouldRequestPermissions} permissionRequested={permissionRequested} libraries={libraries} allLibraries={allLibraries} /> : null}
                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} width="100%">
                     {selectedLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} /> : null}
@@ -232,8 +268,27 @@ export const LoginScreen = () => {
                          <Text mt="$5" fontSize="$xs" color={textColor}>
                               {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel ?? 'Development'}]
                          </Text>
+                         {showApiErrorButton ? (
+                              <Button mt="$4" size="xs" variant="outline" onPress={() => setShowApiErrorModal(true)}>
+                                   <ButtonText>Open API Error Log</ButtonText>
+                              </Button>
+                         ) : null}
                     </Center>
                </KeyboardAvoidingView>
+               <Modal isOpen={showApiErrorModal} onClose={() => setShowApiErrorModal(false)}>
+                    <ModalBackdrop />
+                    <ModalContent maxHeight="75%" width="95%" alignSelf="center" borderRadius="$lg">
+                         <ModalHeader></ModalHeader>
+                         <ModalBody px="$4">
+                              <APIErrorLog theme={theme} colorMode={colorMode} textColor={textColor} />
+                         </ModalBody>
+                         <ModalFooter pb={Math.max(insets.bottom, 8)} pt="$2" px="$4">
+                              <Button variant="outline" onPress={() => setShowApiErrorModal(false)}>
+                                   <ButtonText>Close</ButtonText>
+                              </Button>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Box>
      );
 };
