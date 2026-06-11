@@ -237,7 +237,7 @@ export async function getTranslatedTerm(language, url) {
           translationsLibrary = _.merge(translationsLibrary, obj);
           logDebugMessage('getTranslatedTerm failed');
           logDebugMessage(response);
-          getErrorMessage(response.code, response.problem);
+          getErrorMessage({statusCode:response.code, problem:response.problem});
      }
 }
 
