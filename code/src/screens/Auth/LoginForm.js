@@ -68,7 +68,7 @@ export const GetLoginForm = (props) => {
           const loadDefaultUsername = async () => {
                try {
                     const defaultUsername = await SecureStore.getItemAsync('defaultUsername');
-                    if (barcode) 
+                    if (barcode)
                     {
                          setUsername(barcode);
                     }
@@ -201,7 +201,7 @@ export const GetLoginForm = (props) => {
           await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
           const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
 
-          if (PATRON.homeLocationId && !GLOBALS.slug.includes('aspen-lida') && autoPickUserHomeLocation === 1) {
+          if (PATRON.homeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
                logDebugMessage('User has a home location set (' + PATRON.homeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
                await getLocationInfo(LIBRARY.url, PATRON.homeLocationId).then(async (response) => {
                     const patronHomeLocation = response.data.result.location;

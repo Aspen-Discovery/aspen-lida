@@ -1,8 +1,7 @@
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, AlertDialogBackdrop, Badge, BadgeText, FlatList, Heading, Select, VStack, Button, ButtonGroup, ButtonIcon, ButtonText, Box, Center, HStack, Text, SafeAreaView, ScrollView, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, SelectScrollView, ChevronDownIcon } from '@gluestack-ui/themed';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, AlertDialogBackdrop, Badge, BadgeText, Heading, Select, VStack, Button, ButtonGroup, ButtonIcon, ButtonText, Box, Center, HStack, Text, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, SelectScrollView, ChevronDownIcon } from '@gluestack-ui/themed';
 import { MapPinIcon } from 'lucide-react-native';
 import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,52 +14,52 @@ import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext, User
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { placeHold, confirmHold, refreshProfile } from '../../util/api/user';
-import { getFirstRecord, getRecords, getVariations } from '../../util/api/item';
+import { getVariations } from '../../util/api/item';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 
 export const Variations = (props) => {
+     // 1. Hooks (Plural Variations)
      const queryClient = useQueryClient();
      const route = useRoute();
-     const id = route.params.id;
-     const prevRoute = route.params.prevRoute;
-     const format = props.format;
+     const insets = useSafeAreaInsets();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { updateUser } = React.useContext(UserContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-     const insets = useSafeAreaInsets();
+
      const [isLoading, setLoading] = React.useState(false);
      const [confirmingHold, setConfirmingHold] = React.useState(false);
      const [responseIsOpen, setResponseIsOpen] = React.useState(false);
-     const onResponseClose = () => setResponseIsOpen(false);
-     const cancelResponseRef = React.useRef(null);
      const [response, setResponse] = React.useState('');
      const [holdConfirmationIsOpen, setHoldConfirmationIsOpen] = React.useState(false);
-     const onHoldConfirmationClose = () => setHoldConfirmationIsOpen(false);
-     const cancelHoldConfirmationRef = React.useRef(null);
      const [holdConfirmationResponse, setHoldConfirmationResponse] = React.useState('');
-
      const [holdItemSelectIsOpen, setHoldItemSelectIsOpen] = React.useState(false);
-     const onHoldItemSelectClose = () => setHoldItemSelectIsOpen(false);
-     const cancelHoldItemSelectRef = React.useRef(null);
      const [holdSelectItemResponse, setHoldSelectItemResponse] = React.useState('');
      const [placingItemHold, setPlacingItemHold] = React.useState(false);
      const [selectedItem, setSelectedItem] = React.useState('');
 
-     const { data: record } = useQuery({
-          queryKey: ['recordId', id, format, language, library.baseUrl],
-          queryFn: () => getFirstRecord(id, format, language, library.baseUrl),
-     });
-     const recordId = record;
+     const cancelResponseRef = React.useRef(null);
+     const cancelHoldConfirmationRef = React.useRef(null);
+     const cancelHoldItemSelectRef = React.useRef(null);
+
+     const id = route.params.id;
+     const prevRoute = route.params.prevRoute;
+     const format = props.format;
+
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['variation', id, format, language, library.baseUrl],
-          queryFn: () => getVariations(id, format, language, library.baseUrl),
-          enabled: !!recordId,
+          queryFn: () => getVariations(id, format, language, library.baseUrl, props.data.formats[format]),
+          enabled: !!id && !!format && !!props.data?.formats?.[format],
      });
+
+     // 2. Helper Functions
+     const onResponseClose = () => setResponseIsOpen(false);
+     const onHoldConfirmationClose = () => setHoldConfirmationIsOpen(false);
+     const onHoldItemSelectClose = () => setHoldItemSelectIsOpen(false);
 
      const handleNavigation = (action) => {
           if (prevRoute === 'DiscoveryScreen' || prevRoute === 'SearchResults' || prevRoute === 'HomeScreen') {
@@ -86,6 +85,9 @@ export const Variations = (props) => {
           return stripHTML(string);
      };
 
+     // 3. Render
+     const variations = data?.variations ? (Array.isArray(data.variations) ? data.variations : Object.values(data.variations)) : [];
+
      return (
           <>
                {isLoading || status === 'loading' || isFetching ? (
@@ -94,36 +96,42 @@ export const Variations = (props) => {
                     <Box padding="$5">{loadError(error, '')}</Box>
                ) : (
                     <>
-                         <FlatList
-                              data={Object.keys(data.variations)}
-                              renderItem={({ item }) => (
-                                   <Variation
-                                        records={data.variations[item]}
-                                        format={format}
-                                        volumeInfo={data.volumeInfo}
-                                        id={id}
-                                        prevRoute={prevRoute}
-                                        setResponseIsOpen={setResponseIsOpen}
-                                        responseIsOpen={responseIsOpen}
-                                        onResponseClose={onResponseClose}
-                                        cancelResponseRef={cancelResponseRef}
-                                        response={response}
-                                        setResponse={setResponse}
-                                        setHoldConfirmationIsOpen={setHoldConfirmationIsOpen}
-                                        holdConfirmationIsOpen={holdConfirmationIsOpen}
-                                        onHoldConfirmationClose={onHoldConfirmationClose}
-                                        cancelHoldConfirmationRef={cancelHoldConfirmationRef}
-                                        holdConfirmationResponse={holdConfirmationResponse}
-                                        setHoldConfirmationResponse={setHoldConfirmationResponse}
-                                        setHoldItemSelectIsOpen={setHoldItemSelectIsOpen}
-                                        holdItemSelectIsOpen={holdItemSelectIsOpen}
-                                        onHoldItemSelectClose={onHoldItemSelectClose}
-                                        cancelHoldItemSelectRef={cancelHoldItemSelectRef}
-                                        holdSelectItemResponse={holdSelectItemResponse}
-                                        setHoldSelectItemResponse={setHoldSelectItemResponse}
-                                   />
+                         <VStack space="md">
+                              {variations.length > 0 ? (
+                                   variations.map((item, index) => (
+                                        <Variation
+                                             key={item.variationId || index.toString()}
+                                             records={item}
+                                             format={format}
+                                             volumeInfo={data.volumeInfo}
+                                             id={id}
+                                             prevRoute={prevRoute}
+                                             setResponseIsOpen={setResponseIsOpen}
+                                             responseIsOpen={responseIsOpen}
+                                             onResponseClose={onResponseClose}
+                                             cancelResponseRef={cancelResponseRef}
+                                             response={response}
+                                             setResponse={setResponse}
+                                             setHoldConfirmationIsOpen={setHoldConfirmationIsOpen}
+                                             holdConfirmationIsOpen={holdConfirmationIsOpen}
+                                             onHoldConfirmationClose={onHoldConfirmationClose}
+                                             cancelHoldConfirmationRef={cancelHoldConfirmationRef}
+                                             holdConfirmationResponse={holdConfirmationResponse}
+                                             setHoldConfirmationResponse={setHoldConfirmationResponse}
+                                             setHoldItemSelectIsOpen={setHoldItemSelectIsOpen}
+                                             holdItemSelectIsOpen={holdItemSelectIsOpen}
+                                             onHoldItemSelectClose={onHoldItemSelectClose}
+                                             cancelHoldItemSelectRef={cancelHoldItemSelectRef}
+                                             holdSelectItemResponse={holdSelectItemResponse}
+                                             setHoldSelectItemResponse={setHoldSelectItemResponse}
+                                        />
+                                   ))
+                              ) : (
+                                   <Center p="$5">
+                                        <Text color={textColor} textAlign="center">The library does not own any copies of this title</Text>
+                                   </Center>
                               )}
-                         />
+                         </VStack>
                          <Center>
                               <AlertDialog leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose}>
                                    <AlertDialogBackdrop />
@@ -223,7 +231,7 @@ export const Variations = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      {_.map(holdSelectItemResponse.items, function (item, index, array) {
+                                                                      {(holdSelectItemResponse.items || []).map((item, index) => {
                                                                            let itemLabel = "";
                                                                            if (item.location) {
                                                                                 itemLabel = item.location + " - ";
@@ -276,16 +284,41 @@ export const Variations = (props) => {
      );
 };
 
-const Variation = (payload) => {
+const Variation = (props) => {
+     // 1. Hooks (Singular Variation)
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
-     const { id, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef, prevRoute, format, volumeInfo, holdConfirmationResponse, setHoldConfirmationResponse, holdConfirmationIsOpen, setHoldConfirmationIsOpen, onHoldConfirmationClose, cancelHoldConfirmationRef, holdSelectItemResponse, setHoldSelectItemResponse, holdItemSelectIsOpen, setHoldItemSelectIsOpen, onHoldItemSelectClose, cancelHoldItemSelectRef } = payload;
-     const variation = payload.records;
-     const actions = variation.actions;
-     //logDebugMessage("Actions for variation:");
-     //logDebugMessage(actions);
+
+     // 2. Props Destructuring
+     const {
+          id,
+          format,
+          volumeInfo,
+          prevRoute,
+          setResponseIsOpen,
+          responseIsOpen,
+          onResponseClose,
+          cancelResponseRef,
+          response,
+          setResponse,
+          setHoldConfirmationIsOpen,
+          holdConfirmationIsOpen,
+          onHoldConfirmationClose,
+          cancelHoldConfirmationRef,
+          holdConfirmationResponse,
+          setHoldConfirmationResponse,
+          setHoldItemSelectIsOpen,
+          holdItemSelectIsOpen,
+          onHoldItemSelectClose,
+          cancelHoldItemSelectRef,
+          holdSelectItemResponse,
+          setHoldSelectItemResponse
+     } = props;
+
+     const variation = props.records;
+     const actions = Array.isArray(variation.actions) ? variation.actions : Object.values(variation.actions || {});
      const source = variation.source;
      const status = getStatusIndicator(variation.statusIndicator, language);
      const statusIndicator = variation.statusIndicator;
@@ -330,12 +363,8 @@ const Variation = (payload) => {
           }
      }
 
-     let fullRecordId = _.split(variation.id, ':');
-     const recordId = _.toString(fullRecordId[1]);
-
-     useQuery(['records', id, source, format, language, library.baseUrl], () => getRecords(id, format, source, language, library.baseUrl), {
-          placeholderData: [],
-     });
+     let fullRecordId = (variation.id || '').split(':');
+     const recordId = String(fullRecordId[1] || '');
 
      const handleOnPress = () => {
           navigate('CopyDetails', { id: id, format: format, prevRoute: prevRoute, type: 'groupedWork', recordId: null, numHolds: statusIndicator.numHolds, source });
@@ -352,8 +381,6 @@ const Variation = (payload) => {
           });
      };
 
-     //logDebugMessage("Status Indicator");
-     //logDebugMessage(status);
      return (
           <Box mt="$5" mb="$0">
                <Center m="$1" softShadow="5" p="$3" bgColor={colorMode === 'light' ? theme['colors']['white'] : theme['colors']['coolGray']['900']} borderRadius="$md" alignSelf="center" sx={{ '@base': { width: '100%' }, '@lg': { width: '75%' } }}>
@@ -377,49 +404,47 @@ const Variation = (payload) => {
                               </Text>
                          ) : null}
                     </VStack>
-                    <ButtonGroup width="100%" direction={_.size(variation.actions) > 1 ? 'column' : 'row'}>
-                         <FlatList
-                              data={actions}
-                              renderItem={({ item }) => (
-                                   <ActionButton
-                                        language={language}
-                                        groupedWorkId={id}
-                                        recordId={recordId}
-                                        recordSource={source}
-                                        fullRecordId={variation.id}
-                                        variationId={variationId}
-                                        holdTypeForFormat={holdTypeForFormat}
-                                        title={title}
-                                        author={author}
-                                        publisher={publisher}
-                                        isbn={isbn}
-                                        oclcNumber={oclcNumber}
-                                        actions={item}
-                                        volumeInfo={volumeInfo}
-                                        prevRoute={prevRoute}
-                                        setResponseIsOpen={setResponseIsOpen}
-                                        responseIsOpen={responseIsOpen}
-                                        onResponseClose={onResponseClose}
-                                        cancelResponseRef={cancelResponseRef}
-                                        response={response}
-                                        setResponse={setResponse}
-                                        setHoldConfirmationIsOpen={setHoldConfirmationIsOpen}
-                                        holdConfirmationIsOpen={holdConfirmationIsOpen}
-                                        onHoldConfirmationClose={onHoldConfirmationClose}
-                                        cancelHoldConfirmationRef={cancelHoldConfirmationRef}
-                                        holdConfirmationResponse={holdConfirmationResponse}
-                                        setHoldConfirmationResponse={setHoldConfirmationResponse}
-                                        setHoldItemSelectIsOpen={setHoldItemSelectIsOpen}
-                                        holdItemSelectIsOpen={holdItemSelectIsOpen}
-                                        onHoldItemSelectClose={onHoldItemSelectClose}
-                                        cancelHoldItemSelectRef={cancelHoldItemSelectRef}
-                                        holdSelectItemResponse={holdSelectItemResponse}
-                                        setHoldSelectItemResponse={setHoldSelectItemResponse}
-                                        userHasAlternateLibraryCard={userHasAlternateLibraryCard}
-                                        shouldPromptAlternateLibraryCard={shouldPromptAlternateLibraryCard}
-                                   />
-                              )}
-                         />
+                    <ButtonGroup width="100%" flexDirection={actions.length > 1 ? 'column' : 'row'} space="sm">
+                         {actions.map((item, index) => (
+                              <ActionButton
+                                   key={index}
+                                   language={language}
+                                   groupedWorkId={id}
+                                   recordId={recordId}
+                                   recordSource={source}
+                                   fullRecordId={variation.id}
+                                   variationId={variationId}
+                                   holdTypeForFormat={holdTypeForFormat}
+                                   title={title}
+                                   author={author}
+                                   publisher={publisher}
+                                   isbn={isbn}
+                                   oclcNumber={oclcNumber}
+                                   actions={item}
+                                   volumeInfo={volumeInfo}
+                                   prevRoute={prevRoute}
+                                   setResponseIsOpen={setResponseIsOpen}
+                                   responseIsOpen={responseIsOpen}
+                                   onResponseClose={onResponseClose}
+                                   cancelResponseRef={cancelResponseRef}
+                                   response={response}
+                                   setResponse={setResponse}
+                                   setHoldConfirmationIsOpen={setHoldConfirmationIsOpen}
+                                   holdConfirmationIsOpen={holdConfirmationIsOpen}
+                                   onHoldConfirmationClose={onHoldConfirmationClose}
+                                   cancelHoldConfirmationRef={cancelHoldConfirmationRef}
+                                   holdConfirmationResponse={holdConfirmationResponse}
+                                   setHoldConfirmationResponse={setHoldConfirmationResponse}
+                                   setHoldItemSelectIsOpen={setHoldItemSelectIsOpen}
+                                   holdItemSelectIsOpen={holdItemSelectIsOpen}
+                                   onHoldItemSelectClose={onHoldItemSelectClose}
+                                   cancelHoldItemSelectRef={cancelHoldItemSelectRef}
+                                   holdSelectItemResponse={holdSelectItemResponse}
+                                   setHoldSelectItemResponse={setHoldSelectItemResponse}
+                                   userHasAlternateLibraryCard={userHasAlternateLibraryCard}
+                                   shouldPromptAlternateLibraryCard={shouldPromptAlternateLibraryCard}
+                              />
+                         ))}
                     </ButtonGroup>
                     <Button width="100%" mt="$2" size="xs" variant="solid" bgColor={theme['colors']['gray']['200']} onPress={handleOpenEditions}>
                          <ButtonText color={theme['colors']['gray']['900']}>{getTermFromDictionary(language, 'show_editions')}</ButtonText>

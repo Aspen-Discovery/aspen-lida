@@ -72,7 +72,7 @@ export const EventScreen = () => {
      const { status, data, error, isFetching } = useQuery(['event', id, source, language, library.baseUrl], () => getEventDetails(id, source, language, library.baseUrl), {
           onSuccess: (data) => {
                if(data.ok) {
-                    setEventData(data.data);
+                    setEventData(data.data.result);
                     setErrorMessage('');
                } else {
                     logDebugMessage("Error fetching event details");
@@ -105,8 +105,9 @@ export const EventScreen = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
+                    return null;
                });
           }
           return null;
@@ -268,7 +269,7 @@ const getAudiences = (audiences) => {
                          {getTermFromDictionary(language, 'audiences')}
                     </Text>
                     {_.map(audiences, function (item, index, array) {
-                         return <Text color={textColor}>{item}</Text>;
+                         return <Text key={index} color={textColor}>{item}</Text>;
                     })}
                </Box>
           );
@@ -287,7 +288,7 @@ const getCategories = (categories) => {
                          {getTermFromDictionary(language, 'categories')}
                     </Text>
                     {_.map(categories, function (item, index, array) {
-                         return <Text color={textColor}>{item}</Text>;
+                         return <Text key={index} color={textColor}>{item}</Text>;
                     })}
                </Box>
           );
@@ -306,7 +307,7 @@ const getProgramTypes = (programTypes) => {
                          {getTermFromDictionary(language, 'program_types')}
                     </Text>
                     {_.map(programTypes, function (item, index, array) {
-                         return <Text color={textColor}>{item}</Text>;
+                         return <Text key={index} color={textColor}>{item}</Text>;
                     })}
                </Box>
           );

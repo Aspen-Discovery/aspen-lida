@@ -64,7 +64,7 @@ export const LoginScreen = () => {
      const insets = useSafeAreaInsets();
 
      let isCommunity = true;
-     if (!_.includes(GLOBALS.slug, 'aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
+     if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
           isCommunity = false;
      }
 
@@ -89,10 +89,18 @@ export const LoginScreen = () => {
                     await fetchNearbyLibrariesFromGreenhouse().then((result) => {
                          if (result.success) {
                               setLibraries(result.libraries);
-                              setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
                               if (!result.shouldShowSelectLibrary) {
-                                   logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
-                                   updateSelectedLibrary(result.libraries[0]);
+                                   if (result.libraries.length == 1) {
+                                        setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
+                                        logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
+                                        updateSelectedLibrary(result.libraries[0]);
+                                   }else{
+                                        logInfoMessage('Found ' + result.libraries.length + ' libraries, but shouldShowSelectLibrary is false');
+                                        setShowShouldSelectLibrary(true);
+                                   }
+                              }else{
+                                   logInfoMessage('Found ' + result.libraries.length + ' libraries');
+                                   setShowShouldSelectLibrary(true);
                               }
                          }
                     });
@@ -109,7 +117,7 @@ export const LoginScreen = () => {
                          updateTheme(result);
                     });
 
-                    if (_.includes(GLOBALS.slug, 'aspen-lida') && GLOBALS.slug !== 'aspen-lida-bws') {
+                    if (isCommunity) {
                          await fetchAllLibrariesFromGreenhouse().then((response) => {
                               if(response.success) {
                                    const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
@@ -161,7 +169,11 @@ export const LoginScreen = () => {
      }, []);
 
      const updateSelectedLibrary = async (data) => {
-          logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
+          if (data) {
+               logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
+          }else{
+               logDebugMessage("No data passed to updateSelectedLibrary");
+          }
           setSelectedLibrary(data);
           LIBRARY.url = data.baseUrl; // used in some cases before library context is set
           await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {

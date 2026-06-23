@@ -572,6 +572,85 @@ export const LoadingScreen = () => {
           }
      });
 
+     React.useEffect(() => {
+          if (
+               !isReloading &&
+               notificationHistoryQueryStatus === 'success' &&
+               !hasError &&
+               catalogStatus === 0
+          ) {
+               if (hasIncomingUrlChanged) {
+                    let url = decodeURIComponent(incomingUrl).replace(/\+/g, ' ');
+                    url = url.replace('aspen-lida://', prefix);
+                    logDebugMessage('incomingUrl > ' + url);
+                    setIncomingUrlChanged(false);
+                    try {
+                         logDebugMessage('Trying to open screen based on incomingUrl...');
+                         Linking.openURL(url);
+                    } catch (e) {
+                         logErrorMessage('Error opening incoming url');
+                         logErrorMessage(e);
+                    }
+               } else if (linkingUrl) {
+                    if (linkingUrl !== prefix && linkingUrl !== incomingUrl) {
+                         setIncomingUrl(linkingUrl);
+                         logDebugMessage('Updated incoming url');
+                         const { hostname, path, queryParams, scheme } = Linking.parse(linkingUrl);
+                         logDebugMessage('linkingUrl > ' + linkingUrl);
+                         logDebugMessage(
+                              `Linked to app with hostname: ${hostname}, path: ${path}, scheme: ${scheme} and data: ${JSON.stringify(
+                                   queryParams
+                              )}`
+                         );
+                         try {
+                              if (scheme !== 'exp') {
+                                   logDebugMessage('Trying to open screen based on linkingUrl...');
+                                   const url = linkingUrl.replace('aspen-lida://', prefix);
+                                   logDebugMessage('url > ' + url);
+                                   linkTo('/' + url);
+                              } else {
+                                   if (path) {
+                                        logDebugMessage('Trying to open screen based on linkingUrl to Expo app...');
+                                        let url = '/' + path;
+                                        if (!isEmpty(queryParams)) {
+                                             const params = new URLSearchParams(queryParams);
+                                             const str = params.toString();
+                                             url = url + '?' + str + '&url=' + library.baseUrl;
+                                        }
+                                        logDebugMessage('url > ' + url);
+                                        logDebugMessage('linkingUrl > ' + linkingUrl);
+                                        linkTo('/' + url);
+                                   }
+                              }
+                         } catch (e) {
+                              logErrorMessage('Error resolving deep link');
+                              logErrorMessage(e);
+                         }
+                    }
+               }
+
+               navigation.navigate('DrawerStack', {
+                    user: user,
+                    library: library,
+                    location: location,
+                    prevRoute: 'LoadingScreen',
+               });
+          }
+     }, [
+          isReloading,
+          notificationHistoryQueryStatus,
+          hasError,
+          catalogStatus,
+          hasIncomingUrlChanged,
+          incomingUrl,
+          linkingUrl,
+          user,
+          library,
+          location,
+          navigation,
+          linkTo,
+     ]);
+
      if (hasError) {
           return <ForceLogout title={errorTitle} reason={errorMessage} />;
      }
@@ -581,101 +660,20 @@ export const LoadingScreen = () => {
           return <CatalogOffline />;
      }
 
-     if (
-          (isReloading && librarySystemQueryStatus === 'loading') ||
-          catalogStatusQueryStatus === 'loading' ||
-          userQueryStatus === 'loading' ||
-          browseCategoryQueryStatus === 'loading' ||
-          browseCategoryListQueryStatus === 'loading' ||
-          languagesQueryStatus === 'loading' ||
-          libraryBranchQueryStatus === 'loading' ||
-          linkedAccountQueryStatus === 'loading' ||
-          systemMessagesQueryStatus === 'loading' ||
-          appPreferencesQueryStatus === 'loading' ||
-          notificationHistoryQueryStatus === 'loading'
-     ) {
-          return (
-               <Center flex={1} px="$3" w="100%">
-                    <Box w="90%" maxW={400} pt={insets.top} pb={insets.bottom} pl={insets.left} pr={insets.right} >
-                         <VStack>
-                              <Heading pb="$5" color="$primary500" size="md">
-                                   {loadingText}
-                              </Heading>
-                              <Progress value={progress} w="100%" h="$3" size="lg">
-                                   <Progress.FilledTrack bg="$primary500" />
-                              </Progress>
-                         </VStack>
-                    </Box>
-               </Center>
-          );
-     }
-
-     if (
-          (!isReloading && librarySystemQueryStatus === 'success') ||
-          catalogStatusQueryStatus === 'success' ||
-          userQueryStatus === 'success' ||
-          browseCategoryQueryStatus === 'success' ||
-          browseCategoryListQueryStatus === 'success' ||
-          languagesQueryStatus === 'success' ||
-          libraryBranchQueryStatus === 'success' ||
-          linkedAccountQueryStatus === 'success' ||
-          systemMessagesQueryStatus === 'success' ||
-          appPreferencesQueryStatus === 'success' ||
-          notificationHistoryQueryStatus === 'success'
-     ) {
-          if (hasIncomingUrlChanged) {
-               let url = decodeURIComponent(incomingUrl).replace(/\+/g, ' ');
-               url = url.replace('aspen-lida://', prefix);
-               logDebugMessage('incomingUrl > ' + url);
-               setIncomingUrlChanged(false);
-               try {
-                    logDebugMessage('Trying to open screen based on incomingUrl...');
-                    Linking.openURL(url);
-               } catch (e) {
-                    logErrorMessage("Error opening incoming url");
-                    logErrorMessage(e);
-               }
-          } else if (linkingUrl) {
-               if (linkingUrl !== prefix && linkingUrl !== incomingUrl) {
-                    setIncomingUrl(linkingUrl);
-                    logDebugMessage('Updated incoming url');
-                    const { hostname, path, queryParams, scheme } = Linking.parse(linkingUrl);
-                    logDebugMessage('linkingUrl > ' + linkingUrl);
-                    logDebugMessage(`Linked to app with hostname: ${hostname}, path: ${path}, scheme: ${scheme} and data: ${JSON.stringify(queryParams)}`);
-                    try {
-                         if (scheme !== 'exp') {
-                              logDebugMessage('Trying to open screen based on linkingUrl...');
-                              const url = linkingUrl.replace('aspen-lida://', prefix);
-                              logDebugMessage('url > ' + url);
-                              linkTo('/' + url);
-                         } else {
-                              if (path) {
-                                   logDebugMessage('Trying to open screen based on linkingUrl to Expo app...');
-                                   let url = '/' + path;
-                                   if (!isEmpty(queryParams)) {
-                                        const params = new URLSearchParams(queryParams);
-                                        const str = params.toString();
-                                        url = url + '?' + str + '&url=' + library.baseUrl;
-                                   }
-                                   logDebugMessage('url > ' + url);
-                                   logDebugMessage('linkingUrl > ' + linkingUrl);
-                                   linkTo('/' + url);
-                              }
-                         }
-                    } catch (e) {
-                         logErrorMessage("Error resolving deep link");
-                         logErrorMessage(e);
-                    }
-               }
-          }
-
-          navigation.navigate('DrawerStack', {
-               user: user,
-               library: library,
-               location: location,
-               prevRoute: 'LoadingScreen',
-          });
-     }
+     return (
+          <Center flex={1} px="$3" w="100%">
+               <Box w="90%" maxW={400} pt={insets.top} pb={insets.bottom} pl={insets.left} pr={insets.right}>
+                    <VStack>
+                         <Heading pb="$5" color="$primary500" size="md">
+                              {loadingText}
+                         </Heading>
+                         <Progress value={progress} w="100%" h="$3" size="lg">
+                              <Progress.FilledTrack bg="$primary500" />
+                         </Progress>
+                    </VStack>
+               </Box>
+          </Center>
+     );
 };
 
 async function checkStoreVersion() {
