@@ -146,29 +146,6 @@ export async function getAppSettings(url, timeout, slug) {
 }
 
 /**
- * Return VDX form details
- * @param url
- * @param id
- * @returns {Promise<*>}
- */
-export async function getVdxForm(url = null, id) {
-     const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
-
-     const response = await client.post(
-          '/SystemAPI?method=getVdxForm',
-          {},
-          {
-               params: { formId: id },
-          }
-     );
-
-     if (response.ok) {
-          LIBRARY.vdx = response.data?.result;
-          return response.data?.result;
-     }
-}
-
-/**
  * Return local ILL form details
  * @param url
  * @param id

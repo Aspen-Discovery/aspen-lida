@@ -328,14 +328,6 @@ export const LibraryBranchProvider = ({ children }) => {
      const updateLocation = (data) => {
           setLocation(data);
 
-          if (!_.isUndefined(data.vdxFormId)) {
-               BRANCH.vdxFormId = data.vdxFormId;
-          }
-
-          if (!_.isUndefined(data.vdxLocation)) {
-               BRANCH.vdxLocation = data.vdxLocation;
-          }
-
           logDebugMessage('updated LibraryBranchContext');
      };
 

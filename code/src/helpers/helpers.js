@@ -71,7 +71,6 @@ export async function RemoveData(queryClient, updateUser) {
      LIBRARY.favicon = null;
      LIBRARY.version = GLOBALS.appVersion;
      LIBRARY.languages = [];
-     LIBRARY.vdx = [];
      LIBRARY.localIll = [];
      PATRON.userToken = null;
      PATRON.scope = null;

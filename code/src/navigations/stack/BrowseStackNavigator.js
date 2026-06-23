@@ -11,7 +11,6 @@ import { navigate } from '../../helpers/RootNavigator';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
-import { CreateVDXRequest } from '../../screens/GroupedWork/CreateVDXRequest';
 import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
 import { CreateLocalIllRequestEmail } from '../../screens/GroupedWork/CreateLocalIllRequestEmail';
 import { Editions } from '../../screens/GroupedWork/Editions';
@@ -70,22 +69,6 @@ const BrowseStackNavigator = () => {
                     options={({ navigation }) => ({
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
-                         presentation: 'modal',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                                   <Icon as={MaterialIcons} name="close" size="md" />
-                              </Pressable>
-                         ),
-                    })}
-               />
-               <Stack.Screen
-                    name="CreateVDXRequest"
-                    component={CreateVDXRequest}
-                    options={({ navigation }) => ({
-                         title: getTermFromDictionary(language, 'ill_request_title'),
                          presentation: 'modal',
                          headerLeft: () => {
                               return <></>;
