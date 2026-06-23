@@ -224,25 +224,6 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
      return null;
 };
 
-export const getStatus = (status, source) => {
-     const { language } = React.useContext(LanguageContext);
-     if (status) {
-          if (source === 'vdx') {
-               return (
-                    <Text
-                         fontSize={{
-                              base: 'xs',
-                              lg: 'sm',
-                         }}>
-                         <Text bold>{getTermFromDictionary(language, 'hold_status')}:</Text> {status}
-                    </Text>
-               );
-          }
-     } else {
-          return null;
-     }
-};
-
 export const getType = (type) => {
      const { language } = React.useContext(LanguageContext);
      if (type && type !== 'ils') {

@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { CheckedOutToYou } from './CheckedOutToYou';
 import { CheckOut } from './CheckOut/CheckOut';
 import { PlaceHold } from './Holds/PlaceHold';
-import { StartVDXRequest } from './Holds/VDXRequest';
 import { StartLocalIllRequest } from './Holds/LocalIllRequest';
 import { StartLocalIllRequestEmail } from './Holds/LocalIllRequestEmail';
 import { LoadOverDriveSample } from './LoadOverDriveSample';
@@ -114,34 +113,6 @@ export const ActionButton = (data) => {
                          userHasAlternateLibraryCard={userHasAlternateLibraryCard}
                          shouldPromptAlternateLibraryCard={shouldPromptAlternateLibraryCard}
                          recordSource={recordSource}
-                    />
-               );
-          } else if (action.type === 'vdx_request') {
-               return (
-                    <StartVDXRequest
-                         title={action.title}
-                         record={fullRecordId}
-                         id={groupedWorkId}
-                         workTitle={title}
-                         author={author}
-                         publisher={publisher}
-                         isbn={isbn}
-                         oclcNumber={oclcNumber}
-                         holdTypeForFormat={holdTypeForFormat}
-                         variationId={variationId}
-                         prevRoute={prevRoute}
-                         setResponseIsOpen={setResponseIsOpen}
-                         responseIsOpen={responseIsOpen}
-                         onResponseClose={onResponseClose}
-                         cancelResponseRef={cancelResponseRef}
-                         response={response}
-                         setResponse={setResponse}
-                         setHoldConfirmationIsOpen={setHoldConfirmationIsOpen}
-                         holdConfirmationIsOpen={holdConfirmationIsOpen}
-                         onHoldConfirmationClose={onHoldConfirmationClose}
-                         cancelHoldConfirmationRef={cancelHoldConfirmationRef}
-                         holdConfirmationResponse={holdConfirmationResponse}
-                         setHoldConfirmationResponse={setHoldConfirmationResponse}
                     />
                );
           } else if (action.type === 'local_ill_request') {

@@ -8,10 +8,10 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
-import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getStatus, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
+import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { cancelHold, cancelHolds, cancelVdxRequest, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/api/user';
+import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/api/user';
 import { formatPickupLocations } from '../../../util/api/userHelper';
 import { formatDiscoveryVersion } from '../../../helpers/helpers';
 import { checkoutItem, getPickupLocations } from '../../../util/api/user';
@@ -130,7 +130,7 @@ export const MyHold = (props) => {
 
      const initializeLeftColumn = () => {
           const key = 'medium_' + hold.source + '_' + hold.groupedWorkId;
-          if (hold.coverUrl && hold.source !== 'vdx') {
+          if (hold.coverUrl) {
                let url = library.baseUrl + '/bookcover.php?id=' + hold.source + ':' + hold.recordId + '&size=medium';
                if (hold.upc) {
                     url = url + '&upc=' + hold.upc;
@@ -239,50 +239,29 @@ export const MyHold = (props) => {
                     label = getTermFromDictionary(language, 'ill_cancel_request');
                }
 
-			   let record = hold.recordId;
-			   if(hold.source === 'overdrive') {
-				   record = hold.sourceId
-			   }
-
-               if (hold.source !== 'vdx') {
-                    return (
-                         <ActionsheetItem
-                              isLoading={cancelling}
-                              isLoadingText={getTermFromDictionary(language, 'canceling', true)}
-                              onPress={() => {
-                                   startCancelling(true);
-                                   cancelHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, language).then((r) => {
-                                        resetGroup();
-                                        handleClose();
-                                        startCancelling(false);
-                                   });
-                              }}>
-                              <ActionsheetIcon>
-                                   <Icon as={MaterialIcons} name="cancel" mr="$1" size="md"  color={textColor}/>
-                              </ActionsheetIcon>
-                              <ActionsheetItemText color={textColor}>{label}</ActionsheetItemText>
-                         </ActionsheetItem>
-                    );
-               } else {
-                    return (
-                         <ActionsheetItem
-                              isLoading={cancelling}
-                              isLoadingText="Cancelling..."
-                              onPress={() => {
-                                   startCancelling(true);
-                                   cancelVdxRequest(library.baseUrl, hold.sourceId, hold.cancelId, language).then((r) => {
-                                        resetGroup();
-                                        handleClose();
-                                        startCancelling(false);
-                                   });
-                              }}>
-                              <ActionsheetIcon>
-                                   <Icon as={MaterialIcons} name="cancel"  mr="$1" size="md" color={textColor} />
-                              </ActionsheetIcon>
-                              <ActionsheetItemText color={textColor}>{label}</ActionsheetItemText>
-                         </ActionsheetItem>
-                    );
+               let record = hold.recordId;
+               if(hold.source === 'overdrive') {
+                  record = hold.sourceId
                }
+
+               return (
+                    <ActionsheetItem
+                         isLoading={cancelling}
+                         isLoadingText={getTermFromDictionary(language, 'canceling', true)}
+                         onPress={() => {
+                              startCancelling(true);
+                              cancelHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, language).then((r) => {
+                                   resetGroup();
+                                   handleClose();
+                                   startCancelling(false);
+                              });
+                         }}>
+                         <ActionsheetIcon>
+                              <Icon as={MaterialIcons} name="cancel" mr="$1" size="md"  color={textColor}/>
+                         </ActionsheetIcon>
+                         <ActionsheetItemText color={textColor}>{label}</ActionsheetItemText>
+                    </ActionsheetItem>
+               );
           } else if (hold.pendingCancellation) {
                return <ActionsheetItem><ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'pending_cancellation')}</ActionsheetItemText></ActionsheetItem>;
           } else {
@@ -376,7 +355,6 @@ export const MyHold = (props) => {
                               {getExpirationDate(hold.expirationDate, hold.available)}
                               {getOutOfHoldGroupMessage(hold.outOfHoldGroupMessage)}
                               {getPosition(hold.position, hold.available, hold.holdQueueLength, holdPosition, usesHoldPosition,hold.outOfHoldGroupMessage)}
-                              {getStatus(hold.status, hold.source)}
                          </VStack>
                     </HStack>
                </Pressable>
@@ -588,37 +566,35 @@ export const ManageAllHolds = (props) => {
 
      if (_.isArray(holdsNotReady)) {
           _.map(holdsNotReady, function (item, index, collection) {
-               if (item.source !== 'vdx') {
-				   let record = item.recordId;
-				   if(item.source === 'overdrive') {
-					   record = item.sourceId
-				   }
-                    if (item.canFreeze) {
-                         if (item.frozen) {
-                              titlesToThaw.push({
-                                   recordId: record,
-                                   cancelId: item.cancelId,
-                                   source: item.source,
-                                   patronId: item.userId,
-                              });
-                         } else {
-                              titlesToFreeze.push({
-                                   recordId: record,
-                                   cancelId: item.cancelId,
-                                   source: item.source,
-                                   patronId: item.userId,
-                              });
-                         }
-                    }
-
-                    if (item.cancelable) {
-                         titlesToCancel.push({
+               let record = item.recordId;
+               if(item.source === 'overdrive') {
+                  record = item.sourceId
+               }
+               if (item.canFreeze) {
+                    if (item.frozen) {
+                         titlesToThaw.push({
+                              recordId: record,
+                              cancelId: item.cancelId,
+                              source: item.source,
+                              patronId: item.userId,
+                         });
+                    } else {
+                         titlesToFreeze.push({
                               recordId: record,
                               cancelId: item.cancelId,
                               source: item.source,
                               patronId: item.userId,
                          });
                     }
+               }
+
+               if (item.cancelable) {
+                    titlesToCancel.push({
+                         recordId: record,
+                         cancelId: item.cancelId,
+                         source: item.source,
+                         patronId: item.userId,
+                    });
                }
           });
      }

@@ -119,7 +119,6 @@ export const LIBRARY = {
      name: '',
      favicon: '',
      languages: [],
-     vdx: [],
      localIll: [],
      id: 0,
      version: null,
@@ -127,9 +126,6 @@ export const LIBRARY = {
 
 export const BRANCH = {
      name: '',
-     vdxFormId: null,
-     vdxLocation: null,
-     vdx: [],
      localIllFormId: null,
 };
 
