@@ -7,24 +7,20 @@ import { toArray, uniquePrimitiveArray } from '../../helpers/helpers';
  * @returns {string}
  */
 export function buildParamsForUrl() {
+     logDebugMessage('Building Search Parameters');
      const filters = SearchGlobal.pendingFilters ?? [];
      const params = [];
 
      filters.forEach((filter) => {
           const field = filter.field;
+          logDebugMessage('Processing field ' + field);
           const facets = filter.facets ?? [];
 
           if (facets.length > 0) {
                facets.forEach((rawFacet) => {
                     let facet = rawFacet;
 
-                    if (field === 'sort_by') {
-                         if (String(facet).includes(',')) {
-                              params.push(`&sort=${encodeURIComponent(facet)}`);
-                         } else {
-                              params.push(`&sort=${facet}`);
-                         }
-                    } else if (field === 'publishDateSort' || field === 'birthYear' || field === 'deathYear' || field === 'publishDate' || field === 'lexile_score' || field === 'accelerated_reader_point_value' || field === 'accelerated_reader_reading_level' || field === 'start_date') {
+                    if (field === 'publishDateSort' || field === 'birthYear' || field === 'deathYear' || field === 'publishDate' || field === 'lexile_score' || field === 'accelerated_reader_point_value' || field === 'accelerated_reader_reading_level' || field === 'start_date') {
                          facet = String(facet).replaceAll(' ', '+');
                          params.push(`&filter[]=${field}:${facet}`);
                     } else {
@@ -33,6 +29,18 @@ export function buildParamsForUrl() {
                });
           }
      });
+
+     if (SearchGlobal.sortMethod.length > 0) {
+          const sortMethod = SearchGlobal.sortMethod;
+          logDebugMessage('Processing sort method ' + sortMethod);
+          if (String(sortMethod).includes(',')) {
+               params.push(`&sort=${encodeURIComponent(sortMethod)}`);
+          } else {
+               params.push(`&sort=${sortMethod}`);
+          }
+     }else{
+          logDebugMessage('No sort method found');
+     }
 
      const joined = params.join('');
      SearchGlobal.appendedParams = joined;
@@ -95,9 +103,17 @@ export function getFormats(data) {
  */
 export function addAppliedFilter(group, values, multiSelect = false) {
      if (!group) return false;
+     logDebugMessage('addAppliedFilter: ' + group + ' values:' + values + ' multiselect? ' + multiSelect);
 
-     const index = (SearchGlobal.pendingFilters ?? []).findIndex((f) => f.field === group);
-     if (index === -1) return false;
+     let index = (SearchGlobal.pendingFilters ?? []).findIndex((f) => f.field === group);
+     if (index === -1) {
+          logDebugMessage('Group not found in pendingFilters, adding it');
+          if (!SearchGlobal.pendingFilters) {
+               SearchGlobal.pendingFilters = [];
+          }
+          SearchGlobal.pendingFilters.push({ field: group, facets: [] });
+          index = SearchGlobal.pendingFilters.length - 1;
+     }
 
      const incomingValues = toArray(values);
      const existing = SearchGlobal.pendingFilters[index].facets ?? [];
@@ -124,8 +140,15 @@ export function addAppliedFilter(group, values, multiSelect = false) {
 export function removeAppliedFilter(group, values) {
      if (!group) return false;
 
-     const index = (SearchGlobal.pendingFilters ?? []).findIndex((f) => f.field === group);
-     if (index === -1) return false;
+     let index = (SearchGlobal.pendingFilters ?? []).findIndex((f) => f.field === group);
+     if (index === -1) {
+          logDebugMessage('Group not found in pendingFilters, adding it');
+          if (!SearchGlobal.pendingFilters) {
+               SearchGlobal.pendingFilters = [];
+          }
+          SearchGlobal.pendingFilters.push({ field: group, facets: [] });
+          index = SearchGlobal.pendingFilters.length - 1;
+     }
 
      const removeValues = new Set(toArray(values));
      const existing = SearchGlobal.pendingFilters[index].facets ?? [];

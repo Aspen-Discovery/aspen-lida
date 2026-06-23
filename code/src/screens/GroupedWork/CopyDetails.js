@@ -67,7 +67,7 @@ const ShowItemDetails = (props) => {
                     if (typeof id !== 'undefined' && format !== null) {
                          await getItemDetails(libraryUrl, id, format).then((response) => {
                               setShouldFetch(false);
-                              setDetails(response);
+                              setDetails(response.result);
                          });
                     }
                };
@@ -81,7 +81,7 @@ const ShowItemDetails = (props) => {
                             onPress={() => {
                                  getItemDetails(libraryUrl, id, format).then((response) => {
                                       if(response.ok) {
-                                           setDetails(response.data);
+                                           setDetails(response.data.result);
                                            setShowModal(true);
                                       } else {
                                            logDebugMessage("Error fetching items details for item ID: " + id);

@@ -105,7 +105,7 @@ export const GroupedWorkScreen = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -140,16 +140,15 @@ const DisplayGroupedWork = (payload) => {
      const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
 
      const formats = Object.keys(groupedWork.formats);
-     if (_.isObject(formats)) {
-          useQueries({
-               queries: formats.map((format) => {
-                    return {
-                         queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
-                         queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]),
-                    };
-               }),
-          });
-     }
+
+     useQueries({
+          queries: formats.map((format) => {
+               return {
+                    queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
+                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]),
+               };
+          }),
+     });
 
      useQueries({
           queries: formats.map((format) => {
@@ -166,20 +165,20 @@ const DisplayGroupedWork = (payload) => {
           <Box p="$5" w="100%">
                <Center mt="$5" width="100%">
                     <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
-                    {getTitle(groupedWork.title)}
-                    {getAuthor(groupedWork.author)}
+                    <Title title={groupedWork.title} />
+                    <Author author={groupedWork.author} />
                </Center>
-               {getLanguage(groupedWork.language)}
-               {getFormats(groupedWork.formats)}
+               <Language language={groupedWork.language} />
+               <Formats formats={groupedWork.formats} />
                <Variations format={format} data={groupedWork} />
                <AddToList itemId={groupedWork.id} btnStyle="lg" />
-               {getDescription(groupedWork.description)}
-               {getBibliographicInformationLink(groupedWork.id)}
+               <Description description={groupedWork.description} />
+               <BibliographicInformationLink groupedWorkId={groupedWork.id} />
           </Box>
      );
 };
 
-const getTitle = (title) => {
+const Title = ({ title }) => {
      const { textColor } = React.useContext(ThemeContext);
      if (title) {
           return (
@@ -194,7 +193,7 @@ const getTitle = (title) => {
      }
 };
 
-const getAuthor = (author) => {
+const Author = ({ author }) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
      if (author) {
@@ -218,10 +217,6 @@ const Format = (data) => {
      const btnStyle = isSelected === key ? 'solid' : 'outline';
      const { theme, colorMode } = React.useContext(ThemeContext);
 
-     if (isSelected === key) {
-          updateFormat(key);
-     }
-
      return (
           <Button size="sm" bg={btnStyle === 'outline' ? 'transparent' : theme['colors']['secondary']['400']} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} mb="$1" mr="$1" variant={btnStyle} onPress={() => updateFormat(key)}>
                <ButtonText color={btnStyle === 'outline' ? (colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']) : theme['colors']['secondary']['400-text']}>{format.label}</ButtonText>
@@ -229,7 +224,7 @@ const Format = (data) => {
      );
 };
 
-const getDescription = (description) => {
+const Description = ({ description }) => {
      const { theme, textColor } = React.useContext(ThemeContext);
      if (description) {
           return (
@@ -242,7 +237,7 @@ const getDescription = (description) => {
      }
 };
 
-const getLanguage = (language) => {
+const Language = ({ language }) => {
      const { language: user_language } = React.useContext(LanguageContext);
      const { theme, textColor } = React.useContext(ThemeContext);
      if (language) {
@@ -262,7 +257,7 @@ const getLanguage = (language) => {
      }
 };
 
-const getFormats = (formats) => {
+const Formats = ({ formats }) => {
      const { language } = React.useContext(LanguageContext);
      const { format, updateFormat } = React.useContext(GroupedWorkContext);
      const { theme, textColor } = React.useContext(ThemeContext);
@@ -288,7 +283,7 @@ const getFormats = (formats) => {
      }
 };
 
-const getBibliographicInformationLink = (groupedWorkId) => {
+const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
      const { user } = React.useContext(UserContext);

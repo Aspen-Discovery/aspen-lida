@@ -83,8 +83,8 @@ const DisplayCategory = (data) => {
      const { maxNum } = React.useContext(BrowseCategoryContext);
 
      const updateToggle = async (category) => {
-          setLoading(true);
           const key = category['key'] ?? category['sourceId'];
+          category['isHidden'] = !category['isHidden'];
           await updateBrowseCategoryStatus(key, library.baseUrl).then(async (response) => {
                if (!response.ok) {
                     const error = getErrorMessage({ statusCode: response.status, problem: response.problem });
@@ -97,8 +97,7 @@ const DisplayCategory = (data) => {
                     await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
                }
           });
-          setLoading(false);
-          logDebugMessage(key + ', ' + category['isHidden']);
+          logDebugMessage("Finished toggling " + key + ' hidden is ' + category['isHidden']);
      };
      return (
           <Box borderBottomWidth="1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="4" pr="5" py="2">
@@ -120,7 +119,7 @@ const DisplayCategory = (data) => {
                               toggleSwitch();
                               updateToggle(category);
                          }}
-                         isChecked={toggled}
+                         isChecked={!category.isHidden}
                     />
                </HStack>
                {showErrorDialog && (

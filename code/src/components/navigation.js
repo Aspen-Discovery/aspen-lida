@@ -93,7 +93,8 @@ try {
 
 
 export function App() {
-     const {updateUser} = React.useContext(UserContext);
+     const { updateUser } = React.useContext(UserContext);
+     const { language } = React.useContext(LanguageContext);
 
      const primaryColor = useToken('colors', 'primary.base');
      const primaryColorContrast = useToken('colors', useContrastText(primaryColor));
@@ -238,7 +239,7 @@ export function App() {
           const subscription = AppState.addEventListener('change', async (nextAppState) => {
                if (nextAppState === 'active') {
                     logDebugMessage('App resumed from background');
-                    
+
                     try {
                          const libraryUrl = await AsyncStorage.getItem('@pathUrl');
                          if (libraryUrl) {
@@ -281,8 +282,6 @@ export function App() {
           // We haven't finished checking for the token yet
           return <SplashScreen />;
      }
-
-     const { language } = React.useContext(LanguageContext);
 
      return (
           <AuthContext.Provider value={authContext}>

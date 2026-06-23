@@ -187,12 +187,16 @@ export const Facet = ({ route, navigation }) => {
 
      const updateGlobal = (group, newValues) => {
           logDebugMessage("Updating global values for " + group + " with values " + newValues);
-          const prevSelections = values;
-          addAppliedFilter(group, newValues, multiSelect);
-          if (multiSelect) {
-               const difference = _.difference(prevSelections, newValues);
-               if (difference) {
-                    removeAppliedFilter(group, difference);
+          if (group == 'sort_by') {
+               SearchGlobal.sortMethod = newValues;
+          }else{
+               const prevSelections = values;
+               addAppliedFilter(group, newValues, multiSelect);
+               if (multiSelect) {
+                    const difference = _.difference(prevSelections, newValues);
+                    if (difference) {
+                         removeAppliedFilter(group, difference);
+                    }
                }
           }
      };

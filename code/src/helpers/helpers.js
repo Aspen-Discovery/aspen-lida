@@ -1,5 +1,5 @@
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../util/logging';
-import { LIBRARY, LOGIN_DATA, PATRON } from '../util/globals';
+import { LIBRARY, LOGIN_DATA, PATRON, GLOBALS } from '../util/globals';
 import { decode } from 'html-entities';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';

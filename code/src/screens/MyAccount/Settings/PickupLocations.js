@@ -22,6 +22,7 @@ import {
 	SelectDragIndicatorWrapper,
 	SelectDragIndicator,
 	SelectItem,
+	SelectScrollView,
 	ChevronDownIcon,
 	Checkbox,
 	CheckboxLabel,
@@ -154,6 +155,7 @@ export const Settings_PickupLocations = () => {
 							<SelectDragIndicatorWrapper>
 								<SelectDragIndicator />
 							</SelectDragIndicatorWrapper>
+							<SelectScrollView>
 								{locations.map((availableLocations, index) => {
 									if (availableLocations.code === location) {
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
@@ -162,6 +164,7 @@ export const Settings_PickupLocations = () => {
 										_text: { color: textColor }
 									}} />;
 								})}
+							</SelectScrollView>
 						</SelectContent>
 					</SelectPortal>
 				</Select>
@@ -196,6 +199,7 @@ export const Settings_PickupLocations = () => {
 								<SelectDragIndicatorWrapper>
 									<SelectDragIndicator />
 								</SelectDragIndicatorWrapper>
+								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location1Id) {
 											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
@@ -204,6 +208,7 @@ export const Settings_PickupLocations = () => {
 											_text: { color: textColor }
 										}} />;
 									})}
+								</SelectScrollView>
 							</SelectContent>
 						</SelectPortal>
 					</Select>
@@ -236,6 +241,7 @@ export const Settings_PickupLocations = () => {
 								<SelectDragIndicatorWrapper>
 									<SelectDragIndicator />
 								</SelectDragIndicatorWrapper>
+								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location2Id) {
 											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
@@ -244,6 +250,7 @@ export const Settings_PickupLocations = () => {
 											_text: { color: textColor }
 										}} />;
 									})}
+								</SelectScrollView>
 							</SelectContent>
 						</SelectPortal>
 					</Select>
