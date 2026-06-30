@@ -89,12 +89,12 @@ export const Facet_Date = (props) => {
                <Box p="$5">
                     <FormControl mb="$2">
                          <HStack space="sm" alignItems="center" justifyContent="center">
-                              <Button variant="outline" onPress={() => toggleFromDatePicker()} borderColor={theme['colors']['primary']['500']}>
-                                   <ButtonText color={theme['colors']['primary']['500']}>{moment(fromValue).format('MM/DD/YYYY')}</ButtonText>
+                              <Button variant="outline" onPress={() => toggleFromDatePicker()} borderColor="$primary500">
+                                   <ButtonText color="$primary500">{moment(fromValue).format('MM/DD/YYYY')}</ButtonText>
                               </Button>
                               <Text color={textColor}>to</Text>
-                              <Button variant="outline" onPress={() => toggleToDatePicker()} borderColor={theme['colors']['primary']['500']}>
-                                   <ButtonText color={theme['colors']['primary']['500']}>{toFacet === '*' ? 'MM/DD/YYYY' : moment(toValue).format('MM/DD/YYYY')}</ButtonText>
+                              <Button variant="outline" onPress={() => toggleToDatePicker()} borderColor="$primary500">
+                                   <ButtonText color="$primary500">{toFacet === '*' ? 'MM/DD/YYYY' : moment(toValue).format('MM/DD/YYYY')}</ButtonText>
                               </Button>
                          </HStack>
                     </FormControl>

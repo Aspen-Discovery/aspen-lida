@@ -1,4 +1,4 @@
-import { FormControl, Select, CheckIcon, Radio } from 'native-base';
+import { FormControl, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Platform } from 'react-native';
@@ -28,43 +28,50 @@ export const SelectVolume = (props) => {
                ) : (
                     <>
                          {promptForHoldType ? (
-                              <FormControl>
-                                   <Radio.Group
-                                        name="holdTypeGroup"
-                                        defaultValue={holdType}
+                              <FormControl mb="$4">
+                                   <RadioGroup
                                         value={holdType}
                                         onChange={(nextValue) => {
                                              setHoldType(nextValue);
-                                        }}
-                                        accessibilityLabel="">
-                                        <Radio value="item" my={1} size="sm">
-                                             {getTermFromDictionary(language, 'first_available')}
+                                        }}>
+                                        <Radio value="item" size="sm" mb="$2">
+                                             <RadioIndicator mr="$2">
+                                                  <RadioIcon as={CircleIcon} />
+                                             </RadioIndicator>
+                                             <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
-                                        <Radio value="volume" my={1} size="sm">
-                                             {getTermFromDictionary(language, 'specific_volume')}
+                                        <Radio value="volume" size="sm">
+                                             <RadioIndicator mr="$2">
+                                                  <RadioIcon as={CircleIcon} />
+                                             </RadioIndicator>
+                                             <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>
-                                   </Radio.Group>
+                                   </RadioGroup>
                               </FormControl>
                          ) : null}
                          {holdType === 'volume' ? (
                               <FormControl>
-                                   <FormControl.Label>{getTermFromDictionary(language, 'select_volume')}</FormControl.Label>
+                                   <FormControlLabel>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
+                                   </FormControlLabel>
                                    <Select
-                                        isReadOnly={Platform.OS === 'android'}
-                                        name="volumeForHold"
                                         selectedValue={volume}
-                                        minWidth="200"
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_volume')}
-                                        _selectedItem={{
-                                             bg: 'tertiary.300',
-                                             endIcon: <CheckIcon size="5" />,
-                                        }}
-                                        mt={1}
-                                        mb={2}
                                         onValueChange={(itemValue) => setVolume(itemValue)}>
-                                        {_.map(data, function (item, index, array) {
-                                             return <Select.Item label={item.label} value={item.volumeId} key={index} />;
-                                        })}
+                                        <SelectTrigger variant="outline" size="md">
+                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
+                                             <Icon as={ChevronDownIcon} mr="$3" />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                             <SelectBackdrop />
+                                             <SelectContent>
+                                                  <SelectDragIndicatorWrapper>
+                                                       <SelectDragIndicator />
+                                                  </SelectDragIndicatorWrapper>
+                                                  {_.map(data, function (item, index, array) {
+                                                       return <SelectItem label={item.label} value={item.volumeId} key={index} />;
+                                                  })}
+                                             </SelectContent>
+                                        </SelectPortal>
                                    </Select>
                               </FormControl>
                          ) : null}

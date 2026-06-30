@@ -9,9 +9,10 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import _, { values } from 'lodash';
-import { Badge, Box, Button, Container, Divider, HStack, Icon, Image, Pressable, Text, useColorModeValue, useToken, VStack } from 'native-base';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, HStack, Icon, Image, Pressable, Text, useToken, VStack } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
-import { AuthContext } from '../../components/navigation';
+import { AuthContext } from '../../context/AuthContext';
 import { AppState, Platform, View } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -57,7 +58,7 @@ function onAppStateChange(AppStateStatus) {
 
 const prefix = Linking.createURL('/');
 
-export const DrawerContent = () => {
+export const DrawerContent = (props) => {
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
      const linkTo = useLinkTo();
@@ -412,6 +413,7 @@ export const DrawerContent = () => {
           placeholderData: [],
           onSuccess: (data) => {
                if(data.ok){
+                    logDebugMessage("Updating locations");
                     updateLocations(data.data.result.locations);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -422,7 +424,9 @@ export const DrawerContent = () => {
           onError: (error) => {
                logDebugMessage("Error fetching locations");
                logErrorMessage(error);
-          }
+          },
+          enabled: !!userLatitude && !!userLongitude && userLatitude !== '0' && userLongitude !== '0',
+
      });
 
      useQuery(['saved_searches', user?.id ?? 'unknown', library.baseUrl, language], () => fetchSavedSearches(library.baseUrl, language), {
@@ -449,6 +453,7 @@ export const DrawerContent = () => {
           refetchIntervalInBackground: true,
           placeholderData: list,
           onSuccess: (data) => {
+               logDebugMessage("Fetched Browse Categories List");
                if(data.ok){
                     const categories = _.sortBy(data.data.result, ['title']);
                     updateBrowseCategoryList(categories);
@@ -472,6 +477,7 @@ export const DrawerContent = () => {
           onSuccess: (data) => {
                if(data.ok) {
                     if (typeof data.data.result?.session !== 'undefined') {
+                         logDebugMessage("Got session data");
                          GLOBALS.appSessionId = data.data.result.session;
                     } else {
                          logWarnMessage("No session returned when validating session");
@@ -488,41 +494,88 @@ export const DrawerContent = () => {
           }
      });
 
+     const isReloadingProfile = React.useRef(false);
      useFocusEffect(
           React.useCallback(() => {
+               let isMounted = true;
                const update = async () => {
-                    let latitude = await SecureStore.getItemAsync('latitude');
-                    let longitude = await SecureStore.getItemAsync('longitude');
-                    setUserLatitude(latitude);
-                    setUserLongitude(longitude);
+                    if (isReloadingProfile.current) {
+                         logDebugMessage("Skipping DrawerContent profile reload, already in progress");
+                         return;
+                    }
+                    isReloadingProfile.current = true;
 
-                    await reloadProfile(library.baseUrl).then((result) => {
-                         if (user !== result) {
-                              updateUser(result);
+                    try {
+                         if (!isMounted) {
+                              logDebugMessage("Skipping DrawerContent useFocusEffect because component is unmounted");
+                              return;
                          }
-                    });
+                         logDebugMessage("Starting DrawerContent useFocusEffect");
 
-                    await getILSMessages(library.baseUrl).then((response) => {
-                         if(response.ok) {
-                              setILSMessages(response.data?.result?.messages ?? []);
+                         let latitude = await SecureStore.getItemAsync('latitude');
+                         let longitude = await SecureStore.getItemAsync('longitude');
+                         if (userLatitude != latitude) {
+                              setUserLatitude(latitude);
+                         }
+                         if (userLongitude != longitude) {
+                              setUserLongitude(longitude);
+                         }
+
+                         logDebugMessage("reloading profile as part of Drawer Content focus effect Base URL is " + library.baseUrl);
+                         const result = await reloadProfile(library.baseUrl);
+                         if (!isMounted) {
+                              logDebugMessage("Drawer Content unmounted after reloading profile, stopping");
+                              return;
+                         }
+
+                         if (JSON.stringify(user) !== JSON.stringify(result)) {
+                              logDebugMessage("Updating user as part of Drawer Content focus effect")
+                              updateUser(result);
+                         } else {
+                              logDebugMessage("No change needed because the profile was unchanged");
+                         }
+
+                         logDebugMessage("Fetching ILS Messages");
+                         const response = await getILSMessages(library.baseUrl);
+                         if (!isMounted) {
+                              logDebugMessage("Drawer Content unmounted after fetching ILS Messages,")
+                              return;
+                         }
+
+                         if (response.ok) {
+                              let updatedMessages = response.data?.result?.messages ?? [];
+                              if (JSON.stringify(messages) !== JSON.stringify(updatedMessages)) {
+                                   logDebugMessage("Updating ILS Messages");
+                                   setILSMessages(response.data?.result?.messages ?? []);
+                              }else{
+                                   logDebugMessage("ILS Messages did not change");
+                              }
                          } else {
                               logDebugMessage("Error fetching ILS messages");
                               logDebugMessage(response);
                               getErrorMessage(response.code, response.problem);
                          }
-                    });
+                    } catch (error) {
+                         logErrorMessage("Error in DrawerContent useFocusEffect: " + error.message);
+                    } finally {
+                         isReloadingProfile.current = false;
+                    }
                };
-               update().then(() => {
-                    return () => update();
-               });
-          }, [])
+               update();
+
+               return () => {
+                    isMounted = false;
+               };
+          }, [user])
      );
 
      const handleNewNotification = (notification) => {
+          logDebugMessage("Setting notifications");
           setNotifications(notification);
      };
 
      const handleNewNotificationResponse = async (response) => {
+          logDebugMessage("Handling new notification response");
           await addStoredNotification(response);
           let url = decodeURIComponent(response.notification.request.content.data.url).replace(/\+/g, ' ');
           url = url.replace('aspen-lida://', prefix);
@@ -547,6 +600,7 @@ export const DrawerContent = () => {
      const [finesSummary, setFinesSummary] = React.useState('');
      React.useEffect(() => {
           async function fetchTranslations() {
+               logDebugMessage("Getting fines translation");
                await getTranslationsWithValues('accounts_have_fines', user.fines ?? 0, language, library.baseUrl).then((result) => {
                     let term = _.toString(result);
                     if (!term.includes('%')) {
@@ -591,47 +645,41 @@ export const DrawerContent = () => {
      }
 
      if (invalidSession === true || invalidSession === 'true') {
-          logDebugMessage("Session is invalid, preparing to show invalid credentials alert");
           return <InvalidCredentials />;
      }
 
-
      return (
-          <SafeAreaView style={{ flex: 1 }} edges={Platform.OS === 'android' ? ['top'] : ['top', 'bottom']}>
+          <View style={{ flex: 1 }}>
                <DrawerContentScrollView
+                    {...props}
                     contentContainerStyle={{
-                         paddingBottom: Platform.OS === 'android' ? insets.bottom - 50 : 0,
-                         flexGrow: 1
+                         flexGrow: 1,
                     }}
                >
-                    <VStack space="4" my="2" mx="1" flex={1}>
+                    <VStack space="$md" mx={4} flex={1}>
                          <UserProfileOverview />
 
                          {displayILSMessages()}
 
-                         <Divider />
+                         <Divider my="$3"/>
 
-                         <VStack divider={<Divider />} space="4" flex={1}>
-                              <VStack>
-                                   <Checkouts />
-                                   <Holds />
-                                   <UserLists />
-                                   <SavedSearches />
-                                   <ReadingHistory />
-                                        <YearInReview />
-                                   <Fines />
-                                   <NotificationHistory />
-                                   <Events />
-                                   <Campaigns />
-                              </VStack>
+                         <VStack flex={1}>
+                              <Checkouts />
+                              <Holds />
+                              <UserLists />
+                              <SavedSearches />
+                              <ReadingHistory />
+                              <YearInReview />
+                              <Fines />
+                              <NotificationHistory />
+                              <Events />
+                              <Campaigns />
 
-                              <VStack space="3">
-                                   <VStack>
-                                        <UserProfile />
-                                        <LinkedAccounts />
-                                        <AlternateLibraryCard />
-                                   </VStack>
-                              </VStack>
+                              <Divider my="$2" />
+
+                              <UserProfile />
+                              <LinkedAccounts />
+                              <AlternateLibraryCard />
                          </VStack>
 
                          {/* logout button, color mode switcher, language switcher */}
@@ -646,10 +694,7 @@ export const DrawerContent = () => {
                          </VStack>
                     </VStack>
                </DrawerContentScrollView>
-               {Platform.OS === 'android' && (
-                    <View style={{ height: insets.bottom, backgroundColor: 'transparent' }} />
-               )}
-          </SafeAreaView>
+          </View>
      );
 };
 
@@ -668,25 +713,25 @@ const UserProfileOverview = () => {
      }
 
      return (
-          <Box px="4">
+          <Box px="$3">
                <HStack space={3} alignItems="center">
-                    <Image source={{ uri: icon }} fallbackSource={require('../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} rounded="8" />
-                    <Box>
+                    <Image source={{ uri: icon }} fallbackSource={require('../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} borderRadius="$md" />
+                    <Box ml="$3">
                          {user && user.displayName ? (
-                              <Text bold fontSize="14" isTruncated maxW="175">
+                              <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175">
                                    {user.displayName}
                               </Text>
                          ) : null}
 
                          {library && library.displayName ? (
-                              <Text fontSize="12" fontWeight="500" isTruncated maxW="175">
+                              <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175">
                                    {library.displayName}
                               </Text>
                          ) : null}
                          <HStack space={1} alignItems="center">
                               <Icon as={MaterialIcons} name="credit-card" size="xs" />
                               {user && (user.ils_barcode || user.cat_username) ? (
-                                   <Text fontSize="12" fontWeight="500" isTruncated maxW="175">
+                                   <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175">
                                         {user.ils_barcode ?? user.cat_username}
                                    </Text>
                               ) : null}
@@ -718,29 +763,32 @@ const Checkouts = () => {
 
      return (
           <Pressable
-               px="2"
-               py="2"
-               rounded="md"
+               px="$2"
+               py="$2"
+               borderRadius="$md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyCheckouts', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
-               <HStack space="1" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                    <VStack w="100%">
-                         <Text fontWeight="500">
-                              {getTermFromDictionary(language, 'checked_out_titles')} {user ? <Text bold>({user.numCheckedOut ?? 0})</Text> : null}
-                         </Text>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <VStack width="$full">
+                         <HStack space="xs" alignItems="center">
+                              <Text fontWeight="$medium">
+                                   {getTermFromDictionary(language, 'checked_out_titles')}
+                              </Text>
+                              {user ? (
+                                   <Text fontWeight="$bold"> ({user.numCheckedOut ?? 0})</Text>
+                              ): null }
+                         </HStack>
                     </VStack>
                </HStack>
                {user.numOverdue > 0 ? (
-                    <Container>
-                         <Badge colorScheme="error" ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                              {checkoutSummary}
-                         </Badge>
-                    </Container>
+                    <Badge action="error" ml="$2.5" mt="$1" borderRadius="$sm">
+                         <BadgeText fontSize="$xs">{checkoutSummary}</BadgeText>
+                    </Badge>
                ) : null}
           </Pressable>
      );
@@ -767,29 +815,34 @@ const Holds = () => {
 
      return (
           <Pressable
-               px="2"
-               py="3"
-               rounded="md"
+               px="$2"
+               py="$2"
+               borderRadius="$md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyHolds', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
-               <HStack space="1" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                    <VStack w="100%">
-                         <Text fontWeight="500">
-                              {getTermFromDictionary(language, 'titles_on_hold')} {user ? <Text bold>({user.numHolds ?? 0})</Text> : null}
-                         </Text>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <VStack width="$full">
+                         <HStack space="xs" alignItems="center">
+                              <Text fontWeight="$medium">
+                                   {getTermFromDictionary(language, 'titles_on_hold')}
+                              </Text>
+                              {user ? (
+                                   <Text fontWeight="$bold"> ({user.numHolds ?? 0})</Text>
+                              ) : null}
+                         </HStack>
                     </VStack>
                </HStack>
                {user.numHoldsAvailable > 0 ? (
-                    <Container>
-                         <Badge colorScheme="success" ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                              {holdSummary}
+                    <Box width="$full">
+                         <Badge action="success" ml="$2.5" borderRadius="$sm">
+                              <BadgeText fontSize="$xs">{holdSummary}</BadgeText>
                          </Badge>
-                    </Container>
+                    </Box>
                ) : null}
           </Pressable>
      );
@@ -804,21 +857,26 @@ const UserLists = () => {
      if (version >= '22.08.00') {
           return (
                <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
+                    px="$2"
+                    py="$2"
+                    borderRadius="$md"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyLists', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false,
                          });
                     }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">
-                                   {getTermFromDictionary(language, 'my_lists')} {user ? <Text bold>({user.numLists ?? 0})</Text> : null}
-                              </Text>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <VStack width="$full">
+                              <HStack space="xs" alignItems="center">
+                                   <Text fontWeight="$medium">
+                                        {getTermFromDictionary(language, 'my_lists')}
+                                   </Text>
+                                   {user ? (
+                                        <Text fontWeight="$bold"> ({user.numLists ?? 0})</Text>
+                                   ) : null}
+                              </HStack>
                          </VStack>
                     </HStack>
                </Pressable>
@@ -827,19 +885,19 @@ const UserLists = () => {
 
      return (
           <Pressable
-               px="2"
-               py="3"
-               rounded="md"
+               px="$2"
+               py="$2"
+               borderRadius="$md"
                onPress={() => {
                     navigateStack('MyListsStack', 'MyLists', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
-               <HStack space="1" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                    <VStack w="100%">
-                         <Text fontWeight="500">{getTermFromDictionary(language, 'my_lists')}</Text>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <VStack width="$full">
+                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'my_lists')}</Text>
                     </VStack>
                </HStack>
           </Pressable>
@@ -866,36 +924,39 @@ const SavedSearches = () => {
           fetchTranslations();
      }, [language]);
 
-     if (version >= '22.08.00') {
-          return (
-               <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
-                    onPress={() => {
-                         navigateStack('AccountScreenTab', 'MySavedSearches', {
-                              libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         });
-                    }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">
-                                   {getTermFromDictionary(language, 'saved_searches')} {user ? <Text bold>({user.numSavedSearches ?? 0})</Text> : null}
+     return (
+          <Pressable
+               px="$2"
+               py="$2"
+               borderRadius="$md"
+               onPress={() => {
+                    navigateStack('AccountScreenTab', 'MySavedSearches', {
+                         libraryUrl: library.baseUrl,
+                         hasPendingChanges: false,
+                    });
+               }}>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <VStack width="$full">
+                         <HStack space="xs" alignItems="center">
+                              <Text fontWeight="$medium">
+                                   {getTermFromDictionary(language, 'saved_searches')}
                               </Text>
-                         </VStack>
-                    </HStack>
-                    {user.numSavedSearchesNew > 0 ? (
-                         <Container>
-                              <Badge colorScheme="warning" ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                                   {savedSearchSummary}
-                              </Badge>
-                         </Container>
-                    ) : null}
-               </Pressable>
-          );
-     }
+                              {user ? (
+                                   <Text fontWeight="$bold"> ({user.numSavedSearches ?? 0})</Text>
+                              ): null}
+                         </HStack>
+                    </VStack>
+               </HStack>
+               {user.numSavedSearchesNew > 0 ? (
+                    <Box width="$full">
+                         <Badge action="warning" ml="$2.5" borderRadius="$sm">
+                              <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
+                         </Badge>
+                    </Box>
+               ) : null}
+          </Pressable>
+     );
 
      return null;
 };
@@ -906,31 +967,30 @@ const ReadingHistory = () => {
      const { language } = React.useContext(LanguageContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
-     if (version >= '23.01.00') {
-          return (
-               <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
-                    onPress={() => {
-                         navigateStack('AccountScreenTab', 'MyReadingHistory', {
-                              libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         });
-                    }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">
-                                   {getTermFromDictionary(language, 'reading_history')} <Text bold>({user.numReadingHistory ?? 0})</Text>
+     return (
+          <Pressable
+               px="$2"
+               py="$2"
+               borderRadius="$md"
+               onPress={() => {
+                    navigateStack('AccountScreenTab', 'MyReadingHistory', {
+                         libraryUrl: library.baseUrl,
+                         hasPendingChanges: false,
+                    });
+               }}>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <VStack width="$full">
+                         <HStack space="xs" alignItems="center">
+                              <Text fontWeight="$medium">
+                                   {getTermFromDictionary(language, 'reading_history')}
                               </Text>
-                         </VStack>
-                    </HStack>
-               </Pressable>
-          );
-     }else{
-          logDebugMessage("Version too old to show Reading History " + version);
-     }
+                              <Text fontWeight="$bold"> ({user.numReadingHistory ?? 0})</Text>
+                         </HStack>
+                    </VStack>
+               </HStack>
+          </Pressable>
+     );
 
      return null;
 };
@@ -941,17 +1001,17 @@ const UserProfile = () => {
 
      return (
           <Pressable
-               px="2"
-               py="3"
+               px="$2"
+               py="$2"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyProfile', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
-               <HStack space="1" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                    <Text fontWeight="500">{getTermFromDictionary(language, 'contact_information')}</Text>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <Text fontWeight="$medium">{getTermFromDictionary(language, 'contact_information')}</Text>
                </HStack>
           </Pressable>
      );
@@ -964,16 +1024,16 @@ const NotificationHistory = () => {
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
           return (
                <Pressable
-                    px="2"
-                    py="3"
+                    px="$2"
+                    py="$2"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyNotificationHistory', {
                               hasPendingChanges: false,
                          });
                     }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <Text fontWeight="500">{getTermFromDictionary(language, 'notification_history')}</Text>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'notification_history')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -989,19 +1049,20 @@ const LinkedAccounts = () => {
      if (library.allowLinkedAccounts === '1') {
           return (
                <Pressable
-                    px="2"
-                    py="2"
+                    px="$2"
+                    py="$2"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyLinkedAccounts', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false,
                          })
                     }>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <Text fontWeight="500">
-                              {getTermFromDictionary(language, 'linked_accounts')} <Text bold>({user.numLinkedAccounts ?? 0})</Text>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <Text fontWeight="$medium">
+                              {getTermFromDictionary(language, 'linked_accounts')}
                          </Text>
+                         <Text fontWeight="$bold"> ({user.numLinkedAccounts ?? 0})</Text>
                     </HStack>
                </Pressable>
           );
@@ -1016,17 +1077,17 @@ const UserPreferences = () => {
 
      return (
           <Pressable
-               px="2"
-               py="3"
+               px="$2"
+               py="$2"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyPreferences', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
-               <HStack space="1" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                    <Text fontWeight="500">{getTermFromDictionary(language, 'preferences')}</Text>
+               <HStack space="xs" alignItems="center">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <Text fontWeight="$medium">{getTermFromDictionary(language, 'preferences')}</Text>
                </HStack>
           </Pressable>
      );
@@ -1042,21 +1103,21 @@ const AlternateLibraryCard = () => {
           shouldShowAlternateLibraryCard = library.showAlternateLibraryCard;
      }
 
-     if (version >= '24.09.00' && (shouldShowAlternateLibraryCard === '1' || shouldShowAlternateLibraryCard === 1)) {
+     if (shouldShowAlternateLibraryCard === '1' || shouldShowAlternateLibraryCard === 1) {
           return (
                <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
+                    px="$2"
+                    py="$2"
+                    borderRadius="$md"
                     onPress={() => {
                          navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                               prevRoute: 'AccountDrawer',
                               hasPendingChanges: false,
                          });
                     }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <Text fontWeight="500">{getTermFromDictionary(language, 'alternate_library_card')}</Text>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'alternate_library_card')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -1088,21 +1149,21 @@ const Fines = () => {
           }
      }
 
-     if (version >= '24.01.00' && shouldShowFines) {
+     if (shouldShowFines) {
           return (
-               <Pressable px="2" py="3" rounded="md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">{getTermFromDictionary(language, 'fines')}</Text>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <VStack width="$full">
+                              <Text fontWeight="$medium">{getTermFromDictionary(language, 'fines')}</Text>
                          </VStack>
                     </HStack>
 
-                    <Container>
-                         <Badge colorScheme={hasFines ? 'error' : 'info'} ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                              {user.fines ?? '$0.00'}
+                    <Box width="$full">
+                         <Badge action={hasFines ? 'error' : 'info'} ml="$2.5" borderRadius="$sm">
+                              <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
                          </Badge>
-                    </Container>
+                    </Box>
                </Pressable>
           );
      }
@@ -1130,32 +1191,32 @@ const Events = () => {
           fetchTranslations();
      }, [language]);
 
-     if (version >= '24.02.00' && library.hasEventSettings) {
+     if (library.hasEventSettings) {
           return (
                <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
+                    px="$2"
+                    py="$2"
+                    borderRadius="$md"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyEvents', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false,
                          });
                     }}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <VStack width="$full">
+                              <Text fontWeight="$medium">
                                    {getTermFromDictionary(language, 'events')}
                               </Text>
                          </VStack>
                     </HStack>
                     {user.numSavedEventsUpcoming > 0 ? (
-                         <Container>
-                              <Badge colorScheme="info" ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                                   {savedEventsSummary}
+                         <Box width="$full">
+                              <Badge action="info" ml="$2.5" borderRadius="$sm">
+                                   <BadgeText fontSize="$xs">{savedEventsSummary}</BadgeText>
                               </Badge>
-                         </Container>
+                         </Box>
                     ) : null}
                </Pressable>
           );
@@ -1177,21 +1238,21 @@ const YearInReview = () => {
           shouldShowYearInReview = user.hasYearInReview;
      }
 
-     if (version >= '24.12.00' && shouldShowYearInReview) {
+     if (shouldShowYearInReview) {
           return (
-               <Pressable px="2" py="3" rounded="md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                         <VStack w="100%">
-                              <Text fontWeight="500">{user.yearInReviewName ?? getTermFromDictionary(language, 'year_in_review')}</Text>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                         <VStack width="$full">
+                              <Text fontWeight="$medium">{user.yearInReviewName ?? getTermFromDictionary(language, 'year_in_review')}</Text>
                          </VStack>
                     </HStack>
 
-                    <Container>
-                         <Badge colorScheme="info" ml={10} rounded="4px" _text={{ fontSize: 'xs' }}>
-                              {getTermFromDictionary(language, 'view_now')}
+                    <Box width="$full">
+                         <Badge action="info" ml="$2.5" borderRadius="$sm">
+                              <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'view_now')}</BadgeText>
                          </Badge>
-                    </Container>
+                    </Box>
                </Pressable>
           );
      }
@@ -1206,19 +1267,19 @@ const Campaigns = () => {
      if (library.hasCommunityEngagementEnabled) {
           return(
                <Pressable
-                    px="2"
-                    py="3"
-                    rounded="md"
+                    px="$2"
+                    py="$2"
+                    borderRadius="$md"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyCampaigns', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false,
                          })
                     }>
-                    <HStack space="1" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="7"/>
-                         <VStack w="100%">
-                              <Text fontWeight="500">
+                    <HStack space="xs" alignItems="center">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg"/>
+                         <VStack width="$full">
+                              <Text fontWeight="$medium">
                                    {getTermFromDictionary(language, 'campaigns')}
                               </Text>
                          </VStack>
@@ -1268,18 +1329,17 @@ function LogOutButton() {
      const { signOut } = React.useContext(AuthContext);
 
      return (
-          <Button size="md" colorScheme="secondary" onPress={signOut} leftIcon={<Icon as={MaterialIcons} name="logout" size="xs" />}>
-               {getTermFromDictionary(language, 'logout')}
+          <Button size="md" action="secondary" onPress={signOut} leftIcon={<Icon as={MaterialIcons} name="logout" size="xs" />}>
+               <ButtonText>{getTermFromDictionary(language, 'logout')}</ButtonText>
           </Button>
      );
 }
 
 const ReloadProfileButton = (props) => {
      const { language } = React.useContext(LanguageContext);
-
      return (
-          <Button size="xs" colorScheme="tertiary" onPress={() => props.handleRefreshProfile(props.libraryUrl)} variant="ghost" leftIcon={<Icon as={MaterialIcons} name="refresh" size="xs" />}>
-               {getTermFromDictionary(language, 'refresh_account')}
+          <Button size="xs" action="tertiary" onPress={() => props.handleRefreshProfile(props.libraryUrl)} variant="ghost" leftIcon={<Icon as={MaterialIcons} name="refresh" size="xs" />}>
+               <ButtonText>{getTermFromDictionary(language, 'refresh_account')}</ButtonText>
           </Button>
      );
 };

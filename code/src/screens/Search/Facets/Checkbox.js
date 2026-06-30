@@ -25,12 +25,12 @@ export const Facet_Checkbox = ({ data, category, values = [], updateCheckboxFace
                     <CheckboxIndicator
                          sx={{
                               ':checked': {
-                                   borderColor: theme['colors']['primary']['500'],
-                                   backgroundColor: theme['colors']['primary']['500'],
+                                   borderColor: theme['tokens']['colors']['primary']['500'],
+                                   backgroundColor: theme['tokens']['colors']['primary']['500'],
                               },
                          }}
                     >
-                         {isChecked && <Icon as={MaterialIcons} name="check" color={theme['colors']['primary']['500-text']} size="sm" />}
+                         {isChecked && <Icon as={MaterialIcons} name="check" color="$textLight200" size="sm" />}
                     </CheckboxIndicator>
                     <CheckboxLabel pl="$2">
                          <Text color={textColor}>

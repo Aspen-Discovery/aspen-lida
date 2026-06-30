@@ -4,9 +4,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 // custom components and helper files
-import { getTermFromDictionary } from '../translations/TranslationService';
+import { getTermFromDictionary } from '../translations/TranslationHelper';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
-import { AuthContext } from './navigation';
+import { AuthContext } from '../context/AuthContext';
+import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 
 /**
  * Catch an error and display it to the user
@@ -17,14 +18,15 @@ import { AuthContext } from './navigation';
  * @param {string} error
  * @param {string} reloadAction
  **/
-export function loadError(error, reloadAction = '') {
+export const LoadError = (props) => {
+     const { error, reloadAction } = props;
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
      return (
           <Center flex={1}>
                <HStack>
-                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color={theme['colors']['error']['500']} />
-                    <Heading color={theme['colors']['error']['500']} mb="$2">
+                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color={theme['tokens']['colors']['error']['500']} />
+                    <Heading color={theme['tokens']['colors']['error']['500']} mb="$2">
                          {getTermFromDictionary('en', 'error')}
                     </Heading>
                </HStack>
@@ -32,16 +34,20 @@ export function loadError(error, reloadAction = '') {
                     {getTermFromDictionary('en', 'error_loading_results')}
                </Text>
                {reloadAction ? (
-                    <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme['colors']['primary']['500']}>
-                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color={theme['colors']['primary']['500-text']} /></ButtonIcon>
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'button_reload')}</ButtonText>
+                    <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor="$primary500">
+                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color="$textLight200" /></ButtonIcon>
+                         <ButtonText color="$textLight200">{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
                ) : null}
-               <Text size="xs" w="75%" mt="$5" color={theme['colors']['muted']['500']} textAlign="center">
+               <Text size="xs" w="75%" mt="$5" color={theme['tokens']['colors']['muted']['500']} textAlign="center">
                     ERROR: {error}
                </Text>
           </Center>
      );
+}
+
+export function loadError(error, reloadAction = '') {
+     return <LoadError error={error} reloadAction={reloadAction} />;
 }
 
 /**
@@ -66,6 +72,7 @@ export function loadError(error, reloadAction = '') {
  * @param {string} status
  **/
 export function popToast(title, description, status) {
+     logDebugMessage("Popping a toast");
      Toast.show({
           position: 'bottom',
           type: status,
@@ -95,6 +102,7 @@ export function popToast(title, description, status) {
  * @param {string} status
  **/
 export function popAlert(title, description, status) {
+     logDebugMessage("Popping an alert");
      Toast.show({
           position: 'bottom',
           type: status,
@@ -111,11 +119,11 @@ export const DisplayErrorAlertDialog = (props) => {
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);
 
-    return (
-        <Center>
-            <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                <AlertDialogBackdrop />
-                <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+     return (
+          <Center>
+               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <AlertDialogBackdrop />
+                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                     <AlertDialogHeader>
                         <Heading color={textColor}>{title}</Heading>
                     </AlertDialogHeader>
@@ -124,13 +132,13 @@ export const DisplayErrorAlertDialog = (props) => {
                     </AlertDialogBody>
                     <AlertDialogFooter>
                         <ButtonGroup space="md">
-                            <Button onPress={onClose} bgColor={theme['colors']['primary']['500']} ref={cancelRef}>
-                                <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                            <Button onPress={onClose} bgColor="$primary500" ref={cancelRef}>
+                                <ButtonText color="$textLight200">{getTermFromDictionary(language, 'close_window')}</ButtonText>
                             </Button>
                         </ButtonGroup>
                     </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </Center>
-    );
+                    </AlertDialogContent>
+               </AlertDialog>
+          </Center>
+     );
 }

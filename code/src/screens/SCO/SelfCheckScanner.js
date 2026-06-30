@@ -1,23 +1,24 @@
-import { useIsFocused, useRoute } from '@react-navigation/native';
-import { Camera, CameraView } from 'expo-camera';
+import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
+import { useCameraPermissions, CameraView } from 'expo-camera';
 import _ from 'lodash';
 import { Button, ButtonText, Center, View } from '@gluestack-ui/themed';
-import React from 'react';
+import React, {useState, useContext} from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
-import { loadError } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { LoadError } from '../../components/loadError';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { LanguageContext, LibraryBranchContext } from '../../context/initialContext';
-import { navigate } from '../../helpers/RootNavigator';
+import { navigate, goBack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 export default function SelfCheckScanner() {
+     const navigation = useNavigation();
      const isFocused = useIsFocused();
-     const [isLoading, setIsLoading] = React.useState(false);
-     const { language } = React.useContext(LanguageContext);
-     const { selfCheckSettings } = React.useContext(LibraryBranchContext);
-     const [hasPermission, setHasPermission] = React.useState(null);
-     const [scanned, setScanned] = React.useState(false);
+     const [isLoading, setIsLoading] = useState(false);
+     const { language } = useContext(LanguageContext);
+     const { selfCheckSettings } = useContext(LibraryBranchContext);
+     const [permission, requestPermission] = useCameraPermissions();
+     const [scanned, setScanned] = useState(false);
 
      let allowedBarcodes = ['upc_a', 'upc_e', 'ean13', 'ean8', 'codabar'];
      if (selfCheckSettings.barcodeStyles && _.isArray(selfCheckSettings.barcodeStyles)) {
@@ -29,21 +30,10 @@ export default function SelfCheckScanner() {
      const testBarcodes = ['9031105', '9031106', '9031107'];
 
      React.useEffect(() => {
-          (async () => {
-               const { status } = await Camera.requestCameraPermissionsAsync();
-               setHasPermission(status === 'granted');
-               /* for testing on simulators, assign a random barcode from array since camera does not work */
-               /*if (!Device.isDevice) {
-			 setScanned(true);
-			 navigate('SelfCheckOut', {
-			 barcode: _.sample(_.shuffle(testBarcodes)),
-			 type: '',
-			 activeAccount,
-			 startNew: false,
-			 });
-			 }*/
-          })();
-     }, []);
+          if (!permission || permission.status === 'undetermined') {
+               requestPermission();
+          }
+     }, [permission]);
 
      const handleBarCodeScanned = async ({ type, data }) => {
           setIsLoading(true);
@@ -64,16 +54,35 @@ export default function SelfCheckScanner() {
           }
      };
 
-     if (hasPermission === null) {
-          return LoadingSpinner('Requesting for camera permissions');
+     if (!permission) {
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadingSpinner message="Requesting for camera permissions" />
+               </View>
+          );
      }
 
-     if (hasPermission === false) {
-          return loadError('No access to camera');
+     if (!permission.granted) {
+          if (permission.canAskAgain) {
+               return (
+                    <View style={{ flex: 1 }}>
+                         <LoadingSpinner message="Requesting for camera permissions" />
+                    </View>
+               );
+          }
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadError error="No access to camera" />
+               </View>
+          );
      }
 
      if (isLoading) {
-          return loadingSpinner();
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadingSpinner />
+               </View>
+          );
      }
 
      return (
@@ -82,14 +91,17 @@ export default function SelfCheckScanner() {
                     <>
                          <CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={[StyleSheet.absoluteFillObject, styles.container]} barcodeScannerSettings={{ barcodeTypes: allowedBarcodes }}>
                               <BarcodeMask edgeColor="#62B1F6" showAnimatedLine={false} />
-                         </CameraView>
-                         {scanned && (
-                              <Center pb="$20">
-                                   <Button onPress={() => setScanned(false)}>
-                                        <ButtonText>{getTermFromDictionary(language, 'scan_again')}</ButtonText>
+                              <View style={styles.buttonContainer}>
+                                   <Button variant="outline" action="secondary" onPress={() => navigation.goBack()} bgColor="rgba(0,0,0,0.5)" borderColor="$white">
+                                        <ButtonText color="$white">Cancel</ButtonText>
                                    </Button>
-                              </Center>
-                         )}
+                                   {scanned && (
+                                        <Button onPress={() => setScanned(false)} ml="$4">
+                                             <ButtonText>{getTermFromDictionary(language, 'scan_again')}</ButtonText>
+                                        </Button>
+                                   )}
+                              </View>
+                         </CameraView>
                     </>
                )}
           </View>
@@ -101,6 +113,14 @@ const styles = StyleSheet.create({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
+     },
+     buttonContainer: {
+          position: 'absolute',
+          bottom: 50,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
      },
 });
 

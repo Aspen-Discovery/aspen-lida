@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
-import { ChevronLeftIcon, CloseIcon, Pressable } from 'native-base';
+import { ChevronLeftIcon, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 import { PalaceProjectInstructions } from '../../components/Action/CheckOut/PalaceProjectInstructions';
 import { LanguageContext, ThemeContext } from '../../context/initialContext';
@@ -236,7 +236,7 @@ const AccountStackNavigator = () => {
                                         return null;
                                    } else {
                                         return (
-                                             <Pressable mr={3} onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                                             <Pressable mr={3} onPress={() => navigation.goBack()} p="$1">
                                                   <ChevronLeftIcon size={6} color="primary.baseContrast" />
                                              </Pressable>
                                         );
@@ -336,13 +336,13 @@ const AccountStackNavigator = () => {
                          headerShown: true,
                          presentation: 'modal',
                          headerStyle: {
-                              backgroundColor: theme['colors']['primary']['500'],
+                              backgroundColor: theme['tokens']['colors']['primary']['500'],
                          },
-                         headerTintColor: theme['colors']['primary']['500-text'],
+                         headerTintColor: theme['tokens']['colors']['primary']['500-text'],
                          headerLeft: () => null,
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr={3} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                                   <CloseIcon size={5} color={theme['colors']['primary']['500-text']} />
+                              <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
+                                   <CloseIcon size={5} color="$textLight200" />
                               </Pressable>
                          ),
                     })}
@@ -365,7 +365,7 @@ const AccountStackNavigator = () => {
                               return null;
                          },
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr={3} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
                                    <CloseIcon size={5} color="primary.baseContrast" />
                               </Pressable>
                          ),
@@ -397,7 +397,7 @@ export const PalaceProjectInstructionsModal = () => {
                          return null;
                     },
                     headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr={3} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                         <Pressable onPress={() => navigation.getParent().pop()} mr={3} p="$1">
                               <CloseIcon size={5} color="primary.baseContrast" />
                          </Pressable>
                     ),
@@ -435,9 +435,9 @@ export const MyNotificationHistoryMessageModal = () => {
                          headerShown: true,
                          presentation: 'card',
                          headerStyle: {
-                              backgroundColor: theme['colors']['primary']['500'],
+                              backgroundColor: theme['tokens']['colors']['primary']['500'],
                          },
-                         headerTintColor: theme['colors']['primary']['500-text'],
+                         headerTintColor: theme['tokens']['colors']['primary']['500-text'],
                     }}
                />
           </MyNotificationHistoryMessageStack.Navigator>

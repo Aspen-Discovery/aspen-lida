@@ -1,33 +1,33 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { useToken } from '@gluestack-style/react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeftIcon, Box, extendTheme, HStack, Icon, IconButton, Text, useColorMode, useColorModeValue } from 'native-base';
 import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useToken, Box, createConfig, HStack, Icon, Button, ButtonIcon, ButtonText, Text, useColorMode, ChevronLeftIcon } from '@gluestack-ui/themed';
+import { config as defaultConfig } from '@gluestack-ui/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../context/initialContext';
 
-import { logDebugMessage, logErrorMessage } from '../util/logging.js';
+import { logDebugMessage, logInfoMessage, logErrorMessage } from '../util/logging.js';
 import { getThemeInfo } from '../util/api/system';
+
+export function useColorModeValue(lightValue, darkValue) {
+     const { colorMode } = React.useContext(ThemeContext);
+     return colorMode === 'dark' ? darkValue : lightValue;
+}
 
 export const BackIcon = (props) => {
      const { theme } = React.useContext(ThemeContext);
-     return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['colors']['primary']['baseContrast']} />;
+     return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['tokens']['colors']['primary']['baseContrast']} />;
 };
 
 export async function createTheme(colorMode) {
      const response = await getThemeInfo();
-     const theme = extendTheme({
-          colors: {
-               primary: response[0],
-               secondary: response[1],
-               tertiary: response[2],
-          },
-          config: {
-               useAccessibleColors: true,
-               useSystemColorMode: false,
-               initialColorMode: colorMode,
-               dependencies: {
-                    'linear-gradient': LinearGradient,
+     const theme = createConfig({
+          ...defaultConfig,
+          tokens: {
+               ...defaultConfig.tokens,
+               colors: {
+                    primary: response[0],
+                    secondary: response[1],
+                    tertiary: response[2],
                },
           },
      });
@@ -37,21 +37,27 @@ export async function createTheme(colorMode) {
 
 export async function createGlueTheme(url) {
      const response = await getThemeInfo(url);
-     const theme = extendTheme({
-          colors: {
-               primary: response[0],
-               secondary: response[1],
-               tertiary: response[2],
+     const theme = createConfig({
+          ...defaultConfig,
+          tokens: {
+               ...defaultConfig.tokens,
+               colors: {
+                    primary: response[0],
+                    secondary: response[1],
+                    tertiary: response[2],
+               },
           },
+
      });
      return theme;
 }
 
 export async function saveTheme(response) {
-     if (response) {
-          const primaryColors = ['primaryColors', JSON.stringify(response.colors.primary)];
-          const secondaryColors = ['secondaryColors', JSON.stringify(response.colors.secondary)];
-          const tertiaryColors = ['tertiaryColors', JSON.stringify(response.colors.tertiary)];
+     if (response && response.tokens && response.tokens.colors) {
+
+          const primaryColors = ['primaryColors', JSON.stringify(response.tokens.colors.primary)];
+          const secondaryColors = ['secondaryColors', JSON.stringify(response.tokens.colors.secondary)];
+          const tertiaryColors = ['tertiaryColors', JSON.stringify(response.tokens.colors.tertiary)];
 
           try {
                await AsyncStorage.multiSet([primaryColors, secondaryColors, tertiaryColors]).then((r) => {
@@ -63,7 +69,7 @@ export async function saveTheme(response) {
                logErrorMessage(e);
           }
      }else{
-          logErrorMessage("No response provided for saving theme");
+          logErrorMessage("No response provided for saving theme or invalid structure");
      }
 }
 
@@ -83,43 +89,44 @@ export async function fetchTheme() {
 
 export function UseColorMode(props) {
      const { showText } = props;
-     const { toggleColorMode } = useColorMode();
-     const currentMode = useColorModeValue('nightlight-round', 'wb-sunny');
-     const colorMode = useColorModeValue('dark', 'light');
-     const currentColorMode = useColorModeValue('Light', 'Dark');
-     const currentModeB = useColorModeValue('wb-sunny', 'nightlight-round');
+     const { colorMode } = React.useContext(ThemeContext);
+     const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
+     const toggledColorMode = (colorMode === 'dark' ? 'light' : 'dark');
+     const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
+     const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
      const darkText = useToken('colors', 'textLight950');
      const lightText = useToken('colors', 'textLight50');
-     const { updateColorMode, updateTextColor } = React.useContext(ThemeContext);
+     const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
+     const { updateColorMode, updateTextColor, theme } = React.useContext(ThemeContext);
 
      const switchColorMode = async () => {
-          toggleColorMode();
-          logDebugMessage('Set colorMode to: ' + colorMode);
-
-          if (colorMode === 'light') {
-               updateTextColor(darkText);
+          if (colorMode == 'light') {
+               newColorMode = 'dark';
+          }else{
+               newColorMode = 'light';
           }
 
-          if (colorMode === 'dark') {
-               updateTextColor(lightText);
-          }
-
-          updateColorMode(colorMode);
-          await AsyncStorage.setItem('@colorMode', colorMode);
+          logDebugMessage("Switching color mode to: " + newColorMode);
+          updateColorMode(newColorMode);
+          await AsyncStorage.setItem('@colorMode', newColorMode);
      };
 
      if (showText) {
           return (
                <HStack alignItems="center">
-                    <IconButton onPress={switchColorMode} icon={<Icon as={MaterialIcons} name={currentModeB} />} borderRadius="full" _icon={{ size: 'sm' }} />
-                    <Text fontSize="xs">{currentColorMode}</Text>
+                    <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
+                         <ButtonIcon as={MaterialIcons} name={currentModeB} size="sm" color="$primary500" />
+                         <ButtonText fontSize="$sm" color={iconColor}> {currentColorMode}</ButtonText>
+                    </Button>
                </HStack>
           );
      }
 
      return (
           <Box alignItems="center">
-               <IconButton onPress={switchColorMode} icon={<Icon as={MaterialIcons} name={currentMode} />} borderRadius="full" _icon={{ size: 'sm' }} />
+               <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
+                    <ButtonIcon as={MaterialIcons} name={currentMode} size="sm" color="$primary500" />
+               </Button>
           </Box>
      );
 }

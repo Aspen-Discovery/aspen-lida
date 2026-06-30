@@ -1,6 +1,6 @@
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, AlertDialogBackdrop, Button, ButtonGroup, ButtonText, Center, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { AuthContext } from '../../components/navigation';
+import { AuthContext } from '../../context/AuthContext';
 import _ from 'lodash';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -23,7 +23,7 @@ export const CatalogOffline = () => {
                     <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                          <AlertDialogBackdrop />
 
-                         <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <AlertDialogHeader>
                                    <Heading color={textColor}>{getTermFromDictionary(language, 'catalog_offline')}</Heading>
                               </AlertDialogHeader>
@@ -32,8 +32,8 @@ export const CatalogOffline = () => {
                               </AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
-                                        <Button onPress={signOut} bgColor={theme['colors']['primary']['500']} ref={cancelRef}>
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        <Button onPress={signOut} bgColor="$primary500" ref={cancelRef}>
+                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>

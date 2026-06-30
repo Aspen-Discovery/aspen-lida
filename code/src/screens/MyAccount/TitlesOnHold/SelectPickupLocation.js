@@ -31,17 +31,15 @@ import {
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 import { changeHoldPickUpLocation } from '../../../util/api/user';
 import {SelectExistingHoldSubLocation} from './SelectExistingHoldSubLocation';
-import {ScrollView} from "native-base";
+import { ScrollView } from '@gluestack-ui/themed';
 
 export const SelectPickupLocation = (props) => {
      const { locations, sublocations, onClose, currentPickupId, holdId, userId, libraryContext, holdsContext, resetGroup, language, textColor, colorMode, theme } = props;
-     const insets = useSafeAreaInsets();
      let pickupLocation = _.findIndex(locations, function (o) {
           return o.locationId === currentPickupId;
      });
@@ -86,15 +84,15 @@ export const SelectPickupLocation = (props) => {
                          setShowModal(false);
                     }}>
                     <Box
-                         bgColor={colorMode === 'light' ? theme['colors']['muted']['50'] : theme['colors']['muted']['800']}
-                         rounded="md"
+                         bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
+                         rounded="$md"
                          p="$1">
                          <VStack space="sm">
                               <HStack
-                                   bgColor={colorMode === 'light' ? theme['colors']['muted']['50'] : theme['colors']['muted']['800']}
+                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
                                    p="$4"
                                    borderBottomWidth="$1"
-                                   borderColor={colorMode === 'light' ? theme['colors']['muted']['300'] : theme['colors']['muted']['700']}
+                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
                                    justifyContent="space-between"
                                    alignItems="flex-start">
                                    <Box>
@@ -106,7 +104,7 @@ export const SelectPickupLocation = (props) => {
                                              color={textColor}
                                              p="$2"
                                              bg="transparent"
-                                             borderRadius="sm"
+                                             borderRadius="$sm"
                                         />
                                    </Pressable>
                               </HStack>
@@ -136,18 +134,17 @@ export const SelectPickupLocation = (props) => {
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
                                                   <SelectContent
-                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
-                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
+                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                   >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
-                                                       <ScrollView style={{ maxHeight: 400 }}>
+                                                       <ScrollView style={{ maxHeight: 400, minWidth: "100%" }}>
                                                             {locations.map((item, index) => {
                                                                  const locationId = item.locationId;
                                                                  const code = item.code;
                                                                  const id = locationId.concat('_', code);
-                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (id) ? theme['colors']['tertiary']['500-text'] : textColor } }}/>;
+                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>;
                                                             })}
                                                        </ScrollView>
                                                   </SelectContent>
@@ -161,21 +158,21 @@ export const SelectPickupLocation = (props) => {
                                    flexDirection="row"
                                    justifyContent="flex-end"
                                    flexWrap="wrap"
-                                   bgColor={colorMode === 'light' ? theme['colors']['muted']['50'] : theme['colors']['muted']['800']}
+                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
                                    borderTopWidth="$1"
-                                   borderColor={colorMode === 'light' ? theme['colors']['muted']['300'] : theme['colors']['muted']['700']}
+                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
                                    >
                                    <Button
                                         variant="outline"
-                                        borderColor={theme['colors']['primary']['500']}
+                                        borderColor="$primary500"
                                         onPress={() => {
                                              setShowModal(false);
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
                                         isLoading={loading}
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);
@@ -186,7 +183,7 @@ export const SelectPickupLocation = (props) => {
                                                   setLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'change_location')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'change_location')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </VStack>

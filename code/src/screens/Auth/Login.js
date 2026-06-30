@@ -28,11 +28,12 @@ import { createGlueTheme } from '../../themes/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust path if your file differs
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
+     const insets = useSafeAreaInsets();
      const [permissionRequested, setPermissionRequested] = React.useState(false);
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [permissionStatus, setPermissionStatus] = React.useState(null);
@@ -61,7 +62,6 @@ export const LoginScreen = () => {
      const logoTapTimerRef = React.useRef(null);
      const { updateLibrary } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
-     const insets = useSafeAreaInsets();
 
      let isCommunity = true;
      if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
@@ -106,6 +106,7 @@ export const LoginScreen = () => {
                     });
 
                     await AsyncStorage.getItem('@colorMode').then(async (mode) => {
+                         logDebugMessage("Loaded color mode from AsyncStorage got " + mode);
                          if (mode === 'light' || mode === 'dark') {
                               updateColorMode(mode);
                          } else {
@@ -133,9 +134,7 @@ export const LoginScreen = () => {
 
                     setIsLoading(false);
                };
-               bootstrapAsync().then(() => {
-                    return () => bootstrapAsync();
-               });
+               bootstrapAsync();
           }, [])
      );
 
@@ -249,60 +248,65 @@ export const LoginScreen = () => {
           }
      };
 
+     const loginScreenContent = (
+          <SafeAreaView flex={1}>
+               <Box px="$5" h="$full" alignItems="center" justifyContent="center" bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}>
+                    <Pressable onPress={onLogoTap}>
+                         <Image source={{ uri: logoImage }} rounded="$2xl" size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
+                    </Pressable>
+                    {isCommunity || shouldShowSelectLibrary ? <SelectYourLibrary updateSelectedLibrary={updateSelectedLibrary} selectedLibrary={selectedLibrary} query={query} setQuery={setQuery} showModal={showModal} setShowModal={setShowModal} isCommunity={isCommunity} setShouldRequestPermissions={setShouldRequestPermissions} shouldRequestPermissions={shouldRequestPermissions} permissionRequested={permissionRequested} libraries={libraries} allLibraries={allLibraries} /> : null}
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} width="100%">
+                         {selectedLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} /> : null}
+                         <ButtonGroup space="$1" justifyContent="center" pt="$5" flexWrap="wrap">
+                              {enableForgotPasswordLink === '1' || enableForgotPasswordLink === 1 ? <ResetPassword ils={ils} enableForgotPasswordLink={enableForgotPasswordLink} usernameLabel={usernameLabel} passwordLabel={passwordLabel} forgotPasswordType={forgotPasswordType} showForgotPasswordModal={showForgotPasswordModal} setShowForgotPasswordModal={setShowForgotPasswordModal} /> : null}
+                              {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
+                         </ButtonGroup>
+                         {enableSelfRegistration ? (
+                              <Button mt="$3" variant="link" onPress={openSelfRegistration} color="$primary500">
+                                   <ButtonText color="$primary500">{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
+                              </Button>
+                         ) : null}
+                         {isCommunity && Platform.OS !== 'android' ? (
+                              <Button mt="$5" size="xs" variant="link">
+                                   <ButtonIcon mr="$1" as={Ionicons} name="navigate-circle-outline" color={theme['tokens']['colors']['tertiary']['500']} />
+                                   <ButtonText color={theme['tokens']['colors']['tertiary']['500']}>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
+                              </Button>
+                         ) : null}
+                         <Center>
+                              <Text mt="$5" fontSize="$xs" color={textColor}>
+                                   {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel ?? 'Development'}]
+                              </Text>
+                              {showApiErrorButton ? (
+                                   <Button mt="$4" size="xs" variant="outline" onPress={() => setShowApiErrorModal(true)}>
+                                        <ButtonText>Open API Error Log</ButtonText>
+                                   </Button>
+                              ) : null}
+                         </Center>
+                    </KeyboardAvoidingView>
+                    <Modal isOpen={showApiErrorModal} onClose={() => setShowApiErrorModal(false)}>
+                         <ModalBackdrop />
+                         <ModalContent maxHeight="75%" width="95%" alignSelf="center" borderRadius="$lg">
+                              <ModalHeader></ModalHeader>
+                              <ModalBody px="$4">
+                                   <APIErrorLog theme={theme} colorMode={colorMode} textColor={textColor} />
+                              </ModalBody>
+                              <ModalFooter pb={Math.max(insets.bottom, 8)} pt="$2" px="$4">
+                                   <Button variant="outline" onPress={() => setShowApiErrorModal(false)}>
+                                        <ButtonText>Close</ButtonText>
+                                   </Button>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
+               </Box>
+          </SafeAreaView>
+     );
+
      if (isLoading) {
           return <SplashScreen />;
      }
 
-     return (
-          <Box flex={1} alignItems="center" justifyContent="center" pl="$5" pr="$5" mb={insets.top} mt={insets.bottom} ml={insets.left} mr={insets.right}>
-               <Pressable onPress={onLogoTap}>
-                    <Image source={{ uri: logoImage }} rounded={25} size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
-               </Pressable>
-               {isCommunity || shouldShowSelectLibrary ? <SelectYourLibrary updateSelectedLibrary={updateSelectedLibrary} selectedLibrary={selectedLibrary} query={query} setQuery={setQuery} showModal={showModal} setShowModal={setShowModal} isCommunity={isCommunity} setShouldRequestPermissions={setShouldRequestPermissions} shouldRequestPermissions={shouldRequestPermissions} permissionRequested={permissionRequested} libraries={libraries} allLibraries={allLibraries} /> : null}
-               <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} width="100%">
-                    {selectedLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} /> : null}
-                    <ButtonGroup space="$1" justifyContent="center" pt="$5" flexWrap="wrap">
-                         {enableForgotPasswordLink === '1' || enableForgotPasswordLink === 1 ? <ResetPassword ils={ils} enableForgotPasswordLink={enableForgotPasswordLink} usernameLabel={usernameLabel} passwordLabel={passwordLabel} forgotPasswordType={forgotPasswordType} showForgotPasswordModal={showForgotPasswordModal} setShowForgotPasswordModal={setShowForgotPasswordModal} /> : null}
-                         {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
-                    </ButtonGroup>
-                    {enableSelfRegistration ? (
-                         <Button mt="$3" variant="link" onPress={openSelfRegistration} color={theme['colors']['primary']['500']}>
-                              <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
-                         </Button>
-                    ) : null}
-                    {isCommunity && Platform.OS !== 'android' ? (
-                         <Button mt="$5" size="xs" variant="link">
-                              <ButtonIcon mr="$1" as={Ionicons} name="navigate-circle-outline" color={theme['colors']['tertiary']['500']} />
-                              <ButtonText color={theme['colors']['tertiary']['500']}>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
-                         </Button>
-                    ) : null}
-                    <Center>
-                         <Text mt="$5" fontSize="$xs" color={textColor}>
-                              {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel ?? 'Development'}]
-                         </Text>
-                         {showApiErrorButton ? (
-                              <Button mt="$4" size="xs" variant="outline" onPress={() => setShowApiErrorModal(true)}>
-                                   <ButtonText>Open API Error Log</ButtonText>
-                              </Button>
-                         ) : null}
-                    </Center>
-               </KeyboardAvoidingView>
-               <Modal isOpen={showApiErrorModal} onClose={() => setShowApiErrorModal(false)}>
-                    <ModalBackdrop />
-                    <ModalContent maxHeight="75%" width="95%" alignSelf="center" borderRadius="$lg">
-                         <ModalHeader></ModalHeader>
-                         <ModalBody px="$4">
-                              <APIErrorLog theme={theme} colorMode={colorMode} textColor={textColor} />
-                         </ModalBody>
-                         <ModalFooter pb={Math.max(insets.bottom, 8)} pt="$2" px="$4">
-                              <Button variant="outline" onPress={() => setShowApiErrorModal(false)}>
-                                   <ButtonText>Close</ButtonText>
-                              </Button>
-                         </ModalFooter>
-                    </ModalContent>
-               </Modal>
-          </Box>
-     );
+     logDebugMessage("Loading Login page colorMode = " + colorMode );
+     return loginScreenContent;
 };
 
 async function getPermissions(kind = 'statusCheck') {

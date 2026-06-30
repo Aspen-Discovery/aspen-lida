@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { Box, useColorModeValue } from 'native-base';
+import { Box } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { Platform } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';

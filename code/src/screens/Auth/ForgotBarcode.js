@@ -126,63 +126,67 @@ export const ForgotBarcode = (props) => {
           return null;
      }
 
+     const ResultsMessage = showResults && !results.success ? (
+          <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_error_message'))}</Text>
+     ) : hasError ? (
+          <Text color={textColor}>{results}</Text>
+     ) : showResults ? (
+          <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_success_message'))}</Text>
+     ) : (
+          <>
+               <Text color={textColor}>{modalBody}</Text>
+               <FormControl>
+                    <FormControlLabel>
+                         <FormControlLabelText fontSize="$sm" color={textColor}>{fieldLabel}</FormControlLabelText>
+                    </FormControlLabel>
+                    <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="phoneNumber" variant="filled" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setPhoneNumber(text)} onSubmitEditing={() => initiateForgotBarcode()} color={textColor} textContentType="telephoneNumber"/></Input>
+               </FormControl>
+          </>
+     );
+
+     const FooterButtons = (showResults && !results.success) || hasError ? (
+          <Button bgColor="$primary500" onPress={resetWindow}>
+               <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+          </Button>
+     ) : showResults ? (
+          <Button variant="link" onPress={closeWindow}>
+               <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+          </Button>
+     ) : (
+          <>
+               <Button variant="link" mr="$4" onPress={closeWindow}>
+                    <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+               </Button>
+               <Button
+                    isLoading={isProcessing}
+                    isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
+                    bgColor="$primary500"
+                    onPress={initiateForgotBarcode}>
+                    <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+               </Button>
+          </>
+     );
+
      return (
           <Center>
                <Button variant="link" onPress={() => setShowForgotBarcodeModal(true)}>
-                    <ButtonText color={theme['colors']['primary']['500']}>{buttonLabel}</ButtonText>
+                    <ButtonText color="$primary500">{buttonLabel}</ButtonText>
                </Button>
                <Modal isOpen={showForgotBarcodeModal} size="lg" avoidKeyboard onClose={() => setShowForgotBarcodeModal(false)} pb={Platform.OS === 'android' && isKeyboardOpen ? '50%' : '0'}>
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{modalTitle}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              {showResults && !results.success ? (
-                                   <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_error_message'))}</Text>
-                              ) : hasError ? (
-                                   <Text color={textColor}>{results}</Text>
-                              ) : showResults ? (
-                                   <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_success_message'))}</Text>
-                              ) : (
-                                   <>
-                                        <Text color={textColor}>{modalBody}</Text>
-                                        <FormControl>
-                                             <FormControlLabel>
-                                                  <FormControlLabelText fontSize="$sm" color={textColor}>{fieldLabel}</FormControlLabelText>
-                                             </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="phoneNumber" variant="filled" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setPhoneNumber(text)} onSubmitEditing={() => initiateForgotBarcode()} color={textColor} textContentType="telephoneNumber"/></Input>
-                                        </FormControl>
-                                   </>
-                              )}
+                              {ResultsMessage}
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$4">
-                                   {(showResults && !results.success) || hasError ? (
-                                        <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
-                                        </Button>
-                                   ) : showResults ? (
-                                        <Button variant="link" onPress={closeWindow}>
-                                             <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
-                                        </Button>
-                                   ) : (
-                                        <>
-                                             <Button variant="link" mr="$4" onPress={closeWindow}>
-                                                  <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
-                                             </Button>
-                                             <Button
-                                                  isLoading={isProcessing}
-                                                  isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
-                                                  bgColor={theme['colors']['primary']['500']}
-                                                  onPress={initiateForgotBarcode}>
-                                                  <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
-                                             </Button>
-                                        </>
-                                   )}
+                                   {FooterButtons}
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

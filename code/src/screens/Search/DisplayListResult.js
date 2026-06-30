@@ -22,7 +22,7 @@ export const DisplayListResult = (props) => {
 
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      let recordType = 'grouped_work';
      if (item.recordtype) {
@@ -52,7 +52,7 @@ export const DisplayListResult = (props) => {
      };
 
      return (
-          <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['warmGray']['400'] : theme['colors']['gray']['600']} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                <HStack space="md">
                     <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                          <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -62,7 +62,7 @@ export const DisplayListResult = (props) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: 4,
+                                        borderRadius: "$sm",
                                    }}
                                    placeholder={blurhash}
                                    transition={1000}
@@ -74,9 +74,9 @@ export const DisplayListResult = (props) => {
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'],
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
                                         }}>
-                                        <BadgeText textTransform="none" color={colorMode === 'light' ? theme['colors']['coolGray']['600'] : theme['colors']['warmGray']['400']} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
+                                        <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
                                              {item.language}
                                         </BadgeText>
                                    </Badge>
@@ -113,8 +113,8 @@ export const DisplayListResult = (props) => {
                               <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
                                    {item.format.map((format, i) => {
                                         return (
-                                             <Badge key={i} borderRadius="$sm" borderColor={theme['colors']['secondary']['400']} variant="outline" bg="transparent">
-                                                  <BadgeText textTransform="none" color={theme['colors']['secondary']['400']} sx={{ '@base': { fontSize: 10, lineHeight: 14 }, '@lg': { fontSize: 16, lineHeight: 20 } }}>
+                                             <Badge key={i} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
+                                                  <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} sx={{ '@base': { fontSize: 10, lineHeight: 14 }, '@lg': { fontSize: 16, lineHeight: 20 } }}>
                                                        {format}
                                                   </BadgeText>
                                              </Badge>

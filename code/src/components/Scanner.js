@@ -1,30 +1,32 @@
 import { useIsFocused } from '@react-navigation/native';
-import { Camera, CameraView } from 'expo-camera';
-import { Button, Center, View } from 'native-base';
+import { useCameraPermissions, CameraView } from 'expo-camera';
+import { Button, ButtonText, Center, View } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
-import { LanguageContext } from '../context/initialContext';
-import { navigateStack } from '../helpers/RootNavigator';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { navigateStack, goBack } from '../helpers/RootNavigator';
 import { getTermFromDictionary } from '../translations/TranslationService';
-import { loadError } from './loadError';
-import { loadingSpinner } from './loadingSpinner';
+import { LoadError } from './loadError';
+import { LoadingSpinner } from './loadingSpinner';
 
 export default function Scanner() {
+     const navigation = useNavigation();
      const isFocused = useIsFocused();
      const [isLoading, setLoading] = React.useState(false);
-     const [hasPermission, setHasPermission] = React.useState(null);
+     const [permission, requestPermission] = useCameraPermissions();
      const [scanned, setScanned] = React.useState(false);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      let allowedBarcodes = ['upc_a', 'upc_e', 'ean13', 'ean8', 'codabar'];
 
      React.useEffect(() => {
-          (async () => {
-               const { status } = await Camera.requestCameraPermissionsAsync();
-               setHasPermission(status === 'granted');
-          })();
-     }, []);
+          if (!permission || permission.status === 'undetermined') {
+               requestPermission();
+          }
+     }, [permission]);
 
      const handleBarCodeScanned = ({ type, data }) => {
           console.log(data);
@@ -40,16 +42,27 @@ export default function Scanner() {
           }
      };
 
-     if (hasPermission === null) {
-          return loadingSpinner(getTermFromDictionary(language, 'scanner_request_permissions'));
+     if (!permission) {
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadingSpinner message={getTermFromDictionary(language, 'scanner_request_permissions')} />
+               </View>
+          );
      }
 
-     if (hasPermission === false) {
-          return loadError(getTermFromDictionary(language, 'scanner_denied_permissions'));
-     }
-
-     if (isLoading) {
-          return loadingSpinner();
+     if (!permission.granted) {
+          if (permission.canAskAgain) {
+               return (
+                    <View style={{ flex: 1 }}>
+                         <LoadingSpinner message={getTermFromDictionary(language, 'scanner_request_permissions')} />
+                    </View>
+               );
+          }
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadError error={getTermFromDictionary(language, 'scanner_denied_permissions')} />
+               </View>
+          );
      }
 
      return (
@@ -58,12 +71,17 @@ export default function Scanner() {
                     <>
                          <CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={[StyleSheet.absoluteFillObject, styles.container]} barcodeScannerSettings={{ barcodeTypes: allowedBarcodes }}>
                               <BarcodeMask edgeColor="#62B1F6" showAnimatedLine={false} />
+                              <View style={styles.buttonContainer}>
+                                   <Button variant="outline" action="secondary" onPress={() => navigation.goBack()} bgColor="rgba(0,0,0,0.5)" borderColor="$white">
+                                        <ButtonText color="$white">Cancel</ButtonText>
+                                   </Button>
+                                   {scanned && (
+                                        <Button onPress={() => setScanned(false)} ml="$4">
+                                             <ButtonText>{getTermFromDictionary(language, 'scan_again')}</ButtonText>
+                                        </Button>
+                                   )}
+                              </View>
                          </CameraView>
-                         {scanned && (
-                              <Center pb={20}>
-                                   <Button onPress={() => setScanned(false)}>{getTermFromDictionary(language, 'scan_again')}</Button>
-                              </Center>
-                         )}
                     </>
                )}
           </View>
@@ -75,6 +93,14 @@ const styles = StyleSheet.create({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
+     },
+     buttonContainer: {
+          position: 'absolute',
+          bottom: 50,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
      },
 });
 

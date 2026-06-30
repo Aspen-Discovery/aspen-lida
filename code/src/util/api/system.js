@@ -124,6 +124,9 @@ export async function getCatalogStatus(url = null) {
  * @returns {Promise<*|*[]>}
  */
 export async function getAppSettings(url, timeout, slug) {
+     if (LIBRARY.appSettings != null && LIBRARY.appSettings.length > 0 && LIBRARY.appSettingsUrl === url && LIBRARY.appSettingsSlug === slug) {
+          return LIBRARY.appSettings;
+     }
      logDebugMessage(`Getting App Settings from url: ${url} slug: ${slug}`);
 
      try {
@@ -132,6 +135,8 @@ export async function getAppSettings(url, timeout, slug) {
 
           if (response?.ok) {
                LIBRARY.appSettings = response.data?.result?.settings ?? [];
+               LIBRARY.appSettingsUrl = url;
+               LIBRARY.appSettingsSlug = slug;
                return LIBRARY.appSettings;
           }
 
@@ -224,11 +229,18 @@ export async function getSelfCheckSettings(url = null) {
 export async function getLocations(url = null, language = 'en', latitude, longitude) {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutFast, language });
 
-     return await client.get('/SystemAPI?method=getLocations', {
+     const response = await client.get('/SystemAPI?method=getLocations', {
           latitude,
           longitude,
           language,
      });
+     if (response.ok) {
+          logDebugMessage("Got a good response from SystemAPI getLocations");
+     }else{
+          logWarnMessage("Did not get a good response from SystemAPI getLocations");
+     }
+
+     return response;
 }
 
 /**

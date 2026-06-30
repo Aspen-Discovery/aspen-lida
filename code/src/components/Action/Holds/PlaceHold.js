@@ -189,7 +189,7 @@ export const PlaceHold = (props) => {
                <>
                     <Button
                          size="md"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
@@ -241,9 +241,9 @@ export const PlaceHold = (props) => {
                               });
                          }}>
                          {loading ? (
-                              <ButtonSpinner color={theme['colors']['primary']['500-text']} />
+                              <ButtonSpinner color="$textLight200" />
                          ) : (
-                              <ButtonText color={theme['colors']['primary']['500-text']} textAlign="center">
+                              <ButtonText color="$textLight200" textAlign="center">
                                    {title}
                               </ButtonText>
                          )}

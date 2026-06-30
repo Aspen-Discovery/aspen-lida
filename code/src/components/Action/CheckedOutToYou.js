@@ -16,8 +16,8 @@ export const CheckedOutToYou = (props) => {
      };
 
      return (
-          <Button minWidth="100%" maxWidth="100%" mb="$1" size="md" bgColor={theme['colors']['primary']['500']} variant="solid" onPress={handleNavigation}>
-               <ButtonText textAlign="center" p="$0" color={theme['colors']['primary']['500-text']}>
+          <Button minWidth="100%" maxWidth="100%" mb="$1" size="md" bgColor="$primary500" variant="solid" onPress={handleNavigation}>
+               <ButtonText textAlign="center" p="$0" color="$textLight200">
                     {props.title}
                </ButtonText>
           </Button>

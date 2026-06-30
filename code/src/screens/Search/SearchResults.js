@@ -24,7 +24,6 @@ import _ from 'lodash';
 import {ScanBarcode, SearchIcon, SlidersHorizontalIcon, XIcon} from 'lucide-react-native';
 import moment from 'moment';
 
-import { useColorModeValue, useToken } from 'native-base';
 import React from 'react';
 import { ScrollView } from 'react-native';
 import { loadError, popToast } from '../../components/loadError';
@@ -141,7 +140,7 @@ export const SearchResults = () => {
                     label = num + ' ' + getTermFromDictionary(language, 'result');
                }
                return (
-                    <Box bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']} borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']}>
+                    <Box bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}>
                          <Box m="$2">
                               <Text color={textColor}>{label}</Text>
                          </Box>
@@ -155,14 +154,14 @@ export const SearchResults = () => {
      const Paging = () => {
           if (data.totalPages > 1) {
                return (
-                    <Box p="$2" bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']} borderTopWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} flexWrap="nowrap" alignItems="center">
+                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap" alignItems="center">
                          <ScrollView horizontal>
                               <ButtonGroup>
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
                                                   console.log('Adding to page');
@@ -171,7 +170,7 @@ export const SearchResults = () => {
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -221,8 +220,8 @@ export const SearchResults = () => {
                     loadError('Error', '')
                ) : (
                     <Box flex={1}>
-                         {data.totalResults > 0 ? <FilterBar /> : null}
-                         <SearchBox term={term} />
+                         {data.totalResults > 0 ? <FilterBar navigation={navigation} /> : null}
+                         <SearchBox term={term} navigation={navigation} />
                          <FlatList data={data.results} ListHeaderComponent={Header} ListFooterComponent={Paging} ListEmptyComponent={NoResults} renderItem={({ item }) => <DisplayResult data={item} />} keyExtractor={(item, index) => index.toString()} />
                     </Box>
                )}
@@ -236,7 +235,7 @@ const DisplayResult = (data) => {
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentSource } = React.useContext(SearchContext);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -278,8 +277,8 @@ const DisplayResult = (data) => {
           }
 
           return (
-               <Badge key={n.key} borderRadius="$sm" borderColor={theme['colors']['secondary']['400']} variant="outline" bg="transparent">
-                    <BadgeText textTransform="none" color={theme['colors']['secondary']['400']} fontSize="$xs">
+               <Badge key={n.key} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
+                    <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
                          {n.name}
                     </BadgeText>
                </Badge>
@@ -369,7 +368,7 @@ const DisplayResult = (data) => {
           let roomData = item?.room ?? null;
 
           return (
-               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['warmGray']['400'] : theme['colors']['gray']['600']} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? "$warmGray400" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                     <HStack space="md">
                          <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                               <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -379,7 +378,7 @@ const DisplayResult = (data) => {
                                         style={{
                                              width: '100%',
                                              height: '100%',
-                                             borderRadius: 4,
+                                             borderRadius: "$sm",
                                         }}
                                         placeholder={blurhash}
                                         transition={1000}
@@ -409,8 +408,8 @@ const DisplayResult = (data) => {
                               ) : null}
                               {registrationRequired ? (
                                    <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                                        <Badge key={0} borderRadius="$sm" borderColor={theme['colors']['secondary']['400']} variant="outline" bg="transparent">
-                                             <BadgeText textTransform="none" color={theme['colors']['secondary']['400']} fontSize="$xs">
+                                        <Badge key={0} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
+                                             <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
                                                   {getTermFromDictionary(language, 'registration_required')}
                                              </BadgeText>
                                         </Badge>
@@ -423,7 +422,7 @@ const DisplayResult = (data) => {
      }
 
      return (
-          <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['warmGray']['400'] : theme['colors']['gray']['600']} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                <HStack space="md">
                     <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                          <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -433,7 +432,7 @@ const DisplayResult = (data) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: 4,
+                                        borderRadius: "$sm",
                                    }}
                                    placeholder={blurhash}
                                    transition={1000}
@@ -444,14 +443,14 @@ const DisplayResult = (data) => {
                               <Center
                                    mt="$1"
                                    sx={{
-                                        bgColor: colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'],
+                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
                                    }}>
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'],
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
                                         }}>
-                                        <BadgeText textTransform="none" color={colorMode === 'light' ? theme['colors']['coolGray']['600'] : theme['colors']['warmGray']['400']} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
+                                        <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
                                              {item.language}
                                         </BadgeText>
                                    </Badge>
@@ -477,22 +476,24 @@ const DisplayResult = (data) => {
      );
 };
 
-const FilterBar = () => {
-     const navigation = useNavigation();
+const FilterBar = ({ navigation }) => {
      const { language } = React.useContext(LanguageContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
      const type = useRoute().params.type ?? 'catalog';
 
-     if (version >= '22.11.00' && type === 'catalog') {
+     if (navigation === undefined) {
+          logErrorMessage("Navigation is undefined in Filter Bar");
+          return null;
+     }
+     if (type === 'catalog') {
           return (
                <Box
                     padding="$2"
                     paddingBottom="$0"
                     sx={{
-                         bg: colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700'],
-                         borderColor: colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600'],
+                         bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
+                         borderColor: colorMode === 'light' ? "$coolGray200" : "$gray600",
                     }}
                     flexWrap="nowrap">
                     <ScrollView horizontal>
@@ -500,7 +501,7 @@ const FilterBar = () => {
                               size="sm"
                               variant="solid"
                               mr="$1"
-                              bg={theme['colors']['primary']['600']}
+                              bg="$primary600"
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
@@ -509,19 +510,17 @@ const FilterBar = () => {
                                         },
                                    });
                               }}>
-                              <ButtonIcon color={theme['colors']['primary']['600-text']} as={SlidersHorizontalIcon} mr="$1" />
-                              <ButtonText color={theme['colors']['primary']['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
+                              <ButtonIcon color={theme['tokens']['colors']['primary']['600-text']} as={SlidersHorizontalIcon} mr="$1" />
+                              <ButtonText color={theme['tokens']['colors']['primary']['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
-                         <CreateFilterButton />
+                         <CreateFilterButton navigation={navigation}/>
                     </ScrollView>
                </Box>
           );
      }
 };
 
-const SearchBox = (props) => {
-     const navigation = useNavigation();
-     const { term } = props;
+const SearchBox = ({term, navigation}) => {
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const [searchTerm, setSearchTerm] = React.useState(term);
@@ -541,11 +540,11 @@ const SearchBox = (props) => {
 
      return (
          <Box padding="$2" sx={{
-              bg: colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700'],
-              borderColor: colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600'],
-         }} borderBottomWidth={1}>
+              bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
+              borderColor: colorMode === 'light' ? "$coolGray200" : "$gray600",
+         }} borderBottomWidth="$1">
               <FormControl pb="$5">
-                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                         <InputSlot>
                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                         </InputSlot>
@@ -564,8 +563,7 @@ const SearchBox = (props) => {
      )
 }
 
-const CreateFilterButtonDefaults = () => {
-     const navigation = useNavigation();
+const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
      const { location } = React.useContext(LibraryBranchContext);
      const { library } = React.useContext(LibrarySystemContext);
@@ -619,7 +617,7 @@ const CreateFilterButtonDefaults = () => {
                                    size="sm"
                                    variant="outline"
                                    sx={{
-                                        borderColor: colorMode === 'light' ? theme['colors']['muted']['300'] : theme['colors']['gray']['400'],
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$gray400",
                                    }}
                                    onPress={() => {
                                         navigation.push('modal', {
@@ -645,7 +643,7 @@ const CreateFilterButtonDefaults = () => {
                               size="sm"
                               variant="outline"
                               sx={{
-                                   borderColor: colorMode === 'light' ? theme['colors']['primary']['400'] : theme['colors']['gray']['400'],
+                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$gray400",
                               }}
                               onPress={() => {
                                    navigation.push('modal', {
@@ -668,10 +666,9 @@ const CreateFilterButtonDefaults = () => {
      );
 };
 
-const CreateFilterButton = () => {
+const CreateFilterButton = ({navigation}) => {
      const { currentSource } = React.useContext(SearchContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const navigation = useNavigation();
      const appliedFacets = SearchGlobal.appliedFilters;
      const sort = _.find(appliedFacets['Sort By'], {
           field: 'sort_by',
@@ -702,7 +699,7 @@ const CreateFilterButton = () => {
                                    size="sm"
                                    key={index}
                                    sx={{
-                                        borderColor: colorMode === 'light' ? theme['colors']['muted']['300'] : theme['colors']['gray']['400'],
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$gray400",
                                    }}
                                    onPress={() => {
                                         navigation.push('modal', {
@@ -727,7 +724,7 @@ const CreateFilterButton = () => {
           );
      }
 
-     return <CreateFilterButtonDefaults />;
+     return <CreateFilterButtonDefaults navigation={navigation} />;
 };
 
 async function fetchSearchResults(term, page, scope, url, type, id, language, index, source, barcodeType) {

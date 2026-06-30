@@ -65,7 +65,7 @@ const SelfCheckOutStackNavigator = () => {
                               return <></>;
                          },
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                    <Icon as={MaterialIcons} name="close" size="md" />
                               </Pressable>
                          ),

@@ -1,9 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { AlertDialog, AlertDialogBackdrop,
-     AlertDialogContent,
-     AlertDialogHeader,
-     AlertDialogBody,
-     AlertDialogFooter, Button, ButtonText, ButtonGroup, Text, Heading, Center, CloseIcon, Pressable } from '@gluestack-ui/themed';
+import { AlertDialog, Button, ButtonText, ButtonGroup, Text, Heading, Center, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 
 import { SearchGlobal } from '../../util/globals';
@@ -54,29 +50,29 @@ export const UnsavedChangesExit = (props) => {
 
      return (
           <Center>
-               <Pressable onPress={() => getStatus()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} ml="$3">
+               <Pressable onPress={() => getStatus()} p="$1" ml="$3">
                     <CloseIcon size="md" color="primary.baseContrast" />
                </Pressable>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                    <AlertDialogBackdrop/>
-                    <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
-                         <AlertDialogHeader>
+                    <AlertDialog.Backdrop/>
+                    <AlertDialog.Content bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialog.Header>
                               <Heading color={textColor}>{getTermFromDictionary(language, 'discard_changes')}</Heading>
-                         </AlertDialogHeader>
-                         <AlertDialogBody>
+                         </AlertDialog.Header>
+                         <AlertDialog.Body>
                               <Text color={textColor}>{getTermFromDictionary(language, 'unsaved_changes_warning')}</Text>
-                         </AlertDialogBody>
-                         <AlertDialogFooter>
+                         </AlertDialog.Body>
+                         <AlertDialog.Footer>
                               <ButtonGroup space="sm">
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={updateClose} ref={cancelRef}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={updateClose} ref={cancelRef}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={forceClose}>
-                                        <ButtonText color={theme['colors']['danger']['500']}>{getTermFromDictionary(language, 'discard')}</ButtonText>
+                                        <ButtonText color="$danger500">{getTermFromDictionary(language, 'discard')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialogFooter>
-                    </AlertDialogContent>
+                         </AlertDialog.Footer>
+                    </AlertDialog.Content>
                </AlertDialog>
           </Center>
      );

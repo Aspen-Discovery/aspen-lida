@@ -6,6 +6,7 @@ import { ThemeContext } from '../../../context/initialContext';
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
 
 export const StartLocalIllRequestEmail = (props) => {
+     const { theme } = React.useContext(ThemeContext);
      //logDebugMessage("Props for StartLocalIllRequest");
      //logDebugMessage(props);
      const openLocalIllRequestEmail = () => {
@@ -17,17 +18,16 @@ export const StartLocalIllRequestEmail = (props) => {
                recordId: props.recordId
           });
      };
-     const { theme } = React.useContext(ThemeContext);
 
      return (
           <Button
                size="md"
-               bgColor={theme['colors']['primary']['500']}
+               bgColor="$primary500"
                variant="solid"
                minWidth="100%"
                maxWidth="100%"
                onPress={openLocalIllRequestEmail}>
-               <ButtonText color={theme['colors']['primary']['500-text']} textAlign="center">
+               <ButtonText color="$textLight200" textAlign="center">
                     {props.title}
                </ButtonText>
           </Button>

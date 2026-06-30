@@ -1,11 +1,33 @@
 import { createApiClient } from './apiFactory';
 import { GLOBALS, PATRON } from '../globals';
 import { popAlert, popToast } from '../../components/loadError';
-import { getTermFromDictionary } from '../../translations/TranslationService';
+import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging.js';
 import * as WebBrowser from 'expo-web-browser';
 import { problemCodeMap, stripHTML } from '../../helpers/helpers';
-import { resolveReactivationDate } from './userHelper';
+import { addDays, formatLocalDateYYYYMMDD, parseToDate } from '../../helpers/helpers';
+
+export function resolveReactivationDate(selectedReactivationDate, allowIndefinite = false) {
+     const today = formatLocalDateYYYYMMDD();
+
+     const selectedDate = parseToDate(selectedReactivationDate);
+     if (selectedDate) {
+          const selected = formatLocalDateYYYYMMDD(selectedDate);
+
+          if (selected === today) {
+               if (allowIndefinite) return null;
+               return formatLocalDateYYYYMMDD(addDays(new Date(), 30));
+          }
+
+          return selected;
+     }
+
+     if (!allowIndefinite) {
+          return formatLocalDateYYYYMMDD(addDays(new Date(), 30));
+     }
+
+     return null;
+}
 import * as Device from 'expo-device';
 
 function userClient(url = null, timeout = GLOBALS.timeoutAverage, language = 'en') {
@@ -60,9 +82,17 @@ export async function reloadProfile(url = null) {
      );
 
      if (response.ok) {
-          if (response.data?.result?.profile) return response.data.result.profile;
-          if (response.data?.result) return response.data.result;
+          if (response.data?.result?.profile) {
+               logDebugMessage("Returning profile");
+               return response.data.result.profile;
+          }
+          if (response.data?.result) {
+               logDebugMessage("Returning result");
+               return response.data.result;
+          }
           logWarnMessage('Reloading profile failed, did not get a result');
+     }else{
+          logWarnMessage('Reloading profile failed response was not ok');
      }
 
      return { success: false, errorFetching: true };
@@ -166,6 +196,7 @@ export async function getUserProfile(data, user, pass) {
           timeout: GLOBALS.timeoutAverage,
      });
 
+     logDebugMessage("Getting User Profile");
      const response = await client.post(
           '/UserAPI?method=getPatronProfile',
           {

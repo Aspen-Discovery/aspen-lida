@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { Box, Button, Center, Icon, useColorModeValue, useToken } from 'native-base';
+import { Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
 import { popToast } from '../../components/loadError';
@@ -137,7 +138,7 @@ const ContactButtons = (data) => {
      if (location.phone || location.email || location.homeLink || location.latitude !== 0) {
           return (
                <Box mb={4}>
-                    <Button.Group flexWrap="wrap" size="sm" justifyContent="space-between" variant="outline">
+                    <ButtonGroup flexWrap="wrap" size="sm" justifyContent="space-between" variant="outline">
                          {location.phone ? (
                               <Button
                                    width="23%"
@@ -145,7 +146,7 @@ const ContactButtons = (data) => {
                                    _text={{
                                         padding: 0,
                                         textAlign: 'center',
-                                        fontSize: 'xs',
+                                        fontSize: '$xs',
                                         color: useColorModeValue('coolGray.600', 'warmGray.200'),
                                    }}
                                    style={{
@@ -154,9 +155,9 @@ const ContactButtons = (data) => {
                                         alignContent: 'center',
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="call" size="md" color="coolGray.600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="call" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
                                    </Center>
-                                   {getTermFromDictionary(language, 'call_the_library')}
+                                   <ButtonText>{getTermFromDictionary(language, 'call_the_library')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.email ? (
@@ -166,7 +167,7 @@ const ContactButtons = (data) => {
                                    _text={{
                                         padding: 0,
                                         textAlign: 'center',
-                                        fontSize: 'xs',
+                                        fontSize: '$xs',
                                         color: useColorModeValue('coolGray.600', 'warmGray.200'),
                                    }}
                                    style={{
@@ -175,9 +176,9 @@ const ContactButtons = (data) => {
                                         alignContent: 'center',
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="email" size="md" color="coolGray.600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="email" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
                                    </Center>
-                                   {getTermFromDictionary(language, 'email_a_librarian')}
+                                   <ButtonText>{getTermFromDictionary(language, 'email_a_librarian')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.latitude !== 0 ? (
@@ -196,9 +197,9 @@ const ContactButtons = (data) => {
                                         alignContent: 'center',
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="map" size="md" color="coolGray.600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="map" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
                                    </Center>
-                                   {getTermFromDictionary(language, 'get_directions')}
+                                   <ButtonText>{getTermFromDictionary(language, 'get_directions')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.homeLink ? (
@@ -217,12 +218,12 @@ const ContactButtons = (data) => {
                                         alignContent: 'center',
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="home" size="md" color="coolGray.600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="home" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
                                    </Center>
-                                   {getTermFromDictionary(language, 'visit_our_website')}
+                                   <ButtonText>{getTermFromDictionary(language, 'visit_our_website')}</ButtonText>
                               </Button>
                          ) : null}
-                    </Button.Group>
+                    </ButtonGroup>
                </Box>
           );
      }

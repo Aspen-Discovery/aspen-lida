@@ -57,7 +57,7 @@ export const LoadingScreen = () => {
      const { category, updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
      const { language, updateLanguage, updateLanguages, updateDictionary, dictionary, languageDisplayName, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, updateTheme, updateColorMode } = React.useContext(ThemeContext);
+     const { theme, updateTheme, colorMode, updateColorMode } = React.useContext(ThemeContext);
 
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
@@ -69,7 +69,7 @@ export const LoadingScreen = () => {
      React.useEffect(() => {
           const unsubscribe = navigation.addListener('focus', async () => {
                // The screen is focused
-               logDebugMessage('The screen is focused.');
+               logDebugMessage('The Loading screen is focused.');
                setIsReloading(true);
                setProgress(0);
                queryClient.clear();
@@ -88,6 +88,7 @@ export const LoadingScreen = () => {
                }
 
                await createGlueTheme(LIBRARY.url).then((result) => {
+                    logDebugMessage("Creating glue theme");
                     updateTheme(result);
                     setLoadingTheme(false);
                     //if we have no library we should set error
@@ -661,13 +662,13 @@ export const LoadingScreen = () => {
      }
 
      return (
-          <Center flex={1} px="$3" w="100%">
+          <Center flex={1} px="$3" width="$full">
                <Box w="90%" maxW={400} pt={insets.top} pb={insets.bottom} pl={insets.left} pr={insets.right}>
                     <VStack>
                          <Heading pb="$5" color="$primary500" size="md">
                               {loadingText}
                          </Heading>
-                         <Progress value={progress} w="100%" h="$3" size="lg">
+                         <Progress value={progress} width="$full" h="$3" size="lg">
                               <Progress.FilledTrack bg="$primary500" />
                          </Progress>
                     </VStack>

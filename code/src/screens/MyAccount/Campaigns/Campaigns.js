@@ -2,23 +2,23 @@ import React, { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { 
-  Actionsheet, 
+import {
+  Actionsheet,
   ActionsheetBackdrop,
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
   ActionsheetItem,
   ActionsheetItemText,
-  Box, 
-  Button, 
+  Box,
+  Button,
   ButtonText,
-  Center, 
-  FlatList, 
-  HStack, 
-  Pressable, 
-  ScrollView, 
-  Text, 
+  Center,
+  FlatList,
+  HStack,
+  Pressable,
+  ScrollView,
+  Text,
   VStack,
   Select,
   SelectTrigger,
@@ -30,6 +30,7 @@ import {
   SelectDragIndicator,
   SelectDragIndicatorWrapper,
   SelectItem,
+  SelectScrollView,
   ChevronDownIcon,
   CheckIcon
 } from '@gluestack-ui/themed';
@@ -70,7 +71,7 @@ export const MyCampaigns = () => {
 	const { library } = React.useContext(LibrarySystemContext);
 	const { language } = React.useContext(LanguageContext);
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-	
+
 	React.useEffect(() => {
 		queryClient.invalidateQueries(['all_campaigns']);
 	}, [filterBy]);
@@ -109,17 +110,17 @@ export const MyCampaigns = () => {
 
 	const handleShareOnSocial = async (imageUrl) => {
 		if (!imageUrl) return;
-		
+
 		const fileUri = FileSystem.documentDirectory + 'shared.jpg';
 
 		try {
 			const download = await FileSystem.downloadAsync(imageUrl, fileUri);
-		
+
 			if (!(await Sharing.isAvailableAsync())) {
 			  console.error('Sharing is not available on this device');
 			  return;
 			}
-		
+
 			await Sharing.shareAsync(download.uri);
 		} catch (err) {
 			console.error('Sharing failed:', err);
@@ -128,10 +129,10 @@ export const MyCampaigns = () => {
 
 	const groupByLinkedUser = (campaigns) => {
 		if (!Array.isArray(campaigns)) return {};
-		
+
 		return campaigns.reduce((acc, campaign) => {
 			if (!campaign) return acc;
-			
+
 			const userName = campaign.linkedUserName || 'UnknownUser';
 			const userId = campaign.linkedUserId;
 
@@ -149,8 +150,8 @@ export const MyCampaigns = () => {
 
 	// Data fetching
 	const { status, data, error, isFetching, refetch} = useQuery(
-		['all_campaigns', library.baseUrl, language, filterBy, page], 
-		() => fetchCampaigns(page, PAGE_SIZE, filterBy, library.baseUrl), 
+		['all_campaigns', library.baseUrl, language, filterBy, page],
+		() => fetchCampaigns(page, PAGE_SIZE, filterBy, library.baseUrl),
 		{
 			placeholderData: () => ({ campaigns: campaigns}),
 			keepPreviousData: true,
@@ -174,7 +175,7 @@ export const MyCampaigns = () => {
 
 		try {
 			const linkedUserId = selectedLinkedUserId;
-			
+
 			if (selectedCampaign.enrolled) {
 				await unenrollCampaign(selectedCampaign.id, linkedUserId, filterBy, library.baseUrl);
 			} else {
@@ -194,9 +195,9 @@ export const MyCampaigns = () => {
 		try {
 			const linkedUserId = selectedLinkedUserId;
 			const optIn = selectedCampaign.optInToCampaignEmailNotifications ? 0 : 1;
-			
+
 			await optIntoCampaignEmails(selectedCampaign.id, linkedUserId, filterBy, optIn, library.baseUrl);
-			
+
 			await refetch();
 			handleCloseActions();
 		} catch (error) {
@@ -222,7 +223,7 @@ export const MyCampaigns = () => {
 			console.error("Error in opt in / out of leaderboard: ", error);
 		}
 	};
-	
+
 	const toggleExpanded = (id) => {
 		setExpandedCampaigns((prev) => ({
 			...prev,
@@ -268,7 +269,7 @@ export const MyCampaigns = () => {
 
 		// Check if we should show placeholder
 		if (isDigitalReward) {
-			if (item.isPlaceholderImage) {	
+			if (item.isPlaceholderImage) {
 				if (item.useTplPlaceholder) {
 					return (
 					<VStack space="sm">
@@ -281,7 +282,7 @@ export const MyCampaigns = () => {
 				}
 				// Use the placeholder image URL instead
 				actualImageUrl = buildImageUrl(item.badgeImage);
-				hasImage = true; 
+				hasImage = true;
 			} else {
 				if (type === 'campaign') {
 					hasImage = item.rewardExists && item.badgeImage;
@@ -292,7 +293,7 @@ export const MyCampaigns = () => {
 		}
 
 		const rewardName = item.rewardName || 'No Reward';
-		const canShare = type === 'campaign' 
+		const canShare = type === 'campaign'
 			? (item.campaignRewardGiven || (item.awardAutomatically && item.campaignIsComplete))
 			: type === 'milestone'
 			? (item.milestoneRewardGiven || (item.awardAutomatically && item.milestoneIsComplete))
@@ -307,7 +308,7 @@ export const MyCampaigns = () => {
 				)}
 				{hasImage && actualImageUrl && (
 					<>
-						<RewardImage 
+						<RewardImage
 							imageUrl={actualImageUrl}
 							rewardName={rewardName}
 							canShare={canShare && !item.isPlaceholderImage}
@@ -329,7 +330,7 @@ export const MyCampaigns = () => {
 		const handleAddProgress = async (item) => {
 			try {
 				const activityType = type === 'milestone' ? 'milestone' : 'extraCredit';
-				
+
 				await addActivityProgress(item.id, linkedUserId, activityType, filterBy, library.baseUrl, language, campaignId);
 
 				await refetch()
@@ -345,7 +346,7 @@ export const MyCampaigns = () => {
 
 			if (item.allowPatronProgressInput){
 				return true;
-			} 
+			}
 
 			return false;
 		};
@@ -366,7 +367,7 @@ export const MyCampaigns = () => {
 					{title}
 				</Text>
 				<VStack space="md">
-					<HStack justifyContent="space-between" pb="$1" borderBottomWidth={1}>
+     <HStack justifyContent="space-between" pb="$1" borderBottomWidth="$1">
 						<Text flex={3} fontWeight="$bold">{getTermFromDictionary(language, 'activity_name')}</Text>
 						<Text flex={2} fontWeight="$bold">{getTermFromDictionary(language, 'activity_goal')}</Text>
 						<Text flex={2} fontWeight="$bold">{getTermFromDictionary(language, 'activity_reward')}</Text>
@@ -375,21 +376,21 @@ export const MyCampaigns = () => {
 
 					{items.map((item, i) => {
 						if (!item) return null;
-						
+
 						const imageUrl = buildImageUrl(item.rewardImage);
 						const showButton = shouldShowButton(item);
 						const isDisabled = shouldDisableButton(item);
 
 						return(
-							<HStack 
-								key={i} 
+							<HStack
+								key={i}
 								justifyContent="space-between"
 								alignItems="center"
 								space="md"
-								borderBottomWidth="$1" 
-								borderBottomColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['coolGray']['500']} 
-								pl="$4" 
-								pr="$5" 
+								borderBottomWidth="$1"
+								borderBottomColor={colorMode === 'light' ? "$coolGray200" : "$coolGray500"}
+								pl="$4"
+								pr="$5"
 								py="$2"
 							>
 								<Text flex={2}>
@@ -399,7 +400,7 @@ export const MyCampaigns = () => {
 									{String(item.completedGoals || 0)} / {String(item.totalGoals || 0)}
 								</Text>
 								<Box width={120}>
-									<RewardDisplay 
+									<RewardDisplay
 										item={item}
 										imageUrl={imageUrl}
 										type={type}
@@ -415,7 +416,7 @@ export const MyCampaigns = () => {
 											width="100%"
 											px={2}
 										>
-											<ButtonText fontSize={10} textAlign="center">
+											<ButtonText fontSize="$xs" textAlign="center">
 												{getTermFromDictionary(language, 'add_progress')}
 											</ButtonText>
 										</Button>
@@ -443,14 +444,14 @@ export const MyCampaigns = () => {
 
 		return (
 			<VStack space="md" px="$4" py="$3" key={item.id}>
-				<HStack justifyContent="space-between" borderBottomWidth={1} pb="$2">
+    <HStack justifyContent="space-between" borderBottomWidth="$1" pb="$2">
 					<Text flex={2} fontWeight="$bold">{getTermFromDictionary(language, 'campaign_name_header')}</Text>
 					<Text flex={3} fontWeight="$bold">{getTermFromDictionary(language, 'campaign_reward')}</Text>
 					<Text flex={2} fontWeight="$bold">{getTermFromDictionary(language, 'campaign_dates')}</Text>
 					<Text flex={1} fontWeight="$bold"> </Text>
 					<Text flex={1} fontWeight="$bold"> </Text>
 				</HStack>
-				
+
 				<HStack
 					justifyContent="space-between"
 					alignItems="center"
@@ -461,7 +462,7 @@ export const MyCampaigns = () => {
 					<Text flex={2}>
 						{String(item.name || '')}
 					</Text>
-					<RewardDisplay 
+					<RewardDisplay
 						item={item}
 						imageUrl={campaignImageUrl}
 						type="campaign"
@@ -479,7 +480,7 @@ export const MyCampaigns = () => {
 							{expanded ? "▲" : "▼"}
 						</ButtonText>
 					</Button>
-					<Button 
+					<Button
 						size="sm"
 						onPress={() => onOpenActions(item, filterBy === 'linkedUserCampaigns' ? item.linkedUserId : null)}
 						accessibilityLabel={`Open actions menu for ${item.name || 'campaign'}`}
@@ -496,7 +497,7 @@ export const MyCampaigns = () => {
 							</Text>
 						) : (
 							<>
-								<ActivityTable 
+								<ActivityTable
 									items={item.milestones}
 									title="Milestones"
 									type="milestone"
@@ -506,7 +507,7 @@ export const MyCampaigns = () => {
 									campaignIsPast={item.isPast}
 									campaignIsUpcoming={item.isUpcoming}
 								/>
-								<ActivityTable 
+								<ActivityTable
 									items={item.extraCreditActivities}
 									title="Extra Credit Activities"
 									type="activity"
@@ -534,7 +535,7 @@ export const MyCampaigns = () => {
 					<ActionsheetDragIndicatorWrapper>
 						<ActionsheetDragIndicator />
 					</ActionsheetDragIndicatorWrapper>
-					
+
 					{(selectedCampaign?.canEnroll || selectedCampaign?.enrolled) && (
 						<ActionsheetItem onPress={handleEnrollUnenroll}>
 							<ActionsheetItemText>
@@ -575,7 +576,7 @@ export const MyCampaigns = () => {
 	);
 
 	const campaignsData = useMemo(() => data?.campaigns || [], [data]);
-	const groupedCampaigns = useMemo(() => 
+	const groupedCampaigns = useMemo(() =>
 		filterBy === 'linkedUserCampaigns' ? groupByLinkedUser(campaignsData) : {},
 		[filterBy, campaignsData]
 	);
@@ -592,8 +593,8 @@ export const MyCampaigns = () => {
 					onValueChange={(itemValue) => setFilterBy(itemValue)}
 				>
 					<SelectTrigger variant="outline" size="md" w="$64">
-						<SelectInput 
-							placeholder="Select Filter" 
+						<SelectInput
+							placeholder="Select Filter"
 							value={getFilterLabel(filterBy)}
 						/>
 						<SelectIcon mr="$3">
@@ -606,13 +607,15 @@ export const MyCampaigns = () => {
 							<SelectDragIndicatorWrapper>
 								<SelectDragIndicator />
 							</SelectDragIndicatorWrapper>
-							{FILTER_OPTIONS.map(option => (
-								<SelectItem 
-									key={option.value}
-									label={getTermFromDictionary(language, option.labelKey)} 
-									value={option.value} 
-								/>
-							))}
+							<SelectScrollView>
+								{FILTER_OPTIONS.map(option => (
+									<SelectItem
+										key={option.value}
+										label={getTermFromDictionary(language, option.labelKey)}
+										value={option.value}
+									/>
+								))}
+							</SelectScrollView>
 						</SelectContent>
 					</SelectPortal>
 				</Select>
@@ -640,7 +643,7 @@ export const MyCampaigns = () => {
 
 							{Array.isArray(groupedCampaignsList) && groupedCampaignsList.map((item) => {
 								if (!item || !item.id) return null;
-								
+
 								return (
 									<Box key={String(item.id)}>
 										{renderCampaignItem({
@@ -666,7 +669,7 @@ export const MyCampaigns = () => {
 							}
 
 						if (!item) return null;
-						
+
 						return renderCampaignItem({
 							item,
 							expanded: expandedCampaigns[item.id],
@@ -682,5 +685,5 @@ export const MyCampaigns = () => {
 
 			{renderActionSheet()}
 		</SafeAreaView>
-	); 
+	);
 }

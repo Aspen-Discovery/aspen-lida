@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Button, CheckIcon, FormControl, Heading, Modal, Select } from 'native-base';
+import { Button, ButtonText, ButtonGroup, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,84 +79,82 @@ const SelectPickupLocation = (props) => {
           <>
                <Button
                     variant="solid"
-                    _text={{
-                         padding: 0,
-                         textAlign: 'center',
-                    }}
                     onPress={() => setShowModal(true)}
-                    colorScheme="primary"
+                    action="primary"
                     size="md">
-                    {title}
+                    <ButtonText>{title}</ButtonText>
                </Button>
-               <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
-                    <Modal.Content maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
-                         <Modal.CloseButton />
-                         <Modal.Header>
-                              <Heading size="md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
-                         </Modal.Header>
-                         <Modal.Body>
+               <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="lg">
+                    <ModalBackdrop />
+                    <ModalContent maxWidth="90%">
+                         <ModalCloseButton />
+                         <ModalHeader borderBottomWidth="$0">
+                              <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                         </ModalHeader>
+                         <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
                               {_.size(accounts) > 1 ? (
-                                   <FormControl>
-                                        <FormControl.Label>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControl.Label>
+                                   <FormControl mb="$4">
+                                        <FormControlLabel>
+                                             <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
+                                        </FormControlLabel>
                                         <Select
-                                             isReadOnly={Platform.OS === 'android'}
-                                             name="linkedAccount"
                                              selectedValue={activeAccount}
-                                             minWidth="200"
-                                             accessibilityLabel={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}
-                                             _selectedItem={{
-                                                  bg: 'tertiary.300',
-                                                  endIcon: <CheckIcon size="5" />,
-                                             }}
-                                             _actionSheet={{
-                                                  pb: Platform.OS === 'android' ? `${insets.bottom + 16}px` : 4,
-                                             }}
-                                             mt={1}
-                                             mb={3}
                                              onValueChange={(itemValue) => setActiveAccount(itemValue)}>
-                                             <Select.Item label={user.displayName} value={user.id} />
-                                             {availableAccounts.map((account, index) => {
-                                                  return <Select.Item label={account.displayName} value={account.id} key={index} />;
-                                             })}
+                                             <SelectTrigger variant="outline" size="md">
+                                                  <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                                  <Icon as={ChevronDownIcon} mr="$3" />
+                                             </SelectTrigger>
+                                             <SelectPortal>
+                                                  <SelectBackdrop />
+                                                  <SelectContent>
+                                                       <SelectDragIndicatorWrapper>
+                                                            <SelectDragIndicator />
+                                                       </SelectDragIndicatorWrapper>
+                                                       <SelectItem label={user.displayName} value={user.id} />
+                                                       {availableAccounts.map((account, index) => {
+                                                            return <SelectItem label={account.displayName} value={account.id} key={index} />;
+                                                       })}
+                                                  </SelectContent>
+                                             </SelectPortal>
                                         </Select>
                                    </FormControl>
                               ) : null}
-                              <FormControl>
-                                   <FormControl.Label>{getTermFromDictionary(language, 'select_pickup_location')}</FormControl.Label>
+                              <FormControl mb="$2">
+                                   <FormControlLabel>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
+                                   </FormControlLabel>
                                    <Select
-                                        isReadOnly={Platform.OS === 'android'}
-                                        name="pickupLocations"
                                         selectedValue={location}
-                                        minWidth="200"
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-                                        _selectedItem={{
-                                             bg: 'tertiary.300',
-                                             endIcon: <CheckIcon size="5" />,
-                                        }}
-                                        _actionSheet={{
-                                             pb: Platform.OS === 'android' ? `${insets.bottom + 16}px` : 4,
-                                        }}
-                                        mt={1}
-                                        mb={2}
                                         onValueChange={(itemValue) => setLocation(itemValue)}>
-                                        {locations.map((location, index) => {
-                                             return <Select.Item label={location.name} value={location.code} key={index} />;
-                                        })}
+                                        <SelectTrigger variant="outline" size="md">
+                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                             <Icon as={ChevronDownIcon} mr="$3" />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                             <SelectBackdrop />
+                                             <SelectContent>
+                                                  <SelectDragIndicatorWrapper>
+                                                       <SelectDragIndicator />
+                                                  </SelectDragIndicatorWrapper>
+                                                  {locations.map((location, index) => {
+                                                       return <SelectItem label={location.name} value={location.code} key={index} />;
+                                                  })}
+                                             </SelectContent>
+                                        </SelectPortal>
                                    </Select>
                               </FormControl>
-                         </Modal.Body>
-                         <Modal.Footer>
-                              <Button.Group space={2} size="md">
-                                   <Button variant="outline" onPress={() => setShowModal(false)}>
-                                        {getTermFromDictionary(language, 'close_button')}
+                         </ModalBody>
+                         <ModalFooter borderTopWidth="$0">
+                              <ButtonGroup space="md" size="md">
+                                   <Button variant="outline" action="secondary" onPress={() => setShowModal(false)}>
+                                        <ButtonText>{getTermFromDictionary(language, 'close_button')}</ButtonText>
                                    </Button>
                                    <Button
-                                        isLoading={loading}
-                                        isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
+                                        isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, sublocation, null, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {
@@ -176,11 +174,11 @@ const SelectPickupLocation = (props) => {
                                              });
                                              setLoading(false);
                                         }}>
-                                        {title}
+                                        <ButtonText>{loading ? (isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)) : title}</ButtonText>
                                    </Button>
-                              </Button.Group>
-                         </Modal.Footer>
-                    </Modal.Content>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
                </Modal>
           </>
      );

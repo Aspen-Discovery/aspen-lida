@@ -89,7 +89,7 @@ export const Facet = ({ route, navigation }) => {
                                         pendingFilters: SearchGlobal.pendingFilters,
                                    });
                               }}
-                              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              p="$1">
                               <ChevronLeftIcon size={5} color="primary.baseContrast" />
                          </Pressable>
                     ),
@@ -101,7 +101,7 @@ export const Facet = ({ route, navigation }) => {
                     headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="Filters" language={language} />,
                });
           }
-     });
+     }, [navigation, language]);
 
      const filterFacets = async () => {
           await searchAvailableFacets(category, title, filterByQuery, LIBRARY.url, language).then((result) => {
@@ -123,7 +123,7 @@ export const Facet = ({ route, navigation }) => {
                     <Box p="$5">
                          <Input
                               size="lg"
-                              borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}
+                              borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
                               color={textColor}
                               variant="outline"
                          >
@@ -219,19 +219,19 @@ export const Facet = ({ route, navigation }) => {
 
      const actionButtons = () => {
           return (
-               <Box p="$3" bgColor={colorMode === 'light' ? theme['colors']['coolGray']['50'] : theme['colors']['coolGray']['700']} shadowOpacity={0.1} shadowRadius={1}>
+               <Box p="$3" bgColor={colorMode === 'light' ? theme['tokens']['colors']['coolGray']['50'] : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => resetCluster()}>
-                                   <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'reset')}</ButtonText>
+                                   <ButtonText color="$primary500">{getTermFromDictionary(language, 'reset')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor={theme['colors']['primary']['500']}
+                                   bgColor="$primary500"
                                    isDisabled={isUpdating}
                                    onPress={() => {
                                         updateSearch();
                                    }}>
-                                   <ButtonText color={theme['colors']['primary']['500-text']}>
+                                   <ButtonText color="$textLight200">
                                         {isUpdating ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}
                                    </ButtonText>
                               </Button>

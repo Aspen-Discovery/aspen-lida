@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogCloseButton, AlertDialogBody, AlertDialogFooter, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, CheckIcon, FlatList, FormControl, HStack, Icon, ScrollView, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Text, VStack, CloseIcon, Heading, ChevronDownIcon } from '@gluestack-ui/themed';
+import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogCloseButton, AlertDialogBody, AlertDialogFooter, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, CheckIcon, FlatList, FormControl, HStack, Icon, ScrollView, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Text, VStack, CloseIcon, Heading, ChevronDownIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -240,14 +240,7 @@ export const MyCheckouts = () => {
           }, [language])
      );
 
-     if (isFetchingCheckouts || isLoading) {
-          return loadingSpinner();
-     }
-
-     let numCheckedOut = 0;
-     if (!_.isUndefined(user.numCheckedOut)) {
-          numCheckedOut = user.numCheckedOut;
-     }
+     const numCheckedOut = !_.isUndefined(user.numCheckedOut) ? user.numCheckedOut : 0;
 
      const noCheckouts = () => {
           return (
@@ -265,6 +258,10 @@ export const MyCheckouts = () => {
           queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
           setLoading(false);
      };
+
+     if (isFetchingCheckouts || isLoading) {
+          return loadingSpinner();
+     }
 
      const filterCheckouts = (source) => {
      }
@@ -353,7 +350,7 @@ export const MyCheckouts = () => {
                                    isLoadingText={getTermFromDictionary(language, 'renewing_all', true)}
                                    isDisabled={renewAll}
                                    size="sm"
-                                   bgColor={theme['colors']['primary']['500']}
+                                   bgColor="$primary500"
                                    onPress={() => {
                                         if (renewAll) return;
                                         setRenewAll(true);
@@ -378,20 +375,20 @@ export const MyCheckouts = () => {
                                              setRenewAll(false);
                                         });
                                    }}>
-                                   {!renewAll && <ButtonIcon color={theme['colors']['primary']['500-text']} as={MaterialIcons} name="autorenew" />}
-                                   <ButtonText color={theme['colors']['primary']['500-text']}>
+                                   {!renewAll && <ButtonIcon color="$textLight200" as={MaterialIcons} name="autorenew" />}
+                                   <ButtonText color="$textLight200">
                                         {renewAll ? getTermFromDictionary(language, 'renewing_all', true) : getTermFromDictionary(language, 'checkout_renew_all')}
                                    </ButtonText>
                               </Button>
                               <Button
-                                   borderColor={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']}
+                                   borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}
                                    size="sm"
                                    variant="outline"
                                    onPress={() => {
                                         setLoading(true);
                                         reloadCheckouts();
                                    }}>
-                                   <ButtonText color={colorMode === 'light' ? theme['colors']['coolGray']['600'] : theme['colors']['warmGray']['50']}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
+                                   <ButtonText color={colorMode === 'light' ? "$coolGray600" : "$warmGray50"}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
                               </Button>
                               <FormControl w={checkoutsSourceLabelLength}>
                                    <Select
@@ -409,19 +406,21 @@ export const MyCheckouts = () => {
                                         <SelectPortal>
                                              <SelectBackdrop />
                                              <SelectContent
-                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                   pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                              >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} bgColor={checkoutSource == "all" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "all" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} bgColor={checkoutSource == "ils" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "ils" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2}  bgColor={checkoutSource == "overdrive" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "overdrive" ? theme['colors']['tertiary']['500-text'] : textColor } }}/> : null}
-                                                  {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3}  bgColor={checkoutSource == "hoopla" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "hoopla" ? theme['colors']['tertiary']['500-text'] : textColor } }}/> : null}
-                                                  {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4}  bgColor={checkoutSource == "cloud_library" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "cloud_library" ? theme['colors']['tertiary']['500-text'] : textColor } }} /> : null}
-                                                  {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} bgColor={checkoutSource == "axis360" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "axis360" ? theme['colors']['tertiary']['500-text'] : textColor } }} /> : null}
-                                                  {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6}  bgColor={checkoutSource == "palace_project" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "palace_project" ? theme['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                                  <SelectScrollView>
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} bgColor={checkoutSource == "all" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "all" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} bgColor={checkoutSource == "ils" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "ils" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2}  bgColor={checkoutSource == "overdrive" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "overdrive" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/> : null}
+                                                       {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3}  bgColor={checkoutSource == "hoopla" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "hoopla" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/> : null}
+                                                       {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4}  bgColor={checkoutSource == "cloud_library" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "cloud_library" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                                       {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} bgColor={checkoutSource == "axis360" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "axis360" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                                       {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6}  bgColor={checkoutSource == "palace_project" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "palace_project" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                                  </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -444,19 +443,21 @@ export const MyCheckouts = () => {
                                         <SelectPortal>
                                              <SelectBackdrop />
                                              <SelectContent
-                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                   pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                              >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userCheckoutSortMethod == "sortTitle" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "sortTitle" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.author} value="author" key={1} bgColor={userCheckoutSortMethod == "author" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "author" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} bgColor={userCheckoutSortMethod == "dueAsc" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueAsc" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} bgColor={userCheckoutSortMethod == "dueDesc" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueDesc" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.format} value="format" key={4} bgColor={userCheckoutSortMethod == "format" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "format" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} bgColor={userCheckoutSortMethod == "libraryAccount" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "libraryAccount" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} bgColor={userCheckoutSortMethod == "timesRenewed" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "timesRenewed" ? theme['colors']['tertiary']['500-text'] : textColor } }} />
+                                                  <SelectScrollView>
+                                                       <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userCheckoutSortMethod == "sortTitle" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "sortTitle" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.author} value="author" key={1} bgColor={userCheckoutSortMethod == "author" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "author" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} bgColor={userCheckoutSortMethod == "dueAsc" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueAsc" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} bgColor={userCheckoutSortMethod == "dueDesc" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueDesc" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.format} value="format" key={4} bgColor={userCheckoutSortMethod == "format" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "format" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} bgColor={userCheckoutSortMethod == "libraryAccount" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "libraryAccount" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} bgColor={userCheckoutSortMethod == "timesRenewed" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "timesRenewed" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                  </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -469,14 +470,14 @@ export const MyCheckouts = () => {
                     <HStack space="$2">
                          <Button
                               m="$2"
-                              borderColor={theme['colors']['primary']['500']}
+                              borderColor="$primary500"
                               size="sm"
                               variant="outline"
                               onPress={() => {
                                    setLoading(true);
                                    reloadCheckouts();
                               }}>
-                              <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
+                              <ButtonText color="$primary500">{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
                          </Button>
                     </HStack>
                );
@@ -500,7 +501,7 @@ export const MyCheckouts = () => {
 
      return (
           <Box flex={1}>
-               <Box p="$2" bgColor="coolGray.100" borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']} flexWrap="nowrap">
+               <Box p="$2" bgColor="coolGray.100" borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"} flexWrap="nowrap">
                     {showSystemMessage()}
                     <ScrollView horizontal>{actionButtons()}</ScrollView>
                </Box>
@@ -509,7 +510,7 @@ export const MyCheckouts = () => {
                          <AlertDialogBackdrop />
                          <AlertDialogContent>
                               <AlertDialogHeader>
-                                   <Heading size="md">{renewConfirmationResponse?.title ? renewConfirmationResponse.title : 'Unknown Error'}</Heading>
+                                   <Heading size="$md">{renewConfirmationResponse?.title ? renewConfirmationResponse.title : 'Unknown Error'}</Heading>
                                    <AlertDialogCloseButton>
                                         <Icon as={CloseIcon} />
                                    </AlertDialogCloseButton>
@@ -517,8 +518,8 @@ export const MyCheckouts = () => {
                               <AlertDialogBody><Text>{renewConfirmationResponse?.message ? decodeMessage(renewConfirmationResponse.message) : 'Unable to renew checkout for unknown error. Please contact the library.'}</Text></AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
-                                        <Button variant="outline" borderColor={theme['colors']['primary']['500']} onPress={() => setRenewConfirmationIsOpen(false)}>
-                                             <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <Button variant="outline" borderColor="$primary500" onPress={() => setRenewConfirmationIsOpen(false)}>
+                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
                                              isLoading={confirmingRenewal}
