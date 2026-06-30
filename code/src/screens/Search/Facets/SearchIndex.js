@@ -40,14 +40,14 @@ export const SearchIndexScreen = () => {
                                    <Pressable p="$0.5" py="$2" onPress={() => updateIndex(index)}>
                                         {currentIndex === index ? (
                                              <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme['colors']['primary']['600']} />
+                                                  <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" />
                                                   <Text color={textColor} ml="$2">
                                                        {obj}
                                                   </Text>
                                              </HStack>
                                         ) : (
                                              <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme['colors']['muted']['400']}  />
+                                                  <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400"  />
                                                   <Text color={textColor} ml="$2">
                                                        {obj}
                                                   </Text>

@@ -69,9 +69,7 @@ export const MyHold = (props) => {
                     }
                });
           };
-          update().then(() => {
-               return () => update();
-          });
+          update();
      }, [language]);
 
      if (hold.canFreeze === true) {
@@ -155,11 +153,11 @@ export const MyHold = (props) => {
                                         <CheckboxIndicator
                                              sx={{
                                                   ':checked': {
-                                                       borderColor: theme['colors']['primary']['500'],
-                                                       backgroundColor: theme['colors']['primary']['500'],
+                                                       borderColor: theme['tokens']['colors']['primary']['500'],
+                                                       backgroundColor: theme['tokens']['colors']['primary']['500'],
                                                   },
                                              }}>
-                                             <CheckboxIcon as={CheckIcon} color={theme['colors']['primary']['500-text']} />
+                                             <CheckboxIcon as={CheckIcon} color="$textLight200" />
                                         </CheckboxIndicator>
                                    </Checkbox>
                               </Center>
@@ -170,13 +168,13 @@ export const MyHold = (props) => {
                if (section === 'Pending') {
                     return (
                          <Center>
-                              <Checkbox value={method + '|' + hold.recordId + '|' + hold.cancelId + '|' + hold.source + '|' + hold.userId} my="$3" size="md" accessibilityLabel="Check item" borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                              <Checkbox value={method + '|' + hold.recordId + '|' + hold.cancelId + '|' + hold.source + '|' + hold.userId} my="$3" size="md" accessibilityLabel="Check item" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                    <CheckboxIndicator
                                         _checked={{
-                                             color: theme['colors']['primary']['500'],
-                                             borderColor: theme['colors']['primary']['500'],
+                                             color: theme['tokens']['colors']['primary']['500'],
+                                             borderColor: theme['tokens']['colors']['primary']['500'],
                                         }}>
-                                        <CheckboxIcon as={CheckIcon}  sx={{ color: theme['colors']['primary']['500-text'] }}/>
+                                        <CheckboxIcon as={CheckIcon}  sx={{ color: theme['tokens']['colors']['primary']['500-text'] }}/>
                                    </CheckboxIndicator>
                               </Checkbox>
                          </Center>
@@ -338,7 +336,7 @@ export const MyHold = (props) => {
 
      return (
           <>
-               <Pressable onPress={handleClose} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']} pl="$4" pr="$20" py="$2">
+               <Pressable onPress={handleClose} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$gray400"} pl="$4" pr="$20" py="$2">
                     <HStack space="sm" maxW="95%">
                          {initializeLeftColumn()}
                          <VStack>
@@ -361,7 +359,7 @@ export const MyHold = (props) => {
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
                     <ActionsheetContent
-                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                          pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                     >
                          <ActionsheetItem h={60} px="$4">
@@ -521,14 +519,14 @@ export const ManageSelectedHolds = (props) => {
 
      return (
           <Center>
-               <Button bgColor={theme['colors']['primary']['500']} onPress={handleClose} size="sm" variant="solid" mr="$1">
-                    <ButtonText color={theme['colors']['primary']['500-text']}>{numSelectedLabel}</ButtonText>
+               <Button bgColor="$primary500" onPress={handleClose} size="sm" variant="solid" mr="$1">
+                    <ButtonText color="$textLight200">{numSelectedLabel}</ButtonText>
                </Button>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
                     <ActionsheetContent
                          zIndex={999}
-                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                          pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                     >
                          <ActionsheetDragIndicatorWrapper>
@@ -641,14 +639,14 @@ export const ManageAllHolds = (props) => {
      if (numToManage >= 1) {
           return (
                <Center>
-                    <Button bgColor={theme['colors']['primary']['500']} size="sm" variant="solid" mr={1} onPress={handleClose}>
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
+                    <Button bgColor="$primary500" size="sm" variant="solid" mr={1} onPress={handleClose}>
+                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
                     </Button>
                     <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                          <ActionsheetBackdrop />
                          <ActionsheetContent
                               zIndex={999}
-                              bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                              bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                               pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                          >
                               <ActionsheetDragIndicatorWrapper>

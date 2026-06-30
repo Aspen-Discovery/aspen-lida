@@ -69,7 +69,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
      };
 
      const renderEntry = ({ item }) => (
-          <Box borderBottomWidth="$1" borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} px="$3" py="$3">
+          <Box borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} px="$3" py="$3">
                <VStack space="xs">
                     <Text size="xs" color={textColor}>
                          {formatDate(item.created_at)}
@@ -91,8 +91,8 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
 
                     {item.response_body ? (
                          <Accordion>
-                              <AccordionItem value="response_body" bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}>
-                                   <AccordionHeader bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}>
+                              <AccordionItem value="response_body" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
+                                   <AccordionHeader bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
                                         <AccordionTrigger>
                                              {({ isExpanded }) => {
                                                   return (
@@ -104,7 +104,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                                              }}
                                         </AccordionTrigger>
                                    </AccordionHeader>
-                                   <AccordionContent bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}>
+                                   <AccordionContent bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
                                         <AccordionContentText>
                                              <Text
                                                   style={{
@@ -133,7 +133,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
 
      return (
           <Box flex={1}>
-               <Box px="$3" py="$3" borderBottomWidth={1} borderColor="$borderLight200">
+               <Box px="$3" py="$3" borderBottomWidth="$1" borderColor="$borderLight200">
                     <Heading size="sm" color={textColor}>
                          {getTermFromDictionary(language, 'api_error_log')}
                     </Heading>
@@ -159,21 +159,21 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                     />
                )}
 
-               <HStack px="$3" py="$3" justifyContent="space-between" alignItems="center" borderTopWidth={1} borderColor="$borderLight200">
-                    <Button bgColor={theme['colors']['secondary']['500']} onPress={() => loadPage(page - 1)} isDisabled={loading || !meta.hasPrevious}>
-                         <ButtonText color={theme['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+               <HStack px="$3" py="$3" justifyContent="space-between" alignItems="center" borderTopWidth="$1" borderColor="$borderLight200">
+                    <Button bgColor={theme['tokens']['colors']['secondary']['500']} onPress={() => loadPage(page - 1)} isDisabled={loading || !meta.hasPrevious}>
+                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                     </Button>
 
                     <Text size="xs" color={textColor}>{`Page ${page} / ${meta.totalPages}`}</Text>
 
-                    <Button bgColor={theme['colors']['secondary']['500']} onPress={() => loadPage(page + 1)} isDisabled={loading || !meta.hasMore}>
-                         <ButtonText color={theme['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                    <Button bgColor={theme['tokens']['colors']['secondary']['500']} onPress={() => loadPage(page + 1)} isDisabled={loading || !meta.hasMore}>
+                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                     </Button>
                </HStack>
 
                <Box px="$3" pb="$3">
-                    <Button variant="outline" borderColor={theme['colors']['tertiary']['500']} onPress={onClear} isDisabled={loading}>
-                         <ButtonText color={theme['colors']['tertiary']['500']}>{getTermFromDictionary(language, 'clear_api_error_log')}</ButtonText>
+                    <Button variant="outline" borderColor={theme['tokens']['colors']['tertiary']['500']} onPress={onClear} isDisabled={loading}>
+                         <ButtonText color={theme['tokens']['colors']['tertiary']['500']}>{getTermFromDictionary(language, 'clear_api_error_log')}</ButtonText>
                     </Button>
                </Box>
           </Box>

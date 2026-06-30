@@ -1,3 +1,4 @@
+import { translationsLibrary as helperLibrary, getTermFromDictionary as helperGetTermFromDictionary } from './TranslationHelper';
 import { MaterialIcons } from '@expo/vector-icons';
 import _ from 'lodash';
 import moment from 'moment';
@@ -42,7 +43,7 @@ export const LanguageSwitcher = () => {
           return (
                <Box>
                     <Menu
-                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                          isOpen={isLanguageMenuOpen}
                          onClose={() => setIsLanguageMenuOpen(false)}
                          onOpen={() => setIsLanguageMenuOpen(true)}
@@ -51,8 +52,8 @@ export const LanguageSwitcher = () => {
                          trigger={(triggerProps) => {
                               return (
                                    <Button size="sm" variant="link" {...triggerProps} onPress={() => {setIsLanguageMenuOpen(true)}}>
-                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['colors']['secondary']['500']} />
-                                        <ButtonText color={theme['colors']['secondary']['500']}>{languageDisplayName}</ButtonText>
+                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['secondary']['500']} />
+                                        <ButtonText color={theme['tokens']['colors']['secondary']['500']}> {languageDisplayName}</ButtonText>
                                    </Button>
                               );
                          }}>
@@ -200,9 +201,7 @@ export function getLanguageDisplayName(code, languages) {
 /**
  * Local storage for translated terms
  */
-export let translationsLibrary = {
-     lastUpdated: moment(),
-};
+export let translationsLibrary = helperLibrary;
 
 // Make sure we only load translations once.
 const activeTranslationRequests = {};
@@ -320,57 +319,28 @@ async function getTranslatedTermWithValues(terms, language, url) {
 export async function getTranslatedTermsForUserPreferredLanguage(language, url) {
      logDebugMessage('Getting translations for ' + language + '...');
      await loadTranslationsFromDiscovery(language, url);
-     logDebugMessage('getTranslatedTermsForUserPreferredLanguage:' + translationsLibrary.lastUpdated);
+     logDebugMessage('getTranslatedTermsForUserPreferredLanguage - last updated at ' + translationsLibrary.lastUpdated);
      return true;
 }
 
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false) => {
-     if (language && key) {
-          let tmpDictionary = translationsLibrary;
-          try {
-               const { dictionary } = React.useContext(LanguageContext);
-               if (!_.isUndefined(dictionary)) {
-                    tmpDictionary = dictionary;
-               }
-          } catch (e) {
-               // can't use context in this scenario
-          }
-          if (!_.isUndefined(tmpDictionary)) {
-               if (tmpDictionary[language]) {
-                    const thisDictionary = tmpDictionary[language];
-                    if (thisDictionary[key]) {
-                         if (ellipsis) {
-                              return tmpDictionary[language][key] + '...';
-                         }
-                         return tmpDictionary[language][key];
-                    } else {
-                         if (tmpDictionary.en) {
-                              const englishDictionary = tmpDictionary.en;
-                              if (englishDictionary[key]) {
-                                   if (ellipsis) {
-                                        return englishDictionary[key] + '...';
-                                   }
-                                   return englishDictionary[key];
-                              }
-                         }
-                    }
-               }
-          }
+     let dictionary = undefined;
+     try {
+          const context = React.useContext(LanguageContext);
+          dictionary = context?.dictionary;
+     } catch (e) {
+          // can't use context in this scenario
      }
-     let defaults = require('../translations/defaults.json');
-     if (ellipsis) {
-          return defaults[key] + '...';
-     }
-     return defaults[key];
+     return helperGetTermFromDictionary(language, key, ellipsis, dictionary);
 };
 
 export const getVariableTermFromDictionary = async (language, key, url) => {
      if (language && key) {
           let tmpDictionary = translationsLibrary;
           try {
-               const { dictionary } = React.useContext(LanguageContext);
-               if (!_.isUndefined(dictionary)) {
-                    tmpDictionary = dictionary;
+               const context = React.useContext(LanguageContext);
+               if (context?.dictionary) {
+                    tmpDictionary = context.dictionary;
                }
           } catch (e) {
                // can't use context in this scenario

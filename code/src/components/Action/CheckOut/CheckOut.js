@@ -120,17 +120,17 @@ export const CheckOut = (props) => {
           };
           return (
                <>
-                    <Button minWidth="100%" maxWidth="100%" bgColor={theme['colors']['primary']['500']} onPress={() => setShowAddAlternateLibraryCardModal(true)}>
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>
+                    <Button minWidth="100%" maxWidth="100%" bgColor="$primary500" onPress={() => setShowAddAlternateLibraryCardModal(true)}>
+                         <ButtonText color="$textLight200">{title}</ButtonText>
                     </Button>
                     <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
                          <ModalBackdrop />
-                         <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
-                              <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                         <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                              <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                                    <Heading size="md" color={textColor}>
                                         {getTermFromDictionary(language, 'add_alternate_library_card')}
                                    </Heading>
-                                   <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                                   <ModalCloseButton p="$3">
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
@@ -142,7 +142,7 @@ export const CheckOut = (props) => {
                                                   {cardLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                              <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                         </Input>
                                    </FormControl>
@@ -153,7 +153,7 @@ export const CheckOut = (props) => {
                                                        {passwordLabel}
                                                   </FormControlLabelText>
                                              </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                                   <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                                   <InputSlot onPress={toggleShowPassword}>
                                                        <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
@@ -162,19 +162,19 @@ export const CheckOut = (props) => {
                                         </FormControl>
                                    ) : null}
                               </ModalBody>
-                              <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                              <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                                    <ButtonGroup space="sm">
                                         <Button
                                              variant="outline"
-                                             borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}
+                                             borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
                                              onPress={() => {
                                                   setShowAddAlternateLibraryCardModal(false);
                                                   setLoading(false);
                                              }}>
-                                             <ButtonText color={colorMode === 'light' ? theme['colors']['warmGray']['500'] : theme['colors']['coolGray']['300']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                             <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
@@ -193,7 +193,7 @@ export const CheckOut = (props) => {
                                                        setShowAddAlternateLibraryCardModal(false);
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>}
+                                             {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
                                         </Button>
                                    </ButtonGroup>
                               </ModalFooter>
@@ -207,7 +207,7 @@ export const CheckOut = (props) => {
                     <Button
                          minWidth="100%"
                          maxWidth="100%"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          variant="solid"
                          onPress={async () => {
                               setLoading(true);
@@ -224,7 +224,7 @@ export const CheckOut = (props) => {
                                    setResponseIsOpen(true);
                               });
                          }}>
-                         {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} pr={2} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>}
+                         {loading ? <ButtonSpinner color="$textLight200" pr={2} /> : <ButtonText color="$textLight200">{title}</ButtonText>}
                     </Button>
                </>
           );

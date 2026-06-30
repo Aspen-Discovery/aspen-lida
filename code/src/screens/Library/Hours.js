@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, FlatList, Heading, HStack, Text, VStack } from 'native-base';
+import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
@@ -17,7 +17,7 @@ const Hours = (data) => {
           if (_.isArrayLikeObject(location.hours)) {
                return (
                     <Box>
-                         <Heading mb={2}>{getTermFromDictionary(language, 'library_hours')}</Heading>
+                         <Heading mb={2} mx="$2">{getTermFromDictionary(language, 'library_hours')}</Heading>
                          <FlatList data={location.hours} renderItem={({ item }) => <Day hours={item} />} />
                     </Box>
                );
@@ -38,19 +38,21 @@ const Day = (data) => {
      }
 
      return (
-          <VStack mb={2}>
+          <VStack mb={2} mx="$4">
                <HStack justifyContent="space-between">
                     <Text bold>{hours.dayName}</Text>
                     {!hours.isClosed ? (
                          <Text>
-                              {formatTime(hours.open)} - {formatTime(hours.close)}
+                              <Text>{formatTime(hours.open)}</Text>
+                              <Text> - </Text>
+                              <Text>{formatTime(hours.close)}</Text>
                          </Text>
                     ) : (
                          <Text>{getTermFromDictionary(language, 'location_closed')}</Text>
                     )}
                </HStack>
                {hours.notes !== '' ? (
-                    <Text fontSize="xs" italic>
+                    <Text fontSize="$xs" italic>
                          {hours.notes}
                     </Text>
                ) : null}

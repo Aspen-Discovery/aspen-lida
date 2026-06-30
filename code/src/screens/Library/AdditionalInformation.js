@@ -1,4 +1,4 @@
-import { Box, Divider, Heading, Text } from 'native-base';
+import { Box, Divider, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { LanguageContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -13,8 +13,8 @@ const AdditionalInformation = (data) => {
      if (location.description) {
           return (
                <Box>
-                    <Divider mb={2} />
-                    <Heading mb={2}>{getTermFromDictionary(language, 'additional_information')}</Heading>
+                    <Divider mb="$2" />
+                    <Heading mb="$2">{getTermFromDictionary(language, 'additional_information')}</Heading>
                     <Text>{stripHTML(decodeHTML(location.description))}</Text>
                </Box>
           );

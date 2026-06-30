@@ -43,15 +43,15 @@ const DisableAccountLinking = () => {
 
      return (
           <Center>
-               <Button onPress={toggle} bgColor={theme['colors']['primary']['500']}>
-                    <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
+               <Button onPress={toggle} bgColor="$primary500">
+                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="lg">
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']} maxWidth="95%">
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'disable_linked_accounts_title')}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -61,10 +61,10 @@ const DisableAccountLinking = () => {
                          <ModalFooter>
                               <ButtonGroup>
                                    <Button variant="link" onPress={toggle}>
-                                        <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
@@ -74,7 +74,7 @@ const DisableAccountLinking = () => {
                                                   toggle();
                                              });
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'accept')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'accept')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

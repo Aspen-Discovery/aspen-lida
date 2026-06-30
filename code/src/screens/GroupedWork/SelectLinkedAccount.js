@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Button, Center, CheckIcon, FormControl, Heading, Modal, Select } from 'native-base';
+import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
@@ -76,80 +76,89 @@ const SelectLinkedAccount = (props) => {
           <Center>
                <Button
                     size="md"
-                    colorScheme="primary"
+                    action="primary"
                     variant="solid"
-                    _text={{
-                         padding: 0,
-                         textAlign: 'center',
-                    }}
                     onPress={() => setShowPrompt(true)}>
-                    {title}
+                    <ButtonText>{title}</ButtonText>
                </Button>
                <Modal isOpen={showPrompt} onClose={() => setShowPrompt(false)} size="lg">
-                    <Modal.Content maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
-                         <Modal.CloseButton />
-                         <Modal.Header>
-                              <Heading size="md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
-                         </Modal.Header>
-                         <Modal.Body>
+                    <ModalBackdrop />
+                    <ModalContent maxWidth="90%">
+                         <ModalCloseButton />
+                         <ModalHeader borderBottomWidth="$0">
+                              <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                         </ModalHeader>
+                         <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
                               {_.size(locations) > 1 && !isEContent ? (
-                                   <FormControl>
-                                        <FormControl.Label>{getTermFromDictionary(language, 'select_pickup_location')}</FormControl.Label>
+                                   <FormControl mb="$4">
+                                        <FormControlLabel>
+                                             <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
+                                        </FormControlLabel>
                                         <Select
-                                             isReadOnly={Platform.OS === 'android'}
-                                             name="pickupLocations"
                                              selectedValue={location}
-                                             minWidth="200"
-                                             accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-                                             _selectedItem={{
-                                                  bg: 'tertiary.300',
-                                                  endIcon: <CheckIcon size="5" />,
-                                             }}
-                                             mt={1}
-                                             mb={2}
                                              onValueChange={(itemValue) => setLocation(itemValue)}>
-                                             {locations.map((location, index) => {
-                                                  return <Select.Item label={location.name} value={location.code} key={index} />;
-                                             })}
+                                             <SelectTrigger variant="outline" size="md">
+                                                  <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                                  <Icon as={ChevronDownIcon} mr="$3" />
+                                             </SelectTrigger>
+                                             <SelectPortal>
+                                                  <SelectBackdrop />
+                                                  <SelectContent>
+                                                       <SelectDragIndicatorWrapper>
+                                                            <SelectDragIndicator />
+                                                       </SelectDragIndicatorWrapper>
+                                                       <SelectScrollView>
+                                                            {locations.map((location, index) => {
+                                                                 return <SelectItem label={location.name} value={location.code} key={index} />;
+                                                            })}
+                                                       </SelectScrollView>
+                                                  </SelectContent>
+                                             </SelectPortal>
                                         </Select>
                                    </FormControl>
                               ) : null}
-                              <FormControl pb={5}>
-                                   <FormControl.Label>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControl.Label>
+                              <FormControl mb="$5">
+                                   <FormControlLabel>
+                                        <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
+                                   </FormControlLabel>
                                    <Select
-                                        isReadOnly={Platform.OS === 'android'}
-                                        name="linkedAccount"
                                         selectedValue={activeAccount}
-                                        minWidth="200"
-                                        accessibilityLabel={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}
-                                        _selectedItem={{
-                                             bg: 'tertiary.300',
-                                             endIcon: <CheckIcon size="5" />,
-                                        }}
-                                        mt={1}
-                                        mb={3}
                                         onValueChange={(itemValue) => setActiveAccount(itemValue)}>
-                                        <Select.Item label={user.displayName} value={user.id} />
-                                        {availableAccounts.map((item, index) => {
-                                             return <Select.Item label={item.displayName} value={item.id} key={index} />;
-                                        })}
+                                        <SelectTrigger variant="outline" size="md">
+                                             <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                             <Icon as={ChevronDownIcon} mr="$3" />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                             <SelectBackdrop />
+                                             <SelectContent>
+                                                  <SelectDragIndicatorWrapper>
+                                                       <SelectDragIndicator />
+                                                  </SelectDragIndicatorWrapper>
+                                                  <SelectScrollView>
+                                                       <SelectItem label={user.displayName} value={user.id} />
+                                                       {availableAccounts.map((item, index) => {
+                                                            return <SelectItem label={item.displayName} value={item.id} key={index} />;
+                                                       })}
+                                                  </SelectScrollView>
+                                             </SelectContent>
+                                        </SelectPortal>
                                    </Select>
                               </FormControl>
-                         </Modal.Body>
-                         <Modal.Footer>
-                              <Button.Group space={2} size="md">
+                         </ModalBody>
+                         <ModalFooter borderTopWidth="$0">
+                              <ButtonGroup space="md" size="md">
                                    <Button
                                         variant="outline"
+                                        action="secondary"
                                         onPress={() => {
                                              setShowPrompt(false);
                                              setResponseLoading(false);
                                         }}>
-                                        {getTermFromDictionary(language, 'close_button')}
+                                        <ButtonText>{getTermFromDictionary(language, 'close_button')}</ButtonText>
                                    </Button>
                                    <Button
-                                        isLoading={loading}
-                                        isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
+                                        isDisabled={loading}
                                         onPress={async () => {
                                              setResponseLoading(true);
                                              await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
@@ -172,11 +181,11 @@ const SelectLinkedAccount = (props) => {
                                              });
                                              setResponseLoading(false);
                                         }}>
-                                        {title}
+                                        <ButtonText>{loading ? (isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)) : title}</ButtonText>
                                    </Button>
-                              </Button.Group>
-                         </Modal.Footer>
-                    </Modal.Content>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
                </Modal>
           </Center>
      );

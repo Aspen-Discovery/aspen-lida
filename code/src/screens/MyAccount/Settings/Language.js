@@ -1,4 +1,4 @@
-import { Box, HStack, Text } from 'native-base';
+import { Box, HStack, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { LanguageContext, LibraryBranchContext, LibrarySystemContext } from '../../../context/initialContext';
 // custom components and helper files

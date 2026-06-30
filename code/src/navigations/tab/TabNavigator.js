@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DrawerActions } from '@react-navigation/native';
-import { HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
+import { HStack, Pressable, Text, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { LanguageContext, LibraryBranchContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
-import DrawerNavigator from '../drawer/DrawerNavigator';
 import AccountStackNavigator from '../stack/AccountStackNavigator';
 import BrowseStackNavigator from '../stack/BrowseStackNavigator';
 import LibraryCardStackNavigator from '../stack/LibraryCardStackNavigator';
@@ -22,9 +21,9 @@ export default function TabNavigator() {
      const { enableSelfCheck } = React.useContext(LibraryBranchContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
-     const activeIcon = colorMode === 'light' ? theme['colors']['coolGray']['900'] : theme['colors']['warmGray']['300'];
-     const inactiveIcon = colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100'];
-     const tabBarBackgroundColor = colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['900'];
+     const activeIcon = colorMode === 'light' ? "$coolGray900" : "$warmGray300";
+     const inactiveIcon = colorMode === 'light' ? "$coolGray700" : "$warmGray100";
+     const tabBarBackgroundColor = colorMode === 'light' ? "$coolGray100" : "$coolGray900";
 
      return (
           <Tab.Navigator
@@ -78,7 +77,7 @@ export default function TabNavigator() {
                ) : null}
                <Tab.Screen
                     name="AccountTab"
-                    component={DrawerNavigator}
+                    component={AccountStackNavigator}
                     options={
                          {
                               //tabBarLabel: accountTabLabel,
@@ -116,10 +115,13 @@ export const TabItem = ({ state, descriptors, navigation }) => {
      const { language } = React.useContext(LanguageContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
-     const activeIcon = colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['coolGray']['300'];
-     const inactiveIcon = colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['coolGray']['400'];
-     const tabBarBackgroundColor = colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['900'];
-     const tabBarBorderColor = colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['coolGray']['300'];
+     // Resolve tokens to actual color strings for native components
+     const activeIconColor = useToken('colors', colorMode === 'light' ? 'coolGray700' : 'coolGray300');
+     const inactiveIconColor = useToken('colors', colorMode === 'light' ? 'coolGray500' : 'coolGray400');
+
+     // Keep tokens for Gluestack components (HStack, etc.)
+     const tabBarBackgroundColor = colorMode === 'light' ? "$coolGray100" : "$coolGray900";
+     const tabBarBorderColor = colorMode === 'light' ? "$coolGray200" : "$coolGray300";
 
      const [browseTabLabel, setBrowseTabLabel] = React.useState(getTermFromDictionary(language, 'nav_discover'));
      const [cardTabLabel, setCardTabLabel] = React.useState(getTermFromDictionary(language, 'nav_card'));
@@ -142,7 +144,7 @@ export const TabItem = ({ state, descriptors, navigation }) => {
      const bottomPaddingToken = Platform.OS === 'android' ? "$3" : "$8";
 
      return (
-          <HStack px="$7" pt="$2" pb={insets.bottom} gap="$4" alignItems="center" justifyContent="space-between" backgroundColor={tabBarBackgroundColor} borderTopWidth={1} borderColor={tabBarBorderColor}>
+          <HStack px="$7" pt="$2" pb={insets.bottom} gap="$4" alignItems="center" justifyContent="space-between" backgroundColor={tabBarBackgroundColor} borderTopWidth="$1" borderColor={tabBarBorderColor}>
                {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     //let label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
@@ -167,9 +169,9 @@ export const TabItem = ({ state, descriptors, navigation }) => {
                          dictionaryKey = scoTabLabel;
                     }
 
-                    let color = inactiveIcon;
+                    let iconColor = inactiveIconColor;
                     if (isFocused) {
-                         color = activeIcon;
+                         iconColor = activeIconColor;
                     }
                     const onPress = () => {
                          const event = navigation.emit({
@@ -197,8 +199,8 @@ export const TabItem = ({ state, descriptors, navigation }) => {
                     return (
                          <Pressable key={index} accessibilityRole="button" accessibilityState={isFocused ? { selected: true } : {}} accessibilityLabel={options.tabBarAccessibilityLabel} testID={options.tabBarTestID} onPress={onPress} onLongPress={onLongPress}>
                               <VStack gap="$1" alignItems="center">
-                                   <Ionicons name={iconName} size={22} color={color} />
-                                   <Text size="2xs" color={color} fontWeight="$normal">
+                                   <Ionicons name={iconName} size={22} color={iconColor} />
+                                   <Text size="2xs" color={iconColor} fontWeight="$normal">
                                         {dictionaryKey}
                                    </Text>
                               </VStack>

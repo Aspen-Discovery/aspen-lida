@@ -34,6 +34,12 @@ export const MyCheckout = (props) => {
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
 
+     const [access, setAccess] = useState(false);
+     const [returning, setReturn] = useState(false);
+     const [renewing, setRenew] = useState(false);
+     const [isOpen, setIsOpen] = React.useState(false);
+     const [label, setAccessLabel] = React.useState('Access Online');
+
      if (checkoutSource != 'all' && checkoutSource != checkout.source) {
           //console.log("Hiding checkout that is the wrong source " + checkoutSource);
           return null;
@@ -49,12 +55,6 @@ export const MyCheckout = (props) => {
                prevRoute: 'MyCheckouts',
           });
      };
-
-     const [access, setAccess] = useState(false);
-     const [returning, setReturn] = useState(false);
-     const [renewing, setRenew] = useState(false);
-     const [isOpen, setIsOpen] = React.useState(false);
-     const [label, setAccessLabel] = React.useState('Access Online');
      const toggle = () => {
           setIsOpen(!isOpen);
      };
@@ -158,7 +158,7 @@ export const MyCheckout = (props) => {
 
 
      return (
-          <Pressable onPress={toggle} borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['coolGray']['500']} pl="$4" pr="$5" py="$2">
+          <Pressable onPress={toggle} borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$coolGray200" : "$coolGray500"} pl="$4" pr="$5" py="$2">
                <HStack space="sm" maxW="75%">
                     <Image
                          alt={checkout.title}
@@ -166,7 +166,7 @@ export const MyCheckout = (props) => {
                          style={{
                               width: 100,
                               height: 150,
-                              borderRadius: 4,
+                              borderRadius: "$sm",
                          }}
                          placeholder={blurhash}
                          transition={1000}
@@ -187,7 +187,7 @@ export const MyCheckout = (props) => {
                <Actionsheet isOpen={isOpen} onClose={toggle} size="full">
                     <ActionsheetBackdrop />
                     <ActionsheetContent
-                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                          pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                     >
                          <ActionsheetItem h={60} px="$4">
@@ -208,7 +208,7 @@ export const MyCheckout = (props) => {
 						 ): null}
                          {renewMessage ? (
                               <ActionsheetItem
-                                   maxW="100%"
+                                   maxwidth="$full"
                                    isTruncated
                                    isDisabled={canRenew}
                                    isLoading={renewing}

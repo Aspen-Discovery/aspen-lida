@@ -122,6 +122,8 @@ export const LIBRARY = {
      localIll: [],
      id: 0,
      version: null,
+     appSettingsUrl: null,
+     appSettingsSlug: null,
 };
 
 export const BRANCH = {

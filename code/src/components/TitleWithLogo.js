@@ -58,15 +58,15 @@ export default function TitleWithLogo(props) {
      return (
           <VStack pt={insets.top} pl={insets.left} pr={insets.right}>
                <HeaderLogoBar />
-               <HStack px="$1" py="$2" alignItems="left" justifyContent="space-between" backgroundColor={theme['colors']['primary']['base']}>
+               <HStack px="$1" py="$2" alignItems="left" justifyContent="space-between" backgroundColor={theme['tokens']['colors']['primary']['base']}>
                     {navigation.canGoBack() && !hideBack ? (
-                       <Pressable onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} pl="$1">
-                            <Icon as={ChevronLeftIcon} size="xl" color={theme['colors']['primary']['baseContrast']} />
+                       <Pressable onPress={() => navigation.goBack()} p="$1" pl="$1">
+                            <Icon as={ChevronLeftIcon} size="xl" color={theme['tokens']['colors']['primary']['baseContrast']} />
                        </Pressable>
                     ) : (
                        <Box width="$6" />
                     )}
-                    <Text flex={1} textAlign="left" color={theme['colors']['primary']['baseContrast']} size="lg" lineHeight="$lg" fontWeight="bold" numberOfLines={1} ellipsizeMode="tail">{decodeHTML(props.title)}</Text>
+                    <Text flex={1} textAlign="left" color={theme['tokens']['colors']['primary']['baseContrast']} size="lg" lineHeight="$lg" fontWeight="bold" numberOfLines={1} ellipsizeMode="tail">{decodeHTML(props.title)}</Text>
                     <Box width="$6" />
                </HStack>
           </VStack>

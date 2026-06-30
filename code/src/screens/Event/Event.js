@@ -124,7 +124,7 @@ export const EventScreen = () => {
                ) : (
                     <>
                          {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
-                         <DisplayEvent data={eventData} source={source} />
+                         <DisplayEvent data={eventData} source={source} hasValidImage={hasValidImage} />
                     </>
                )}
           </ScrollView>
@@ -138,7 +138,7 @@ const DisplayEvent = (payload) => {
      const source = route.params.source;
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
                enableDefaultShareMenuItem: false,
@@ -183,8 +183,8 @@ const DisplayEvent = (payload) => {
 
      return (
           <>
-               {event.cover ? <Box h={{ base: 125, lg: 200 }} w="100%" bgColor="warmGray.200" _dark={{ bgColor: 'coolGray.900' }} zIndex={-1} position="absolute" left={0} top={0} /> : null}
-               <Box p="$5" w="100%">
+               {event.cover ? <Box h={{ base: 125, lg: 200 }} width="$full" bgColor="warmGray.200" _dark={{ bgColor: 'coolGray.900' }} zIndex={-1} position="absolute" left={0} top={0} /> : null}
+               <Box p="$5" width="$full">
                     <Center mt={event.cover ? 5 : 0} width="100%">
                          {event.cover ? (
                               <Image
@@ -193,39 +193,39 @@ const DisplayEvent = (payload) => {
                                    style={{
                                         width: '100%',
                                         height: 150,
-                                        borderRadius: 4,
+                                        borderRadius: "$sm",
                                    }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
                               />
                          ) : null}
-                         {getTitle(event.title, hasValidImage)}
+                         <EventTitle title={event.title} hasCoverImage={hasValidImage} />
                     </Center>
                     <VStack divider={<Divider />}>
-                         {getAddToCalendar(event.startDate, event.endDate, event.location, event)}
-                         {getDirections(event.location, event.room ?? false)}
+                         <AddToCalendar start={event.startDate} end={event.endDate} location={event.location} event={event} />
+                         <Directions location={event.location} room={event.room ?? false} />
                     </VStack>
-                    {event.registrationRequired && event.registrationBody ? getRegistrationModal(event) : null}
-                    {event.inUserEvents ? getInYourEvents() : getAddToYourEvents(event.id, source)}
+                    {event.registrationRequired && event.registrationBody ? <RegistrationModal event={event} /> : null}
+                    {event.inUserEvents ? <InYourEvents /> : <AddToYourEvents id={event.id} source={source} />}
                     <HStack justifyContent="space-between" space="sm">
                          {event.canAddToList ? <AddToList source="Events" itemId={event.id} btnStyle="reg" btnWidth="48%" /> : null}
-                         <Button bgColor={theme['colors']['coolGray']['200']} w={event.canAddToList ? '49%' : '100%'} onPress={() => openLink()}>
-                              <ButtonText color={theme['colors']['coolGray']['800']}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
+                         <Button bgColor={"$coolGray200"} w={event.canAddToList ? '49%' : '100%'} onPress={() => openLink()}>
+                              <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
                          </Button>
                     </HStack>
-                    {getDescription(event.description)}
+                    <EventDescription description={event.description} />
                     <HStack justifyContent="space-between" space="lg" mt="$5" flexWrap="wrap">
-                         {getAudiences(event.audiences)}
-                         {getCategories(event.categories)}
-                         {getProgramTypes(event.programTypes)}
+                         <EventAudiences audiences={event.audiences} />
+                         <EventCategories categories={event.categories} />
+                         <EventProgramTypes programTypes={event.programTypes} />
                     </HStack>
                </Box>
           </>
      );
 };
 
-const getTitle = (title, hasCoverImage) => {
+const EventTitle = ({ title, hasCoverImage }) => {
      const { textColor } = React.useContext(ThemeContext);
      if (title) {
           return (
@@ -240,7 +240,7 @@ const getTitle = (title, hasCoverImage) => {
      }
 };
 
-const getDescription = (description) => {
+const EventDescription = ({ description }) => {
      const { textColor } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      if (description) {
@@ -259,7 +259,7 @@ const getDescription = (description) => {
      }
 };
 
-const getAudiences = (audiences) => {
+const EventAudiences = ({ audiences }) => {
      const { textColor } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      if (audiences) {
@@ -278,7 +278,7 @@ const getAudiences = (audiences) => {
      }
 };
 
-const getCategories = (categories) => {
+const EventCategories = ({ categories }) => {
      const { textColor } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      if (categories) {
@@ -297,7 +297,7 @@ const getCategories = (categories) => {
      }
 };
 
-const getProgramTypes = (programTypes) => {
+const EventProgramTypes = ({ programTypes }) => {
      const { textColor } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      if (programTypes) {
@@ -316,7 +316,7 @@ const getProgramTypes = (programTypes) => {
      }
 };
 
-const getAddToCalendar = (start, end, location, event) => {
+const AddToCalendar = ({ start, end, location, event }) => {
      const { language } = React.useContext(LanguageContext);
      const [showModal, setShowModal] = React.useState(false);
      const [modalBodyText, setModalBodyText] = React.useState('');
@@ -324,6 +324,7 @@ const getAddToCalendar = (start, end, location, event) => {
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
      const { textColor } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      let displayDay = false;
      let displayStartTime = false;
@@ -414,7 +415,6 @@ const getAddToCalendar = (start, end, location, event) => {
                          allDay: event.isAllDay ?? false,
                          url: event.url,
                     }).then(async (result) => {
-                         const toast = useToast();
                          return toast.show({
                               duration: 5000,
                               accessibilityAnnouncement: getTermFromDictionary(language, 'event_added_to_calendar'),
@@ -423,7 +423,7 @@ const getAddToCalendar = (start, end, location, event) => {
                                    return (
                                         <Center>
                                              <Alert maxW="400" status="success" colorScheme="success">
-                                                  <VStack space="sm" flexShrink={1} w="100%">
+                                                  <VStack space="sm" flexShrink={1} width="$full">
                                                        <HStack flexShrink={1} space="sm" alignItems="center" justifyContent="space-between">
                                                             <HStack flexShrink={1} space="sm">
                                                                  <AlertIcon />
@@ -468,8 +468,8 @@ const getAddToCalendar = (start, end, location, event) => {
                     <ModalBackdrop />
                     <ModalContent maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
                          <ModalHeader>
-                              <Heading size="md">{modalBodyHeading}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <Heading size="$md">{modalBodyHeading}</Heading>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -508,7 +508,7 @@ const getAddToCalendar = (start, end, location, event) => {
      );
 };
 
-const getDirections = (location, room) => {
+const Directions = ({ location, room }) => {
      const { textColor } = React.useContext(ThemeContext);
      let hasCoordinates = false;
      if (location) {
@@ -560,12 +560,12 @@ const getDirections = (location, room) => {
      return null;
 };
 
-const getAddToYourEvents = (id, source) => {
+const AddToYourEvents = ({ id, source }) => {
      const queryClient = useQueryClient();
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { theme } = React.useContext(ThemeContext);
      const [isLoading, setIsLoading] = React.useState(false);
 
      const addToEvents = async () => {
@@ -586,28 +586,28 @@ const getAddToYourEvents = (id, source) => {
      };
 
      return (
-          <Button bgColor={theme['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
-               <ButtonText color={theme['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
+          <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
+               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
           </Button>
      );
 };
 
-const getInYourEvents = () => {
+const InYourEvents = () => {
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
      return (
-          <Button mb="$2" bgColor={theme['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
-               <ButtonText color={theme['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
+          <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
+               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
           </Button>
      );
 };
 
-const getRegistrationModal = (event) => {
+const RegistrationModal = ({ event }) => {
      const { language } = React.useContext(LanguageContext);
      const [showRegistrationModal, setShowRegistrationModal] = React.useState(false);
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor= colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor= colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const openLink = async () => {
           /* location.homeLink */
@@ -627,15 +627,15 @@ const getRegistrationModal = (event) => {
 
      return (
           <>
-               <Button bgColor={theme['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
-                    <ButtonText color={theme['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
+               <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
+                    <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
                </Button>
                <Modal isOpen={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']} maxWidth="90%">
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
                          <ModalHeader>
-                              <Heading size="md">{getTermFromDictionary(language, 'registration_information')}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <Heading size="$md">{getTermFromDictionary(language, 'registration_information')}</Heading>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -643,14 +643,14 @@ const getRegistrationModal = (event) => {
                          <ModalFooter>
                               <ButtonGroup space="sm" size="md">
                                    <Button
-                                        bgColor={theme['colors']['coolGray']['200']}
+                                        bgColor={"$coolGray200"}
                                         variant="outline"
                                         onPress={() => {
                                              setShowRegistrationModal(false);
                                         }}>
-                                        <ButtonText color={theme['colors']['coolGray']['800']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={() => openLink()}><ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button bgColor="$primary500" onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

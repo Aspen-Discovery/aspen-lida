@@ -22,16 +22,16 @@ import {
      ModalCloseButton,
      Text,
 } from '@gluestack-ui/themed';
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { passUserToDiscovery } from '../../util/api/user';
 import * as WebBrowser from 'expo-web-browser';
 
 export const ActionButton = (data) => {
-     const {theme, textColor, backgroundColor, colorMode} = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user } = React.useContext(UserContext);
-     const [showIllUnavailableModal, setShowIllUnavailableModal] = React.useState(false);
+     const {theme, textColor, backgroundColor, colorMode} = useContext(ThemeContext);
+     const { library } = useContext(LibrarySystemContext);
+     const { user } = useContext(UserContext);
+     const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
 
      const action = data.actions;
      const {
@@ -147,7 +147,7 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
@@ -155,7 +155,7 @@ export const ActionButton = (data) => {
                            await passUserToDiscovery(library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{action.title}</ButtonText>
+                         <ButtonText color="$textLight200">{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_material_request_ils') {
@@ -163,7 +163,7 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
@@ -171,7 +171,7 @@ export const ActionButton = (data) => {
                            await passUserToDiscovery(library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{action.title}</ButtonText>
+                         <ButtonText color="$textLight200">{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_external_request') {
@@ -180,7 +180,7 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
@@ -198,7 +198,7 @@ export const ActionButton = (data) => {
                               }
                          }
                     >
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{action.title}</ButtonText>
+                         <ButtonText color="$textLight200">{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_email') {
@@ -220,20 +220,20 @@ export const ActionButton = (data) => {
                     <>
                          <Button
                               size="md"
-                              bgColor={theme['colors']['primary']['500']}
+                              bgColor="$primary500"
                               variant="solid"
                               minWidth="100%"
                               maxWidth="100%"
                               onPress={async () => {setShowIllUnavailableModal(true)}}
                          >
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{action.title}</ButtonText>
+                              <ButtonText color="$textLight200">{action.title}</ButtonText>
                          </Button>
                          <Modal isOpen={showIllUnavailableModal} size="lg" avoidKeyboard={true} onClose={() => setShowIllUnavailableModal(false)}>
                               <ModalBackdrop />
-                              <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                              <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                                    <ModalHeader>
                                         <Heading size="md" color={textColor}>{action.title}</Heading>
-                                        <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                                        <ModalCloseButton p="$3">
                                              <Icon as={CloseIcon} color={textColor} />
                                         </ModalCloseButton>
                                    </ModalHeader>

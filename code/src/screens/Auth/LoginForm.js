@@ -17,7 +17,7 @@ import {
 import React, { useRef } from 'react';
 
 // custom components and helper files
-import { AuthContext } from '../../components/navigation';
+import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
@@ -63,29 +63,6 @@ export const GetLoginForm = (props) => {
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
-
-     React.useEffect(() => {
-          const loadDefaultUsername = async () => {
-               try {
-                    const defaultUsername = await SecureStore.getItemAsync('defaultUsername');
-                    if (barcode)
-                    {
-                         setUsername(barcode);
-                    }
-                    else if (defaultUsername !== null && defaultUsername) {
-                         setUsername(defaultUsername); // Set the retrieved username
-                         //logDebugMessage("Default username is: " + defaultUsername);
-                    }
-               } catch (error) {
-                    logWarnMessage("Error loading saved username:", error);
-               } finally {
-                    setLoadingDefaultUsername(false); // Stop loading regardless of success/failure
-               }
-          };
-
-          loadDefaultUsername();
-     }, [barcode]);
-
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
@@ -250,18 +227,36 @@ export const GetLoginForm = (props) => {
           }
      };
 
-     if (expiredPin) {
-          return <ResetExpiredPin username={username} userId={userId} resetToken={resetToken} url={patronsLibrary['baseUrl']} pinValidationRules={pinValidationRules} setExpiredPin={setExpiredPin} patronsLibrary={patronsLibrary} />;
-     }
+     React.useEffect(() => {
+          const loadDefaultUsername = async () => {
+               try {
+                    const defaultUsername = await SecureStore.getItemAsync('defaultUsername');
+                    if (barcode)
+                    {
+                         setUsername(barcode);
+                    }
+                    else if (defaultUsername !== null && defaultUsername) {
+                         setUsername(defaultUsername); // Set the retrieved username
+                         //logDebugMessage("Default username is: " + defaultUsername);
+                    }
+               } catch (error) {
+                    logWarnMessage("Error loading saved username:", error);
+               } finally {
+                    setLoadingDefaultUsername(false); // Stop loading regardless of success/failure
+               }
+          };
 
-     return (
+          loadDefaultUsername();
+     }, [barcode]);
+
+     const loginFormContent = (
           <>
                {loginError ? <DisplayMessage type="error" message={loginErrorMessage} /> : null}
                <FormControl>
                     <FormControlLabel>
                          <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                     </FormControlLabel>
-                    <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                    <Input>
                          <InputField autoCapitalize="none"
                               size="$xl"
                               autoCorrect={false}
@@ -289,7 +284,7 @@ export const GetLoginForm = (props) => {
                     <FormControlLabel>
                          <FormControlLabelText size="sm" color={textColor}>{passwordLabel}</FormControlLabelText>
                     </FormControlLabel>
-                    <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                    <Input>
                          <InputField variant="filled"
                               size="$xl"
                               type={showPassword ? 'text' : 'password'}
@@ -313,18 +308,24 @@ export const GetLoginForm = (props) => {
                     <Button
                          mt="$3"
                          size="md"
-                         bgColor={theme['colors']['primary']['500']}
+                         bgColor="$primary500"
                          isLoading={loading}
                          isLoadingText={getTermFromDictionary('en', 'logging_in', true)}
                          onPress={async () => {
                               setLoading(true);
                               await initialValidation();
                          }}>
-                         <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'login')}</ButtonText>
+                         <ButtonText color="$textLight200">{getTermFromDictionary('en', 'login')}</ButtonText>
                     </Button>
                </Center>
           </>
      );
+
+     if (expiredPin) {
+          return <ResetExpiredPin username={username} userId={userId} resetToken={resetToken} url={patronsLibrary['baseUrl']} pinValidationRules={pinValidationRules} setExpiredPin={setExpiredPin} patronsLibrary={patronsLibrary} />;
+     }
+
+     return loginFormContent;
 };
 
 async function checkAspenDiscovery(url, id) {

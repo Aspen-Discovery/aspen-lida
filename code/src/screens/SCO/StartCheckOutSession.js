@@ -29,7 +29,7 @@ import {
      SelectIcon,
      Icon,
      ChevronDownIcon,
-     SelectPortal, SelectContent,
+     SelectPortal, SelectContent, SelectScrollView,
      SelectBackdrop,
      SelectDragIndicatorWrapper,
      SelectDragIndicator,
@@ -110,7 +110,7 @@ export const StartCheckOutSession = () => {
           <Center>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => GoBackHome()}>
                     <AlertDialogBackdrop />
-                    <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <AlertDialogHeader><Heading size="md" color={textColor}>{getTermFromDictionary(language, 'start_checkout_session')}</Heading></AlertDialogHeader>
                          <AlertDialogBody>
                               <FormControl pb="$5">
@@ -148,16 +148,18 @@ export const StartCheckOutSession = () => {
                                         <SelectPortal useRNModal={true}>
                                              <SelectBackdrop />
                                              <SelectContent
-                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                   pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                              >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} bgColor={activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['colors']['tertiary']['500-text'] : textColor } }} />
-                                                  {availableAccounts.map((item, index) => {
-                                                       return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} bgColor={activeAccount === (item.ils_barcode || item.cat_username) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.ils_barcode || item.cat_username) ? theme['colors']['tertiary']['500-text'] : textColor } }}/>;
-                                                  })}
+                                                  <SelectScrollView>
+                                                       <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} bgColor={activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       {availableAccounts.map((item, index) => {
+                                                            return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} bgColor={activeAccount === (item.ils_barcode || item.cat_username) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.ils_barcode || item.cat_username) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>;
+                                                       })}
+                                                  </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -165,11 +167,11 @@ export const StartCheckOutSession = () => {
                          </AlertDialogBody>
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
-                                   <Button ref={cancelRef} onPress={() => GoBackHome()} bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                   <Button ref={cancelRef} onPress={() => GoBackHome()} bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                   <Button onPress={() => StartNewSession()} bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'button_start')}</ButtonText>
+                                   <Button onPress={() => StartNewSession()} bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_start')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

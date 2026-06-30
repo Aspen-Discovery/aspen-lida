@@ -68,7 +68,7 @@ export const NotificationsOnboard = (props) => {
      return (
           <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => onClose()}>
                <AlertDialogBackdrop />
-               <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+               <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                     <AlertDialogHeader>
                          <Heading color={textColor}>{getTermFromDictionary(language, 'onboard_notifications_title')}</Heading>
                     </AlertDialogHeader>
@@ -81,7 +81,7 @@ export const NotificationsOnboard = (props) => {
                                    isLoading={isCanceling}
                                    isLoadingText={getTermFromDictionary(language, 'canceling', true)}
                                    variant="link"
-                                   bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                   bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                    onPress={() => {
                                         setIsCanceling(true);
                                         onClose();
@@ -92,12 +92,12 @@ export const NotificationsOnboard = (props) => {
                               <Button
                                    isLoading={isLoading}
                                    isLoadingText={getTermFromDictionary(language, 'updating', true)}
-                                   bgColor={theme['colors']['danger']['700']}
+                                   bgColor="$danger700"
                                    onPress={() => {
                                         setIsLoading(true);
                                         onClose().then(() => navigateStack('MoreTab', 'PermissionNotificationDescription', { prevRoute: 'notifications_onboard' }));
                                    }}>
-                                   {isLoading ? <ButtonSpinner color={theme['colors']['white']} /> : <ButtonText color={theme['colors']['white']}>{onboardingButton}</ButtonText>}
+                                   {isLoading ? <ButtonSpinner color="$white" /> : <ButtonText color="$white">{onboardingButton}</ButtonText>}
                               </Button>
                          </ButtonGroup>
                     </AlertDialogFooter>

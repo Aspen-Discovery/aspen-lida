@@ -71,7 +71,7 @@ export const SelectItemHold = (props) => {
                               <SelectPortal useRNModal={true}>
                                    <SelectBackdrop />
                                    <SelectContent
-                                        bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                         pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                    >
                                         <SelectDragIndicatorWrapper>
@@ -81,7 +81,7 @@ export const SelectItemHold = (props) => {
                                              {_.map(Object.keys(copies), function (item, index, array) {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme['colors']['tertiary']['300']}  sx={{ _text: { color: theme['colors']['tertiary']['500-text']} }}/>;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme['tokens']['colors']['tertiary']['300']}  sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text']} }}/>;
                                                   }
                                                   return <SelectItem label={copy.location} value={copy.id} key={copy.id} sx={{ _text: { color: textColor } }} />;
                                              })}

@@ -69,14 +69,14 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
                          <Pressable key={index} onPress={() => updateValue(facet.value)} p="$0.5" py="$2">
                               {value === facet.value ? (
                                    <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme['colors']['primary']['600']} />
+                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" />
                                         <Text color={textColor} ml="$2">
                                              {facet.display}
                                         </Text>
                                    </HStack>
                               ) : (
                                    <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme['colors']['muted']['400']} />
+                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400" />
                                         <Text color={textColor} ml="$2">
                                              {facet.display}
                                         </Text>
@@ -94,14 +94,14 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
                     <Pressable key={index} onPress={() => updateValue(facet.value)} p="$0.5" py="$2">
                          {value === facet.value ? (
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                   <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme['colors']['primary']['600']} />
+                                   <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" />
                                    <Text color={textColor} ml="$2">
                                         {facet.display} ({facet.count})
                                    </Text>
                               </HStack>
                          ) : (
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                   <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme['colors']['muted']['400']} />
+                                   <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400" />
                                    <Text color={textColor} ml="$2">
                                         {facet.display} ({facet.count})
                                    </Text>

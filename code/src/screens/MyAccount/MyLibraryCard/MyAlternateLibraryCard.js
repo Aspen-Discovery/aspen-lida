@@ -140,7 +140,7 @@ export const MyAlternateLibraryCard = () => {
                                              {cardLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                         <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                    </Input>
                               </FormControl>
@@ -151,7 +151,7 @@ export const MyAlternateLibraryCard = () => {
                                                   {passwordLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                              <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                              <InputSlot onPress={toggleShowPassword}>
                                                   <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
@@ -161,24 +161,24 @@ export const MyAlternateLibraryCard = () => {
                               ) : null}
                               <ButtonGroup>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         onPress={() => {
                                              setIsLoading(true);
                                              updateCard().then(() => {
                                                   setIsLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['danger']['700']}
+                                        bgColor="$danger700"
                                         onPress={() => {
                                              setIsLoading(true);
                                              deleteCard().then(() => {
                                                   setIsLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </Box>

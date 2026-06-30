@@ -119,6 +119,8 @@ export const HoldPrompt = (props) => {
      }
 
      const [volume, setVolume] = React.useState('');
+     const [holdType, setHoldType] = React.useState(typeOfHold);
+     const [item, setItem] = React.useState('');
 
      if (!_.isEmpty(volumeId)){
           logDebugMessage("Placing a hold on a single volume");
@@ -142,9 +144,6 @@ export const HoldPrompt = (props) => {
           }
           logDebugMessage("Type of hold is " + typeOfHold);
      }
-
-     const [holdType, setHoldType] = React.useState(typeOfHold);
-     const [item, setItem] = React.useState('');
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
      let passwordLabel = getTermFromDictionary(language, 'password');
@@ -304,6 +303,10 @@ export const HoldPrompt = (props) => {
           },
      };
 
+     React.useEffect(() => {
+          setHoldType(typeOfHold);
+     }, [typeOfHold]);
+
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
           await refreshProfile(library.baseUrl).then((data) => {
@@ -319,16 +322,20 @@ export const HoldPrompt = (props) => {
           setPassword('');
      };
 
-     if (showAddAlternateLibraryCardModal) {
-          return (
+
+     return (
+          <>
+               <Button minWidth="100%" maxWidth="100%" bgColor="$primary500" onPress={() => setShowModal(true)}>
+                    <ButtonText color="$textLight200">{title}</ButtonText>
+               </Button>
                <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'add_alternate_library_card')}
                               </Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -340,7 +347,7 @@ export const HoldPrompt = (props) => {
                                              {cardLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                         <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                    </Input>
                               </FormControl>
@@ -351,7 +358,7 @@ export const HoldPrompt = (props) => {
                                                   {passwordLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                                              <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                              <InputSlot onPress={toggleShowPassword}>
                                                   <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
@@ -360,19 +367,19 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}
+                                        borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
                                         onPress={() => {
                                              setShowAddAlternateLibraryCardModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? theme['colors']['warmGray']['500'] : theme['colors']['coolGray']['300']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
@@ -427,28 +434,20 @@ export const HoldPrompt = (props) => {
                                                   }
                                              });
                                         }}>
-                                        {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>}
+                                        {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>
                </Modal>
-          );
-     }
-
-     return (
-          <>
-               <Button minWidth="100%" maxWidth="100%" bgColor={theme['colors']['primary']['500']} onPress={() => setShowModal(true)}>
-                    <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>
-               </Button>
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <Heading size="md" color={textColor}>
                                    {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                               </Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -500,7 +499,7 @@ export const HoldPrompt = (props) => {
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
                                                   <SelectContent
-                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                        pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                                   >
                                                        <SelectDragIndicatorWrapper>
@@ -509,9 +508,9 @@ export const HoldPrompt = (props) => {
                                                        <SelectScrollView>
                                                             {locations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
+                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -569,16 +568,16 @@ export const HoldPrompt = (props) => {
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
                                                   <SelectContent
-                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                        pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                                   >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme['colors']['tertiary']['500-text'] : textColor } }} />
+                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme['colors']['tertiary']['500-text'] : textColor } }}  />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}  />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -587,29 +586,29 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
+                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}
+                                        borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
                                         onPress={() => {
                                              setShowModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? theme['colors']['warmGray']['500'] : theme['colors']['coolGray']['300']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                              onPress={() => {
                                                   setShowModal(false);
                                                   setShowAddAlternateLibraryCardModal(true);
                                              }}>
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
                                         </Button>
                                    ) : (
                                         <Button
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
@@ -689,7 +688,7 @@ export const HoldPrompt = (props) => {
                                                        }
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{title}</ButtonText>}
+                                             {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
                                         </Button>
                                    )}
                               </ButtonGroup>

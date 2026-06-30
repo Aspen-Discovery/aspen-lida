@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Box, Divider, ScrollView } from 'native-base';
+import { Box, Divider, ScrollView } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -46,7 +46,7 @@ export const MyProfile = () => {
      };
 
      return (
-          <ScrollView>
+          <ScrollView mt="$3" mx="$2">
                <Box flex={1} safeArea={5}>
                     {showSystemMessage()}
                     <Profile_Identity firstName={firstname} lastName={lastname} />

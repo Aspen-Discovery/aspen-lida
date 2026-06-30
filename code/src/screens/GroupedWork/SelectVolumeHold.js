@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Button, CheckIcon, FormControl, Heading, Modal, Radio, Select } from 'native-base';
+import { Button, ButtonText, ButtonGroup, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { loadError } from '../../components/loadError';
@@ -75,21 +75,18 @@ const SelectVolumeHold = (props) => {
           <>
                <Button
                     onPress={() => setShowModal(true)}
-                    colorScheme="primary"
-                    size="md"
-                    _text={{
-                         padding: 0,
-                         textAlign: 'center',
-                    }}>
-                    {title}
+                    action="primary"
+                    size="md">
+                    <ButtonText>{title}</ButtonText>
                </Button>
-               <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
-                    <Modal.Content maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
-                         <Modal.CloseButton />
-                         <Modal.Header>
-                              <Heading size="md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
-                         </Modal.Header>
-                         <Modal.Body>
+               <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="lg">
+                    <ModalBackdrop />
+                    <ModalContent maxWidth="90%">
+                         <ModalCloseButton />
+                         <ModalHeader borderBottomWidth="$0">
+                              <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                         </ModalHeader>
+                         <ModalBody>
                               {status === 'loading' || isFetching ? (
                                    loadingSpinner()
                               ) : status === 'error' ? (
@@ -97,108 +94,128 @@ const SelectVolumeHold = (props) => {
                               ) : (
                                    <>
                                         {promptForHoldType ? (
-                                             <FormControl>
-                                                  <Radio.Group
-                                                       name="holdTypeGroup"
-                                                       defaultValue={holdType}
+                                             <FormControl mb="$4">
+                                                  <RadioGroup
                                                        value={holdType}
                                                        onChange={(nextValue) => {
                                                             setHoldType(nextValue);
-                                                       }}
-                                                       accessibilityLabel="">
-                                                       <Radio value="item" my={1} size="sm">
-                                                            {getTermFromDictionary(language, 'first_available')}
+                                                       }}>
+                                                       <Radio value="item" size="sm" mb="$2">
+                                                            <RadioIndicator mr="$2">
+                                                                 <RadioIcon as={CircleIcon} />
+                                                            </RadioIndicator>
+                                                            <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                                        </Radio>
-                                                       <Radio value="volume" my={1} size="sm">
-                                                            {getTermFromDictionary(language, 'specific_volume')}
+                                                       <Radio value="volume" size="sm">
+                                                            <RadioIndicator mr="$2">
+                                                                 <RadioIcon as={CircleIcon} />
+                                                            </RadioIndicator>
+                                                            <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                                        </Radio>
-                                                  </Radio.Group>
+                                                  </RadioGroup>
                                              </FormControl>
                                         ) : null}
                                         {holdType === 'volume' ? (
-                                             <FormControl>
-                                                  <FormControl.Label>{getTermFromDictionary(language, 'select_volume')}</FormControl.Label>
+                                             <FormControl mb="$4">
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
+                                                  </FormControlLabel>
                                                   <Select
-                                                       isReadOnly={Platform.OS === 'android'}
-                                                       name="volumeForHold"
                                                        selectedValue={volume}
-                                                       minWidth="200"
-                                                       accessibilityLabel={getTermFromDictionary(language, 'select_volume')}
-                                                       _selectedItem={{
-                                                            bg: 'tertiary.300',
-                                                            endIcon: <CheckIcon size="5" />,
-                                                       }}
-                                                       mt={1}
-                                                       mb={2}
                                                        onValueChange={(itemValue) => setVolume(itemValue)}>
-                                                       {_.map(data, function (item, index, array) {
-                                                            return <Select.Item label={item.label} value={item.volumeId} key={index} />;
-                                                       })}
+                                                       <SelectTrigger variant="outline" size="md">
+                                                            <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
+                                                            <Icon as={ChevronDownIcon} mr="$3" />
+                                                       </SelectTrigger>
+                                                       <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                 <SelectDragIndicatorWrapper>
+                                                                      <SelectDragIndicator />
+                                                                 </SelectDragIndicatorWrapper>
+                                                                 <SelectScrollView>
+                                                                      {_.map(data, function (item, index, array) {
+                                                                           return <SelectItem label={item.label} value={item.volumeId} key={index} />;
+                                                                      })}
+                                                                 </SelectScrollView>
+                                                            </SelectContent>
+                                                       </SelectPortal>
                                                   </Select>
                                              </FormControl>
                                         ) : null}
                                         {_.size(locations) > 1 ? (
-                                             <FormControl>
-                                                  <FormControl.Label>{getTermFromDictionary(language, 'select_pickup_location')}</FormControl.Label>
+                                             <FormControl mb="$4">
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
+                                                  </FormControlLabel>
                                                   <Select
-                                                       isReadOnly={Platform.OS === 'android'}
-                                                       name="pickupLocations"
                                                        selectedValue={location}
-                                                       minWidth="200"
-                                                       accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-                                                       _selectedItem={{
-                                                            bg: 'tertiary.300',
-                                                            endIcon: <CheckIcon size="5" />,
-                                                       }}
-                                                       mt={1}
-                                                       mb={2}
                                                        onValueChange={(itemValue) => setLocation(itemValue)}>
-                                                       {locations.map((location, index) => {
-                                                            return <Select.Item label={location.name} value={location.code} key={index} />;
-                                                       })}
+                                                       <SelectTrigger variant="outline" size="md">
+                                                            <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                                            <Icon as={ChevronDownIcon} mr="$3" />
+                                                       </SelectTrigger>
+                                                       <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                 <SelectDragIndicatorWrapper>
+                                                                      <SelectDragIndicator />
+                                                                 </SelectDragIndicatorWrapper>
+                                                                 <SelectScrollView>
+                                                                      {locations.map((location, index) => {
+                                                                           return <SelectItem label={location.name} value={location.code} key={index} />;
+                                                                      })}
+                                                                 </SelectScrollView>
+                                                            </SelectContent>
+                                                       </SelectPortal>
                                                   </Select>
                                              </FormControl>
                                         ) : null}
                                         {_.size(accounts) > 0 ? (
-                                             <FormControl>
-                                                  <FormControl.Label>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControl.Label>
+                                             <FormControl mb="$4">
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
+                                                  </FormControlLabel>
                                                   <Select
-                                                       isReadOnly={Platform.OS === 'android'}
-                                                       name="linkedAccount"
                                                        selectedValue={activeAccount}
-                                                       minWidth="200"
-                                                       accessibilityLabel={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}
-                                                       _selectedItem={{
-                                                            bg: 'tertiary.300',
-                                                            endIcon: <CheckIcon size="5" />,
-                                                       }}
-                                                       mt={1}
-                                                       mb={3}
                                                        onValueChange={(itemValue) => setActiveAccount(itemValue)}>
-                                                       <Select.Item label={user.displayName} value={user.id} />
-                                                       {accounts.map((item, index) => {
-                                                            return <Select.Item label={item.displayName} value={item.id} key={index} />;
-                                                       })}
+                                                       <SelectTrigger variant="outline" size="md">
+                                                            <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                                            <Icon as={ChevronDownIcon} mr="$3" />
+                                                       </SelectTrigger>
+                                                       <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                 <SelectDragIndicatorWrapper>
+                                                                      <SelectDragIndicator />
+                                                                 </SelectDragIndicatorWrapper>
+                                                                 <SelectScrollView>
+                                                                      <SelectItem label={user.displayName} value={user.id} />
+                                                                      {accounts.map((item, index) => {
+                                                                           return <SelectItem label={item.displayName} value={item.id} key={index} />;
+                                                                      })}
+                                                                 </SelectScrollView>
+                                                            </SelectContent>
+                                                       </SelectPortal>
                                                   </Select>
                                              </FormControl>
                                         ) : null}
                                    </>
                               )}
-                         </Modal.Body>
-                         <Modal.Footer>
-                              <Button.Group space={2} size="md">
+                         </ModalBody>
+                         <ModalFooter borderTopWidth="$0">
+                              <ButtonGroup space="md" size="md">
                                    <Button
-                                        colorScheme="muted"
+                                        action="secondary"
                                         variant="outline"
                                         onPress={() => {
                                              setShowModal(false);
                                              setLoading(false);
                                         }}>
-                                        {getTermFromDictionary(language, 'close_window')}
+                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        isLoading={loading}
-                                        isLoadingText={isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)}
+                                        isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
                                              await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
@@ -221,11 +238,11 @@ const SelectVolumeHold = (props) => {
                                              });
                                              setLoading(false);
                                         }}>
-                                        {title}
+                                        <ButtonText>{loading ? (isPlacingHold ? getTermFromDictionary(language, 'placing_hold', true) : getTermFromDictionary(language, 'checking_out', true)) : title}</ButtonText>
                                    </Button>
-                              </Button.Group>
-                         </Modal.Footer>
-                    </Modal.Content>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
                </Modal>
           </>
      );

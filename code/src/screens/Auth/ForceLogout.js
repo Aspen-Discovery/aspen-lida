@@ -2,7 +2,7 @@ import { Center, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDial
 
 import React from 'react';
 
-import {AuthContext} from '../../components/navigation';
+import { AuthContext } from '../../context/AuthContext';
 import {LanguageContext, ThemeContext} from '../../context/initialContext';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 
@@ -19,13 +19,13 @@ export const ForceLogout = (props) => {
 		<Center>
 			<AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
 				<AlertDialogBackdrop/>
-				<AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+				<AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
 					<AlertDialogHeader><Heading color={textColor}>{title ?? getTermFromDictionary(language, 'error')}</Heading></AlertDialogHeader>
 					<AlertDialogBody><Text color={textColor}>{reason ?? getTermFromDictionary(language, 'error_invalid_session')}</Text></AlertDialogBody>
 					<AlertDialogFooter>
 						<ButtonGroup space="sm">
-							<Button bgColor={theme['colors']['primary']['500']} onPress={signOut} ref={cancelRef}>
-								<ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+							<Button bgColor="$primary500" onPress={signOut} ref={cancelRef}>
+								<ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
 							</Button>
 						</ButtonGroup>
 					</AlertDialogFooter>

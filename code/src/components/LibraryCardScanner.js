@@ -1,45 +1,60 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Camera, CameraView } from 'expo-camera';
-import { Button, View } from 'native-base';
+import { useCameraPermissions, CameraView } from 'expo-camera';
+import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
 import { navigate } from '../helpers/RootNavigator';
-import { loadError } from './loadError';
+import { LoadError } from './loadError';
 import { LoadingSpinner } from './loadingSpinner';
 
 export default function LibraryCardScanner() {
      const navigation = useNavigation();
      const allowCode39 = useRoute().params?.allowCode39 ?? false;
-     const [hasPermission, setHasPermission] = React.useState(null);
+     const [permission, requestPermission] = useCameraPermissions();
      const [scanned, setScanned] = React.useState(false);
      let allowedBarcodes = ['code128', 'codabar', 'ean13', 'ean8', 'itf14'];
 
      React.useEffect(() => {
-          (async () => {
-               const { status } = await Camera.requestCameraPermissionsAsync();
-               setHasPermission(status === 'granted');
-          })();
-     }, []);
+          if (!permission || permission.status === 'undetermined') {
+               requestPermission();
+          }
+     }, [permission]);
 
      const handleBarCodeScanned = ({ type, data, bounds, cornerPoints }) => {
           if (!scanned) {
+               let cleanData = data;
                if (type === '8' || type === 8) {
-                    data = cleanBarcode(data);
+                    cleanData = cleanBarcode(data, type);
                }
                setScanned(true);
                navigate('Login', {
-                    barcode: data,
+                    barcode: cleanData,
                });
           }
      };
 
-     if (hasPermission === null) {
-          return LoadingSpinner('Requesting for camera permissions');
+     if (!permission) {
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadingSpinner message="Requesting for camera permissions" />
+               </View>
+          );
      }
 
-     if (hasPermission === false) {
-          return loadError('No access to camera');
+     if (!permission.granted) {
+          if (permission.canAskAgain) {
+               return (
+                    <View style={{ flex: 1 }}>
+                         <LoadingSpinner message="Requesting for camera permissions" />
+                    </View>
+               );
+          }
+          return (
+               <View style={{ flex: 1 }}>
+                    <LoadError error="No access to camera" />
+               </View>
+          );
      }
 
      if (allowCode39) {
@@ -50,7 +65,16 @@ export default function LibraryCardScanner() {
           <View style={{ flex: 1 }}>
                <CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={[StyleSheet.absoluteFillObject, styles.container]} barcodeScannerSettings={{ barcodeTypes: allowedBarcodes }}>
                     <BarcodeMask edgeColor="#62B1F6" showAnimatedLine={false} />
-                    {scanned && <Button onPress={() => setScanned(false)}>Scan Again</Button>}
+                    <View style={styles.buttonContainer}>
+                         <Button variant="outline" action="secondary" onPress={() => navigation.goBack()} bgColor="rgba(0,0,0,0.5)" borderColor="$white">
+                              <ButtonText color="$white">Cancel</ButtonText>
+                         </Button>
+                         {scanned && (
+                              <Button onPress={() => setScanned(false)} ml="$4">
+                                   <ButtonText>Scan Again</ButtonText>
+                              </Button>
+                         )}
+                    </View>
                </CameraView>
           </View>
      );
@@ -61,6 +85,14 @@ const styles = StyleSheet.create({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
+     },
+     buttonContainer: {
+          position: 'absolute',
+          bottom: 50,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
      },
 });
 

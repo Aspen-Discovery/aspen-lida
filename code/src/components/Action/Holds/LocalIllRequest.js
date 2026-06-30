@@ -19,12 +19,12 @@ export const StartLocalIllRequest = (props) => {
      return (
           <Button
                size="md"
-               bgColor={theme['colors']['primary']['500']}
+               bgColor="$primary500"
                variant="solid"
                minWidth="100%"
                maxWidth="100%"
                onPress={openLocalIllRequest}>
-               <ButtonText color={theme['colors']['primary']['500-text']} textAlign="center">
+               <ButtonText color="$textLight200" textAlign="center">
                     {props.title}
                </ButtonText>
           </Button>

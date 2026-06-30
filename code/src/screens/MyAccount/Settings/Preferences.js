@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Box, Divider, HStack, Icon, Pressable, Text, VStack } from 'native-base';
+import { Box, Divider, HStack, Icon, Pressable, Text, VStack, ChevronRightIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
 
@@ -48,38 +48,38 @@ export const PreferencesScreen = () => {
 
      return (
           <Box safeArea={5}>
-               <VStack divider={<Divider />} space="4">
-                    <VStack space="3">
+               <VStack divider={<Divider />} space="$md">
+                    <VStack space="$md" mx={4} my={8}>
                          <VStack>
-                              <Pressable py="3" onPress={() => navigate('MyPreferences_ManageBrowseCategories')}>
-                                   <HStack space="1" alignItems="center">
-                                        <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                                        <Text fontWeight="500">{getTermFromDictionary(language, 'manage_browse_categories')}</Text>
+                              <Pressable py="$2" onPress={() => navigate('MyPreferences_ManageBrowseCategories')}>
+                                   <HStack space="xs" alignItems="center">
+                                        <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                                        <Text fontWeight="$medium">{getTermFromDictionary(language, 'manage_browse_categories')}</Text>
                                    </HStack>
                               </Pressable>
                               {library.allowPickupLocationUpdates ? (
-                                  <Pressable py="3" onPress={() => navigate('MyPreferences_ManagePickupLocations')}>
-                                       <HStack space="1" alignItems="center">
-                                            <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                                            <Text fontWeight="500">{getTermFromDictionary(language, 'manage_pickup_locations')}</Text>
+                                  <Pressable py="$2" onPress={() => navigate('MyPreferences_ManagePickupLocations')}>
+                                       <HStack space="xs" alignItems="center">
+                                            <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                                            <Text fontWeight="$medium">{getTermFromDictionary(language, 'manage_pickup_locations')}</Text>
                                        </HStack>
                                   </Pressable>
                               ) : null}
-                              <Pressable py="3" onPress={() => navigate('PermissionDashboard')}>
-                                   <HStack space="1" alignItems="center">
-                                        <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                                        <Text fontWeight="500">{getTermFromDictionary(language, 'device_permissions')}</Text>
+                              <Pressable py="v" onPress={() => navigate('PermissionDashboard')}>
+                                   <HStack space="xs" alignItems="center">
+                                        <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                                        <Text fontWeight="$medium">{getTermFromDictionary(language, 'device_permissions')}</Text>
                                    </HStack>
                               </Pressable>
-                              <Pressable py="3" onPress={() => navigate('MyDevice_Support')}>
-                                   <HStack space="1" alignItems="center">
-                                        <Icon as={MaterialIcons} name="chevron-right" size="7" />
-                                        <Text fontWeight="500">{getTermFromDictionary(language, 'support')}</Text>
+                              <Pressable py="$2" onPress={() => navigate('MyDevice_Support')}>
+                                   <HStack space="xs" alignItems="center">
+                                        <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                                        <Text fontWeight="$medium">{getTermFromDictionary(language, 'support')}</Text>
                                    </HStack>
                               </Pressable>
                          </VStack>
                     </VStack>
-                    <VStack>
+                    <VStack space="$md" mx={12} >
                          <HStack justifyContent="space-between" alignItems="center">
                               <Text bold>{getTermFromDictionary(language, 'language')}</Text>
                               <LanguageSwitcher />

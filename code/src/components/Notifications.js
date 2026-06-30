@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Alert, CloseIcon, HStack, IconButton, Text, VStack } from 'native-base';
+import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
@@ -163,16 +163,13 @@ export async function createChannelsAndCategories() {
 /** status/colorScheme options: success, error, info, warning **/
 export function showILSMessage(type, message, index = 0) {
      const formattedMessage = stripHTML(message);
+     logDebugMessage("Showing ILS Message");
      return (
-          <Alert maxW="95%" status={type} colorScheme={type} mb={1} ml={2} key={index}>
-               <HStack flexShrink={1} space={2} alignItems="center" justifyContent="space-between">
-                    <HStack flexShrink={1} space={2} alignItems="center">
-                         <Alert.Icon />
-                         <Text fontSize="xs" fontWeight="medium" color="coolGray.800" maxW="90%">
-                              {formattedMessage}
-                         </Text>
-                    </HStack>
-               </HStack>
+          <Alert mx="$2" mb="$1" action={type} key={index}>
+               <AlertIcon mr="$3" />
+               <AlertText size="xs" fontWeight="$medium">
+                    {formattedMessage}
+               </AlertText>
           </Alert>
      );
 }
@@ -180,13 +177,11 @@ export function showILSMessage(type, message, index = 0) {
 /** status/colorScheme options: success, error, info, warning **/
 export const DisplayMessage = (props) => {
      return (
-          <Alert status={props.type} colorScheme={props.type} mb={2}>
-               <HStack flexShrink={1} space={5} alignItems="center" justifyContent="space-between" px={4}>
-                    <Alert.Icon />
-                    <Text fontSize="xs" fontWeight="medium" color="coolGray.800">
-                         {props.message}
-                    </Text>
-               </HStack>
+          <Alert action={props.type} mb="$2" mx="$4">
+               <AlertIcon mr="$3" />
+               <AlertText size="xs" fontWeight="$medium">
+                    {props.message}
+               </AlertText>
           </Alert>
      );
 };
@@ -208,23 +203,17 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
      const setIsOpen = props.setIsOpen;
      const language = props.language;
      return (
-          <Alert maxW="100%" status="error" colorScheme="error" mb={3} index={-1}>
-               <VStack space={2} flexShrink={1} w="100%">
-                    <HStack flexShrink={1} alignItems="flex-start" space={2} justifyContent="space-between">
-                         <HStack space={2} flexShrink={1} pr={3}>
-                              <Text fontSize="sm" mb={-1}>
-                                   {getTermFromDictionary(language, 'android_end_of_life')}
-                              </Text>
-                         </HStack>
-                         <IconButton
-                              mt={-2}
-                              variant="unstyled"
-                              _focus={{
-                                   borderWidth: 0,
-                              }}
-                              icon={<CloseIcon size="3" />}
-                              onPress={() => setIsOpen(false)}
-                         />
+          <Alert action="error" mb="$3">
+               <VStack space="xs" width="$full">
+                    <HStack alignItems="flex-start" justifyContent="space-between">
+                         <AlertText size="sm">
+                              {getTermFromDictionary(language, 'android_end_of_life')}
+                         </AlertText>
+                         <Button
+                              variant="link"
+                              onPress={() => setIsOpen(false)}>
+                              <ButtonIcon as={CloseIcon} size="md" />
+                         </Button>
                     </HStack>
                </VStack>
           </Alert>
@@ -235,67 +224,46 @@ export const DisplaySystemMessage = (props) => {
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
      let style = props.style;
-     let scheme = props.style;
 
      // return a custom alert if the system message style is 'none'
      if (props.style === '') {
           return (
-               <Alert maxW="100%" status="info" backgroundColor="coolGray.200" mb={2} index={props.id}>
-                    <VStack space={2} flexShrink={1} w="100%">
-                         <HStack flexShrink={1} alignItems="flex-start" space={2} justifyContent="space-between">
-                              <HStack space={2} flexShrink={1} pr={3}>
-                                   <Text fontSize="sm" color="coolGray.800" mb={-1}>
-                                        {props.message}
-                                   </Text>
-                              </HStack>
-                              <IconButton
+               <Alert mb="$2" action="info">
+                    <VStack space="xs" width="$full">
+                         <HStack alignItems="flex-start" justifyContent="space-between">
+                              <AlertText size="sm">
+                                   {props.message}
+                              </AlertText>
+                              <Button
                                    onPress={async () => {
                                         await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
                                              queryClient.setQueryData(['system_messages', props.url], result);
                                              updateSystemMessages(result);
                                         });
-                                   }}
-                                   mt={-2}
-                                   variant="unstyled"
-                                   _focus={{
-                                        borderWidth: 0,
-                                   }}
-                                   icon={<CloseIcon size="3" />}
-                                   _icon={{
-                                        color: 'coolGray.600',
-                                   }}
-                              />
+                                   }}>
+                                   <ButtonIcon as={CloseIcon} size="md" />
+                              </Button>
                          </HStack>
                     </VStack>
                </Alert>
           );
      }
      return (
-          <Alert maxW="100%" status={style} colorScheme={scheme} mb={2} index={props.id}>
-               <VStack space={2} flexShrink={1} w="100%">
-                    <HStack flexShrink={1} alignItems="flex-start" space={2} justifyContent="space-between">
-                         <HStack space={2} flexShrink={1} pr={3}>
-                              <Text fontSize="sm" color="coolGray.800" mb={-1}>
-                                   {props.message}
-                              </Text>
-                         </HStack>
-                         <IconButton
+          <Alert action={style} mb="$2">
+               <VStack space="xs" width="$full">
+                    <HStack alignItems="flex-start" justifyContent="space-between">
+                         <AlertText size="sm">
+                              {props.message}
+                         </AlertText>
+                         <Button
                               onPress={async () => {
                                    await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
                                         queryClient.setQueryData(['system_messages', props.url], result);
                                         updateSystemMessages(result);
                                    });
-                              }}
-                              mt={-2}
-                              variant="unstyled"
-                              _focus={{
-                                   borderWidth: 0,
-                              }}
-                              icon={<CloseIcon size="3" />}
-                              _icon={{
-                                   color: 'coolGray.600',
-                              }}
-                         />
+                              }}>
+                              <ButtonIcon as={CloseIcon} size="md" />
+                         </Button>
                     </HStack>
                </VStack>
           </Alert>

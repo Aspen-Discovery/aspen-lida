@@ -43,18 +43,18 @@ export const FinishCheckOutSession = () => {
           <Center>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => StartNewSession()} size="lg">
                     <AlertDialogBackdrop />
-                    <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <AlertDialogHeader><Heading color={textColor}>{getTermFromDictionary(language, 'finish_checkout_session')}</Heading></AlertDialogHeader>
                          <AlertDialogBody>
                               <Text color={textColor}>{getTermFromDictionary(language, 'finish_checkout_session_body')}</Text>
                          </AlertDialogBody>
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
-                                   <Button size="sm" onPress={() => StartNewSession()} bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
+                                   <Button size="sm" onPress={() => StartNewSession()} bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                    </Button>
-                                   <Button size="sm" bgColor={theme['colors']['primary']['500']} onPress={() => GoToCheckouts()}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
+                                   <Button size="sm" bgColor="$primary500" onPress={() => GoToCheckouts()}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

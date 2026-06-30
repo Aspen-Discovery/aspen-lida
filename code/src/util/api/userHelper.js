@@ -2,7 +2,7 @@ import { PATRON } from '../globals';
 import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging';
 import { popToast } from '../../components/loadError';
 import * as WebBrowser from 'expo-web-browser';
-import { getTermFromDictionary } from '../../translations/TranslationService';
+import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { checkoutItem, overDriveSample, placeHold } from './user';
 import { addDays, formatLocalDateYYYYMMDD, orderByFields, parseToDate } from '../../helpers/helpers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -310,26 +310,4 @@ export function formatReadingHistory(data) {
           sort: data.sort ?? 'checkedOut',
           message: data.message ?? null,
      };
-}
-
-export function resolveReactivationDate(selectedReactivationDate, allowIndefinite = false) {
-     const today = formatLocalDateYYYYMMDD();
-
-     const selectedDate = parseToDate(selectedReactivationDate);
-     if (selectedDate) {
-          const selected = formatLocalDateYYYYMMDD(selectedDate);
-
-          if (selected === today) {
-               if (allowIndefinite) return null;
-               return formatLocalDateYYYYMMDD(addDays(new Date(), 30));
-          }
-
-          return selected;
-     }
-
-     if (!allowIndefinite) {
-          return formatLocalDateYYYYMMDD(addDays(new Date(), 30));
-     }
-
-     return null;
 }

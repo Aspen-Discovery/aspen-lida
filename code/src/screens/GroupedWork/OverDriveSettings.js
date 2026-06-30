@@ -1,4 +1,4 @@
-import { Button, Checkbox, FormControl, Input, Modal, Stack } from 'native-base';
+import { Button, ButtonText, ButtonGroup, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, VStack, CheckIcon } from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
@@ -9,37 +9,46 @@ export const GetOverDriveSettings = (props) => {
      const { promptTitle, promptItemId, promptSource, promptPatronId, promptForOverdriveEmail, libraryUrl, showOverDriveSettings, handleOverDriveSettings, showAlert, setEmail, setRememberPrompt, overdriveEmail, language } = props;
 
      return (
-          <Modal isOpen={showOverDriveSettings} onClose={() => handleOverDriveSettings(false)} avoidKeyboard closeOnOverlayClick={false}>
-               <Modal.Content>
-                    <Modal.CloseButton />
-                    <Modal.Header>{promptTitle}</Modal.Header>
-                    <Modal.Body mt={4}>
+          <Modal isOpen={showOverDriveSettings} onClose={() => handleOverDriveSettings(false)}>
+               <ModalBackdrop />
+               <ModalContent>
+                    <ModalCloseButton />
+                    <ModalHeader borderBottomWidth="$0">{promptTitle}</ModalHeader>
+                    <ModalBody mt="$4">
                          <FormControl>
-                              <Stack>
-                                   <FormControl.Label>{getTermFromDictionary(language, 'overdrive_email_field')}</FormControl.Label>
-                                   <Input autoCapitalize="none" autoCorrect={false} id="overdriveEmail" onChangeText={(text) => setEmail(text)} />
-                                   <Checkbox value="yes" my={2} id="promptForOverdriveEmail" onChange={(isSelected) => setRememberPrompt(isSelected)}>
-                                        {getTermFromDictionary(language, 'remember_settings')}
+                              <VStack space="md">
+                                   <FormControlLabel>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'overdrive_email_field')}</FormControlLabelText>
+                                   </FormControlLabel>
+                                   <Input variant="outline" size="md">
+                                        <InputField autoCapitalize="none" autoCorrect={false} onChangeText={(text) => setEmail(text)} />
+                                   </Input>
+                                   <Checkbox value="yes" size="md" onChange={(isSelected) => setRememberPrompt(isSelected)}>
+                                        <CheckboxIndicator mr="$2">
+                                             <CheckboxIcon as={CheckIcon} />
+                                        </CheckboxIndicator>
+                                        <CheckboxLabel>{getTermFromDictionary(language, 'remember_settings')}</CheckboxLabel>
                                    </Checkbox>
-                              </Stack>
+                              </VStack>
                          </FormControl>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button.Group space={2} size="md">
-                              <Button colorScheme="primary" variant="ghost" onPress={() => handleOverDriveSettings(false)}>
-                                   {getTermFromDictionary(language, 'close_window')}
+                    </ModalBody>
+                    <ModalFooter borderTopWidth="$0">
+                         <ButtonGroup space="md" size="md">
+                              <Button action="secondary" variant="ghost" onPress={() => handleOverDriveSettings(false)}>
+                                   <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
+                                   action="primary"
                                    onPress={async () => {
                                         await updateOverDriveEmail(promptItemId, promptSource, promptPatronId, overdriveEmail, promptForOverdriveEmail, libraryUrl, language).then((response) => {
                                              showAlert(response);
                                         });
                                    }}>
-                                   {getTermFromDictionary(language, 'place_hold')}
+                                   <ButtonText>{getTermFromDictionary(language, 'place_hold')}</ButtonText>
                               </Button>
-                         </Button.Group>
-                    </Modal.Footer>
-               </Modal.Content>
+                         </ButtonGroup>
+                    </ModalFooter>
+               </ModalContent>
           </Modal>
      );
 };

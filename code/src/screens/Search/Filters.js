@@ -50,18 +50,20 @@ export const FiltersScreen = () => {
      let facets = SearchGlobal.availableFacets ? Object.keys(SearchGlobal.availableFacets) : [];
      let pendingFilters = SearchGlobal.pendingFilters ?? [];
 
-     if (pendingFilters !== pendingFiltersFromParams) {
-          navigation.setOptions({
-               headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" />,
-          });
-     }
+     React.useEffect(() => {
+          if (pendingFilters !== pendingFiltersFromParams) {
+               navigation.setOptions({
+                    headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" />,
+               });
+          }
+     }, [pendingFilters, pendingFiltersFromParams, language]);
 
      const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
      const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
 
      const renderFilter = (label, index) => {
           return (
-               <Pressable key={index} borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} py="$5" onPress={() => openCluster(label)}>
+               <Pressable key={index} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openCluster(label)}>
                     <VStack alignContent="center">
                          <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                               <VStack>
@@ -162,20 +164,20 @@ export const FiltersScreen = () => {
 
      const actionButtons = () => {
           return (
-               <Box p="$3" bgColor={colorMode === 'light' ? theme['colors']['coolGray']['50'] : theme['colors']['coolGray']['700']}  shadowOpacity={0.2} shadowRadius={1}>
+               <Box p="$3" bgColor={colorMode === 'light' ? theme['tokens']['colors']['coolGray']['50'] : "$coolGray700"}  shadowOpacity={0.2} shadowRadius={1}>
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => clearSelections()}>
-                                   <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'reset_all')}</ButtonText>
+                                   <ButtonText color="$primary500">{getTermFromDictionary(language, 'reset_all')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor={theme['colors']['primary']['500']}
+                                   bgColor="$primary500"
                                    isDisabled={loading}
                                    onPress={() => {
                                         setLoading(true);
                                         updateSearch();
                                    }}>
-                                   <ButtonText color={theme['colors']['primary']['500-text']}>{loading ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}</ButtonText>
+                                   <ButtonText color="$textLight200">{loading ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </Center>
@@ -301,12 +303,12 @@ export const FiltersScreen = () => {
                          <VStack space="md">
                               <FormControl>
                                    <Input
-                                        borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}
+                                        borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
                                         color={textColor}
                                         variant="outline"
                                    >
                                         <InputSlot pl="$2">
-                                             <InputIcon as={Ionicons} name="search" size="md" color={colorMode === 'light' ? theme['colors']['muted']['800'] : theme['colors']['muted']['50']} />
+                                             <InputIcon as={Ionicons} name="search" size="md" color={colorMode === 'light' ? "$muted800" : "$muted50"} />
                                         </InputSlot>
                                         <InputField
                                              returnKeyType="search"
@@ -317,14 +319,14 @@ export const FiltersScreen = () => {
                                              value={searchTerm}
                                              color={textColor}
                                         />
-                                        <InputSlot pr="$2">
+                                        <InputSlot py="$2">
                                              {searchTerm ? (
                                                   <Pressable onPress={() => clearSearch()}>
-                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={colorMode === 'light' ? theme['colors']['muted']['800'] : theme['colors']['muted']['50']}  />
+                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
                                                   </Pressable>
                                              ) : null}
                                              <Pressable onPress={() => openScanner()} ml="$2">
-                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={colorMode === 'light' ? theme['colors']['muted']['800'] : theme['colors']['muted']['50']}  />
+                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
                                              </Pressable>
                                         </InputSlot>
                                    </Input>
@@ -333,7 +335,7 @@ export const FiltersScreen = () => {
 
                          {!isLoading ? (
                               <>
-                                   <Pressable key={0} borderBottomWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} py="$5" onPress={() => openSearchIndexes()}>
+                                   <Pressable key={0} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openSearchIndexes()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>
@@ -344,7 +346,7 @@ export const FiltersScreen = () => {
                                              </HStack>
                                         </VStack>
                                    </Pressable>
-                                   <Pressable key={1} borderBottomWidth={1}  borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} py="$5" onPress={() => openSearchSources()}>
+                                   <Pressable key={1} borderBottomWidth="$1"  borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openSearchSources()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>

@@ -1,4 +1,4 @@
-import { Box, Text } from "native-base";
+import { Box, Text } from "@gluestack-ui/themed";
 import React from "react";
 import {LanguageContext} from '../../../context/initialContext';
 import {getTermFromDictionary} from '../../../translations/TranslationService';

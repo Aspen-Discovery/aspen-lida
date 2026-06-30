@@ -149,7 +149,7 @@ export const Settings_PickupLocations = () => {
 					<SelectPortal>
 						<SelectBackdrop />
 						<SelectContent
-							bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+							bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
 							pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
 						>
 							<SelectDragIndicatorWrapper>
@@ -158,7 +158,7 @@ export const Settings_PickupLocations = () => {
 							<SelectScrollView>
 								{locations.map((availableLocations, index) => {
 									if (availableLocations.code === location) {
-										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
+										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
 									}
 									return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 										_text: { color: textColor }
@@ -193,7 +193,7 @@ export const Settings_PickupLocations = () => {
 						<SelectPortal useRNModal={true}>
 							<SelectBackdrop />
 							<SelectContent
-								bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+								bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
 								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
 							>
 								<SelectDragIndicatorWrapper>
@@ -202,7 +202,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location1Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -235,7 +235,7 @@ export const Settings_PickupLocations = () => {
 						<SelectPortal>
 							<SelectBackdrop />
 							<SelectContent
-								bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+								bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
 								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
 							>
 								<SelectDragIndicatorWrapper>
@@ -244,7 +244,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location2Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['colors']['tertiary']['300']} sx={{ _text: { color: theme['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -275,7 +275,7 @@ export const Settings_PickupLocations = () => {
 				</FormControl>
 			) : null}
 			<ButtonGroup>
-				<Button bgColor={theme['colors']['primary']['500']}
+				<Button bgColor="$primary500"
                          onPress={async () => {
                               setLoading(true);
                               await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
@@ -286,7 +286,7 @@ export const Settings_PickupLocations = () => {
                               })
                          }}
                          isDisabled={loading}>
-					{loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>}
+					{loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>}
 				</Button>
 			</ButtonGroup>
 		</Box>

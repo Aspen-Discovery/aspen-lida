@@ -4,10 +4,11 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, Box, Button, Divider, Heading, ScrollView, Text, useColorModeValue, useToken } from 'native-base';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -28,8 +29,9 @@ export const Location = () => {
      const [openToday, setOpenToday] = React.useState(false);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const { colorMode } = React.useContext(ThemeContext);
 
-     const bgColor = useToken('colors', useColorModeValue('warmGray.50', 'coolGray.800'));
+     const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
@@ -109,7 +111,7 @@ export const Location = () => {
                               style={{
                                    width: '100%',
                                    height: 200,
-                                   borderRadius: 4,
+                                   borderRadius: "$sm",
                                    zIndex: -1,
                                    position: 'absolute',
                                    left: 0,
@@ -132,7 +134,11 @@ export const Location = () => {
                     ) : null}
                     {hasHours ? (
                          <Text mt={4} mb={2}>
-                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>{hoursLabel}</Badge>
+                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
+                                   <BadgeText>
+                                        {hoursLabel}
+                                   </BadgeText>
+                              </Badge>
                          </Text>
                     ) : null}
                     <DisplayMap data={location} />

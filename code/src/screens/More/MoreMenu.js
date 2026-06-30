@@ -25,7 +25,7 @@ import {
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { popToast } from '../../components/loadError';
-import { AuthContext } from '../../components/navigation';
+import { AuthContext } from '../../context/AuthContext';
 import {
      LanguageContext,
      LibraryBranchContext,
@@ -83,7 +83,11 @@ export const MoreMenu = () => {
                          <Divider />
 
                          <VStack divider={<Divider />} space="md">
-                              {hasMenuItems > 0 ? <FlatList data={Object.keys(menu)} renderItem={({ item }) => <MenuLink links={menu[item]} />} /> : null}
+                              {hasMenuItems > 0 ? (
+                                   Object.keys(menu).map((item) => (
+                                        <MenuLink key={item} links={menu[item]} />
+                                   ))
+                              ) : null}
                               <VStack space="md">
                                    <VStack>
                                         <ViewAllLocations />
@@ -93,7 +97,7 @@ export const MoreMenu = () => {
                                         <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
                                              <HStack space="sm" alignItems="center">
                                                   <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)}/>
-                                                  <Text fontWeight="500" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
+                                                  <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
                                              </HStack>
                                         </Pressable>
                                         ) : null}
@@ -103,10 +107,10 @@ export const MoreMenu = () => {
                     </VStack>
                     <Modal isOpen={showDeleteConfirmationModal} onClose={toggleDeleteConfirmationModal}>
                          <ModalBackdrop />
-                         <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <ModalHeader>
                                    <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
-                                   <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                                   <ModalCloseButton p="$3">
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
@@ -117,11 +121,11 @@ export const MoreMenu = () => {
                               </ModalBody>
                               <ModalFooter>
                                    <ButtonGroup>
-                                        <Button variant="outline" borderColor={theme['colors']['primary']['500']} onPress={toggleDeleteConfirmationModal}>
-                                             <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <Button variant="outline" borderColor="$primary500" onPress={toggleDeleteConfirmationModal}>
+                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                         </Button>
                                         <Button
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                             isLoading={deleting}
                                             isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                             onPress={async () => {
@@ -130,7 +134,7 @@ export const MoreMenu = () => {
                                                       setShowDeleteResultsModal(true);
                                                  });
                                             }}>
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
+                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </ModalFooter>
@@ -138,10 +142,10 @@ export const MoreMenu = () => {
                     </Modal>
                     <Modal isOpen={showDeleteResultsModal}>
                          <ModalBackdrop/>
-                         <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <ModalHeader>
                                    <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
-                                   <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                                   <ModalCloseButton p="$3">
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
@@ -154,12 +158,12 @@ export const MoreMenu = () => {
                               </ModalBody>
                               <ModalFooter>
                                         {deleteResults.success === true ? (
-                                            <Button bgColor={theme['colors']['primary']['500']} onPress={signOut}>
-                                                 <ButtonText color={theme['colors']['primary']['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                            <Button bgColor="$primary500" onPress={signOut}>
+                                                 <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         ) : (
-                                            <Button bgColor={theme['colors']['primary']['500']}  variant="primary" onPress={toggleDeleteResultsModal}>
-                                                 <ButtonText color={theme['colors']['primary']['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                            <Button bgColor="$primary500"  variant="primary" onPress={toggleDeleteResultsModal}>
+                                                 <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         )}
 
@@ -217,20 +221,20 @@ const MyLibrary = () => {
      }
 
      return (
-          <Box m="$4" bgColor={theme['colors']['primary']['400']} p="$6" borderRadius="$xl">
+          <Box m="$4" bgColor={theme['tokens']['colors']['primary']['400']} p="$6" borderRadius="$xl">
                <Pressable display="flex" flexDirection="row" onPress={() => navigate('MyLibrary')} space="sm" alignItems="center" justifyContent="space-between">
                     <VStack>
-                         <Text bold fontSize="$md" color={theme['colors']['primary']['400-text']}>
+                         <Text bold fontSize="$md" color={theme['tokens']['colors']['primary']['400-text']}>
                               {library.displayName}
                          </Text>
                          {library.displayName !== location.displayName ? (
-                              <Text bold color={theme['colors']['primary']['400-text']}>
+                              <Text bold color={theme['tokens']['colors']['primary']['400-text']}>
                                    {location.displayName}
                               </Text>
                          ) : null}
-                         {hoursLabel ? <Text color={theme['colors']['primary']['400-text']}>{hoursLabel}</Text> : null}
+                         {hoursLabel ? <Text color={theme['tokens']['colors']['primary']['400-text']}>{hoursLabel}</Text> : null}
                     </VStack>
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={theme['colors']['primary']['400-text']} />
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={theme['tokens']['colors']['primary']['400-text']} />
                </Pressable>
           </Box>
      );
@@ -246,7 +250,7 @@ const ViewAllLocations = () => {
                <Pressable px="2$" py="$3" onPress={() => navigate('AllLocations')}>
                     <HStack space="sm" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
-                         <Text fontWeight="500" color={textColor}>{getTermFromDictionary(language, 'view_all_locations')}</Text>
+                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'view_all_locations')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -263,7 +267,7 @@ const Settings = () => {
           <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
                <HStack space="sm" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                    <Text fontWeight="500" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
+                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
                </HStack>
           </Pressable>
      );
@@ -277,7 +281,7 @@ const DeleteAccount = () => {
          <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
               <HStack space="sm" alignItems="center">
                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
-                   <Text fontWeight="500" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
+                   <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
               </HStack>
          </Pressable>
      );
@@ -287,7 +291,7 @@ const PrivacyPolicy = () => {
      const { language } = React.useContext(LanguageContext);
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
           enableDefaultShareMenuItem: false,
@@ -341,7 +345,7 @@ const PrivacyPolicy = () => {
           <Pressable px="$2" py="$3" onPress={() => openURL()}>
                <HStack space="sm" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                    <Text fontWeight="500" color={textColor}>{getTermFromDictionary(language, 'privacy_policy')}</Text>
+                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'privacy_policy')}</Text>
                </HStack>
           </Pressable>
      );
@@ -358,7 +362,7 @@ const MenuLink = (payload) => {
      categoryLabel = categoryLabel.category;
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
           enableDefaultShareMenuItem: false,
@@ -450,8 +454,8 @@ const MenuLink = (payload) => {
                               <>
                                    <HStack space="sm" alignItems="center" px="$2" py="$3">
                                         <Icon as={expanded ? Entypo : MaterialIcons} name={expanded ? 'chevron-small-down' : 'chevron-right'} size="lg" color={textColor} />
-                                        <VStack w="100%">
-                                             <Text fontWeight="500" color={textColor}>{categoryLabel}</Text>
+                                        <VStack width="$full">
+                                             <Text fontWeight="$medium" color={textColor}>{categoryLabel}</Text>
                                         </VStack>
                                    </HStack>
                               </>
@@ -473,8 +477,8 @@ const MenuLink = (payload) => {
                                         onPress={() => openURL(item.url)}>
                                         <HStack space="sm" alignItems="center" ml="$4">
                                              <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                                             <VStack w="100%">
-                                                  <Text fontWeight="500" color={textColor}>{item.linkText}</Text>
+                                             <VStack width="$full">
+                                                  <Text fontWeight="$medium" color={textColor}>{item.linkText}</Text>
                                              </VStack>
                                         </HStack>
                                    </ListItem>
@@ -492,8 +496,8 @@ const MenuLink = (payload) => {
                          <Pressable key={index} px="$2" py="$3" borderRadius="$md" onPress={() => openURL(item.url)}>
                               <HStack space="sm" alignItems="center">
                                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                                   <VStack w="100%">
-                                        <Text fontWeight="500" color={textColor}>{item.linkText}</Text>
+                                   <VStack width="$full">
+                                        <Text fontWeight="$medium" color={textColor}>{item.linkText}</Text>
                                    </VStack>
                               </HStack>
                          </Pressable>

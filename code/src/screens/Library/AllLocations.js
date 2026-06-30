@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, Button, Divider, FlatList, HStack, Icon, Pressable, ScrollView, Text, VStack } from 'native-base';
+import { Box, ButtonGroup, Button, ButtonText, Divider, FlatList, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
@@ -37,6 +37,7 @@ export const AllLocations = () => {
           initialData: locations,
           onSuccess: (data) => {
                if(data.ok) {
+                    logDebugMessage("Got location data");
                     updateLocations(data.data.result.locations);
                     if (sort === 'distance') {
                          const tmpSortedLocations = _.sortBy(data, ['distance', 'displayName']);
@@ -53,6 +54,7 @@ export const AllLocations = () => {
                setLoading(false);
           },
           onSettle: (data) => {
+               logDebugMessage("Running settle after getting locations");
                if (sort === 'distance') {
                     const tmpSortedLocations = _.sortBy(data, ['distance', 'displayName']);
                     setSortedLocations(tmpSortedLocations);
@@ -72,6 +74,7 @@ export const AllLocations = () => {
      useFocusEffect(
           React.useCallback(() => {
                const update = async () => {
+                    logDebugMessage("Getting location information as part of focus effect in AllLocations");
                     let latitude = await SecureStore.getItemAsync('latitude');
                     let longitude = await SecureStore.getItemAsync('longitude');
                     setUserLatitude(latitude);
@@ -131,20 +134,20 @@ export const AllLocations = () => {
                     alignItems="center"
                     safeArea={2}
                     bgColor="coolGray.100"
-                    borderBottomWidth="1"
+                    borderBottomWidth="$1"
                     _dark={{
                          borderColor: 'gray.600',
                          bg: 'coolGray.700',
                     }}
                     borderColor="coolGray.200">
-                    <Button.Group alignItems="center" isAttached colorScheme="secondary">
+                    <ButtonGroup alignItems="center" isAttached colorScheme="secondary">
                          <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} onPress={() => updateSort('alphabetical')}>
                               {getTermFromDictionary(language, 'a_to_z')}
                          </Button>
                          <Button variant={sort === 'distance' ? 'solid' : 'outline'} onPress={() => updateSort('distance')}>
                               {getTermFromDictionary(language, 'distance')}
                          </Button>
-                    </Button.Group>
+                    </ButtonGroup>
                </Box>
           );
      };
@@ -154,19 +157,28 @@ export const AllLocations = () => {
      }
 
      return (
-          <ScrollView style={{ flex: 1 }}>
-               {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
-               {getActionButtons()}
+          <>
                {status === 'loading' || isFetching ? (
                     loadingSpinner()
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
-                    <Box safeArea={5}>
-                         <FlatList data={Object.keys(sortedLocations)} renderItem={({ item }) => <DisplayLocation data={sortedLocations[item]} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
-                    </Box>
+                    <FlatList
+                         ListHeaderComponent={
+                              <>
+                                   {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+                                   {getActionButtons()}
+                              </>
+                         }
+                         data={Object.keys(sortedLocations)}
+                         renderItem={({ item }) => (
+                              <DisplayLocation data={sortedLocations[item]} />
+                         )}
+                         keyExtractor={(item, index) => index.toString()}
+                         contentContainerStyle={{ paddingBottom: 30 }}
+                    />
                )}
-          </ScrollView>
+          </>
      );
 };
 
@@ -240,36 +252,34 @@ const DisplayLocation = (data) => {
           });
      };
 
-     console.log(key + ':' + location.locationImage);
-
      return (
           <>
                <Pressable onPress={goToLocation}>
                     <HStack justifyContent="space-between" alignItems="center">
                          {location.locationImage ? (
                               <Box width="30%" mr={2}>
-                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90, borderRadius: "$sm" }} placeholder={blurhash} transition={1000} contentFit="cover" />
                               </Box>
                          ) : null}
                          <VStack width={location.locationImage ? '60%' : '85%'}>
                               <Text bold>{location.displayName}</Text>
-                              <Text fontSize="xs" mb={2}>
+                              <Text fontSize="$xs" mb={2}>
                                    {location.address}
                               </Text>
                               {hasHours ? (
                                    <HStack alignItems="center" space={1}>
                                         <Icon as={MaterialIcons} name="access-time" size="4" />
-                                        <Text fontSize="xs">{hoursLabel}</Text>
+                                        <Text fontSize="$xs">{hoursLabel}</Text>
                                    </HStack>
                               ) : null}
                               {distanceText ? (
                                    <HStack alignItems="center" space={1}>
                                         <Icon as={MaterialIcons} name="pin-drop" size="4" />
-                                        <Text fontSize="xs">{distanceText}</Text>
+                                        <Text fontSize="$xs">{distanceText}</Text>
                                    </HStack>
                               ) : null}
                          </VStack>
-                         <Icon as={MaterialIcons} name="chevron-right" size="7" />
+                         <Icon as={MaterialIcons} name="chevron-right" size="xl" />
                     </HStack>
                </Pressable>
                <Divider mt={3} mb={3} />

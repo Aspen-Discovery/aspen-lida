@@ -1,7 +1,7 @@
-import { Button, ButtonText } from '@gluestack-ui/themed';
-import React from 'react';
-import {useColorModeValue, useToken} from 'native-base';
+import { Button, ButtonText, useToken } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../themes/theme';
 import { LibrarySystemContext, UserContext, ThemeContext } from '../../context/initialContext';
+import React from 'react';
 
 // custom components and helper files
 import {passUserToDiscovery} from '../../util/api/user';

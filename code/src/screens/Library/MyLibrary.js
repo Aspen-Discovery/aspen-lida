@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, Box, Button, Divider, Heading, ScrollView, Text, useColorModeValue, useToken } from 'native-base';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
+import { colorMode, useColorModeValue } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
@@ -27,7 +28,7 @@ export const MyLibrary = () => {
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 
-     const bgColor = useToken('colors', useColorModeValue('warmGray.50', 'coolGray.800'));
+     const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
@@ -71,11 +72,11 @@ export const MyLibrary = () => {
                          if (!stillClosed) {
                               isClosedToday = true;
                               let openingTime = moment(openTime).format('h:mm A');
-                              hoursLabel = 'Closed until ' + openingTime;
+                              hoursLabel = getTermFromDictionary(language, 'closed_until') + ' ' + openingTime;
                          } else {
                               isClosedToday = false;
                               let closingTime = moment(closeTime).format('h:mm A');
-                              hoursLabel = 'Open until ' + closingTime;
+                              hoursLabel = getTermFromDictionary(language, 'open_until') + ' ' + closingTime;
                          }
                     }
                }
@@ -104,7 +105,7 @@ export const MyLibrary = () => {
                               style={{
                                    width: '100%',
                                    height: 200,
-                                   borderRadius: 4,
+                                   borderRadius: "$sm",
                                    zIndex: -1,
                                    position: 'absolute',
                                    left: 0,
@@ -116,18 +117,23 @@ export const MyLibrary = () => {
                          />
                     </>
                ) : null}
-               <Box safeArea={5} mt={location.locationImage ? 40 : 0}>
+               <Box safeArea={5} mt={location.locationImage ? 40 : 0} mx="$2">
                     {showSystemMessage()}
                     {library.displayName !== location.displayName ? <Heading mb={2}>{location.displayName}</Heading> : <Heading mb={1}>{library.displayName}</Heading>}
                     {location.address ? <Text>{location.address}</Text> : null}
                     {location.phone ? (
                          <Text>
-                              {getTermFromDictionary(language, 'phone')}: {location.phone}
+                              <Text>{getTermFromDictionary(language, 'phone')}: </Text>
+                              <Text>{location.phone}</Text>
                          </Text>
                     ) : null}
                     {hasHours ? (
                          <Text mt={4} mb={2}>
-                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>{hoursLabel}</Badge>
+                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
+                                   <BadgeText>
+                                        {hoursLabel}
+                                   </BadgeText>
+                              </Badge>
                          </Text>
                     ) : null}
                     <DisplayMap data={location} />
@@ -138,7 +144,7 @@ export const MyLibrary = () => {
                          <>
                               <Divider mt={5} mb={2} />
                               <Button variant="ghost" size="sm" onPress={selectLocations}>
-                                   {getTermFromDictionary(language, 'view_all_locations')}
+                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                               </Button>
                          </>
                     ) : null}

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Box, CheckIcon, FormControl, Select } from 'native-base';
+import { Box, FormControl, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, SelectScrollView } from '@gluestack-ui/themed';
 
 import React from 'react';
 import { Platform } from 'react-native';
@@ -45,28 +45,30 @@ export const SelectExistingHoldSubLocation = (props) => {
                if (validSublocationSize > 1) {
                     return (
                          <>
-                              <Box pl={4} pr={4} _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
+                              <Box pl="$4" pr="$4">
                                    <FormControl>
-                                        <FormControl.Label>{getTermFromDictionary(language, 'select_new_pickup_area')}</FormControl.Label>
+                                        <FormControlLabel>
+                                             <FormControlLabelText>{getTermFromDictionary(language, 'select_new_pickup_area')}</FormControlLabelText>
+                                        </FormControlLabel>
                                         <Select
-                                             isReadOnly={Platform.OS === 'android'}
-                                             name="pickupSublocation"
-                                             /* selectedValue={location} */
-                                             minWidth="200"
-                                             accessibilityLabel={getTermFromDictionary(language, 'select_new_pickup_area')}
-                                             _selectedItem={{
-                                                  bg: 'tertiary.300',
-                                                  endIcon: <CheckIcon size="5" />,
-                                             }}
-                                             mt={1}
-                                             mb={3}
-                                             _actionSheet={{
-                                                  useRNModal: Platform.OS === 'ios',
-                                             }}
                                              onValueChange={(itemValue) => setActiveSublocation(itemValue)}>
-                                             {validSublocations.map((item, index) => {
-                                                  return <Select.Item value={item.id} label={item.displayName} />;
-                                             })}
+                                             <SelectTrigger variant="outline" size="md">
+                                                  <SelectInput placeholder={getTermFromDictionary(language, 'select_new_pickup_area')} />
+                                                  <Icon as={ChevronDownIcon} mr="$3" />
+                                             </SelectTrigger>
+                                             <SelectPortal>
+                                                  <SelectBackdrop />
+                                                  <SelectContent>
+                                                       <SelectDragIndicatorWrapper>
+                                                            <SelectDragIndicator />
+                                                       </SelectDragIndicatorWrapper>
+                                                       <SelectScrollView>
+                                                            {validSublocations.map((item, index) => {
+                                                                 return <SelectItem value={item.id} label={item.displayName} key={index} />;
+                                                            })}
+                                                       </SelectScrollView>
+                                                  </SelectContent>
+                                             </SelectPortal>
                                         </Select>
                                    </FormControl>
                               </Box>

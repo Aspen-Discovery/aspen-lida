@@ -6,7 +6,7 @@ import { Dimensions } from 'react-native';
 import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
-import { logErrorMessage } from '../../util/logging';
+import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
 import { popAlert } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -151,7 +151,7 @@ const Link = ({link}) => {
      const imgSource = link?.typeOfIcon === 'uploadIcon' && link?.uploadIcon ? library.baseUrl + '/files/original/' + link.uploadIcon : null;
 
      return (
-          <Pressable onPress={(link?.linkType !== 'deepLink') ? handleOpenLink : handleOpenScreen} alignItems="center" justifyContent="center" padding="$2" width="100%" borderRadius="$lg" backgroundColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['coolGray']['700']}>
+          <Pressable onPress={(link?.linkType !== 'deepLink') ? handleOpenLink : handleOpenScreen} alignItems="center" justifyContent="center" padding="$2" width="100%" borderRadius="$lg" backgroundColor={colorMode === 'light' ? "$coolGray200" : "$coolGray700"}>
                <VStack alignItems="center" justifyContent="center" minHeight={100}>
                     {link?.typeOfIcon === 'uploadIcon' && imgSource ? (
                          <Image
