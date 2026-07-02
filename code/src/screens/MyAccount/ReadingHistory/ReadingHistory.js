@@ -622,7 +622,7 @@ const Item = (data) => {
                                    isLoadingText={getTermFromDictionary(language, 'removing', true)}
                                    onPress={async () => {
                                         setDelete(true);
-                                        await deleteFromHistory(item.permanentId).then((r) => {
+                                        await deleteFromHistory(item.id).then((r) => {
                                              setDelete(false);
                                         });
                                         toggle();
