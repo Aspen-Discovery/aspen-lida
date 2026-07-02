@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Box, FlatList, Center, Heading } from 'native-base';
+import { Box, FlatList, Center, Heading } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError } from '../../components/loadError';
@@ -13,6 +13,7 @@ import { DisplayResult } from './DisplayResult';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { fetchSearchResultsForList } from '../../util/api/search';
+import { logDebugMessage, logErrorMessage } from '../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -27,6 +28,7 @@ export const SearchResultsForList = () => {
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const queryClient = useQueryClient();
      const url = library.baseUrl;
 
      let isUserList = false;
@@ -46,7 +48,7 @@ export const SearchResultsForList = () => {
           }
      }, [systemMessages]);
 
-     const { status, data, error, isFetching, isPreviousData } = useQuery({
+     const { status, data, error, isFetching } = useQuery({
           queryKey: ['searchResultsForList', url, page, id, language],
           queryFn: () => fetchSearchResultsForList(id, page, url, language),
           keepPreviousData: true,
@@ -61,7 +63,7 @@ export const SearchResultsForList = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }

@@ -168,6 +168,8 @@ const app_config = {
           'expo-secure-store',
           'expo-localization',
           'expo-notifications',
+          'expo-sqlite',
+          'expo-font',
           [
                'expo-location',
                {

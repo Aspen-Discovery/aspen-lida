@@ -118,6 +118,7 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
         updateUserDebugMessage("Adding Notification Permissions");
         try {
             setLoading(true);
+            logDebugMessage("Creating Channels and Categories");
             await createChannelsAndCategories();
             updateUserDebugMessage("Calling Register for push notifications async");
             const result = await registerForPushNotificationsAsync(library.baseUrl, updateUserDebugMessage);

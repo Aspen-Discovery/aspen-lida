@@ -4,15 +4,16 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { loadingSpinner } from '../../components/loadingSpinner';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getSelfRegistrationForm, submitSelfRegistration } from '../../util/api/registration';
 import { ThemeContext } from '../../context/initialContext';
 
-import { ScrollView, Box, Button, ButtonGroup, ButtonText, FormControl, FormControlHelper, FormControlHelperText, Icon, Input, Text, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, CheckIcon, FormControlLabel, FormControlLabelText, InputField } from '@gluestack-ui/themed';
+import { ScrollView, Box, Button, ButtonGroup, ButtonText, FormControl, FormControlHelper, FormControlHelperText, Icon, Input, Text, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, CheckIcon, FormControlLabel, FormControlLabelText, InputField, HStack, KeyboardAvoidingView } from '@gluestack-ui/themed';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 
 export const SelfRegistration = () => {
+	const insets = useSafeAreaInsets();
 	const {theme, textColor, colorMode} = React.useContext(ThemeContext);
 	const route = useRoute();
 	const navigation = useNavigation();
@@ -25,7 +26,6 @@ export const SelfRegistration = () => {
 	const [showResults, setShowResults] = React.useState(false);
 	const [results, setResults] = React.useState('');
      const [hasError, setHasError] = React.useState(false);
-     const insets = useSafeAreaInsets();
 
 	React.useEffect(() => {
 		(async () => {
@@ -80,7 +80,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField type='text'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='text'
 										                   key={key}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
@@ -104,7 +104,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField type='password'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='password'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
@@ -127,7 +127,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField type='email'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='email'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
@@ -166,15 +166,17 @@ export const SelfRegistration = () => {
 											<SelectPortal>
 												<SelectBackdrop />
 												<SelectContent
-													bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+													bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
 													pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
 												>
 													<SelectDragIndicatorWrapper>
 														<SelectDragIndicator />
 													</SelectDragIndicatorWrapper>
-											{_.map(values, function (item, index, array) {
-												return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: property === index ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
-											})}
+													<SelectScrollView>
+														{_.map(values, function (item, index, array) {
+															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: property === index ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+														})}
+													</SelectScrollView>
 												</SelectContent>
 											</SelectPortal>
 										</Select>
@@ -209,7 +211,7 @@ export const SelfRegistration = () => {
                     setIsSubmitting(false);
                     setHasError(false)
                } else {
-                    logDebugMessage("Error initiating self registration");
+                    logDebugMessage("Error submitting self registration");
                     logDebugMessage(response);
                     setIsSubmitting(false);
                     const error = getErrorMessage({ statusCode: response.status, problem: response.problem, sendToSentry: true });
@@ -220,12 +222,16 @@ export const SelfRegistration = () => {
 	};
 
 	return (
-		<>
+		<Box flex={1} pb={insets.bottom}>
 			{isLoading ? (
-				loadingSpinner()
+				<LoadingSpinner />
 			) : (
-				<ScrollView>
-					<Box p="$3">
+				<KeyboardAvoidingView
+					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+					style={{ flex: 1 }}
+				>
+					<ScrollView contentContainerStyle={{ flexGrow: 1 }} bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}>
+						<Box p="$3">
 						{!showResults ? (
 							<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_message')}</Text>
 						) : null}
@@ -242,39 +248,48 @@ export const SelfRegistration = () => {
 								) : null}
 
 								{results.barcode ? (
-									<Text mb="$3" color={textColor}>Your library card is <Text bold color={textColor}>{results.barcode}</Text></Text>
+									<HStack space="xs" mb="$3">
+										<Text color={textColor}>Your library card is</Text>
+										<Text bold color={textColor}>{results.barcode}</Text>
+									</HStack>
 								) : null}
 
 								{results.username ? (
-									<Text mb="$3" color={textColor}>Your username is <Text bold color={textColor}>{results.username}</Text></Text>
+									<HStack space="xs" mb="$3">
+										<Text color={textColor}>Your username is</Text>
+										<Text bold color={textColor}>{results.username}</Text>
+									</HStack>
 								) : null}
 
 								{results.password ? (
-									<Text mb="$3" color={textColor}>Your initial password is <Text bold color={textColor}>{results.password}</Text></Text>
+									<HStack space="xs" mb="$3">
+										<Text color={textColor}>Your initial password is</Text>
+										<Text bold color={textColor}>{results.password}</Text>
+									</HStack>
 								) : null}
 
 								{results.requirePinReset ? (
 									<Text mb="$3" color={textColor}>To login to the catalog, you must reset your PIN.</Text>
 								) : null}
 
-								<Button borderColor={theme['colors']['secondary']['500']} variant="outline" onPress={() => {
+								<Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => {
 									navigation.goBack();
 									setShowResults(false);
 									setResults('');
 								}}>
-									<ButtonText color={theme['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
+									<ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
 								</Button>
 							</>
 						) : showResults && hasError ? (
                                    <>
                                         <Text mb="$3" color={textColor}>{results}</Text>
-                                        <Button borderColor={theme['colors']['secondary']['500']} variant="outline" onPress={() => {
+                                        <Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => {
                                              navigation.goBack();
                                              setShowResults(false);
                                              setResults('');
                                              setHasError(false);
                                         }}>
-                                             <ButtonText color={theme['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
+                                             <ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
                                         </Button>
                                    </>
                               ) :  (
@@ -282,24 +297,25 @@ export const SelfRegistration = () => {
 								{getFields()}
 								<ButtonGroup pt="$3" pb="$5">
 									<Button
-										bgColor={theme['colors']['secondary']['500']}
+										bgColor={theme['tokens']['colors']['secondary']['500']}
 										isLoading={isSubmitting}
 										isLoadingText="Registering..."
 										onPress={() => {
 											setIsSubmitting(true);
 											handleSubmission();
 										}}>
-										<ButtonText color={theme['colors']['secondary']['500-text']}>{getTermFromDictionary('en', 'register')}</ButtonText>
+										<ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary('en', 'register')}</ButtonText>
 									</Button>
-									<Button borderColor={theme['colors']['secondary']['500']} variant="outline" onPress={() => navigation.goBack()}>
-										<ButtonText color={theme['colors']['secondary']['500']}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+									<Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => navigation.goBack()}>
+										<ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
 									</Button>
 								</ButtonGroup>
 							</>
 						)}
-					</Box>
-				</ScrollView>
+						</Box>
+					</ScrollView>
+				</KeyboardAvoidingView>
 			)}
-		</>
+		</Box>
 	);
 };

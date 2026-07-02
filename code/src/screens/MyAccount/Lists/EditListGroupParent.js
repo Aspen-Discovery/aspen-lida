@@ -3,7 +3,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
-import { Center, Button, ButtonIcon, ButtonText, Modal, ModalBackdrop, ModalContent, ModalHeader, Heading, ModalCloseButton, Icon, CloseIcon, ModalBody, ModalFooter, ButtonGroup, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, FormControl } from '@gluestack-ui/themed';
+import { Center, Button, ButtonIcon, ButtonText, Modal, ModalBackdrop, ModalContent, ModalHeader, Heading, ModalCloseButton, Icon, CloseIcon, ModalBody, ModalFooter, ButtonGroup, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, FormControl } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroupParent } from '../../../util/api/list';
@@ -47,16 +47,16 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="xs" bgColor={theme['colors']['primary']['500']}>
-                    <ButtonIcon color={theme['colors']['primary']['500-text']} as={MaterialIcons} name="edit" mr="$1" />
-                    <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'move_list_group')}</ButtonText>
+               <Button onPress={toggle} size="xs" bgColor="$primary500">
+                    <ButtonIcon color="$textLight200" as={MaterialIcons} name="edit" mr="$1" />
+                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'move_list_group')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'move_list_group')}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -89,18 +89,20 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                         <SelectPortal>
                                              <SelectBackdrop />
                                              <SelectContent
-                                                  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                   pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                              >
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  {_.map(listGroups.groups, function (item, index, array) {
-                                                       if(item.id === id || item.id === parentId || item.parentGroupId === id) {
-                                                            return null;
-                                                       }
-                                                       return <SelectItem key={index} value={item.id} label={item.title} bgColor={newListGroupParentId === item.id ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: newListGroupParentId === item.id ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
-                                                  })}
+                                                  <SelectScrollView>
+                                                       {_.map(listGroups.groups, function (item, index, array) {
+                                                            if(item.id === id || item.id === parentId || item.parentGroupId === id) {
+                                                                 return null;
+                                                            }
+                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={newListGroupParentId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: newListGroupParentId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                       })}
+                                                  </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -108,10 +110,10 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button variant="outline" onPress={toggle} borderColor="$primary500">
+                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']}
+                                   <Button bgColor="$primary500"
                                            isLoading={loading}
                                            isDisabled={_.isNull(selectedGroup)}
                                            isLoadingText={getTermFromDictionary(language, 'saving', true)}
@@ -136,7 +138,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                      }
                                                 });
                                            }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

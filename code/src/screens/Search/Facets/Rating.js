@@ -82,16 +82,16 @@ export const Facet_Rating = ({ data, category, updater }) => {
                          <Pressable key={index} onPress={() => updateSearch(star.label)} p="$0.5" py="$2">
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
                                    {value === star.label ?
-                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme['colors']['primary']['600']} /> :
-                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme['colors']['muted']['400']} />
+                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" /> :
+                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400" />
                                    }
                                    <Stars
                                         default={star.value}
                                         count={5}
                                         starSize={50}
                                         disabled
-                                        fullStar={<Icon as={MaterialIcons} name="star" size="lg" color={theme['colors']['yellow']['500']} />}
-                                        emptyStar={<Icon as={MaterialIcons} name="star-border" size="lg" color={theme['colors']['yellow']['500']} />}
+                                        fullStar={<Icon as={MaterialIcons} name="star" size="lg" color={theme['tokens']['colors']['yellow']['500']} />}
+                                        emptyStar={<Icon as={MaterialIcons} name="star-border" size="lg" color={theme['tokens']['colors']['yellow']['500']} />}
                                    />
                                    <Text
                                         color={textColor}

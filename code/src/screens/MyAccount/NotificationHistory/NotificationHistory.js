@@ -79,7 +79,7 @@ export const MyNotificationHistory = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -100,14 +100,14 @@ export const MyNotificationHistory = () => {
      const Paging = () => {
           if (data?.totalResults > 0) {
                return (
-                    <Box p="$2" bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']} borderTopWidth={1} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']} flexWrap="nowrap" alignItems="center">
+                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap" alignItems="center">
                          <ScrollView horizontal>
                               <ButtonGroup>
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
                                                   console.log('Adding to page');
@@ -116,7 +116,7 @@ export const MyNotificationHistory = () => {
                                         }}
                                         isDisabled={isPreviousData || !data?.hasMore}
                                         size="sm">
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -158,7 +158,7 @@ const Item = (data) => {
      let content = stripHTML(message.content);
      content = _.truncate(content, { length: 35 });
      return (
-          <Pressable onPress={() => handleOpenMyMessage(message)} borderBottomWidth="$1" borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']} pl="$4" pr="$5" py="$2">
+          <Pressable onPress={() => handleOpenMyMessage(message)} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"} pl="$4" pr="$5" py="$2">
                <HStack alignItems="start">
                     {message.isRead === '0' ? (
                          <Box width="7%">

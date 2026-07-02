@@ -9,7 +9,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
-import { logErrorMessage, getErrorMessage } from '../../util/logging';
+import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useQueryClient } from '@tanstack/react-query';
 
 const DisplayBrowseCategory = ({category}) => {
@@ -31,6 +31,7 @@ const DisplayBrowseCategory = ({category}) => {
 
      if(records.length === 0 && subCategories.length === 0) {
           // Nothing to show, probably shouldn't happen in production but just in case
+          logDebugMessage("No records to show");
           return null;
      }
 
@@ -96,14 +97,14 @@ const DisplayBrowseCategory = ({category}) => {
                     <HStack space="$3" alignItems="center" justifyContent="space-between" pb="$2">
                          <DisplayBrowseCategoryTitle category={category.label} key={category.id} textId={id} source={category.source ?? 'GroupedWork'} />
                          {subCategories.length > 0 ? (
-                              <Button variant="outline" size="xs" borderColor={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHideAll(category.textId)}>
-                                   <ButtonIcon as={MaterialIcons} name="close" color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} mr="$1" />
-                                   <ButtonText color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']}>{getTermFromDictionary(language, 'hide_all')}</ButtonText>
+                              <Button variant="outline" size="xs" borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHideAll(category.textId)}>
+                                   <ButtonIcon as={MaterialIcons} name="close" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} mr="$1" />
+                                   <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'hide_all')}</ButtonText>
                               </Button>
                          ) : (
-                              <Button variant="outline" size="xs" borderColor={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHide(category.textId)}>
-                                   <ButtonIcon as={MaterialIcons} name="close" color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} mr="$1" />
-                                   <ButtonText color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']}>{getTermFromDictionary(language, 'hide')}</ButtonText>
+                              <Button variant="outline" size="xs" borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} sx={{ paddingHorizontal: 6, paddingVertical: 0, height: 24 }} onPress={() => onPressHide(category.textId)}>
+                                   <ButtonIcon as={MaterialIcons} name="close" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} mr="$1" />
+                                   <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'hide')}</ButtonText>
                               </Button>
                          )}
                     </HStack>
@@ -112,10 +113,10 @@ const DisplayBrowseCategory = ({category}) => {
                               <ScrollView horizontal>
                                    <DisplaySubCategoryBar data={subCategoryRecords} subCategories={subCategories} selectedIndex={selectedSubCategoryIndex} onSelect={handleSelectSubCategory} isSystemBrowseCategory={isSystemBrowseCategory} />
                               </ScrollView>
-                              {showSubCategoryRecords && <FlatList pb="$8" data={subCategoryRecords} keyExtractor={(item, index) => item.key?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={subCategoryHasMore ? <DisplayMoreResultsButton category={subCategories[selectedSubCategoryIndex]} /> : null} />}
+                              {showSubCategoryRecords && <FlatList pb="$8" data={subCategoryRecords} keyExtractor={(item, index) => item.key?.toString() ?? item.id?.toString() ?? `subcategory-${index}`} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={subCategoryHasMore ? <DisplayMoreResultsButton category={subCategories[selectedSubCategoryIndex]} /> : null} />}
                          </>
                     ) : records.length > 0 ? (
-                         <FlatList pb="$8" data={displayedData} keyExtractor={(item, index) => item.id?.toString() ?? index.toString()} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={hasMore ? <DisplayMoreResultsButton category={category} /> : null} />
+                         <FlatList pb="$8" data={displayedData} keyExtractor={(item, index) => item.id?.toString() ?? item.key?.toString() ?? `record-${index}`} horizontal renderItem={({ item }) => <DisplayBrowseCategoryRecord record={item} />} ListFooterComponent={hasMore ? <DisplayMoreResultsButton category={category} /> : null} />
                     ) : null}
                </View>
           </SafeAreaView>
@@ -144,17 +145,11 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
      return (
           <Pressable maxWidth="80%" /*onPress={() => onPressCategory(category, textId, source)}*/>
                <Text
-                    color={colorMode === 'light' ? theme['colors']['gray']['800'] : theme['colors']['coolGray']['200']}
+                    color={colorMode === 'light' ? "$gray800" : "$coolGray200"}
                     bold
                     mb="$1"
-                    sx={{
-                         '@base': {
-                              fontSize: 18,
-                         },
-                         '@lg': {
-                              fontSize: 24,
-                         },
-                    }}>
+                    fontSize="$lg"
+                    >
                     {category}
                </Text>
           </Pressable>
@@ -296,7 +291,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     style={{
                          width: '100%',
                          height: '100%',
-                         borderRadius: 4,
+                         borderRadius: "$sm",
                     }}
                     placeholder={blurhash}
                     transition={1000}
@@ -304,8 +299,8 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                />
                {isNew ? (
                     <Box zIndex={1} alignItems="center">
-                         <Badge bgColor={theme['colors']['warning']['500']} mx={5} mt={-8}>
-                              <BadgeText bold color={theme['colors']['white']} textTransform="none">
+                         <Badge bgColor="$warning500" mx={5} mt={-8}>
+                              <BadgeText bold color="$white" textTransform="none">
                                    {getTermFromDictionary(language, 'flag_new')}
                               </BadgeText>
                          </Badge>
@@ -347,14 +342,14 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
          <ButtonGroup vertical space="sm" pb="$2">
                 {subCategories.map((subCategory, index) => (
                      <Button key={index}
-                             bgColor={selectedIndex === index ? theme['colors']['primary']['500'] : theme['colors']['primary']['200'] }
+                             bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200'] }
                              variant="solid"
                              sx={{ paddingHorizontal: 12, height: 34 }}
                              onPress={() => onSelect(index)}>
-                          <ButtonText fontWeight="$medium" color={theme['colors']['primary']['500-text']} >
+                          <ButtonText fontWeight="$medium" color="$textLight200" >
                                {subCategory.label}
                           </ButtonText>
-                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color={theme['colors']['primary']['500-text']} ml="$4" />)}
+                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$textLight200" ml="$4" />)}
                      </Button>
                 ))}
          </ButtonGroup>
@@ -388,9 +383,9 @@ const DisplayMoreResultsButton = ({ category }) => {
                alignItems="center"
                justifyContent="center"
                mr="$3"
-               bgColor={theme['colors']['primary']['500']}
+               bgColor="$primary500"
                style={{
-                    borderRadius: 4,
+                    borderRadius: "$sm",
                }}
                sx={{
                     '@base': {
@@ -402,7 +397,7 @@ const DisplayMoreResultsButton = ({ category }) => {
                          height: 250,
                     },
                }}>
-               <Text bold color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'view_more')}</Text>
+               <Text bold color="$textLight200">{getTermFromDictionary(language, 'view_more')}</Text>
           </Pressable>
      )
 }

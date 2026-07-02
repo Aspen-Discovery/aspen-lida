@@ -12,7 +12,7 @@ export const OpenSideLoad = (props) => {
      return (
           <Button
                size="md"
-               bgColor={theme['colors']['primary']['500']}
+               bgColor="$primary500"
                variant="solid"
                minWidth="100%"
                maxWidth="100%"
@@ -20,7 +20,7 @@ export const OpenSideLoad = (props) => {
                     setLoading(true);
                     await openSideLoad(props.url).then((r) => setLoading(false));
                }}>
-               {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonText color={theme['colors']['primary']['500-text']}>{props.title}</ButtonText>}
+               {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{props.title}</ButtonText>}
           </Button>
      );
 };

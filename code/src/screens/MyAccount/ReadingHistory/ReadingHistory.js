@@ -41,7 +41,7 @@ import {
      SelectInput,
      SelectIcon,
      ChevronDownIcon,
-     SelectBackdrop, SelectDragIndicatorWrapper, SelectDragIndicator, SelectPortal, SelectContent, SelectItem
+     SelectBackdrop, SelectDragIndicatorWrapper, SelectDragIndicator, SelectPortal, SelectContent, SelectItem, SelectScrollView
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -316,12 +316,12 @@ export const MyReadingHistory = () => {
           return (
                <Box
                     p="$5"
-                    bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}
+                    bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
                     borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? theme['colors']['coolGray']['200'] : theme['colors']['gray']['600']}
+                    borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}
                     flexWrap="nowrap">
                     <VStack space="sm">
-                         <Input borderColor={colorMode === 'light' ? '$none' : theme['colors']['gray']['400']}>
+                         <Input borderColor={colorMode === 'light' ? '$none' : "$gray400"}>
                               <InputField
                                    returnKeyType="search"
                                    variant="outline"
@@ -352,26 +352,28 @@ export const MyReadingHistory = () => {
                                              <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
-                                                       bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                                                        pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                                                   >
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
-                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "title" ? theme['colors']['tertiary']['500-text'] : textColor } }}  />
-                                                       <SelectItem label={sortBy.author} value="author" key={1}  bgColor={sort == "author" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "author" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.last_used} value="checkedOut" key={2}  bgColor={sort == "checkedOut" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "checkedOut" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.format} value="format" key={3}  bgColor={sort == "format" ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "format" ? theme['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                       <SelectScrollView>
+                                                            <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "title" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}  />
+                                                            <SelectItem label={sortBy.author} value="author" key={1}  bgColor={sort == "author" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "author" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                            <SelectItem label={sortBy.last_used} value="checkedOut" key={2}  bgColor={sort == "checkedOut" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "checkedOut" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                            <SelectItem label={sortBy.format} value="format" key={3}  bgColor={sort == "format" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "format" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                       </SelectScrollView>
                                                   </SelectContent>
                                              </SelectPortal>
                                         </Select>
                                    </FormControl>
                                    <ButtonGroup size="sm" variant="solid">
-                                        <Button  bgColor={theme['colors']['danger']['700']} onPress={() => setDeleteAllIsOpen(true)}>
-                                             <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'reading_history_delete_all')}</ButtonText>
+                                        <Button  bgColor="$danger700" onPress={() => setDeleteAllIsOpen(true)}>
+                                             <ButtonText color="$white">{getTermFromDictionary(language, 'reading_history_delete_all')}</ButtonText>
                                         </Button>
-                                        <Button bgColor={theme['colors']['danger']['700']} onPress={() => setIsOpen(true)}>
-                                             <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'reading_history_opt_out')}</ButtonText>
+                                        <Button bgColor="$danger700" onPress={() => setIsOpen(true)}>
+                                             <ButtonText color="$white">{getTermFromDictionary(language, 'reading_history_opt_out')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </HStack>
@@ -381,7 +383,7 @@ export const MyReadingHistory = () => {
                     <Center>
                          <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                               <AlertDialogBackdrop />
-                              <AlertDialogContent  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                              <AlertDialogContent  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                                    <AlertDialogHeader>
                                         <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'reading_history_opt_out')}</Heading>
                                    </AlertDialogHeader>
@@ -390,11 +392,11 @@ export const MyReadingHistory = () => {
                                    </AlertDialogBody>
                                    <AlertDialogFooter>
                                         <ButtonGroup space="sm">
-                                             <Button borderColor={colorMode === 'light' ? theme['colors']['coolGray']['800'] : theme['colors']['coolGray']['400']} variant="outline" onPress={onClose}>
-                                                  <ButtonText color={colorMode === 'light' ? theme['colors']['coolGray']['800'] : theme['colors']['coolGray']['400']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                             <Button borderColor={colorMode === 'light' ? "$coolGray800" : "$coolGray400"} variant="outline" onPress={onClose}>
+                                                  <ButtonText color={colorMode === 'light' ? "$coolGray800" : "$coolGray400"}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
-                                             <Button bgColor={theme['colors']['danger']['700']} isLoading={optingOut} isLoadingText={getTermFromDictionary(language, 'updating', true)} onPress={optOut} ref={cancelRef}>
-                                                  <ButtonText  color={theme['colors']['white']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                             <Button bgColor="$danger700" isLoading={optingOut} isLoadingText={getTermFromDictionary(language, 'updating', true)} onPress={optOut} ref={cancelRef}>
+                                                  <ButtonText  color="$white">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
                                    </AlertDialogFooter>
@@ -405,7 +407,7 @@ export const MyReadingHistory = () => {
                     <Center>
                          <AlertDialog leastDestructiveRef={deleteAllCancelRef} isOpen={deleteAllIsOpen} onClose={onCloseDeleteAll}>
                               <AlertDialogBackdrop />
-                              <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                              <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                                    <AlertDialogHeader>
                                         <Heading color={textColor} size="md">{getTermFromDictionary(language, 'reading_history_delete_all')}</Heading>
                                    </AlertDialogHeader>
@@ -414,11 +416,11 @@ export const MyReadingHistory = () => {
                                    </AlertDialogBody>
                                    <AlertDialogFooter>
                                         <ButtonGroup space="sm">
-                                             <Button borderColor={colorMode === 'light' ? theme['colors']['coolGray']['800'] : theme['colors']['coolGray']['400']} variant="outline" onPress={onCloseDeleteAll}>
-                                                  <ButtonText color={colorMode === 'light' ? theme['colors']['coolGray']['800'] : theme['colors']['coolGray']['400']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                             <Button borderColor={colorMode === 'light' ? "$coolGray800" : "$coolGray400"} variant="outline" onPress={onCloseDeleteAll}>
+                                                  <ButtonText color={colorMode === 'light' ? "$coolGray800" : "$coolGray400"}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
-                                             <Button bgColor={theme['colors']['danger']['700']} isLoading={deleting} isLoadingText={getTermFromDictionary(language, 'deleting', true)} onPress={deleteAll} ref={cancelRef}>
-                                                  <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                             <Button bgColor="$danger700" isLoading={deleting} isLoadingText={getTermFromDictionary(language, 'deleting', true)} onPress={deleteAll} ref={cancelRef}>
+                                                  <ButtonText color="$white">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
                                    </AlertDialogFooter>
@@ -445,24 +447,24 @@ export const MyReadingHistory = () => {
                     <Box
                          p="$2"
                          borderTopWidth="$1"
-                         bgColor={colorMode === 'light' ? theme['colors']['coolGray']['100'] : theme['colors']['coolGray']['700']}
-                         borderColor={colorMode === 'light' ? theme['colors']['coolGray']['400'] : theme['colors']['gray']['600']}
+                         bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
+                         borderColor={colorMode === 'light' ? "$coolGray400" : "$gray600"}
                          flexWrap="nowrap"
                          alignItems="center">
                          <ScrollView horizontal>
                               <ButtonGroup size="sm">
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         onPress={async () => {
                                             if (page > 1) {
                                                  updatePage(page - 1)
                                             }
                                         }}
                                         isDisabled={page === 1}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']} >{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         onPress={async () => {
                                              if (readingHistory?.hasMore) {
                                                   logDebugMessage('Adding to page');
@@ -471,7 +473,7 @@ export const MyReadingHistory = () => {
                                              }
                                         }}
                                         isDisabled={isPreviousData || !readingHistory?.hasMore}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']} >{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -489,7 +491,7 @@ export const MyReadingHistory = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -501,8 +503,8 @@ export const MyReadingHistory = () => {
                {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                {user.trackReadingHistory !== '1' ? (
                     <Box p="$5">
-                         <Button bgColor={theme['colors']['primary']['700']} onPress={optIn} isLoading={optingIn} isLoadingText={getTermFromDictionary(language, 'updating', true)}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'reading_history_opt_in')}</ButtonText>
+                         <Button bgColor={theme['tokens']['colors']['primary']['700']} onPress={optIn} isLoading={optingIn} isLoadingText={getTermFromDictionary(language, 'updating', true)}>
+                              <ButtonText color="$textLight200">{getTermFromDictionary(language, 'reading_history_opt_in')}</ButtonText>
                          </Button>
                          {getDisclaimer()}
                     </Box>
@@ -566,7 +568,7 @@ const Item = (data) => {
      let url = library.baseUrl + '/bookcover.php?id=' + item.permanentId + '&size=medium';
      if (item.title) {
           return (
-               <Pressable onPress={toggle} borderBottomWidth="$1" borderColor={colorMode === 'light' ? theme['colors']['coolGray']['400'] : theme['colors']['gray']['600']} pl="$4" pr="$5" py="$2">
+               <Pressable onPress={toggle} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray400" : "$gray600"} pl="$4" pr="$5" py="$2">
                     <HStack space="md">
                          <VStack maxW="30%">
                               <Image
@@ -575,7 +577,7 @@ const Item = (data) => {
                                    style={{
                                         width: 100,
                                         height: 150,
-                                        borderRadius: 4,
+                                        borderRadius: "$sm",
                                    }}
                                    placeholder={blurhash}
                                    transition={1000}
@@ -593,10 +595,10 @@ const Item = (data) => {
                     <Actionsheet isOpen={isOpen} onClose={toggle} size="full">
                          <ActionsheetBackdrop />
                          <ActionsheetContent
-                              bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
+                              bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                               pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
                          >
-                              <Box w="100%" h="$60" px="$4" justifyContent="center">
+                              <Box width="$full" h="$60" px="$4" justifyContent="center">
                                    <Text
                                         fontSize="$lg"
                                         color={textColor}>

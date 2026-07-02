@@ -200,7 +200,7 @@ export const MyLibraryCard = () => {
      };
 
      const { textColor, colorMode } = React.useContext(ThemeContext);
-     const drawerBg = colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['800'];
+     const drawerBg = colorMode === 'light' ? "$warmGray50" : "$coolGray800";
 
      return (
           <>
@@ -231,14 +231,14 @@ export const MyLibraryCard = () => {
                               <Center>
                                    <Button
                                         size="md"
-                                        bgColor={theme['colors']['secondary']['500']}
+                                        bgColor={theme['tokens']['colors']['secondary']['500']}
                                         onPress={() => {
                                              navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                                                   prevRoute: 'MyLibraryCard',
                                                   hasPendingChanges: false,
                                              });
                                         }}>
-                                        <ButtonText color={theme['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'manage_alternate_library_card')}</ButtonText>
+                                        <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'manage_alternate_library_card')}</ButtonText>
                                    </Button>
                               </Center>
                          </Box>
@@ -261,8 +261,8 @@ export const MyLibraryCard = () => {
                                                        size="sm"
                                                        mr="$1"
                                                        mb="$1"
-                                                       bgColor={index === currentCardIndex ? theme['colors']['tertiary']['500'] : '$none'}
-                                                       borderColor={index === currentCardIndex ? 'transparent' : theme['colors']['tertiary']['500']}
+                                                       bgColor={index === currentCardIndex ? theme['tokens']['colors']['tertiary']['500'] : '$none'}
+                                                       borderColor={index === currentCardIndex ? 'transparent' : theme['tokens']['colors']['tertiary']['500']}
                                                        borderWidth={index === currentCardIndex ? 0 : 1}
                                                        variant={index === currentCardIndex ? 'solid' : 'outline'}
                                                        onPress={() => {
@@ -270,7 +270,7 @@ export const MyLibraryCard = () => {
                                                             setCurrentCardIndex(index);
                                                             setShowDrawer(false);
                                                        }}>
-                                                       <ButtonText color={index === currentCardIndex ? theme['colors']['tertiary']['500-text'] : textColor}>
+                                                       <ButtonText color={index === currentCardIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>
                                                             {card.displayName}
                                                        </ButtonText>
                                                   </Button>
@@ -281,7 +281,7 @@ export const MyLibraryCard = () => {
                                         <Box mt="$2">
                                              <Button
                                                   size="md"
-                                                  bgColor={theme['colors']['secondary']['500']}
+                                                  bgColor={theme['tokens']['colors']['secondary']['500']}
                                                   onPress={() => {
                                                        setShowDrawer(false);
                                                        navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
@@ -289,7 +289,7 @@ export const MyLibraryCard = () => {
                                                             hasPendingChanges: false,
                                                        });
                                                   }}>
-                                                  <ButtonText color={theme['colors']['secondary']['500-text']}>
+                                                  <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                                                        {getTermFromDictionary(language, 'manage_alternate_library_card')}
                                                   </ButtonText>
                                              </Button>
@@ -329,11 +329,11 @@ const CreateLibraryCard = (data) => {
      }
 
      let expirationDate = null;
-     if (!_.isUndefined(card.expires) 
+     if (!_.isUndefined(card.expires)
           && !_.isNull(card.expires)
           && (card.expires !== "")
           && (card.expires !== "Dec 31, 1969")) {
-               
+
           if (_.isString(card.expires)) {
                expirationDate = moment(card.expires, 'MMM D, YYYY');
           }
@@ -407,7 +407,7 @@ const CreateLibraryCard = (data) => {
           );
      }
 
-     let cardBg = colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700'];
+     let cardBg = colorMode === 'light' ? "$warmGray50" : "$coolGray700";
 
      return (
           <VStack bg={cardBg} px="$8" py="$5" borderRadius="$lg" shadow="$1">
@@ -432,18 +432,18 @@ const CreateLibraryCard = (data) => {
                     {showExpirationDate && expirationDate && !neverExpires && numCards > 1 ? <Text color={textColor}>{expirationText}</Text> : null}
                     {numCards > 1 ? (
                          <Button variant="link" onPress={() => openBarcodeModal && openBarcodeModal(card)}>
-                              <ButtonIcon color={theme['colors']['primary']['500']} as={MaterialCommunityIcons} name="barcode-scan" size="lg" mr="$1" />
-                              <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'open_barcode')}</ButtonText>
+                              <ButtonIcon color="$primary500" as={MaterialCommunityIcons} name="barcode-scan" size="lg" mr="$1" />
+                              <ButtonText color="$primary500">{getTermFromDictionary(language, 'open_barcode')}</ButtonText>
                          </Button>
                     ) : (
                          <VStack alignItems="center" space="sm">
-                              <Box bg={theme['colors']['warmGray']['200']} 
-                                   p="$3" 
+                              <Box bg={"$warmGray200"}
+                                   p="$3"
                                    borderRadius="$sm">
                                    <Barcode
                                         value={barcodeValue}
                                         format={barcodeStyle}
-                                        background={theme['colors']['warmGray']['200']}
+                                        background={"$warmGray200"}
                                         onError={handleBarcodeError}
                                    />
                               </Box>
@@ -518,8 +518,8 @@ const CardCarousel = (data) => {
                     size="sm"
                     mr="$1"
                     mb="$1"
-                    bgColor={index === currentIndex ? theme['colors']['tertiary']['500'] : '$none'}
-                    borderColor={index === currentIndex ? 'transparent' : theme['colors']['tertiary']['500']}
+                    bgColor={index === currentIndex ? theme['tokens']['colors']['tertiary']['500'] : '$none'}
+                    borderColor={index === currentIndex ? 'transparent' : theme['tokens']['colors']['tertiary']['500']}
                     borderWidth={index === currentIndex ? 0 : 1}
                     variant={index === currentIndex ? 'solid' : 'outline'}
                     onPress={() => {
@@ -529,7 +529,7 @@ const CardCarousel = (data) => {
                               animated: false,
                          });
                     }}>
-                    <ButtonText color={index === currentIndex ? theme['colors']['tertiary']['500-text'] : textColor}>{card.displayName}</ButtonText>
+                    <ButtonText color={index === currentIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>{card.displayName}</ButtonText>
                </Button>
           );
      };
@@ -683,16 +683,16 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                               {/* Always render barcode to measure it, but hide if showing warning. */}
                               <Box style={{ opacity: showRotateWarning ? 0 : 1, position: showRotateWarning ? 'absolute' : 'relative' }}>
                                    <Center p="$2">
-                                        <Box 
-                                             bg={theme['colors']['warmGray']['200']} 
-                                             p="$3" 
-                                             borderRadius="$sm" 
+                                        <Box
+                                             bg={"$warmGray200"}
+                                             p="$3"
+                                             borderRadius="$sm"
                                              onLayout={onBarcodeLayout}>
                                              <Barcode
                                                   value={barcodeValue}
                                                   format={barcodeStyle}
                                                   onError={handleBarcodeError}
-                                                  background={theme['colors']['warmGray']['200']}
+                                                  background={"$warmGray200"}
                                              />
                                         </Box>
                                    </Center>
@@ -705,11 +705,11 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                         </Text>
                                         <Button
                                              size="md"
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                              onPress={rotateToLandscape}
                                              mt="$2">
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-landscape" size="sm" mr="$2" />
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>
+                                             <ButtonText color="$textLight200">
                                                   {getTermFromDictionary(language, 'rotate_to_landscape') || 'Rotate to Landscape'}
                                              </ButtonText>
                                         </Button>
@@ -720,10 +720,10 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                    <Center mt="$2" mb="$2">
                                         <Button
                                              size="md"
-                                             bgColor={theme['colors']['primary']['500']}
+                                             bgColor="$primary500"
                                              onPress={rotateToPortrait}>
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-portrait" size="sm" mr="$2" />
-                                             <ButtonText color={theme['colors']['primary']['500-text']}>
+                                             <ButtonText color="$textLight200">
                                                   {getTermFromDictionary(language, 'rotate_to_portrait') || 'Rotate to Portrait'}
                                              </ButtonText>
                                         </Button>

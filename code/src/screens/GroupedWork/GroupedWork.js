@@ -105,7 +105,7 @@ export const GroupedWorkScreen = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -120,7 +120,7 @@ export const GroupedWorkScreen = () => {
                     loadError(error, '')
                ) : (
                     <ScrollView>
-                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 200 } }} w="100%" bgColor={colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900']} zIndex={-1} position="absolute" left={0} top={0} />
+                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 200 } }} width="$full" bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"} zIndex={-1} position="absolute" left={0} top={0} />
                          {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                          <DisplayGroupedWork data={data.results} initialFormat={data.format} updateFormat={data.format} />
                     </ScrollView>
@@ -137,19 +137,18 @@ const DisplayGroupedWork = (payload) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const formats = Object.keys(groupedWork.formats);
-     if (_.isObject(formats)) {
-          useQueries({
-               queries: formats.map((format) => {
-                    return {
-                         queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
-                         queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]),
-                    };
-               }),
-          });
-     }
+
+     useQueries({
+          queries: formats.map((format) => {
+               return {
+                    queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
+                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]),
+               };
+          }),
+     });
 
      useQueries({
           queries: formats.map((format) => {
@@ -163,23 +162,23 @@ const DisplayGroupedWork = (payload) => {
      const key = 'large_' + groupedWork.id;
 
      return (
-          <Box p="$5" w="100%">
+          <Box p="$5" width="$full">
                <Center mt="$5" width="100%">
-                    <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
-                    {getTitle(groupedWork.title)}
-                    {getAuthor(groupedWork.author)}
+                    <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: "$sm" }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                    <Title title={groupedWork.title} />
+                    <Author author={groupedWork.author} />
                </Center>
-               {getLanguage(groupedWork.language)}
-               {getFormats(groupedWork.formats)}
+               <Language language={groupedWork.language} />
+               <Formats formats={groupedWork.formats} />
                <Variations format={format} data={groupedWork} />
                <AddToList itemId={groupedWork.id} btnStyle="lg" />
-               {getDescription(groupedWork.description)}
-               {getBibliographicInformationLink(groupedWork.id)}
+               <Description description={groupedWork.description} />
+               <BibliographicInformationLink groupedWorkId={groupedWork.id} />
           </Box>
      );
 };
 
-const getTitle = (title) => {
+const Title = ({ title }) => {
      const { textColor } = React.useContext(ThemeContext);
      if (title) {
           return (
@@ -194,14 +193,14 @@ const getTitle = (title) => {
      }
 };
 
-const getAuthor = (author) => {
+const Author = ({ author }) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
      if (author) {
           return (
                <Button size="sm" variant="link" onPress={() => startSearch(author, 'SearchResults', library.baseUrl)}>
-                    <ButtonIcon as={SearchIcon} color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} size="xs" mr="$1" />
-                    <ButtonText fontWeight="normal" color={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']}>
+                    <ButtonIcon as={SearchIcon} color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} size="xs" mr="$1" />
+                    <ButtonText fontWeight="normal" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>
                          {author}
                     </ButtonText>
                </Button>
@@ -218,18 +217,14 @@ const Format = (data) => {
      const btnStyle = isSelected === key ? 'solid' : 'outline';
      const { theme, colorMode } = React.useContext(ThemeContext);
 
-     if (isSelected === key) {
-          updateFormat(key);
-     }
-
      return (
-          <Button size="sm" bg={btnStyle === 'outline' ? 'transparent' : theme['colors']['secondary']['400']} borderColor={colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']} mb="$1" mr="$1" variant={btnStyle} onPress={() => updateFormat(key)}>
-               <ButtonText color={btnStyle === 'outline' ? (colorMode === 'light' ? theme['colors']['coolGray']['700'] : theme['colors']['warmGray']['100']) : theme['colors']['secondary']['400-text']}>{format.label}</ButtonText>
+          <Button size="sm" bg={btnStyle === 'outline' ? 'transparent' : theme['tokens']['colors']['secondary']['400']} borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} mb="$1" mr="$1" variant={btnStyle} onPress={() => updateFormat(key)}>
+               <ButtonText color={btnStyle === 'outline' ? (colorMode === 'light' ? "$coolGray700" : "$warmGray100") : theme['tokens']['colors']['secondary']['400-text']}>{format.label}</ButtonText>
           </Button>
      );
 };
 
-const getDescription = (description) => {
+const Description = ({ description }) => {
      const { theme, textColor } = React.useContext(ThemeContext);
      if (description) {
           return (
@@ -242,7 +237,7 @@ const getDescription = (description) => {
      }
 };
 
-const getLanguage = (language) => {
+const Language = ({ language }) => {
      const { language: user_language } = React.useContext(LanguageContext);
      const { theme, textColor } = React.useContext(ThemeContext);
      if (language) {
@@ -262,7 +257,7 @@ const getLanguage = (language) => {
      }
 };
 
-const getFormats = (formats) => {
+const Formats = ({ formats }) => {
      const { language } = React.useContext(LanguageContext);
      const { format, updateFormat } = React.useContext(GroupedWorkContext);
      const { theme, textColor } = React.useContext(ThemeContext);
@@ -288,13 +283,13 @@ const getFormats = (formats) => {
      }
 };
 
-const getBibliographicInformationLink = (groupedWorkId) => {
+const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
-     const backgroundColor = colorMode === 'light' ? theme['colors']['warmGray']['200'] : theme['colors']['coolGray']['900'];
-     const textColor = colorMode === 'light' ? theme['colors']['gray']['800'] : theme['colors']['coolGray']['200'];
+     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const textColor = colorMode === 'light' ? "$gray800" : "$coolGray200";
 
      let showMoreInfoBtn = false;
      if(library?.showMoreInfoBtn) {
@@ -303,8 +298,8 @@ const getBibliographicInformationLink = (groupedWorkId) => {
 
      if (groupedWorkId && showMoreInfoBtn) {
           return (
-          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['colors']['secondary']['500']}>
-               <ButtonText color={theme['colors']['secondary']['500-text']}>
+          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
+               <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                     {getTermFromDictionary(language, 'more_information')}
                </ButtonText>
           </Button>

@@ -1,5 +1,5 @@
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Box, Button, ButtonText, ButtonSpinner, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Text, Textarea, TextareaInput, ScrollView, HStack, ChevronDownIcon, Alert, AlertText } from '@gluestack-ui/themed';
+import { Box, Button, ButtonText, ButtonSpinner, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Text, Textarea, TextareaInput, ScrollView, HStack, ChevronDownIcon, Alert, AlertText } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -245,13 +245,15 @@ const Request = (payload) => {
                               </SelectTrigger>
                               <SelectPortal>
                                    <SelectBackdrop />
-                                   <SelectContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                   <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                         <SelectDragIndicatorWrapper>
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
-                                        {locations.map((location, index) => {
-                                             return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['colors']['tertiary']['500-text'] : textColor } }} />;
-                                        })}
+                                        <SelectScrollView>
+                                             {locations.map((location, index) => {
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                             })}
+                                        </SelectScrollView>
                                    </SelectContent>
                               </SelectPortal>
                          </Select>
@@ -299,13 +301,13 @@ const Request = (payload) => {
           return (
                <HStack space="md" pt="$3">
                     <Button
-                         bgColor={theme['colors']['secondary']['500']}
+                         bgColor={theme['tokens']['colors']['secondary']['500']}
                          isDisabled={isSubmitting}
                          onPress={() => {
                               setIsSubmitting(true);
                               handleSubmission();
                          }}>
-                         <ButtonText color={theme['colors']['secondary']['500-text']}>
+                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                               {isSubmitting ? (
                                    <>
                                         <ButtonSpinner mr="$2" />
@@ -316,8 +318,8 @@ const Request = (payload) => {
                               )}
                          </ButtonText>
                     </Button>
-                    <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? theme['colors']['warmGray']['300'] : theme['colors']['coolGray']['500']}>
-                         <ButtonText color={colorMode === 'light' ? theme['colors']['warmGray']['500'] : theme['colors']['coolGray']['300']}>Cancel</ButtonText>
+                    <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );
@@ -326,7 +328,7 @@ const Request = (payload) => {
      const getErrorMessage = () => {
           if (errorMessage) {
                return (
-                    <Alert width="100%" maxW="100%" action="warning" variant="solid">
+                    <Alert width="100%" maxwidth="$full" action="warning" variant="solid">
                          <AlertText size="xs" bold>
                               {errorMessage}
                          </AlertText>

@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
-import { Box, FlatList, HStack, Switch, Text, Pressable, ChevronLeftIcon } from 'native-base';
+import { Box, FlatList, HStack, Switch, Text, Pressable, ChevronLeftIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { loadingSpinner } from '../../../components/loadingSpinner';
+import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
 import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
 
@@ -33,12 +33,12 @@ export const Settings_BrowseCategories = () => {
      React.useLayoutEffect(() => {
           navigation.setOptions({
                headerLeft: () => (
-                    <Pressable onPress={handleGoBack} mr={3} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                         <ChevronLeftIcon size="md" ml={1} color={theme['colors']['primary']['baseContrast']} />
+                    <Pressable onPress={handleGoBack} mr={3} p="$1">
+                         <ChevronLeftIcon size="md" ml={1} color={theme['tokens']['colors']['primary']['baseContrast']} />
                     </Pressable>
                ),
           });
-     }, [navigation]);
+     }, [navigation, theme]);
 
      const { status, data, error, isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
           initialData: list,
@@ -63,7 +63,7 @@ export const Settings_BrowseCategories = () => {
      });
 
      if (loading || isFetching) {
-          return loadingSpinner();
+          return <LoadingSpinner />;
      }
 
      return <FlatList keyExtractor={(item) => item.key} data={list} renderItem={({ item }) => <DisplayCategory data={item} setLoading={setLoading} />} />;
@@ -83,8 +83,8 @@ const DisplayCategory = (data) => {
      const { maxNum } = React.useContext(BrowseCategoryContext);
 
      const updateToggle = async (category) => {
-          setLoading(true);
           const key = category['key'] ?? category['sourceId'];
+          category['isHidden'] = !category['isHidden'];
           await updateBrowseCategoryStatus(key, library.baseUrl).then(async (response) => {
                if (!response.ok) {
                     const error = getErrorMessage({ statusCode: response.status, problem: response.problem });
@@ -97,20 +97,16 @@ const DisplayCategory = (data) => {
                     await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
                }
           });
-          setLoading(false);
-          logDebugMessage(key + ', ' + category['isHidden']);
+          logDebugMessage("Finished toggling " + key + ' hidden is ' + category['isHidden']);
      };
      return (
-          <Box borderBottomWidth="1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="4" pr="5" py="2">
+          <Box borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2">
                <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                     <Text
                          flexWrap="wrap"
                          bold
                          maxW="80%"
-                         fontSize={{
-                              base: 'lg',
-                              lg: 'xl',
-                         }}>
+                         fontSize="$lg">
                          {category.title}
                     </Text>
                     <Switch
@@ -120,7 +116,7 @@ const DisplayCategory = (data) => {
                               toggleSwitch();
                               updateToggle(category);
                          }}
-                         isChecked={toggled}
+                         isChecked={!category.isHidden}
                     />
                </HStack>
                {showErrorDialog && (

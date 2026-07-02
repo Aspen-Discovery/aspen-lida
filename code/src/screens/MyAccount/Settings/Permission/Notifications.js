@@ -93,13 +93,13 @@ export const NotificationPermissionDescription = () => {
                         bg="transparent"
                         onPress={() => navigate('MoreMenu')}
                         mr="$3"
-                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        p="$1"
                     >
                         <ButtonIcon
                             size="lg"
                             variant="outline"
                             borderWidth={0}
-                            color={theme['colors']['primary']['baseContrast']}
+                            color={theme['tokens']['colors']['primary']['baseContrast']}
                             as={ChevronLeftIcon}
                         />
                     </Button>
@@ -266,7 +266,7 @@ const NotificationPermissionUsage = () => {
     const { textColor } = React.useContext(ThemeContext);
 
     return (
-        <Accordion variant="unfilled" w="100%" size="sm">
+        <Accordion variant="unfilled" width="$full" size="sm">
             <AccordionItem value="description">
                 <AccordionHeader>
                     <AccordionTrigger px="$0">
@@ -330,10 +330,10 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
         <Center>
             <Button
                 onPress={handleUpdatePermissions}
-                bgColor={theme['colors']['primary']['500']}
+                bgColor="$primary500"
                 isDisabled={isUpdating}
             >
-                <ButtonText color={theme['colors']['primary']['500-text']}>
+                <ButtonText color="$textLight200">
                     {permissionStatus ?
                         getTermFromDictionary(language, 'revoke_device_settings') :
                         getTermFromDictionary(language, 'update_device_settings')}
@@ -347,8 +347,8 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                 <AlertDialogBackdrop />
                 <AlertDialogContent
                     bgColor={colorMode === 'light' ?
-                        theme['colors']['warmGray']['50'] :
-                        theme['colors']['coolGray']['700']}
+                        "$warmGray50" :
+                        "$coolGray700"}
                 >
                     <AlertDialogHeader>
                         <Heading color={textColor}>
@@ -363,15 +363,15 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                         </Text>
                     </AlertDialogBody>
                     <AlertDialogFooter>
-                        <ButtonGroup flexDirection="column" alignItems="stretch" w="100%">
+                        <ButtonGroup flexDirection="column" alignItems="stretch" width="$full">
                             <Button
                                 onPress={() => {
                                     Linking.openSettings();
                                     setShowAlertDialog(false);
                                 }}
-                                bgColor={theme['colors']['primary']['500']}
+                                bgColor="$primary500"
                             >
-                                <ButtonText color={theme['colors']['primary']['500-text']}>
+                                <ButtonText color="$textLight200">
                                     {getTermFromDictionary(language, 'open_device_settings')}
                                 </ButtonText>
                             </Button>

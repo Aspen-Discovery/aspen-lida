@@ -1,3 +1,4 @@
+import { translationsLibrary as helperLibrary, getTermFromDictionary as helperGetTermFromDictionary } from './TranslationHelper';
 import { MaterialIcons } from '@expo/vector-icons';
 import _ from 'lodash';
 import moment from 'moment';
@@ -9,7 +10,7 @@ import { saveLanguage } from '../util/api/user';
 import {decodeHTML } from '../helpers/helpers';
 import { GLOBALS } from '../util/globals';
 
-import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
+import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
 import { createApiClient } from '../util/api/apiFactory';
 
 /** *******************************************************************
@@ -21,8 +22,10 @@ export const LanguageSwitcher = () => {
      const { language, updateLanguage, languages, updateDictionary, languageDisplayName, updateLanguageDisplayName } = React.useContext(LanguageContext);
      const [label, setLabel] = React.useState(getLanguageDisplayName(language, languages));
 
+     const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
+
      const changeLanguage = async (val) => {
-          const tmp = val.values().next().value;
+          const tmp = val;
           await saveLanguage(tmp, library.baseUrl).then(async (result) => {
                if (result) {
                     updateLanguage(tmp);
@@ -40,15 +43,17 @@ export const LanguageSwitcher = () => {
           return (
                <Box>
                     <Menu
-                         bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}
-                         closeOnSelect
+                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
+                         isOpen={isLanguageMenuOpen}
+                         onClose={() => setIsLanguageMenuOpen(false)}
+                         onOpen={() => setIsLanguageMenuOpen(true)}
                          placement="top"
-                         selectedKeys={language} selectionMode="single" onSelectionChange={(val) => changeLanguage(val)}
+                         selectedKeys={language} selectionMode="single"
                          trigger={(triggerProps) => {
                               return (
-                                   <Button size="sm" variant="link" {...triggerProps}>
-                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['colors']['secondary']['500']} />
-                                        <ButtonText color={theme['colors']['secondary']['500']}>{languageDisplayName}</ButtonText>
+                                   <Button size="sm" variant="link" {...triggerProps} onPress={() => {setIsLanguageMenuOpen(true)}}>
+                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['secondary']['500']} />
+                                        <ButtonText color={theme['tokens']['colors']['secondary']['500']}> {languageDisplayName}</ButtonText>
                                    </Button>
                               );
                          }}>
@@ -56,7 +61,14 @@ export const LanguageSwitcher = () => {
                               <>
                                    {languages.map((language, index) => {
                                         return (
-                                             <MenuItem key={language.code} textValue={language.code}>
+                                             <MenuItem
+                                                  key={language.code}
+                                                  textValue={language.code}
+                                                  onPress={() => {
+                                                       setIsLanguageMenuOpen(false);
+                                                       changeLanguage(language.code);
+                                                  }}
+                                             >
                                                   <MenuItemLabel color={textColor}>{language.displayName}</MenuItemLabel>
                                              </MenuItem>
                                         );
@@ -189,56 +201,102 @@ export function getLanguageDisplayName(code, languages) {
 /**
  * Local storage for translated terms
  */
-export let translationsLibrary = {
-     lastUpdated: moment(),
-};
+export let translationsLibrary = helperLibrary;
 
+// Make sure we only load translations once.
+const activeTranslationRequests = {};
 /**
  * Returns translation of terms used in Aspen LiDA for the given language
  * @param language
  * @param url
  * @returns {Promise<void>}
  */
-export async function getTranslatedTerm(language, url) {
+export async function loadTranslationsFromDiscovery(language, url) {
      const defaults = require('../translations/defaults.json');
 
-     const client = createApiClient({
-          url,
-          timeout: GLOBALS.timeoutFast,
-          language,
-     });
+     const isEmptyDefaults =
+          !defaults ||
+          (Array.isArray(defaults) && defaults.length === 0) ||
+          (typeof defaults === 'object' && Object.keys(defaults).length === 0);
 
-     const response = await client.post(
-          '/SystemAPI?method=getBulkTranslations',
-          { terms: defaults },
-          {
-               params: { language },
-               headers: { 'Content-Type': 'application/json' },
-          }
-     );
-
-     if (response.ok) {
-          const translation = response?.data?.result?.[language] ?? defaults;
-          const lastUpdated = {
-               lastUpdated: moment(),
-          };
-          translationsLibrary = _.merge(translationsLibrary, lastUpdated);
-
-          if (_.isObject(translation)) {
-               const obj = {
-                    [language]: translation,
-               };
-               translationsLibrary = _.merge(translationsLibrary, obj);
-          }
-     } else {
+     if (isEmptyDefaults) {
+          logInfoMessage("Skipping getBulkTranslations because defaults.json is empty.");
           const obj = {
-               [language]: defaults,
+               [language]: {},
           };
           translationsLibrary = _.merge(translationsLibrary, obj);
-          logDebugMessage('getTranslatedTerm failed');
-          logDebugMessage(response);
-          getErrorMessage({statusCode:response.code, problem:response.problem});
+          return;
      }
+
+     let numDefaultTerms;
+     if (Array.isArray(defaults)) {
+          numDefaultTerms = defaults.length
+     }else{
+          numDefaultTerms = Object.keys(defaults).length;
+     }
+
+     if (activeTranslationRequests[language]) {
+          logInfoMessage(`[Sync] Request for "${language}" is already loading. Joining existing queue.`);
+          return activeTranslationRequests[language];
+     }
+
+     activeTranslationRequests[language] = (async () => {
+          try {
+               const client = createApiClient({
+                    url,
+                    timeout: GLOBALS.timeoutFast,
+                    language,
+               });
+
+               logDebugMessage("Loading bulk translations for " + numDefaultTerms + " terms");
+               const response = await client.post(
+                    '/SystemAPI?method=getBulkTranslations',
+                    { terms: defaults },
+                    {
+                         params: { language },
+                         headers: { 'Content-Type': 'application/json' },
+                    },
+                    false
+               );
+
+               if (response.ok) {
+                    const translation = response?.data?.result?.[language] ?? defaults;
+                    const lastUpdated = {
+                         lastUpdated: moment(),
+                    };
+                    translationsLibrary = _.merge(translationsLibrary, lastUpdated);
+
+                    if (_.isObject(translation)) {
+                         const obj = {
+                              [language]: translation,
+                         };
+                         translationsLibrary = _.merge(translationsLibrary, obj);
+                    }
+               } else {
+                    const obj = {
+                         [language]: defaults,
+                    };
+                    translationsLibrary = _.merge(translationsLibrary, obj);
+                    logDebugMessage('loadTranslationsFromDiscovery failed');
+                    logDebugMessage(response);
+                    getErrorMessage(response.code, response.problem);
+               }
+          } catch (error) {
+               logErrorMessage("Uncaught error inside synchronized loadTranslationsFromDiscovery: " + error.message);
+               // Fallback to defaults on catastrophic crash
+               const obj = {
+                    [language]: defaults,
+               };
+
+               translationsLibrary = _.merge(translationsLibrary, obj);
+          } finally {
+               // 4. Cleanup: Clear the lock once done so future updates can trigger if needed
+               delete activeTranslationRequests[language];
+          }
+     })();
+
+     // Execute the promise for the first caller
+     return activeTranslationRequests[language];
 }
 
 /**
@@ -260,208 +318,29 @@ async function getTranslatedTermWithValues(terms, language, url) {
  **/
 export async function getTranslatedTermsForUserPreferredLanguage(language, url) {
      logDebugMessage('Getting translations for ' + language + '...');
-     await getTranslatedTerm(language, url);
-     logDebugMessage('getTranslatedTermsForUserPreferredLanguage:' + translationsLibrary.lastUpdated);
-     return true;
-}
-
-export async function getTranslatedTermsForAllLanguages(languages, url) {
-     const languagesArray = [];
-     _.forEach(languages, function (value) {
-          languagesArray.push(value.code);
-     });
-     _.map(languagesArray, async function (language) {
-          logDebugMessage('Getting translations for ' + language + '...');
-          await getTranslatedTerm(language, url);
-
-          const titlesOnHold = [
-               {
-                    key: 'titles_on_hold_for_ils',
-                    value: getTermFromDictionary(language, 'physical_materials'),
-               },
-               {
-                    key: 'titles_on_hold_for_libby',
-                    value: getTermFromDictionary(language, 'libby'),
-               },
-               {
-                    key: 'titles_on_hold_for_hoopla',
-                    value: getTermFromDictionary(language, 'hoopla'),
-               },
-               {
-                    key: 'titles_on_hold_for_cloud_library',
-                    value: getTermFromDictionary(language, 'cloud_library'),
-               },
-               {
-                    key: 'titles_on_hold_for_boundless',
-                    value: getTermFromDictionary(language, 'boundless'),
-               },
-               {
-                    key: 'titles_on_hold_for_palace_project',
-                    value: getTermFromDictionary(language, 'palace_project'),
-               },
-          ];
-          const checkouts = [
-               {
-                    key: 'checkouts_for_ils',
-                    value: getTermFromDictionary(language, 'physical_materials'),
-               },
-               {
-                    key: 'checkouts_for_libby',
-                    value: getTermFromDictionary(language, 'libby'),
-               },
-               {
-                    key: 'checkouts_for_hoopla',
-                    value: getTermFromDictionary(language, 'hoopla'),
-               },
-               {
-                    key: 'checkouts_for_cloud_library',
-                    value: getTermFromDictionary(language, 'cloud_library'),
-               },
-               {
-                    key: 'checkouts_for_boundless',
-                    value: getTermFromDictionary(language, 'boundless'),
-               },
-               {
-                    key: 'checkouts_for_palace_project',
-                    value: getTermFromDictionary(language, 'palace_project'),
-               },
-          ];
-          const filterBy = [
-               {
-                    key: 'filter_by_ils',
-                    value: getTermFromDictionary(language, 'physical_materials'),
-               },
-               {
-                    key: 'filter_by_libby',
-                    value: getTermFromDictionary(language, 'libby'),
-               },
-               {
-                    key: 'filter_by_hoopla',
-                    value: getTermFromDictionary(language, 'hoopla'),
-               },
-               {
-                    key: 'filter_by_cloud_library',
-                    value: getTermFromDictionary(language, 'cloud_library'),
-               },
-               {
-                    key: 'filter_by_boundless',
-                    value: getTermFromDictionary(language, 'boundless'),
-               },
-               {
-                    key: 'filter_by_palace_project',
-                    value: getTermFromDictionary(language, 'palace_project'),
-               },
-               {
-                    key: 'filter_by_all',
-                    value: getTermFromDictionary(language, 'all'),
-               },
-          ];
-          const sortBy = [
-               {
-                    key: 'sort_by_title',
-                    value: getTermFromDictionary(language, 'title'),
-               },
-               {
-                    key: 'sort_by_author',
-                    value: getTermFromDictionary(language, 'author'),
-               },
-               {
-                    key: 'sort_by_format',
-                    value: getTermFromDictionary(language, 'format'),
-               },
-               {
-                    key: 'sort_by_status',
-                    value: getTermFromDictionary(language, 'status'),
-               },
-               {
-                    key: 'sort_by_date_placed',
-                    value: getTermFromDictionary(language, 'date_placed'),
-               },
-               {
-                    key: 'sort_by_position',
-                    value: getTermFromDictionary(language, 'position'),
-               },
-               {
-                    key: 'sort_by_pickup_location',
-                    value: getTermFromDictionary(language, 'pickup_location'),
-               },
-               {
-                    key: 'sort_by_library_account',
-                    value: getTermFromDictionary(language, 'library_account'),
-               },
-               {
-                    key: 'sort_by_expiration',
-                    value: getTermFromDictionary(language, 'expiration'),
-               },
-               {
-                    key: 'sort_by_date_added',
-                    value: getTermFromDictionary(language, 'date_added'),
-               },
-               {
-                    key: 'sort_by_recently_added',
-                    value: getTermFromDictionary(language, 'recently_added'),
-               },
-               {
-                    key: 'sort_by_user_defined',
-                    value: getTermFromDictionary(language, 'user_defined'),
-               },
-          ];
-
-          await getTranslatedTermWithValues(titlesOnHold, language, url);
-          await getTranslatedTermWithValues(checkouts, language, url);
-          await getTranslatedTermWithValues(filterBy, language, url);
-          await getTranslatedTermWithValues(sortBy, language, url);
-     });
+     await loadTranslationsFromDiscovery(language, url);
+     logDebugMessage('getTranslatedTermsForUserPreferredLanguage - last updated at ' + translationsLibrary.lastUpdated);
      return true;
 }
 
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false) => {
-     if (language && key) {
-          let tmpDictionary = translationsLibrary;
-          try {
-               const { dictionary } = React.useContext(LanguageContext);
-               if (!_.isUndefined(dictionary)) {
-                    tmpDictionary = dictionary;
-               }
-          } catch (e) {
-               // can't use context in this scenario
-          }
-          if (!_.isUndefined(tmpDictionary)) {
-               if (tmpDictionary[language]) {
-                    const thisDictionary = tmpDictionary[language];
-                    if (thisDictionary[key]) {
-                         if (ellipsis) {
-                              return tmpDictionary[language][key] + '...';
-                         }
-                         return tmpDictionary[language][key];
-                    } else {
-                         if (tmpDictionary.en) {
-                              const englishDictionary = tmpDictionary.en;
-                              if (englishDictionary[key]) {
-                                   if (ellipsis) {
-                                        return englishDictionary[key] + '...';
-                                   }
-                                   return englishDictionary[key];
-                              }
-                         }
-                    }
-               }
-          }
+     let dictionary = undefined;
+     try {
+          const context = React.useContext(LanguageContext);
+          dictionary = context?.dictionary;
+     } catch (e) {
+          // can't use context in this scenario
      }
-     let defaults = require('../translations/defaults.json');
-     if (ellipsis) {
-          return defaults[key] + '...';
-     }
-     return defaults[key];
+     return helperGetTermFromDictionary(language, key, ellipsis, dictionary);
 };
 
 export const getVariableTermFromDictionary = async (language, key, url) => {
      if (language && key) {
           let tmpDictionary = translationsLibrary;
           try {
-               const { dictionary } = React.useContext(LanguageContext);
-               if (!_.isUndefined(dictionary)) {
-                    tmpDictionary = dictionary;
+               const context = React.useContext(LanguageContext);
+               if (context?.dictionary) {
+                    tmpDictionary = context.dictionary;
                }
           } catch (e) {
                // can't use context in this scenario

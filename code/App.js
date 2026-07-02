@@ -3,7 +3,8 @@ import { config } from '@gluestack-ui/config';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NativeBaseProvider, StatusBar } from 'native-base';
+import { StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
 import Toast from 'react-native-toast-message';
 
@@ -12,7 +13,8 @@ import { LogBox } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
-import { ThemeContext } from './src/context/initialContext';
+import { AuthProvider } from './src/context/AuthContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider, UserProvider } from './src/context/initialContext';
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
 import { createTheme, saveTheme } from './src/themes/theme';
@@ -58,8 +60,7 @@ if (__DEV__) {
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
      const [aspenTheme, setAspenTheme] = React.useState([]);
-     const [colorMode, setColorMode] = React.useState(null);
-     const { mode, updateColorMode, updateTheme } = React.useContext(ThemeContext);
+     const { colorMode, updateColorMode, updateTheme } = React.useContext(ThemeContext);
      const [statusBarColor, setStatusBarColor] = React.useState('light-content');
 
      const [dbReady, setDbReady] = React.useState(false);
@@ -68,6 +69,7 @@ export default function AppContainer() {
 
           (async () => {
                try {
+                    logDebugMessage('2 Initializing SQLite');
                     await initDatabase();
                } catch (error) {
                     logErrorMessage('Failed to initialize SQLite');
@@ -82,19 +84,15 @@ export default function AppContainer() {
           };
      }, []);
 
-     logDebugMessage("2 Initial setup done");
-
      React.useEffect(() => {
-          console.log('useEffect triggered with colorMode:', colorMode, 'and mode:', mode);
-          const setupNativeBaseTheme = async () => {
-               logDebugMessage('3 Running setupNativeBaseTheme...');
+          let loadingBaseTheme = true;
+          (async () => {
+               logDebugMessage('3 Running setupNativeBaseTheme... ' + colorMode);
                try {
                     await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                         if (mode === 'light' || mode === 'dark') {
-                              setColorMode(mode);
+                          if (mode === 'light' || mode === 'dark') {
                               updateColorMode(mode);
                          } else {
-                              setColorMode('light');
                               updateColorMode('light');
                          }
                     });
@@ -102,18 +100,17 @@ export default function AppContainer() {
                     logErrorMessage("4 Could not load color mode " + e);
                     // something went wrong (or the item didn't exist yet in storage)
                     // so just set it to the default: light
-                    setColorMode('light');
                     updateColorMode('light');
                }
 
                if (colorMode) {
-                    logDebugMessage("5 Creating Theme ");
+                    logDebugMessage("5 Creating Default Theme " + colorMode);
                     await createTheme(colorMode).then(async (result) => {
                          logDebugMessage("5a retrieved data from createTheme");
                          setAspenTheme(result);
                          updateTheme(result);
                          logDebugMessage("5b Set Aspen Theme");
-                         if (result.colors?.primary['baseContrast'] === '#000000') {
+                         if (colorMode == 'dark') {
                               setStatusBarColor('dark-content');
                          } else {
                               setStatusBarColor('light-content');
@@ -124,11 +121,11 @@ export default function AppContainer() {
 
                     setLoading(false);
                }
+          })();
+          return () => {
+               loadingBaseTheme = false;
           };
-          setupNativeBaseTheme().then(() => {
-               return () => setupNativeBaseTheme();
-          });
-     }, [colorMode, mode]);
+     }, [colorMode]);
 
      if (isLoading || !dbReady) {
           logDebugMessage("6 Still loading, showing splash screen");
@@ -136,17 +133,41 @@ export default function AppContainer() {
      }else{
           logDebugMessage("7 Loading main page");
           return (
-               <QueryClientProvider client={queryClient}>
-                    <Sentry.TouchEventBoundary>
-                         <GluestackUIProvider config={config}>
-                              <NativeBaseProvider theme={aspenTheme}>
-                                   <StatusBar barStyle={statusBarColor} />
-                                   <App />
-                              </NativeBaseProvider>
-                         </GluestackUIProvider>
-                    </Sentry.TouchEventBoundary>
-                    <Toast />
-               </QueryClientProvider>
+               <SafeAreaProvider>
+                    <QueryClientProvider client={queryClient}>
+                         <Sentry.TouchEventBoundary>
+                              <GluestackUIProvider config={config} colorMode={colorMode}>
+                                   <ThemeProvider>
+                                        <LanguageProvider>
+                                             <LibrarySystemProvider>
+                                                  <LibraryBranchProvider>
+                                                       <UserProvider>
+                                                            <SearchProvider>
+                                                                 <CheckoutsProvider>
+                                                                      <HoldsProvider>
+                                                                           <BrowseCategoryProvider>
+                                                                                <SystemMessagesProvider>
+                                                                                     <GroupedWorkProvider>
+                                                                                          <AuthProvider>
+                                                                                               <StatusBar barStyle={statusBarColor} />
+                                                                                               <App />
+                                                                                          </AuthProvider>
+                                                                                     </GroupedWorkProvider>
+                                                                                </SystemMessagesProvider>
+                                                                           </BrowseCategoryProvider>
+                                                                      </HoldsProvider>
+                                                                 </CheckoutsProvider>
+                                                            </SearchProvider>
+                                                       </UserProvider>
+                                                  </LibraryBranchProvider>
+                                             </LibrarySystemProvider>
+                                        </LanguageProvider>
+                                   </ThemeProvider>
+                              </GluestackUIProvider>
+                         </Sentry.TouchEventBoundary>
+                         <Toast />
+                    </QueryClientProvider>
+               </SafeAreaProvider>
           );
      }
 }

@@ -1,5 +1,5 @@
 import { ScanBarcode, SearchIcon, XIcon, Settings, RotateCwIcon, ClockIcon } from 'lucide-react-native';
-import { Center, Box, Button, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner, FormControl, Input, InputField, InputSlot, InputIcon, ScrollView } from '@gluestack-ui/themed';
+import { Center, Box, Button, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner, FormControl, Input, InputField, InputSlot, InputIcon, FlatList } from '@gluestack-ui/themed';
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
@@ -53,15 +53,18 @@ export const DiscoverHomeScreen = () => {
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
 
-     navigation.setOptions({
-          headerLeft: () => {
-               return null;
-          },
-     });
+     React.useLayoutEffect(() => {
+          navigation.setOptions({
+               headerLeft: () => {
+                    return null;
+               },
+          });
+     }, [navigation]);
 
      useFocusEffect(
           React.useCallback(() => {
                const checkSettings = async () => {
+                    logDebugMessage("Checking Settings from Home Screen");
                     if (Platform.OS === 'android') {
                          if (Device.platformApiLevel <= 30) {
                               setShowAndroidEndSupportMessage(true);
@@ -69,20 +72,16 @@ export const DiscoverHomeScreen = () => {
                          }
                     }
 
-                    if (version >= '24.02.00') {
-                         updateCurrentIndex('Keyword');
-                         updateCurrentSource('local');
-                         await getSearchIndexes(library.baseUrl, language, 'local').then((result) => {
-                              updateIndexes(result);
-                         });
-                         await getSearchSources(library.baseUrl, language).then((result) => {
-                              updateSources(result);
-                         });
-                    }
+                    updateCurrentIndex('Keyword');
+                    updateCurrentSource('local');
+                    await getSearchIndexes(library.baseUrl, language, 'local').then((result) => {
+                         updateIndexes(result);
+                    });
+                    await getSearchSources(library.baseUrl, language).then((result) => {
+                         updateSources(result);
+                    });
 
-                    if (version >= '22.11.00') {
-                         await getDefaultFacets(library.baseUrl, 5, language);
-                    }
+                    await getDefaultFacets(library.baseUrl, 5, language);
                };
                checkSettings().then(() => {
                     return () => checkSettings();
@@ -133,16 +132,17 @@ export const DiscoverHomeScreen = () => {
           setLoading(false);
      };
 
-     const onPressSettings = () => {
+     const showManageCategories = () => {
           navigateStack('MoreTab', 'MyPreferences_ManageBrowseCategories', { prevRoute: 'HomeScreen' });
      };
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
+                    return null;
                });
           }
           return null;
@@ -150,6 +150,7 @@ export const DiscoverHomeScreen = () => {
 
      const androidEndSupportMessage = () => {
           if (showAndroidEndSupportMessage && androidEndSupportMessageIsOpen) {
+               logDebugMessage("Showing Android End of Support Message");
                return <DisplayAndroidEndOfSupportMessage language={language} setIsOpen={setAndroidEndSupportMessageIsOpen} isOpen={androidEndSupportMessageIsOpen} />;
           }
      };
@@ -173,38 +174,49 @@ export const DiscoverHomeScreen = () => {
      };
 
      return (
-          <ScrollView>
-               <Box p="$5">
-                    {androidEndSupportMessage()}
-                    {showSystemMessage()}
-                    <FormControl pb="$5">
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
-                              <InputSlot>
-                                   <InputIcon as={SearchIcon} ml="$2" color={textColor} />
-                              </InputSlot>
-                              <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
-                              {searchTerm ? (
-                                   <InputSlot onPress={() => clearSearch()}>
-                                        <InputIcon as={XIcon} mr="$2" color={textColor} />
+          <FlatList
+               bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}
+               ListHeaderComponent={
+                    <Box p="$5">
+                         {androidEndSupportMessage()}
+                         {showSystemMessage()}
+                         <FormControl pb="$5">
+                              <Input>
+                                   <InputSlot>
+                                        <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                                    </InputSlot>
-                              ) : null}
-                              <InputSlot onPress={() => openScanner()}>
-                                   <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
-                              </InputSlot>
-                         </Input>
-                    </FormControl>
-                    {homeScreenLinks && homeScreenLinks.length > 0 ? (
-                         <HomeScreenLinkGrid links={homeScreenLinks} />
-                    ) : null}
-                    {category.map((item, index) => {
-                         return <DisplayBrowseCategory category={item} />;
-                    })}
-                    <ButtonOptions language={language} onPressSettings={onPressSettings} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} maxNum={maxNum} onLoadAllCategories={onLoadAllCategories} />
-                    {showErrorDialog && (
-                         <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
-                    )}
-               </Box>
-          </ScrollView>
+                                   <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                                   {searchTerm ? (
+                                        <InputSlot onPress={() => clearSearch()}>
+                                             <InputIcon as={XIcon} mr="$2" color={textColor} />
+                                        </InputSlot>
+                                   ) : null}
+                                   <InputSlot onPress={() => openScanner()}>
+                                        <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                                   </InputSlot>
+                              </Input>
+                         </FormControl>
+                         {homeScreenLinks && homeScreenLinks.length > 0 ? (
+                              <HomeScreenLinkGrid links={homeScreenLinks} />
+                         ) : null}
+                    </Box>
+               }
+               data={category}
+               keyExtractor={(item, index) => item.id || index.toString()}
+               renderItem={({ item }) => (
+                    <Box px="$5">
+                         <DisplayBrowseCategory category={item} />
+                    </Box>
+               )}
+               ListFooterComponent={
+                    <Box p="$5">
+                         <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} maxNum={maxNum} onLoadAllCategories={onLoadAllCategories} />
+                         {showErrorDialog && (
+                              <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
+                         )}
+                    </Box>
+               }
+          />
      );
 };
 
@@ -212,111 +224,82 @@ const ButtonOptions = (props) => {
      const { theme } = React.useContext(ThemeContext);
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
-     const { language, onPressSettings, onRefreshCategories, discoveryVersion, maxNum, onLoadAllCategories } = props;
+     const { language, showManageCategories, onRefreshCategories, discoveryVersion, maxNum, onLoadAllCategories } = props;
 
      const version = formatDiscoveryVersion(discoveryVersion);
 
-     if (version >= '22.07.00') {
-          return (
-               <Center>
-                    <ButtonGroup
-                         sx={{
-                              '@base': {
-                                   flexDirection: 'column',
-                              },
-                              '@lg': {
-                                   flexDirection: 'row',
-                              },
-                         }}>
-                         <Button
-                              isDisabled={maxNum === 9999}
-                              sx={{
-                                   bg: theme['colors']['primary']['500'],
-                                   size: 'md',
-                              }}
-                              onPress={() => {
-                                   setLoading(true);
-                                   onLoadAllCategories();
-                                   setTimeout(function () {
-                                        setLoading(false);
-                                   }, 2500);
-                              }}>
-                              {loading ? <ButtonSpinner color={theme['colors']['primary']['500-text']} mr="$1" /> : <ButtonIcon as={ClockIcon} color={theme['colors']['primary']['500-text']} mr="$1" size="sm" />}
-                              <ButtonText
-                                   sx={{
-                                        color: theme['colors']['primary']['500-text'],
-                                   }}
-                                   size="sm"
-                                   fontWeight="$medium">
-                                   {getTermFromDictionary(language, 'browse_categories_load_all')}
-                              </ButtonText>
-                         </Button>
-
-                         <Button
-                              sx={{
-                                   bg: theme['colors']['primary']['500'],
-                              }}
-                              onPress={() => {
-                                   onPressSettings();
-                              }}>
-                              <ButtonIcon as={Settings} color={theme['colors']['primary']['500-text']} mr="$1" size="sm" />
-                              <ButtonText
-                                   sx={{
-                                        color: theme['colors']['primary']['500-text'],
-                                   }}
-                                   size="sm"
-                                   fontWeight="$medium">
-                                   {getTermFromDictionary(language, 'browse_categories_manage')}
-                              </ButtonText>
-                         </Button>
-
-                         <Button
-                              isDisabled={refreshing}
-                              sx={{
-                                   bg: theme['colors']['primary']['500'],
-                              }}
-                              onPress={() => {
-                                   setRefreshing(true);
-                                   onRefreshCategories();
-                                   setTimeout(function () {
-                                        setRefreshing(false);
-                                   });
-                              }}>
-                              {refreshing ? <ButtonSpinner color={theme['colors']['primary']['500-text']} /> : <ButtonIcon as={RotateCwIcon} color={theme['colors']['primary']['500-text']} mr="$1" size="sm" />}
-
-                              <ButtonText size="sm" fontWeight="$medium" sx={{ color: theme['colors']['primary']['500-text'] }}>
-                                   {getTermFromDictionary(language, 'browse_categories_refresh')}
-                              </ButtonText>
-                         </Button>
-                    </ButtonGroup>
-               </Center>
-          );
-     }
-
      return (
           <Center>
-               <ButtonGroup flexDirection="column">
+               <ButtonGroup
+                    sx={{
+                         '@base': {
+                              flexDirection: 'column',
+                         },
+                         '@lg': {
+                              flexDirection: 'row',
+                         },
+                    }}>
                     <Button
+                         isDisabled={maxNum === 9999}
                          sx={{
-                              bg: theme['colors']['primary']['500'],
+                              bg: theme['tokens']['colors']['primary']['500'],
+                              size: 'md',
                          }}
                          onPress={() => {
-                              onPressSettings();
+                              setLoading(true);
+                              onLoadAllCategories();
+                              setTimeout(function () {
+                                   setLoading(false);
+                              }, 2500);
                          }}>
-                         <ButtonIcon as={Settings} color={theme['colors']['primary']['500-text']} mr="$1" size="sm" />
-                         <ButtonText fontSize="$2xs" fontWeight="$medium" sx={{ color: theme['colors']['primary']['500-text'] }}>
+                         {loading ? (
+                           <ButtonSpinner key="spinner" color="$textLight200" mr="$1" />
+                         ) : (
+                           <ButtonIcon key="icon" as={ClockIcon} color="$textLight200" mr="$1" size="sm" />
+                         )}
+                         <ButtonText
+                              sx={{
+                                   color: theme['tokens']['colors']['primary']['500-text'],
+                              }}
+                              size="sm"
+                              fontWeight="$medium">
+                              {getTermFromDictionary(language, 'browse_categories_load_all')}
+                         </ButtonText>
+                    </Button>
+
+                    <Button
+                         sx={{
+                              bg: theme['tokens']['colors']['primary']['500'],
+                         }}
+                         onPress={() => {
+                              showManageCategories();
+                         }}>
+                         <ButtonIcon as={Settings} color="$textLight200" mr="$1" size="sm" />
+                         <ButtonText
+                              sx={{
+                                   color: theme['tokens']['colors']['primary']['500-text'],
+                              }}
+                              size="sm"
+                              fontWeight="$medium">
                               {getTermFromDictionary(language, 'browse_categories_manage')}
                          </ButtonText>
                     </Button>
+
                     <Button
+                         isDisabled={refreshing}
                          sx={{
-                              bg: theme['colors']['primary']['500'],
+                              bg: theme['tokens']['colors']['primary']['500'],
                          }}
                          onPress={() => {
+                              setRefreshing(true);
                               onRefreshCategories();
+                              setTimeout(function () {
+                                   setRefreshing(false);
+                              }, 2000);
                          }}>
-                         <ButtonIcon as={RotateCwIcon} color={theme['colors']['primary']['500-text']} mr="$1" size="sm" />
-                         <ButtonText fontSize="$2xs" fontWeight="$medium" sx={{ color: theme['colors']['primary']['500-text'] }}>
+                         {refreshing ? <ButtonSpinner color="$textLight200" /> : <ButtonIcon as={RotateCwIcon} color="$textLight200" mr="$1" size="sm" />}
+
+                         <ButtonText size="sm" fontWeight="$medium" sx={{ color: theme['tokens']['colors']['primary']['500-text'] }}>
                               {getTermFromDictionary(language, 'browse_categories_refresh')}
                          </ButtonText>
                     </Button>

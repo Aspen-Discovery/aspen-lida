@@ -2,7 +2,7 @@ import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import _ from 'lodash';
-import { Badge, Box, Center, Container, FlatList, HStack, Pressable, Stack, Text, VStack } from 'native-base';
+import { Badge, BadgeText, Box, Center, FlatList, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError } from '../../../components/loadError';
@@ -36,7 +36,7 @@ export const MySavedSearch = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -48,7 +48,7 @@ export const MySavedSearch = () => {
                <>
                     {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                     <Center mt={5} mb={5}>
-                         <Text bold fontSize="lg">
+                         <Text bold fontSize="$lg">
                               {getTermFromDictionary(language, 'no_results_found')}
                          </Text>
                     </Center>
@@ -89,15 +89,17 @@ const SavedSearch = (data) => {
      };
 
      return (
-          <Pressable borderBottomWidth="1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="4" pr="5" py="2" onPress={() => openGroupedWork()}>
+          <Pressable borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2" onPress={() => openGroupedWork()}>
                <HStack space={3}>
                     <VStack maxW="35%">
                          {isNew ? (
-                              <Container zIndex={1}>
-                                   <Badge colorScheme="warning" shadow={1} mb={-3} ml={-1} _text={{ fontSize: 9 }}>
-                                        {getTermFromDictionary(language, 'flag_new')}
+                              <Box width="$full" zIndex={1}>
+                                   <Badge colorScheme="warning" shadow={1} mb={-3} ml={-1}>
+                                        <BadgeText fontSize="$xs">
+                                             {getTermFromDictionary(language, 'flag_new')}
+                                        </BadgeText>
                                    </Badge>
-                              </Container>
+                              </Box>
                          ) : null}
                          <Image
                               alt={item.title}
@@ -105,7 +107,7 @@ const SavedSearch = (data) => {
                               style={{
                                    width: 100,
                                    height: 150,
-                                   borderRadius: 4,
+                                   borderRadius: "$sm",
                               }}
                               placeholder={blurhash}
                               transition={1000}
@@ -113,46 +115,45 @@ const SavedSearch = (data) => {
                          />
                          <Badge
                               mt={1}
-                              _text={{
-                                   fontSize: 10,
-                                   color: 'coolGray.600',
-                              }}
                               bgColor="warmGray.200"
                               _dark={{
                                    bgColor: 'coolGray.900',
-                                   _text: { color: 'warmGray.400' },
                               }}>
-                              {item.language}
+                              <BadgeText
+                                   fontSize="$sm"
+                                   color="$coolGray600"
+                                   _dark={{ color: "warmGray400" }}>
+                                   {item.language}
+                              </BadgeText>
                          </Badge>
                          <AddToList item={item.id} libraryUrl={library.baseUrl} />
                     </VStack>
 
-                    <VStack w="65%">
+                    <VStack w="65%" ml="$3">
                          <Text
-                              _dark={{ color: 'warmGray.50' }}
+                              _dark={{ color: "$warmGray50" }}
                               color="coolGray.800"
                               bold
-                              fontSize={{
-                                   base: 'sm',
-                                   lg: 'md',
-                              }}>
+                              fontSize="$xs">
                               {item.title}
                          </Text>
                          {item.author ? (
-                              <Text _dark={{ color: 'warmGray.50' }} color="coolGray.800" fontSize="xs">
+                              <Text _dark={{ color: "$warmGray50" }} color="coolGray.800" fontSize="$xs">
                                    {getTermFromDictionary(language, 'by')} {item.author}
                               </Text>
                          ) : null}
                          {item.format ? (
-                              <Stack mt={1.5} direction="row" space={1} flexWrap="wrap">
+                              <HStack mt={1.5} space={1} flexWrap="wrap">
                                    {formats.map((format, i) => {
                                         return (
-                                             <Badge colorScheme="secondary" mt={1} variant="outline" rounded="4px" _text={{ fontSize: 12 }}>
-                                                  {format}
+                                             <Badge colorScheme="secondary" mt={1} variant="outline" borderRadius="$sm" ml="$2" mt="$1">
+                                                  <BadgeText fontSize="$sm">
+                                                       {format}
+                                                  </BadgeText>
                                              </Badge>
                                         );
                                    })}
-                              </Stack>
+                              </HStack>
                          ) : null}
                     </VStack>
                </HStack>

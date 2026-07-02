@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import * as Device from 'expo-device';
 import _ from 'lodash';
-import { Box, FlatList, HStack, Switch, Text } from 'native-base';
+import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ import { LanguageContext, LibrarySystemContext, UserContext } from '../../../con
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile, reloadProfile } from '../../../util/api/user';
 
-import { logDebugMessage } from '../../../util/logging.js';
+import { logDebugMessage, logWarnMessage } from '../../../util/logging.js';
 
 export const Settings_NotificationOptions = () => {
      const isFetchingUserProfile = useIsFetching({ queryKey: ['user'] });
@@ -36,21 +36,19 @@ export const Settings_NotificationOptions = () => {
           React.useCallback(() => {
                const update = async () => {
                     setLoading(true);
+                    logDebugMessage("Creating Channels and Categories as part of Notification Options");
+
                     await createChannelsAndCategories();
-                    if (expoToken) {
-                         if (aspenToken) {
-                              setToggle(true);
-                              await getPreferences();
-                         } else {
-                              setToggle(false);
-                         }
+                    if (expoToken && aspenToken) {
+                         setToggle(true);
+                         await getPreferences();
+                    } else {
+                         setToggle(false);
                     }
                     setLoading(false);
                };
-               update().then(() => {
-                    return () => update();
-               });
-          }, [])
+               update();
+          }, [expoToken, aspenToken])
      );
 
      const updateAspenToken = async () => {
@@ -149,6 +147,8 @@ export const Settings_NotificationOptions = () => {
      };
 
      const updateStatus = async () => {
+          logDebugMessage("Updating Status in Notification Options");
+
           await reloadProfile(library.baseUrl).then(async (result) => {
                updateUser(result);
                await getPreferences();
@@ -163,6 +163,7 @@ export const Settings_NotificationOptions = () => {
           return <PermissionsPrompt promptTitle="permissions_notifications_title" promptBody="permissions_notifications_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} />;
      }
 
+     logDebugMessage("Rendering Notification Options");
      return (
           <SafeAreaView style={{ flex: 1 }}>
                <Box flex={1} safeArea={5}>
@@ -178,10 +179,10 @@ export const Settings_NotificationOptions = () => {
                          />
                     </HStack>
                     {toggled && !error && _.isObject(notificationSettings) ? (
-                         <>
+                         <VStack space="md" style={{ flex: 1 }}>
                               <EnableAllNotifications setLoading={setLoading} notifySavedSearch={notifySavedSearch} setNotifySavedSearch={setNotifySavedSearch} notifyCustom={notifyCustom} setNotifyCustom={setNotifyCustom} notifyAccount={notifyAccount} setNotifyAccount={setNotifyAccount} />
                               <FlatList data={Object.keys(notificationSettings)} renderItem={({ item }) => <DisplayPreference data={notificationSettings[item]} notifySavedSearch={notifySavedSearch} setNotifySavedSearch={setNotifySavedSearch} notifyCustom={notifyCustom} setNotifyCustom={setNotifyCustom} notifyAccount={notifyAccount} setNotifyAccount={setNotifyAccount} />} keyExtractor={(item, index) => index.toString()} />
-                         </>
+                         </VStack>
                     ) : null}
                </Box>
           </SafeAreaView>
@@ -214,6 +215,7 @@ const EnableAllNotifications = (data) => {
                setNotifySavedSearch(allowAllNotifications);
                setNotifyCustom(allowAllNotifications);
                setNotifyAccount(allowAllNotifications);
+               logDebugMessage("Reloading profile as part of enableAllNotifications");
                await reloadProfile(library.baseUrl).then((data) => {
                     updateUser(data);
                     updateNotificationSettings(data.notification_preferences, language);
@@ -223,6 +225,7 @@ const EnableAllNotifications = (data) => {
           }
      };
 
+     logDebugMessage("Rendering enable all notifications switch");
      return (
           <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                <Text bold>{getTermFromDictionary(language, 'notifications_enable_all')}</Text>
@@ -282,12 +285,14 @@ const DisplayPreference = (data) => {
                if (pref === 'notifyAccount') {
                     setNotifyAccount(value);
                }
+               logDebugMessage("Reloading Profile as part of updatePreference")
                await reloadProfile(library.baseUrl).then((result) => {
                     updateUser(result);
                });
           }
      };
 
+     logDebugMessage("Rendering notification preferences");
      return (
           <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                <Text>{preference.label}</Text>

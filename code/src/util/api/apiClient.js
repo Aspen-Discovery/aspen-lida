@@ -51,7 +51,7 @@ function createAuthTokens() {
 /**
  * Build headers for Aspen Discovery API requests
  */
-function buildHeaders(isPost = false, language = 'en', customHeaders = {}) {
+function buildHeaders(isPost = false, language = 'en', customHeaders = {}, postAsFormData = true) {
      const headers = {
           'User-Agent': `Aspen LiDA ${Device.modelName} ${Device.osName}/${Device.osVersion}`,
           Version: `v${GLOBALS.appVersion} ${GLOBALS.appStage} [b${GLOBALS.appBuild}] p${GLOBALS.appPatch}`,
@@ -60,10 +60,6 @@ function buildHeaders(isPost = false, language = 'en', customHeaders = {}) {
           'Cache-Control': 'no-cache',
           'Preferred-Language': language,
      };
-
-     if (isPost) {
-          headers['Content-Type'] = 'application/x-www-form-urlencoded';
-     }
 
      // legacy authentication method
      const authTokens = createAuthTokens();
@@ -147,6 +143,8 @@ export class ApiClient {
                     await new Promise((resolve) => setTimeout(resolve, this.retryConfig.delay * (retryCount + 1)));
                     return this.fetchWithRetry(url, options, retryCount + 1);
                }
+               logDebugMessage("Got error fetching " + url);
+               logDebugMessage(error);
                throw error;
           }
      }
@@ -154,8 +152,9 @@ export class ApiClient {
      /**
       * Validate Aspen Discovery response structure
       */
-     validateAspenResponse(data) {
+     validateAspenResponse(data, url) {
           if (!data || typeof data !== 'object') {
+               logErrorMessage('Response from ' + url + ' is not a valid object');
                return {
                     valid: false,
                     error: ERROR_TYPES.BAD_DATA,
@@ -165,6 +164,8 @@ export class ApiClient {
           }
 
           if (data.result === undefined) {
+               logErrorMessage('No result field in response from ' + url)
+               logErrorMessage(data);
                return {
                     valid: false,
                     error: ERROR_TYPES.BAD_DATA,
@@ -208,7 +209,17 @@ export class ApiClient {
                let data;
 
                if (contentType?.includes('application/json')) {
-                    data = await response.json();
+                    const rawText = await response.text();
+
+                    try {
+                         data = JSON.parse(rawText);
+                    } catch (jsonError) {
+                         logErrorMessage("Could not parse response from " + url + " as json");
+                         logErrorMessage("Raw body causing error: " + rawText);
+
+                         data = null;
+                         isResponseOk = false;
+                    }
                } else if (contentType?.includes('text')) {
                     data = await response.text();
                } else {
@@ -230,7 +241,7 @@ export class ApiClient {
                };
 
                if (response.ok) {
-                    const validation = this.validateAspenResponse(data);
+                    const validation = this.validateAspenResponse(data, url);
                     if (!validation.valid) {
                          if(validation.code === "INVALID_RESPONSE_TYPE") {
                               // We have a response.ok but data is invalid JSON - likely an error from Aspen Discovery surfacing
@@ -269,7 +280,7 @@ export class ApiClient {
                               requestUrl: url,
                               requestParams: options.params || null,
                               requestBody: options.body || null,
-                              responseBody: response.body || null,
+                              responseBody: data || null,
                          });
                     }
 
@@ -285,6 +296,7 @@ export class ApiClient {
                error.status = response.status;
                throw error;
           } catch (error) {
+               logErrorMessage("ERROR occurred in request to " + url + " - " + error);
                if (timeoutId) clearTimeout(timeoutId);
 
                let errorType = ERROR_TYPES.NETWORK;
@@ -367,18 +379,22 @@ export class ApiClient {
      /**
       * POST request
       */
-     async post(endpoint, data = {}, config = {}) {
+     async post(endpoint, data = {}, config = {}, postAsFormData = true) {
           const url = this.buildUrl(endpoint, config.params);
-          const headers = buildHeaders(true, this.language, config.headers);
-          const formData = await createPostData(data);
+          let formData;
+          let headers = buildHeaders(true, this.language, config.headers, postAsFormData);
+          if (postAsFormData) {
+               formData = await createPostData(data);
+          }else{
+               formData = typeof data === 'object' ? JSON.stringify(data) : data;;
+          }
           const options = {
                method: 'POST',
                headers: { ...headers },
                body: formData,
           };
 
-          delete options.headers['Content-Type'];
-          return this.request(url, options, { ...config, isPost: true });
+          return this.request(url, options, { ...config });
      }
 
      /**

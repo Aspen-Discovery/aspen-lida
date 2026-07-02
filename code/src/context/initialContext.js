@@ -1,8 +1,8 @@
-import { useToken } from '@gluestack-style/react';
+import { useToken } from '@gluestack-ui/themed';
 import * as Device from 'expo-device';
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { getTermFromDictionary } from '../translations/TranslationService';
+import { getTermFromDictionary } from '../translations/TranslationHelper';
 import { BRANCH, PATRON } from '../util/globals';
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 import { formatDiscoveryVersion } from '../helpers/helpers';
@@ -161,7 +161,7 @@ export const SearchContext = React.createContext({
 export const ThemeProvider = ({ children }) => {
      const [theme, setTheme] = useState([]);
      const [colorMode, setColorMode] = useState('light');
-     const [textColor, setTextColor] = useState('');
+     const [textColor, setTextColor] = useState('textLight50');
      const darkText = useToken('colors', 'textLight950');
      const lightText = useToken('colors', 'textLight50');
 
@@ -170,22 +170,24 @@ export const ThemeProvider = ({ children }) => {
      };
 
      const updateColorMode = (data) => {
-          setColorMode(data);
-          logDebugMessage('Updated color mode in context');
-          if (textColor === '') {
-               if (data === 'light') {
-                    updateTextColor(darkText);
-               }
+          if (data !== colorMode) {
+               setColorMode(data);
+               logDebugMessage('Updated color mode in context to ' + data);
+          }
+          if (data === 'light') {
+               updateTextColor(darkText);
+          }
 
-               if (data === 'dark') {
-                    updateTextColor(lightText);
-               }
+          if (data === 'dark') {
+               updateTextColor(lightText);
           }
      };
 
      const updateTextColor = (data) => {
-          setTextColor(data);
-          logDebugMessage('Updated text color in context');
+          if (data != textColor) {
+               setTextColor(data);
+               logDebugMessage('Updated text color in context');
+          }
      };
 
      const resetTheme = () => {
@@ -328,14 +330,6 @@ export const LibraryBranchProvider = ({ children }) => {
      const updateLocation = (data) => {
           setLocation(data);
 
-          if (!_.isUndefined(data.vdxFormId)) {
-               BRANCH.vdxFormId = data.vdxFormId;
-          }
-
-          if (!_.isUndefined(data.vdxLocation)) {
-               BRANCH.vdxLocation = data.vdxLocation;
-          }
-
           logDebugMessage('updated LibraryBranchContext');
      };
 
@@ -416,6 +410,7 @@ export const UserProvider = ({ children }) => {
 
      const updateUser = (data) => {
           if (user !== data) {
+               logDebugMessage("User data changed, updating user");
                if (_.isObject(data) && !_.isUndefined(data.lastListUsed)) {
                     PATRON.listLastUsed = data.lastListUsed;
                }
@@ -440,7 +435,7 @@ export const UserProvider = ({ children }) => {
                     updateUserCheckoutSortMethod(data.checkoutSort);
                }
 
-               logDebugMessage('updated UserContext');
+               logDebugMessage('Finished updating UserContext');
           } else {
                logDebugMessage("User data hasn't changed");
           }
@@ -633,7 +628,7 @@ export const UserProvider = ({ children }) => {
           }
 
           //maybe set allowNotifications at this point for initial load?
-          //logDebugMessage('updated notification settings in UserContext');
+          logDebugMessage('updated notification settings in UserContext');
      };
 
      const updateSeenNotificationOnboardPrompt = (data) => {

@@ -67,6 +67,7 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
  * @returns {Promise<{success: boolean, libraries, shouldShowSelectLibrary: boolean}|{success: boolean, shouldShowSelectLibrary: boolean, libraries: *[]}>}
  */
 export async function fetchNearbyLibrariesFromGreenhouse() {
+     logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
 
      if (PATRON.coords?.lat == null && PATRON.coords?.long == null) {
@@ -87,9 +88,10 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
      });
 
      if (response.ok) {
-          const data = response.data;
+          const data = response.data?.result;
 
-          let libraries = GLOBALS.slug.includes('aspen-lida') && GLOBALS.slug !== 'aspen-lida-bws' ? data.libraries : Object.values(data.library ?? {});
+          let libraries = method == 'getLibraries' ? data.libraries : Object.values(data.library ?? {});
+
           libraries = [...(libraries ?? [])].sort((a, b) => {
                if (a.distance !== b.distance) return (a.distance ?? 0) - (b.distance ?? 0);
                if (a.name !== b.name) return (a.name ?? '').localeCompare(b.name ?? '');
@@ -99,6 +101,7 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
           let showSelectLibrary = data.count > 1;
 
           if (isBranded) {
+               logDebugMessage("Getting branded app settings");
                await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
                logDebugMessage(LIBRARY.appSettings);
 

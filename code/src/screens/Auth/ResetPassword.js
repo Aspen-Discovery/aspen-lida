@@ -129,38 +129,46 @@ export const ResetPassword = (props) => {
           return null;
      }
 
+     const KohaResetPasswordComponent = ils === 'koha' && forgotPasswordType === 'emailResetLink' ? (
+          <KohaResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor}/>
+     ) : null;
+     const SirsiResetPasswordComponent = ils === 'sirsi' && forgotPasswordType === 'emailResetLink' ? (
+          <SirsiResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+     const HorizonResetPasswordComponent = ils === 'horizon' && forgotPasswordType === 'emailResetLink' ? (
+          <SirsiResetPassword libraryUrl={libraryUrl} sernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+     const EvergreenResetPasswordComponent = ils === 'evergreen' && forgotPasswordType === 'emailResetLink' ? (
+          <EvergreenResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+     const MillenniumResetPasswordComponent = ils === 'millennium' && forgotPasswordType === 'emailResetLink' ? (
+          <MillenniumResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+     const SymphonyResetPasswordComponent = ils === 'symphony' && forgotPasswordType === 'emailResetLink' ? (
+          <SymphonyResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+     const AspenResetPasswordComponent = forgotPasswordType === 'emailAspenResetLink' ? (
+          <AspenResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
+     ) : null;
+
      return (
           <Center>
                <Button variant="link" onPress={() => setShowForgotPasswordModal(true)}>
-                    <ButtonText style={ buttonLabel.length > 80 ? {fontSize: 12} : undefined} color={theme['colors']['primary']['500']}>{buttonLabel}</ButtonText>
+                    <ButtonText style={ buttonLabel.length > 80 ? {fontSize: "$sm"} : undefined} color="$primary500">{buttonLabel}</ButtonText>
                </Button>
                <Modal isOpen={showForgotPasswordModal} size="lg" avoidKeyboard={true} onClose={() => setShowForgotPasswordModal(false)}>
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{modalTitle}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
 
                          {isLoading ? (
                               <ModalBody>{loadingSpinner()}</ModalBody>
-                         ) : ils === 'koha' && forgotPasswordType === 'emailResetLink' ? (
-                              <KohaResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor}/>
-                         ) : ils === 'sirsi' && forgotPasswordType === 'emailResetLink' ? (
-                              <SirsiResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : ils === 'horizon' && forgotPasswordType === 'emailResetLink' ? (
-                              <SirsiResetPassword libraryUrl={libraryUrl} sernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : ils === 'evergreen' && forgotPasswordType === 'emailResetLink' ? (
-                              <EvergreenResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : ils === 'millennium' && forgotPasswordType === 'emailResetLink' ? (
-                              <MillenniumResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : ils === 'symphony' && forgotPasswordType === 'emailResetLink' ? (
-                              <SymphonyResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : forgotPasswordType === 'emailAspenResetLink' ? (
-                              <AspenResetPassword libraryUrl={libraryUrl} usernameLabel={usernameLabel} passwordLabel={passwordLabel} modalButtonLabel={modalButtonLabel} resetBody={resetBody} setShowForgotPasswordModal={setShowForgotPasswordModal} isProcessing={isProcessing} setIsProcessing={setIsProcessing} theme={theme} colorMode={colorMode} textColor={textColor} />
-                         ) : null}
+                         ) : KohaResetPasswordComponent || SirsiResetPasswordComponent || HorizonResetPasswordComponent || EvergreenResetPasswordComponent || MillenniumResetPasswordComponent || SymphonyResetPasswordComponent || AspenResetPasswordComponent}
                     </ModalContent>
                </Modal>
           </Center>
@@ -219,8 +227,8 @@ const AspenResetPassword = (props) => {
                                    <Button variant="link" onPress={closeWindow}>
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button onPress={resetWindow} bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button onPress={resetWindow} bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -286,7 +294,7 @@ const AspenResetPassword = (props) => {
                               <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
                     </FormControl>
-                    <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}>
+                    <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
                          <InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username" color={textColor} />
                     </Input>
                </ModalBody>
@@ -295,8 +303,8 @@ const AspenResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -360,8 +368,8 @@ const KohaResetPassword = (props) => {
                                    <Button variant="link" onPress={closeWindow}>
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={resetWindow}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -390,13 +398,13 @@ const KohaResetPassword = (props) => {
                               <Text color={textColor}>{getTermFromDictionary('en', 'password_reset_success_body_2')}</Text>
                               <Center>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         size="sm"
                                         onPress={() => {
                                              setResend(true);
                                              initiateResetPassword();
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'resend_email')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'resend_email')}</ButtonText>
                                    </Button>
                               </Center>
                          </ModalBody>
@@ -437,13 +445,13 @@ const KohaResetPassword = (props) => {
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="next" enterKeyHint="next" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => fieldRef.current.focus()} blurOnSubmit={false} textContentType="username" color={textColor}/></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="next" enterKeyHint="next" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => fieldRef.current.focus()} blurOnSubmit={false} textContentType="username" color={textColor}/></Input>
                     </FormControl>
                     <FormControl mb="$2">
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{getTermFromDictionary('en', 'patron_email')}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="email" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" enterKeyHint="done" returnKeyType="done" onChangeText={(text) => setEmail(text)} textContentType="emailAddress" ref={fieldRef} onSubmitEditing={() => initiateResetPassword()} color={textColor} /></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="email" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" enterKeyHint="done" returnKeyType="done" onChangeText={(text) => setEmail(text)} textContentType="emailAddress" ref={fieldRef} onSubmitEditing={() => initiateResetPassword()} color={textColor} /></Input>
                     </FormControl>
                </ModalBody>
                <ModalFooter>
@@ -451,8 +459,8 @@ const KohaResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -512,8 +520,8 @@ const SirsiResetPassword = (props) => {
                                    <Button variant="link" onPress={closeWindow}>
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={resetWindow}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -578,7 +586,7 @@ const SirsiResetPassword = (props) => {
                          <FormControlLabel>
                               <FormControlLabelText color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username" color={textColor} /></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username" color={textColor} /></Input>
                     </FormControl>
                </ModalBody>
                <ModalFooter>
@@ -586,8 +594,8 @@ const SirsiResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -651,8 +659,8 @@ const EvergreenResetPassword = (props) => {
                                    <Button variant="link" onPress={closeWindow}>
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={resetWindow}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -681,13 +689,13 @@ const EvergreenResetPassword = (props) => {
                               <Text color={textColor}>{getTermFromDictionary('en', 'password_reset_success_body_2')}</Text>
                               <Center>
                                    <Button
-                                        bgColor={theme['colors']['primary']['500']}
+                                        bgColor="$primary500"
                                         size="sm"
                                         onPress={() => {
                                              setResend(true);
                                              initiateResetPassword();
                                         }}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'resend_email')}</ButtonText>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'resend_email')}</ButtonText>
                                    </Button>
                               </Center>
                          </ModalBody>
@@ -728,13 +736,13 @@ const EvergreenResetPassword = (props) => {
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="next" enterKeyHint="next" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => fieldRef.current.focus()} blurOnSubmit={false} textContentType="username" color={textColor}/></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="next" enterKeyHint="next" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => fieldRef.current.focus()} blurOnSubmit={false} textContentType="username" color={textColor}/></Input>
                     </FormControl>
                     <FormControl>
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{getTermFromDictionary('en', 'patron_email')}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField  id="email" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" enterKeyHint="done" returnKeyType="done" onChangeText={(text) => setEmail(text)} textContentType="emailAddress" ref={fieldRef} onSubmitEditing={() => initiateResetPassword()} color={textColor}/></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField  id="email" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" enterKeyHint="done" returnKeyType="done" onChangeText={(text) => setEmail(text)} textContentType="emailAddress" ref={fieldRef} onSubmitEditing={() => initiateResetPassword()} color={textColor}/></Input>
                     </FormControl>
                </ModalBody>
                <ModalFooter>
@@ -742,8 +750,8 @@ const EvergreenResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -803,8 +811,8 @@ const SymphonyResetPassword = (props) => {
                                    <Button variant="link" onPress={closeWindow}>
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={resetWindow}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -869,7 +877,7 @@ const SymphonyResetPassword = (props) => {
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username" color={textColor} /></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username" color={textColor} /></Input>
                     </FormControl>
                </ModalBody>
                <ModalFooter>
@@ -877,8 +885,8 @@ const SymphonyResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -938,8 +946,8 @@ const MillenniumResetPassword = (props) => {
                                    <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                               </Button>
                               {!_.isEmpty(results.error) ? (
-                                   <Button bgColor={theme['colors']['primary']['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button bgColor="$primary500" onPress={resetWindow}>
+                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               ) : null}
                          </ButtonGroup>
@@ -973,7 +981,7 @@ const MillenniumResetPassword = (props) => {
                          <FormControlLabel>
                               <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username"color={textColor}/></Input>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="username" variant="filled" autoCorrect={false} autoCapitalize="none" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setUsername(text)} onSubmitEditing={() => initiateResetPassword()} textContentType="username"color={textColor}/></Input>
                     </FormControl>
                </ModalBody>
                <ModalFooter>
@@ -981,8 +989,8 @@ const MillenniumResetPassword = (props) => {
                          <Button variant="link" onPress={closeWindow}>
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
-                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme['colors']['primary']['500']} onPress={initiateResetPassword}>
-                              <ButtonText color={theme['colors']['primary']['500-text']}>{modalButtonLabel}</ButtonText>
+                         <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor="$primary500" onPress={initiateResetPassword}>
+                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>

@@ -5,7 +5,8 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, Box, Button, Center, Container, FlatList, HStack, Icon, Pressable, ScrollView, Stack, Text, useColorModeValue, useToken, VStack } from 'native-base';
+import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Icon, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../../../themes/theme';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError, popAlert, popToast } from '../../../components/loadError';
@@ -102,43 +103,34 @@ export const MyEvents = () => {
           return (
                <Box
                     alignItems="center"
-                    safeArea={2}
-                    bgColor="coolGray.100"
-                    borderBottomWidth="1"
+                    p="$2"
+                    backgroundColor="$coolGray100"
+                    borderBottomWidth="$1"
                     _dark={{
-                         borderColor: 'gray.600',
-                         bg: 'coolGray.700',
+                         borderColor: '$coolGray600',
+                         backgroundColor: '$coolGray700',
                     }}
-                    borderColor="coolGray.200">
-                    <Button.Group alignItems="center" isAttached size="sm" pb={1}>
+                    borderColor="$coolGray200">
+                    <ButtonGroup alignItems="center" space="md" isAttached size="sm" pb="$1">
                          <Button
                               variant={filterBy === 'all' ? 'solid' : 'outline'}
                               onPress={() => setFilterBy('all')}
-                              _dark={{
-                                   borderWidth: '1',
-                                   borderColor: 'gray.400',
-                              }}>
-                              {getTermFromDictionary(language, 'all_events')}
+                              action="primary">
+                              <ButtonText>{getTermFromDictionary(language, 'all_events')}</ButtonText>
                          </Button>
                          <Button
                               variant={filterBy === 'upcoming' ? 'solid' : 'outline'}
-                              _dark={{
-                                   borderWidth: '1',
-                                   borderColor: 'gray.400',
-                              }}
+                              action="primary"
                               onPress={() => setFilterBy('upcoming')}>
-                              {getTermFromDictionary(language, 'upcoming_events')}
+                              <ButtonText>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
                          </Button>
                          <Button
-                              _dark={{
-                                   borderWidth: '1',
-                                   borderColor: 'gray.400',
-                              }}
+                              action="primary"
                               variant={filterBy === 'past' ? 'solid' : 'outline'}
                               onPress={() => setFilterBy('past')}>
-                              {getTermFromDictionary(language, 'past_events')}
+                              <ButtonText>{getTermFromDictionary(language, 'past_events')}</ButtonText>
                          </Button>
-                    </Button.Group>
+                    </ButtonGroup>
                </Box>
           );
      };
@@ -146,7 +138,7 @@ export const MyEvents = () => {
      const Empty = () => {
           return (
                <Center mt={5} mb={5}>
-                    <Text bold fontSize="lg">
+                    <Text bold fontSize="$lg">
                          {filterBy === 'upcoming' ? getTermFromDictionary(language, 'no_events_upcoming') : filterBy === 'past' ? getTermFromDictionary(language, 'no_events_past') : getTermFromDictionary(language, 'no_events_all')}
                     </Text>
                </Center>
@@ -157,22 +149,23 @@ export const MyEvents = () => {
           if (savedEvents?.totalResults > 0) {
                return (
                     <Box
-                         safeArea={2}
-                         bgColor="coolGray.100"
-                         borderTopWidth="1"
+                         p="$2"
+                         backgroundColor="$coolGray100"
+                         borderTopWidth="$1"
                          _dark={{
-                              borderColor: 'gray.600',
-                              bg: 'coolGray.700',
+                              borderColor: '$coolGray600',
+                              backgroundColor: '$coolGray700',
                          }}
-                         borderColor="coolGray.200"
+                         borderColor="$coolGray200"
                          flexWrap="nowrap"
                          alignItems="center">
                          <ScrollView horizontal>
-                              <Button.Group size="sm">
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1}>
-                                        {getTermFromDictionary(language, 'previous')}
+                              <ButtonGroup size="sm" space="md">
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} action="primary">
+                                        <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
+                                        action="primary"
                                         onPress={() => {
                                              if (!isPreviousData && data?.hasMore) {
                                                   console.log('Adding to page');
@@ -180,11 +173,11 @@ export const MyEvents = () => {
                                              }
                                         }}
                                         isDisabled={isPreviousData || !data?.hasMore}>
-                                        {getTermFromDictionary(language, 'next')}
+                                        <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
-                              </Button.Group>
+                              </ButtonGroup>
                          </ScrollView>
-                         <Text mt={2} fontSize="sm">
+                         <Text mt="$2" fontSize="$sm">
                               {paginationLabel}
                          </Text>
                     </Box>
@@ -197,7 +190,7 @@ export const MyEvents = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -361,16 +354,18 @@ const Item = (data) => {
      };
 
      return (
-          <Pressable borderBottomWidth="1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="4" pr="5" py="2" onPress={openEvent}>
-               <HStack space={3}>
+          <Pressable borderBottomWidth="$1" _dark={{ borderColor: '$coolGray600' }} borderColor="$coolGray200" pl="$4" pr="$5" py="$2" onPress={openEvent}>
+               <HStack space="md">
                     {event.cover ? (
                          <VStack maxW="35%">
                               {hasPassed ? (
-                                   <Container zIndex={1}>
-                                        <Badge colorScheme="warning" shadow={1} mb={-3} ml={-1} _text={{ fontSize: 9 }}>
-                                             {getTermFromDictionary(language, 'flag_past')}
+                                   <Box width="$full" zIndex={1}>
+                                        <Badge action="warning" variant="solid" mb="-$3" ml="-$1" borderRadius="$sm">
+                                             <BadgeText fontSize="$xs">
+                                                  {getTermFromDictionary(language, 'flag_past')}
+                                             </BadgeText>
                                         </Badge>
-                                   </Container>
+                                   </Box>
                               ) : null}
                               <Image
                                    alt={event.title}
@@ -378,62 +373,63 @@ const Item = (data) => {
                                    style={{
                                         width: 100,
                                         height: 150,
-                                        borderRadius: 4,
+                                        borderRadius: "$sm",
                                    }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
                               />
 
-                              <Button size="sm" variant="ghost" colorScheme="danger" leftIcon={<Icon as={MaterialIcons} name="delete" size="xs" mr="-1" />} style={{ flex: 1, flexWrap: 'wrap' }} onPress={() => removeEvent()}>
-                                   {getTermFromDictionary(language, 'remove')}
+                              <Button size="sm" variant="ghost" action="negative" style={{ flex: 1, flexWrap: 'wrap' }} onPress={() => removeEvent()}>
+                                   <ButtonIcon as={MaterialIcons} name="delete" size="xs" mr="$1" />
+                                   <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                               </Button>
                          </VStack>
                     ) : null}
 
                     <VStack w={event.cover ? '65%' : '100%'}>
                          <Text
-                              _dark={{ color: 'warmGray.50' }}
-                              color="coolGray.800"
-                              bold
-                              fontSize={{
-                                   base: 'md',
-                                   lg: 'lg',
-                              }}>
+                              _dark={{ color: "$warmGray50" }}
+                              color="$coolGray800"
+                              fontWeight="$bold"
+                              fontSize="$md">
                               {event.title}
                          </Text>
                          {event.startDate && event.endDate ? (
                               <>
-                                   <Text _dark={{ color: 'warmGray.50' }} color="coolGray.800">
+                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
                                         {displayDay}
                                    </Text>
-                                   <Text _dark={{ color: 'warmGray.50' }} color="coolGray.800">
+                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
                                         {displayStartTime} - {displayEndTime}
                                    </Text>
                               </>
                          ) : event.startDate && !event.endDate ? (
                               <>
-                                   <Text _dark={{ color: 'warmGray.50' }} color="coolGray.800">
+                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
                                         {displayDay}
                                    </Text>
-                                   <Text _dark={{ color: 'warmGray.50' }} color="coolGray.800">
+                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
                                         {displayStartTime}
                                    </Text>
                               </>
                          ) : null}
                          {!event.cover ? (
-                              <Box alignItems="start" pt={2}>
-                                   <Button padding={0} size="sm" variant="ghost" colorScheme="danger" leftIcon={<Icon as={MaterialIcons} name="delete" size="xs" mr="-1" />} onPress={() => removeEvent()}>
-                                        {getTermFromDictionary(language, 'remove')}
+                              <Box alignItems="flex-start" pt="$2">
+                                   <Button p="$0" size="sm" variant="ghost" action="negative" onPress={() => removeEvent()}>
+                                        <ButtonIcon as={MaterialIcons} name="delete" size="xs" mr="$1" />
+                                        <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                                    </Button>
                               </Box>
                          ) : null}
                          {registrationRequired ? (
-                              <Stack mt={1.5} direction="row" space={1} flexWrap="wrap">
-                                   <Badge key={0} colorScheme="secondary" mt={1} variant="outline" rounded="4px" _text={{ fontSize: 12 }}>
-                                        {getTermFromDictionary(language, 'registration_required')}
+                              <HStack mt="$1.5" space="xs" flexWrap="wrap">
+                                   <Badge key={0} action="secondary" mt="$1" variant="outline" borderRadius="$sm">
+                                        <BadgeText fontSize="$sm">
+                                             {getTermFromDictionary(language, 'registration_required')}
+                                        </BadgeText>
                                    </Badge>
-                              </Stack>
+                              </HStack>
                          ) : null}
                     </VStack>
                </HStack>

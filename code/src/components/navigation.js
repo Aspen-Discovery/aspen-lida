@@ -1,18 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import * as Updates from 'expo-updates';
-import { Spinner, useColorModeValue, useContrastText, useToken } from 'native-base';
+import { Spinner, useToken } from '@gluestack-ui/themed';
+import { useColorModeValue } from '../themes/theme';
 import React from 'react';
 import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, UserContext, UserProvider, LanguageContext } from '../context/initialContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, UserContext, UserProvider, LanguageContext, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -47,7 +48,8 @@ try {
 }
 
 
-export const AuthContext = React.createContext();
+import { AuthContext } from '../context/AuthContext';
+export { AuthContext };
 
 const iOSRelease = Constants.expoConfig.ios.bundleIdentifier;
 const androidRelease = Constants.expoConfig.android.package;
@@ -93,21 +95,6 @@ try {
 
 
 export function App() {
-     const {updateUser} = React.useContext(UserContext);
-
-     const primaryColor = useToken('colors', 'primary.base');
-     const primaryColorContrast = useToken('colors', useContrastText(primaryColor));
-     const screenBackgroundColor = useToken('colors', useColorModeValue('warmGray.50', 'coolGray.800'));
-     const navigationTheme = {
-          ...DefaultTheme,
-          colors: {
-               ...DefaultTheme.colors,
-               primary: primaryColorContrast,
-               card: primaryColor,
-               text: primaryColorContrast,
-               background: screenBackgroundColor,
-          },
-     };
      const queryClient = useQueryClient();
      const [state, dispatch] = React.useReducer(
           (prevState, action) => {
@@ -122,7 +109,7 @@ export function App() {
                     case 'SIGN_IN':
                          return {
                               ...prevState,
-                              isSignout: false,
+                              isSignOut: false,
                               userToken: action.token,
                               isLoading: false,
                               refreshUserData: true,
@@ -130,7 +117,7 @@ export function App() {
                     case 'SIGN_OUT':
                          return {
                               ...prevState,
-                              isSignout: true,
+                              isSignOut: true,
                               userToken: null,
                               isLoading: false,
                               refreshUserData: false,
@@ -139,7 +126,7 @@ export function App() {
           },
           {
                isLoading: true,
-               isSignout: false,
+               isSignOut: false,
                userToken: null,
                refreshUserData: false,
           }
@@ -211,16 +198,12 @@ export function App() {
                               } else {
                                    logWarnMessage('Connection failed, logging out.');
                                    userToken = null;
-                                   await RemoveData(queryClient, updateUser).then((res) => {
-                                        dispatch({ type: 'SIGN_OUT' });
-                                   });
+                                   dispatch({ type: 'SIGN_OUT' });
                               }
                          });
                     } else {
                          logWarnMessage('No cached library url, logging out.');
-                         await RemoveData(queryClient, updateUser).then((res) => {
-                              dispatch({ type: 'SIGN_OUT' });
-                         });
+                         dispatch({ type: 'SIGN_OUT' });
                     }
                } else {
                     logDebugMessage('No session found. Starting new.');
@@ -238,7 +221,7 @@ export function App() {
           const subscription = AppState.addEventListener('change', async (nextAppState) => {
                if (nextAppState === 'active') {
                     logDebugMessage('App resumed from background');
-                    
+
                     try {
                          const libraryUrl = await AsyncStorage.getItem('@pathUrl');
                          if (libraryUrl) {
@@ -268,10 +251,8 @@ export function App() {
                     });
                },
                signOut: async () => {
-                    await RemoveData(queryClient, updateUser).then((res) => {
-                         dispatch({ type: 'SIGN_OUT' });
-                    });
                     logDebugMessage('Session ended.');
+                    dispatch({ type: 'SIGN_OUT' });
                },
           }),
           []
@@ -281,8 +262,6 @@ export function App() {
           // We haven't finished checking for the token yet
           return <SplashScreen />;
      }
-
-     const { language } = React.useContext(LanguageContext);
 
      return (
           <AuthContext.Provider value={authContext}>
@@ -297,134 +276,8 @@ export function App() {
                                                        <HoldsProvider>
                                                             <BrowseCategoryProvider>
                                                                  <GroupedWorkProvider>
-                                                                      <NavigationContainer
-                                                                           theme={navigationTheme}
-                                                                           ref={navigationRef}
-                                                                           fallback={<Spinner />}
-                                                                           linking={{
-                                                                                prefixes: prefix,
-                                                                                config: {
-                                                                                     screens: {
-                                                                                          Login: 'user/login',
-                                                                                          LaunchStack: {
-                                                                                               screens: {
-                                                                                                    DrawerStack: {
-                                                                                                         screens: {
-                                                                                                              TabsNavigator: {
-                                                                                                                   screens: {
-                                                                                                                        AccountScreenTab: {
-                                                                                                                             screens: {
-                                                                                                                                  MySavedSearches: 'user/saved_searches',
-                                                                                                                                  LoadSavedSearch: 'user/saved_search',
-                                                                                                                                  MyLists: 'user/lists',
-                                                                                                                                  MyList: 'user/list',
-                                                                                                                                  MyLinkedAccounts: 'user/linked_accounts',
-                                                                                                                                  MyHolds: 'user/holds',
-                                                                                                                                  MyCheckouts: 'user/checkouts',
-                                                                                                                                  MyPreferences: 'user/preferences',
-                                                                                                                                  MyProfile: 'user',
-                                                                                                                                  MyReadingHistory: 'user/reading_history',
-                                                                                                                                  MyCampaigns: 'user/campaigns',
-                                                                                                                             },
-                                                                                                                        },
-                                                                                                                        LibraryCardTab: {
-                                                                                                                             screens: {
-                                                                                                                                  LibraryCard: 'user/library_card',
-                                                                                                                             },
-                                                                                                                        },
-                                                                                                                        SearchTab: {
-                                                                                                                             screens: {
-                                                                                                                                  SearchByCategory: 'search/browse_category',
-                                                                                                                                  SearchByAuthor: 'search/author',
-                                                                                                                                  SearchByList: 'search/list',
-                                                                                                                             },
-                                                                                                                        },
-                                                                                                                        BrowseTab: {
-                                                                                                                             screens: {
-                                                                                                                                  HomeScreen: 'home',
-                                                                                                                                  GroupedWorkScreen: 'search/grouped_work',
-                                                                                                                                  SearchResults: 'search',
-                                                                                                                             },
-                                                                                                                        },
-                                                                                                                   },
-                                                                                                              },
-                                                                                                         },
-                                                                                                    },
-                                                                                               },
-                                                                                          },
-                                                                                     },
-                                                                                },
-                                                                                async getInitialURL() {
-                                                                                     let url = await Linking.getInitialURL();
-
-                                                                                     if (url != null) {
-                                                                                          url = decodeURIComponent(url).replace(/\+/g, ' ');
-                                                                                          url = url.replace('aspen-lida://', prefix);
-                                                                                          return url;
-                                                                                     }
-
-                                                                                     const response = await Notifications.getLastNotificationResponseAsync();
-                                                                                     url = decodeURIComponent(response?.notification.request.content.data.url).replace(/\+/g, ' ');
-                                                                                     url = url.replace('aspen-lida://', prefix);
-                                                                                     return url;
-                                                                                },
-                                                                                subscribe(listener) {
-                                                                                     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
-                                                                                          listener(url);
-                                                                                     });
-                                                                                     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-                                                                                          const url = response.notification.request.content.data.url;
-                                                                                          listener(url);
-                                                                                     });
-
-                                                                                     return () => {
-                                                                                          subscription.remove();
-                                                                                          linkingSubscription.remove();
-                                                                                     };
-                                                                                },
-                                                                           }}>
-                                                                           <Stack.Navigator
-                                                                                screenOptions={{
-                                                                                     headerShown: false,
-                                                                                }}
-                                                                                name="RootNavigator">
-                                                                                {state.userToken === null ? (
-                                                                                     // No token found, user isn't signed in
-                                                                                     <Stack.Screen
-                                                                                          name="Login"
-                                                                                          component={LoginScreen}
-                                                                                          options={{
-                                                                                               headerShown: false,
-                                                                                               animationTypeForReplace: state.isSignout ? 'pop' : 'push',
-                                                                                          }}
-                                                                                     />
-                                                                                ) : (
-                                                                                     // User is signed in
-                                                                                     <Stack.Screen name="LaunchStack" component={LaunchStackNavigator} initialParams={{ refreshUserData: state.refreshUserData ?? false }} />
-                                                                                )}
-                                                                                <Stack.Screen
-                                                                                     name="LibraryCardScanner"
-                                                                                     component={LibraryCardScanner}
-                                                                                     options={{
-                                                                                          presentation: 'modal',
-                                                                                     }}
-                                                                                />
-                                                                                <Stack.Screen
-                                                                                     name="SelfRegistration"
-                                                                                     component={SelfRegistration}
-                                                                                     options={{
-                                                                                          header: () => {
-                                                                                               const title = getTermFromDictionary(language, 'register_for_a_library_card');
-                                                                                               return <TitleWithLogo title={title} hideBack={true} />;
-                                                                                          },
-                                                                                          headerShown: true,
-                                                                                          presentation: 'card',
-                                                                                          gestureEnabled: false,
-                                                                                          headerBackTitleVisible: false,
-                                                                                     }}
-                                                                                />
-                                                                           </Stack.Navigator>
-                                                                      </NavigationContainer>
+                                                                      {/* Pass state safely to the child container */}
+                                                                      <AppContent state={state} />
                                                                  </GroupedWorkProvider>
                                                             </BrowseCategoryProvider>
                                                        </HoldsProvider>
@@ -437,6 +290,172 @@ export function App() {
                     </SystemMessagesProvider>
                </ThemeProvider>
           </AuthContext.Provider>
+     );
+}
+
+function AppContent({state}) {
+     const { updateUser } = React.useContext(UserContext);
+     const queryClient = useQueryClient();
+
+     React.useEffect(() => {
+          if (state.isSignOut) {
+               RemoveData(queryClient, updateUser);
+          }
+     }, [state.isSignOut]);
+
+     const { language } = React.useContext(LanguageContext);
+     const { colorMode } = React.useContext(ThemeContext);
+
+     const primaryColor = useToken('colors', 'primary.base');
+     const primaryColorContrast = useToken('colors', 'primary.baseContrast');
+     const lightTheme = {
+          ...DefaultTheme,
+          colors: {
+               ...DefaultTheme.colors,
+               background: '#f5f5f4', // Equivalent to $backgroundLight50
+               card: '#ffffff',
+               text: '#171717',
+          },
+     };
+     const darkTheme = {
+          ...DarkTheme,
+          colors: {
+               ...DarkTheme.colors,
+               background: '#111827', // Equivalent to $backgroundDark900
+               card: '#1f2937',
+               text: '#fafafa',
+          },
+     };
+
+     return (
+          <NavigationContainer
+               theme={colorMode === 'dark' ? darkTheme : lightTheme}
+               ref={navigationRef}
+               fallback={<Spinner />}
+               linking={{
+                    prefixes: prefix,
+                    config: {
+                         screens: {
+                              Login: 'user/login',
+                              LaunchStack: {
+                                   screens: {
+                                        DrawerStack: {
+                                             screens: {
+                                                  TabsNavigator: {
+                                                       screens: {
+                                                            AccountScreenTab: {
+                                                                 screens: {
+                                                                      MySavedSearches: 'user/saved_searches',
+                                                                      LoadSavedSearch: 'user/saved_search',
+                                                                      MyLists: 'user/lists',
+                                                                      MyList: 'user/list',
+                                                                      MyLinkedAccounts: 'user/linked_accounts',
+                                                                      MyHolds: 'user/holds',
+                                                                      MyCheckouts: 'user/checkouts',
+                                                                      MyPreferences: 'user/preferences',
+                                                                      MyProfile: 'user',
+                                                                      MyReadingHistory: 'user/reading_history',
+                                                                      MyCampaigns: 'user/campaigns',
+                                                                 },
+                                                            },
+                                                            LibraryCardTab: {
+                                                                 screens: {
+                                                                      LibraryCard: 'user/library_card',
+                                                                 },
+                                                            },
+                                                            SearchTab: {
+                                                                 screens: {
+                                                                      SearchByCategory: 'search/browse_category',
+                                                                      SearchByAuthor: 'search/author',
+                                                                      SearchByList: 'search/list',
+                                                                 },
+                                                            },
+                                                            BrowseTab: {
+                                                                 screens: {
+                                                                      HomeScreen: 'home',
+                                                                      GroupedWorkScreen: 'search/grouped_work',
+                                                                      SearchResults: 'search',
+                                                                 },
+                                                            },
+                                                       },
+                                                  },
+                                             },
+                                        },
+                                   },
+                              },
+                         },
+                    },
+                    async getInitialURL() {
+                         let url = await Linking.getInitialURL();
+
+                         if (url != null) {
+                              url = decodeURIComponent(url).replace(/\+/g, ' ');
+                              url = url.replace('aspen-lida://', prefix);
+                              return url;
+                         }
+
+                         const response = await Notifications.getLastNotificationResponseAsync();
+                         url = decodeURIComponent(response?.notification.request.content.data.url).replace(/\+/g, ' ');
+                         url = url.replace('aspen-lida://', prefix);
+                         return url;
+                    },
+                    subscribe(listener) {
+                         const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
+                              listener(url);
+                         });
+                         const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+                              const url = response.notification.request.content.data.url;
+                              listener(url);
+                         });
+
+                         return () => {
+                              subscription.remove();
+                              linkingSubscription.remove();
+                         };
+                    },
+               }}>
+               <Stack.Navigator
+                    screenOptions={{
+                         headerShown: false,
+                    }}
+                    name="RootNavigator">
+                    {state.userToken === null ? (
+                         // No token found, user isn't signed in
+                         <Stack.Screen
+                              name="Login"
+                              component={LoginScreen}
+                              options={{
+                                   headerShown: false,
+                                   animationTypeForReplace: state.isSignOut ? 'pop' : 'push',
+                              }}
+                         />
+                    ) : (
+                         // User is signed in
+                         <Stack.Screen name="LaunchStack" component={LaunchStackNavigator} initialParams={{ refreshUserData: state.refreshUserData ?? false }} />
+                    )}
+                    <Stack.Screen
+                         name="LibraryCardScanner"
+                         component={LibraryCardScanner}
+                         options={{
+                              presentation: 'modal',
+                         }}
+                    />
+                    <Stack.Screen
+                         name="SelfRegistration"
+                         component={SelfRegistration}
+                         options={{
+                              header: () => {
+                                   const title = getTermFromDictionary(language, 'register_for_a_library_card');
+                                   return <TitleWithLogo title={title} hideBack={true} />;
+                              },
+                              headerShown: true,
+                              presentation: 'card',
+                              gestureEnabled: false,
+                              headerBackTitleVisible: false,
+                         }}
+                    />
+               </Stack.Navigator>
+          </NavigationContainer>
      );
 }
 

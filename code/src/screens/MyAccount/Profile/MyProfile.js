@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Box, Divider, ScrollView } from 'native-base';
+import { Box, Divider, ScrollView } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -38,7 +38,7 @@ export const MyProfile = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '5') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -46,7 +46,7 @@ export const MyProfile = () => {
      };
 
      return (
-          <ScrollView>
+          <ScrollView mt="$3" mx="$2">
                <Box flex={1} safeArea={5}>
                     {showSystemMessage()}
                     <Profile_Identity firstName={firstname} lastName={lastname} />

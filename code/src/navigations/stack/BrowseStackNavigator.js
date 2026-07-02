@@ -11,7 +11,6 @@ import { navigate } from '../../helpers/RootNavigator';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
-import { CreateVDXRequest } from '../../screens/GroupedWork/CreateVDXRequest';
 import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
 import { CreateLocalIllRequestEmail } from '../../screens/GroupedWork/CreateLocalIllRequestEmail';
 import { Editions } from '../../screens/GroupedWork/Editions';
@@ -75,23 +74,7 @@ const BrowseStackNavigator = () => {
                               return <></>;
                          },
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                                   <Icon as={MaterialIcons} name="close" size="md" />
-                              </Pressable>
-                         ),
-                    })}
-               />
-               <Stack.Screen
-                    name="CreateVDXRequest"
-                    component={CreateVDXRequest}
-                    options={({ navigation }) => ({
-                         title: getTermFromDictionary(language, 'ill_request_title'),
-                         presentation: 'modal',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                    <Icon as={MaterialIcons} name="close" size="md" />
                               </Pressable>
                          ),
@@ -107,7 +90,7 @@ const BrowseStackNavigator = () => {
                               return <></>;
                          },
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                    <Icon as={MaterialIcons} name="close" size="md" />
                               </Pressable>
                          ),
@@ -123,7 +106,7 @@ const BrowseStackNavigator = () => {
                               return <></>;
                          },
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                    <Icon as={MaterialIcons} name="close" size="md" />
                               </Pressable>
                          ),
@@ -278,7 +261,7 @@ export const EditionsModal = () => {
                     headerLeft: () => {
                          if (route.name !== 'Editions') {
                               return (
-                                   <Pressable onPress={() => navigation.goBack()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                                   <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                         <Icon as={MaterialIcons} name="chevron-left" size="md" />
                                    </Pressable>
                               );
@@ -287,7 +270,7 @@ export const EditionsModal = () => {
                          }
                     },
                     headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
                               <Icon as={MaterialIcons} name="close" size="md" />
                          </Pressable>
                     ),
@@ -326,7 +309,7 @@ const FilterModal = () => {
                     headerBackVisible: true,
                     headerBackTitleVisible: false,
                     headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
                               <Icon as={MaterialIcons} name="close" size="md" />
                          </Pressable>
                     ),

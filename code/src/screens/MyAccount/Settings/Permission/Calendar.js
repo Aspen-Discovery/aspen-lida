@@ -90,7 +90,7 @@ const CalendarPermissionUsage = () => {
      const { textColor } = React.useContext(ThemeContext);
 
      return (
-          <Accordion variant="unfilled" w="100%" size="sm">
+          <Accordion variant="unfilled" width="$full" size="sm">
                <AccordionItem value="description">
                     <AccordionHeader>
                          <AccordionTrigger px="$0">
@@ -150,8 +150,8 @@ const CalendarPermissionUpdate = (payload) => {
                               setShowAlertDialog(true);
                          }
                     }}
-                    bgColor={theme['colors']['primary']['500']}>
-                    <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
+                    bgColor="$primary500">
+                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
                </Button>
                <AlertDialog
                     isOpen={showAlertDialog}
@@ -159,7 +159,7 @@ const CalendarPermissionUpdate = (payload) => {
                          setShowAlertDialog(false);
                     }}>
                     <AlertDialogBackdrop />
-                    <AlertDialogContent bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <AlertDialogHeader>
                               <Heading color={textColor}>{getTermFromDictionary(language, 'update_device_settings')}</Heading>
                          </AlertDialogHeader>
@@ -167,14 +167,14 @@ const CalendarPermissionUpdate = (payload) => {
                               <Text color={textColor}>{Platform.OS === 'android' ? getTermFromDictionary(language, 'update_calendar_android') : getTermFromDictionary(language, 'update_calendar_ios')}</Text>
                          </AlertDialogBody>
                          <AlertDialogFooter>
-                              <ButtonGroup flexDirection="column" alignItems="stretch" w="100%">
+                              <ButtonGroup flexDirection="column" alignItems="stretch" width="$full">
                                    <Button
                                         onPress={() => {
                                              Linking.openSettings();
                                              setShowAlertDialog(false);
                                         }}
-                                        bgColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500-text']}>{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
+                                        bgColor="$primary500">
+                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={() => setShowAlertDialog(false)}>
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'not_now')}</ButtonText>

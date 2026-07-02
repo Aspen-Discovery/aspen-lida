@@ -97,7 +97,7 @@ export const MyLinkedAccounts = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -195,8 +195,8 @@ const Account = (data) => {
                          {account.displayName ? account.displayName : account.ils_barcode} - {account.homeLocation}
                     </Text>
                     {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
-                         <Button bgColor={theme['colors']['warning']['500']} isLoading={isRemoving} isLoadingText={getTermFromDictionary(language, 'removing', true)} size="sm" onPress={() => removeAccount()}>
-                              <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'remove')}</ButtonText>
+                         <Button bgColor="$warning500" isLoading={isRemoving} isLoadingText={getTermFromDictionary(language, 'removing', true)} size="sm" onPress={() => removeAccount()}>
+                              <ButtonText color="$white">{getTermFromDictionary(language, 'remove')}</ButtonText>
                          </Button>
                     )}
                </HStack>

@@ -1,4 +1,4 @@
-import { AlertDialog, Button, Center } from 'native-base';
+import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Button, ButtonText, ButtonGroup, Center, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import * as Linking from 'expo-linking';
 import {LanguageContext} from '../../context/initialContext';
@@ -21,21 +21,26 @@ export const UpdateAvailable = (props) => {
 
 	return (
 		<Center>
-			<AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-				<AlertDialog.Content>
-					<AlertDialog.Header>{getTermFromDictionary(language, 'update_available')}</AlertDialog.Header>
-					<AlertDialog.Body>{getTermFromDictionary(language, 'update_message')}</AlertDialog.Body>
-					<AlertDialog.Footer>
-						<Button.Group space={3}>
-							<Button variant="ghost" onPress={onClose} ref={cancelRef}>
-								{getTermFromDictionary(language, 'cancel')}
+			<AlertDialog isOpen={isOpen} onClose={onClose} finalFocusRef={cancelRef}>
+				<AlertDialogBackdrop />
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<Heading size="lg">{getTermFromDictionary(language, 'update_available')}</Heading>
+					</AlertDialogHeader>
+					<AlertDialogBody>
+						<Text size="sm">{getTermFromDictionary(language, 'update_message')}</Text>
+					</AlertDialogBody>
+					<AlertDialogFooter>
+						<ButtonGroup space="md">
+							<Button variant="outline" action="secondary" onPress={onClose} ref={cancelRef}>
+								<ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
 							</Button>
-							<Button colorScheme="primary" onPress={() => openAppStore()}>
-								{getTermFromDictionary(language, 'update_now')}
+							<Button action="primary" onPress={() => openAppStore()}>
+								<ButtonText>{getTermFromDictionary(language, 'update_now')}</ButtonText>
 							</Button>
-						</Button.Group>
-					</AlertDialog.Footer>
-				</AlertDialog.Content>
+						</ButtonGroup>
+					</AlertDialogFooter>
+				</AlertDialogContent>
 			</AlertDialog>
 		</Center>
 	);

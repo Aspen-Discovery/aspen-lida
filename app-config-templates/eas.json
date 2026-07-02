@@ -1,6 +1,6 @@
 {
   "cli": {
-	"version": "16.32.0"
+	"version": "20.1.0"
   },
   "build": {
 	"production": {
@@ -15,7 +15,7 @@
 		"resourceClass": "large"
 	  },
 	  "ios": {
-		"image": "latest",
+		"image": "macos-sequoia-15.6-xcode-26.0",
 		"resourceClass": "medium"
 	  }
 	},

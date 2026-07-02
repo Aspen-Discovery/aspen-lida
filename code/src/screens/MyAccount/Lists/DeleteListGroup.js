@@ -23,16 +23,16 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="xs" bgColor={theme['colors']['danger']['500']}>
-                    <ButtonIcon color={theme['colors']['white']} as={MaterialIcons} name="delete" mr="$1" />
-                    <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'delete_list_group')}</ButtonText>
+               <Button onPress={toggle} size="xs" bgColor="$danger500">
+                    <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1" />
+                    <ButtonText color="$white">{getTermFromDictionary(language, 'delete_list_group')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? theme['colors']['warmGray']['50'] : theme['colors']['coolGray']['700']}>
+                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_list_group')}</Heading>
-                              <ModalCloseButton hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}>
+                              <ModalCloseButton p="$3">
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -41,10 +41,10 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor={theme['colors']['primary']['500']}>
-                                        <ButtonText color={theme['colors']['primary']['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                   <Button variant="outline" onPress={toggle} borderColor="$primary500">
+                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme['colors']['danger']['500']}
+                                   <Button bgColor="$danger500"
                                            isLoading={loading}
                                            isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                            onPress={() => {
@@ -70,7 +70,7 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
                                                 });
                                            }}
                                    >
-                                        <ButtonText color={theme['colors']['white']}>{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

@@ -73,7 +73,7 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
                               >
                                    <InputField
                                         placeholder={getTermFromDictionary(language, 'from')}
@@ -89,7 +89,7 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? theme['colors']['coolGray']['500'] : theme['colors']['gray']['300']}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
                               >
                                    <InputField
                                         placeholder={getTermFromDictionary(language, 'to')}

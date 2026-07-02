@@ -60,7 +60,7 @@ export async function saveEvent(id, language, url = null) {
           }
      );
 
-     return response.ok ? response.data : [];
+     return response.ok ? response.data.result : [];
 }
 
 /**
