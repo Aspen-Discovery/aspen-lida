@@ -3,7 +3,7 @@ import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, StackActions } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../../context/initialContext';
 import { navigate } from '../../../../helpers/RootNavigator';
@@ -91,7 +91,9 @@ export const NotificationPermissionDescription = () => {
                 headerLeft: () => (
                     <Button
                         bg="transparent"
-                        onPress={() => navigate('MoreMenu')}
+                        onPress={() => {
+                            navigation.goBack();
+                        }}
                         mr="$3"
                         p="$1"
                     >

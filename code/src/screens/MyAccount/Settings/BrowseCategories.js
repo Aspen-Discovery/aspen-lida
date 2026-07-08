@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
 import { Box, FlatList, HStack, Switch, Text, Pressable, ChevronLeftIcon } from '@gluestack-ui/themed';
 import React from 'react';
+import { BackHandler } from 'react-native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
 import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
@@ -24,11 +25,29 @@ export const Settings_BrowseCategories = () => {
      const handleGoBack = () => {
           if (route?.params?.prevRoute === 'HomeScreen') {
                navigation.dispatch(CommonActions.setParams({ prevRoute: null }));
-               navigation.dispatch(StackActions.replace('MoreMenu'));
-          } else {
                navigation.goBack();
+          } else if (route?.params?.prevRoute === 'Preferences') {
+               navigation.dispatch(CommonActions.setParams({ prevRoute: null }));
+               navigation.goBack();
+          } else {
+               if (navigation.canGoBack()) {
+                    navigation.goBack();
+               } else {
+                    navigation.dispatch(StackActions.replace('MoreMenu'));
+               }
           }
      };
+
+     React.useEffect(() => {
+          const backAction = () => {
+               handleGoBack();
+               return true;
+          };
+
+          const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+          return () => backHandler.remove();
+     }, [route?.params?.prevRoute, navigation]);
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
