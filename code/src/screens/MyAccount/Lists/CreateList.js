@@ -94,7 +94,7 @@ const CreateList = (props) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="sm" bgColor="$primary500">
+               <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonIcon color="$textLight200" as={MaterialIcons} name="add" mr="$1" />
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                </Button>
@@ -271,7 +271,7 @@ const CreateList = (props) => {
                                         <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
                                         onPress={async () => {

@@ -18,7 +18,7 @@ import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { ThemeContext, BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
@@ -59,6 +59,7 @@ function onAppStateChange(AppStateStatus) {
 const prefix = Linking.createURL('/');
 
 export const DrawerContent = (props) => {
+     const {colorMode, textColor} = React.useContext(ThemeContext);
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
      const linkTo = useLinkTo();
@@ -654,6 +655,8 @@ export const DrawerContent = (props) => {
                     {...props}
                     contentContainerStyle={{
                          flexGrow: 1,
+                         paddingTop: insets.top,
+                         paddingBottom: insets.bottom,
                     }}
                >
                     <VStack space="$md" mx={4} flex={1}>
@@ -702,6 +705,7 @@ const UserProfileOverview = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      let icon;
      if (!_.isUndefined(library.logoApp)) {
@@ -718,20 +722,20 @@ const UserProfileOverview = () => {
                     <Image source={{ uri: icon }} fallbackSource={require('../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} borderRadius="$md" />
                     <Box ml="$3">
                          {user && user.displayName ? (
-                              <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175">
+                              <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175" color={textColor}>
                                    {user.displayName}
                               </Text>
                          ) : null}
 
                          {library && library.displayName ? (
-                              <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175">
+                              <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
                                    {library.displayName}
                               </Text>
                          ) : null}
                          <HStack space={1} alignItems="center">
-                              <Icon as={MaterialIcons} name="credit-card" size="xs" />
+                              <Icon as={MaterialIcons} name="credit-card" size="xs" color={textColor} />
                               {user && (user.ils_barcode || user.cat_username) ? (
-                                   <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175">
+                                   <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
                                         {user.ils_barcode ?? user.cat_username}
                                    </Text>
                               ) : null}
@@ -746,6 +750,7 @@ const Checkouts = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      const [checkoutSummary, setCheckoutSummary] = React.useState('');
      React.useEffect(() => {
@@ -773,29 +778,30 @@ const Checkouts = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <VStack width="$full">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium">
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'checked_out_titles')}
                               </Text>
                               {user ? (
-                                   <Text fontWeight="$bold"> ({user.numCheckedOut ?? 0})</Text>
+                                   <Text fontWeight="$bold" color={textColor}> ({user.numCheckedOut ?? 0})</Text>
                               ): null }
                          </HStack>
+                         {user.numOverdue > 0 ? (
+                              <Badge action="error" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                   <BadgeText fontSize="$xs">{checkoutSummary}</BadgeText>
+                              </Badge>
+                         ) : null}
                     </VStack>
                </HStack>
-               {user.numOverdue > 0 ? (
-                    <Badge action="error" ml="$2.5" mt="$1" borderRadius="$sm">
-                         <BadgeText fontSize="$xs">{checkoutSummary}</BadgeText>
-                    </Badge>
-               ) : null}
           </Pressable>
      );
 };
 
 const Holds = () => {
      const { user } = React.useContext(UserContext);
+     const { textColor } = React.useContext(ThemeContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
 
@@ -825,25 +831,23 @@ const Holds = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <VStack width="$full">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
+                    <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium">
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'titles_on_hold')}
                               </Text>
                               {user ? (
-                                   <Text fontWeight="$bold"> ({user.numHolds ?? 0})</Text>
+                                   <Text fontWeight="$bold" color={textColor}> ({user.numHolds ?? 0})</Text>
                               ) : null}
                          </HStack>
+                         {user.numHoldsAvailable > 0 ? (
+                              <Badge action="success" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                   <BadgeText fontSize="$xs">{holdSummary}</BadgeText>
+                              </Badge>
+                         ) : null}
                     </VStack>
                </HStack>
-               {user.numHoldsAvailable > 0 ? (
-                    <Box width="$full">
-                         <Badge action="success" ml="$2.5" borderRadius="$sm">
-                              <BadgeText fontSize="$xs">{holdSummary}</BadgeText>
-                         </Badge>
-                    </Box>
-               ) : null}
           </Pressable>
      );
 };
@@ -852,6 +856,7 @@ const UserLists = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      if (version >= '22.08.00') {
@@ -867,14 +872,14 @@ const UserLists = () => {
                          });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <VStack width="$full">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <VStack>
                               <HStack space="xs" alignItems="center">
-                                   <Text fontWeight="$medium">
+                                   <Text fontWeight="$medium" color={textColor}>
                                         {getTermFromDictionary(language, 'my_lists')}
                                    </Text>
                                    {user ? (
-                                        <Text fontWeight="$bold"> ({user.numLists ?? 0})</Text>
+                                        <Text fontWeight="$bold" color={textColor}> ({user.numLists ?? 0})</Text>
                                    ) : null}
                               </HStack>
                          </VStack>
@@ -895,9 +900,9 @@ const UserLists = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
                     <VStack width="$full">
-                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'my_lists')}</Text>
+                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'my_lists')}</Text>
                     </VStack>
                </HStack>
           </Pressable>
@@ -908,6 +913,7 @@ const SavedSearches = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      const [savedSearchSummary, setSavedSearchSummary] = React.useState('');
@@ -936,25 +942,23 @@ const SavedSearches = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <VStack width="$full">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium">
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'saved_searches')}
                               </Text>
                               {user ? (
-                                   <Text fontWeight="$bold"> ({user.numSavedSearches ?? 0})</Text>
+                                   <Text fontWeight="$bold" color={textColor}> ({user.numSavedSearches ?? 0})</Text>
                               ): null}
                          </HStack>
+                         {user.numSavedSearchesNew > 0 ? (
+                              <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
+                              </Badge>
+                         ) : null}
                     </VStack>
                </HStack>
-               {user.numSavedSearchesNew > 0 ? (
-                    <Box width="$full">
-                         <Badge action="warning" ml="$2.5" borderRadius="$sm">
-                              <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
-                         </Badge>
-                    </Box>
-               ) : null}
           </Pressable>
      );
 
@@ -965,6 +969,7 @@ const ReadingHistory = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      return (
@@ -979,13 +984,13 @@ const ReadingHistory = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <VStack width="$full">
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium">
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'reading_history')}
                               </Text>
-                              <Text fontWeight="$bold"> ({user.numReadingHistory ?? 0})</Text>
+                              <Text fontWeight="$bold" color={textColor}> ({user.numReadingHistory ?? 0})</Text>
                          </HStack>
                     </VStack>
                </HStack>
@@ -998,6 +1003,7 @@ const ReadingHistory = () => {
 const UserProfile = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      return (
           <Pressable
@@ -1010,8 +1016,8 @@ const UserProfile = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <Text fontWeight="$medium">{getTermFromDictionary(language, 'contact_information')}</Text>
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'contact_information')}</Text>
                </HStack>
           </Pressable>
      );
@@ -1020,6 +1026,7 @@ const UserProfile = () => {
 const NotificationHistory = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
           return (
@@ -1032,8 +1039,8 @@ const NotificationHistory = () => {
                          });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'notification_history')}</Text>
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'notification_history')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -1044,6 +1051,7 @@ const LinkedAccounts = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      if (library.allowLinkedAccounts === '1') {
@@ -1058,11 +1066,11 @@ const LinkedAccounts = () => {
                          })
                     }>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <Text fontWeight="$medium">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <Text fontWeight="$medium" color={textColor}>
                               {getTermFromDictionary(language, 'linked_accounts')}
                          </Text>
-                         <Text fontWeight="$bold"> ({user.numLinkedAccounts ?? 0})</Text>
+                         <Text fontWeight="$bold" color={textColor}> ({user.numLinkedAccounts ?? 0})</Text>
                     </HStack>
                </Pressable>
           );
@@ -1074,6 +1082,7 @@ const LinkedAccounts = () => {
 const UserPreferences = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      return (
           <Pressable
@@ -1086,8 +1095,8 @@ const UserPreferences = () => {
                     });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                    <Text fontWeight="$medium">{getTermFromDictionary(language, 'preferences')}</Text>
+                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
                </HStack>
           </Pressable>
      );
@@ -1096,6 +1105,7 @@ const UserPreferences = () => {
 const AlternateLibraryCard = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      let shouldShowAlternateLibraryCard = false;
@@ -1116,8 +1126,8 @@ const AlternateLibraryCard = () => {
                          });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <Text fontWeight="$medium">{getTermFromDictionary(language, 'alternate_library_card')}</Text>
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'alternate_library_card')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -1130,6 +1140,7 @@ const Fines = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -1153,17 +1164,14 @@ const Fines = () => {
           return (
                <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <VStack width="$full">
-                              <Text fontWeight="$medium">{getTermFromDictionary(language, 'fines')}</Text>
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
+                         <VStack>
+                              <Text fontWeight="$medium" color={themeTextColor}>{getTermFromDictionary(language, 'fines')}</Text>
+                              <Badge action={hasFines ? 'error' : 'info'} mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                   <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
+                              </Badge>
                          </VStack>
                     </HStack>
-
-                    <Box width="$full">
-                         <Badge action={hasFines ? 'error' : 'info'} ml="$2.5" borderRadius="$sm">
-                              <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
-                         </Badge>
-                    </Box>
                </Pressable>
           );
      }
@@ -1175,6 +1183,7 @@ const Events = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
 
      const [savedEventsSummary, setSavedEventsSummary] = React.useState('');
@@ -1204,20 +1213,18 @@ const Events = () => {
                          });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <VStack width="$full">
-                              <Text fontWeight="$medium">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <VStack>
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'events')}
                               </Text>
+                              {user.numSavedEventsUpcoming > 0 ? (
+                                   <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                        <BadgeText fontSize="$xs">{savedEventsSummary}</BadgeText>
+                                   </Badge>
+                              ) : null}
                          </VStack>
                     </HStack>
-                    {user.numSavedEventsUpcoming > 0 ? (
-                         <Box width="$full">
-                              <Badge action="info" ml="$2.5" borderRadius="$sm">
-                                   <BadgeText fontSize="$xs">{savedEventsSummary}</BadgeText>
-                              </Badge>
-                         </Box>
-                    ) : null}
                </Pressable>
           );
      }
@@ -1229,6 +1236,7 @@ const YearInReview = () => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -1242,17 +1250,14 @@ const YearInReview = () => {
           return (
                <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" />
-                         <VStack width="$full">
-                              <Text fontWeight="$medium">{user.yearInReviewName ?? getTermFromDictionary(language, 'year_in_review')}</Text>
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
+                         <VStack>
+                              <Text fontWeight="$medium" color={themeTextColor}>{user.yearInReviewName ?? getTermFromDictionary(language, 'year_in_review')}</Text>
+                              <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'view_now')}</BadgeText>
+                              </Badge>
                          </VStack>
                     </HStack>
-
-                    <Box width="$full">
-                         <Badge action="info" ml="$2.5" borderRadius="$sm">
-                              <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'view_now')}</BadgeText>
-                         </Badge>
-                    </Box>
                </Pressable>
           );
      }
@@ -1264,6 +1269,7 @@ const Campaigns = () => {
      const { user } = React.useContext(UserContext);
 	const { library } = React.useContext(LibrarySystemContext);
 	const { language } = React.useContext(LanguageContext);
+     const { textColor } = React.useContext(ThemeContext);
      if (library.hasCommunityEngagementEnabled) {
           return(
                <Pressable
@@ -1277,9 +1283,9 @@ const Campaigns = () => {
                          })
                     }>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg"/>
-                         <VStack width="$full">
-                              <Text fontWeight="$medium">
+                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <VStack>
+                              <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'campaigns')}
                               </Text>
                          </VStack>
@@ -1327,19 +1333,11 @@ async function addStoredNotification(message) {
 function LogOutButton() {
      const { language } = React.useContext(LanguageContext);
      const { signOut } = React.useContext(AuthContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      return (
-          <Button size="md" action="secondary" onPress={signOut} leftIcon={<Icon as={MaterialIcons} name="logout" size="xs" />}>
-               <ButtonText>{getTermFromDictionary(language, 'logout')}</ButtonText>
+          <Button size="md" action="secondary" onPress={signOut} leftIcon={<Icon as={MaterialIcons} name="logout" size="xs" color={textColor} />}>
+               <ButtonText color={textColor}>{getTermFromDictionary(language, 'logout')}</ButtonText>
           </Button>
      );
 }
-
-const ReloadProfileButton = (props) => {
-     const { language } = React.useContext(LanguageContext);
-     return (
-          <Button size="xs" action="tertiary" onPress={() => props.handleRefreshProfile(props.libraryUrl)} variant="ghost" leftIcon={<Icon as={MaterialIcons} name="refresh" size="xs" />}>
-               <ButtonText>{getTermFromDictionary(language, 'refresh_account')}</ButtonText>
-          </Button>
-     );
-};

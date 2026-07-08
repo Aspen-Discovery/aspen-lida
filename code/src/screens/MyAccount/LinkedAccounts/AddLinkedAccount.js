@@ -55,7 +55,7 @@ const AddLinkedAccount = () => {
 
      return (
           <Center>
-               <Button onPress={toggle} bgColor="$primary500">
+               <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'linked_add_an_account')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
@@ -105,10 +105,10 @@ const AddLinkedAccount = () => {
                          <ModalFooter>
                               <ButtonGroup>
                                    <Button variant="link" onPress={toggle}>
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'adding', true)}
                                         onPress={async () => {

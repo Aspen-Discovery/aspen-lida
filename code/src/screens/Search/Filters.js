@@ -168,10 +168,10 @@ export const FiltersScreen = () => {
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => clearSelections()}>
-                                   <ButtonText color="$primary500">{getTermFromDictionary(language, 'reset_all')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'reset_all')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    isDisabled={loading}
                                    onPress={() => {
                                         setLoading(true);

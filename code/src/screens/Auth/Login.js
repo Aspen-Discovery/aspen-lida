@@ -262,8 +262,8 @@ export const LoginScreen = () => {
                               {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
                          </ButtonGroup>
                          {enableSelfRegistration ? (
-                              <Button mt="$3" variant="link" onPress={openSelfRegistration} color="$primary500">
-                                   <ButtonText color="$primary500">{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
+                              <Button mt="$3" variant="link" onPress={openSelfRegistration} color={theme.tokens.colors.primary['500']}>
+                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
                               </Button>
                          ) : null}
                          {isCommunity && Platform.OS !== 'android' ? (

@@ -355,11 +355,11 @@ export const MyList = () => {
                     alignItems="center">
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
-                              <Button bgColor="$primary500" onPress={() => setPage(page - 1)} isDisabled={page === 1}>
+                              <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => setPage(page - 1)} isDisabled={page === 1}>
                                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    onPress={() => {
                                         if (!isPreviousData && data?.hasMore) {
                                              console.log('Adding to page');

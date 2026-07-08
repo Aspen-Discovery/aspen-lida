@@ -223,10 +223,10 @@ export const Facet = ({ route, navigation }) => {
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => resetCluster()}>
-                                   <ButtonText color="$primary500">{getTermFromDictionary(language, 'reset')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'reset')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    isDisabled={isUpdating}
                                    onPress={() => {
                                         updateSearch();

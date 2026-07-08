@@ -519,7 +519,7 @@ export const ManageSelectedHolds = (props) => {
 
      return (
           <Center>
-               <Button bgColor="$primary500" onPress={handleClose} size="sm" variant="solid" mr="$1">
+               <Button bgColor={theme.tokens.colors.primary['500']} onPress={handleClose} size="sm" variant="solid" mr="$1">
                     <ButtonText color="$textLight200">{numSelectedLabel}</ButtonText>
                </Button>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
@@ -639,7 +639,7 @@ export const ManageAllHolds = (props) => {
      if (numToManage >= 1) {
           return (
                <Center>
-                    <Button bgColor="$primary500" size="sm" variant="solid" mr={1} onPress={handleClose}>
+                    <Button bgColor={theme.tokens.colors.primary['500']} size="sm" variant="solid" mr={1} onPress={handleClose}>
                          <ButtonText color="$textLight200">{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
                     </Button>
                     <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>

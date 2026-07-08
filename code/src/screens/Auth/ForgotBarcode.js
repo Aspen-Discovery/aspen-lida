@@ -145,7 +145,7 @@ export const ForgotBarcode = (props) => {
      );
 
      const FooterButtons = (showResults && !results.success) || hasError ? (
-          <Button bgColor="$primary500" onPress={resetWindow}>
+          <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
                <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
           </Button>
      ) : showResults ? (
@@ -160,7 +160,7 @@ export const ForgotBarcode = (props) => {
                <Button
                     isLoading={isProcessing}
                     isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
-                    bgColor="$primary500"
+                    bgColor={theme.tokens.colors.primary['500']}
                     onPress={initiateForgotBarcode}>
                     <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
                </Button>
@@ -170,7 +170,7 @@ export const ForgotBarcode = (props) => {
      return (
           <Center>
                <Button variant="link" onPress={() => setShowForgotBarcodeModal(true)}>
-                    <ButtonText color="$primary500">{buttonLabel}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500']}>{buttonLabel}</ButtonText>
                </Button>
                <Modal isOpen={showForgotBarcodeModal} size="lg" avoidKeyboard onClose={() => setShowForgotBarcodeModal(false)} pb={Platform.OS === 'android' && isKeyboardOpen ? '50%' : '0'}>
                     <ModalBackdrop />

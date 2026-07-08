@@ -650,7 +650,7 @@ const RegistrationModal = ({ event }) => {
                                         }}>
                                         <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor="$primary500" onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

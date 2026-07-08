@@ -325,7 +325,7 @@ export const HoldPrompt = (props) => {
 
      return (
           <>
-               <Button minWidth="100%" maxWidth="100%" bgColor="$primary500" onPress={() => setShowModal(true)}>
+               <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowModal(true)}>
                     <ButtonText color="$textLight200">{title}</ButtonText>
                </Button>
                <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
@@ -379,7 +379,7 @@ export const HoldPrompt = (props) => {
                                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
@@ -599,7 +599,7 @@ export const HoldPrompt = (props) => {
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              onPress={() => {
                                                   setShowModal(false);
                                                   setShowAddAlternateLibraryCardModal(true);
@@ -608,7 +608,7 @@ export const HoldPrompt = (props) => {
                                         </Button>
                                    ) : (
                                         <Button
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);

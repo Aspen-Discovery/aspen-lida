@@ -195,7 +195,7 @@ export const ResetExpiredPin = (props) => {
                                         <Center>
                                              <VStack>
                                                   <Text color={textColor}>{resetMessage}. Logging you in...</Text>
-                                                  <Spinner color="$primary500" />
+                                                  <Spinner color={theme.tokens.colors.primary['500']} />
                                              </VStack>
                                         </Center>
                                    </AlertDialogBody>
@@ -268,10 +268,10 @@ export const ResetExpiredPin = (props) => {
 
                                    <AlertDialogFooter>
                                         <ButtonGroup space="$3">
-                                             <Button variant="outline" onPress={onClose} borderColor="$primary500">
-                                                  <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                             <Button variant="outline" onPress={onClose} borderColor={theme.tokens.colors.primary['500']}>
+                                                  <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
-                                             <Button bgColor="$primary500" onPress={() => updatePIN()}>
+                                             <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => updatePIN()}>
                                                   <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>

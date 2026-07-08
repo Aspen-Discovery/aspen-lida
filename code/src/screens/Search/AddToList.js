@@ -124,7 +124,7 @@ const AddToList = (props) => {
 
      const RegularButton = () => {
           return (
-               <Button width={btnWidth} onPress={toggleModal} color="$primary500">
+               <Button width={btnWidth} onPress={toggleModal} color={theme.tokens.colors.primary['500']}>
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
                </Button>
           );
@@ -188,7 +188,7 @@ const AddToList = (props) => {
                                                        <HStack space="sm" alignItems="center">
                                                             <Text color={textColor}>{getTermFromDictionary(language, 'or')}</Text>
                                                             <Button
-                                                                 bgColor="$primary500"
+                                                                 bgColor={theme.tokens.colors.primary['500']}
                                                                  size="sm"
                                                                  onPress={() => {
                                                                       setScreen('create-new');
@@ -212,7 +212,7 @@ const AddToList = (props) => {
                                              </Button>
                                              {!_.isEmpty(lists) ? (
                                                   <Button
-                                                       bgColor="$primary500"
+                                                       bgColor={theme.tokens.colors.primary['500']}
                                                        isLoading={loading}
                                                        onPress={() => {
                                                             setLoading(true);
@@ -226,7 +226,7 @@ const AddToList = (props) => {
                                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save_to_list')}</ButtonText>
                                                   </Button>
                                              ) : (
-                                                  <Button bgColor="$primary500">
+                                                  <Button bgColor={theme.tokens.colors.primary['500']}>
                                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                                                   </Button>
                                              )}
@@ -400,7 +400,7 @@ const AddToList = (props) => {
                                                   <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
                                              <Button
-                                                  bgColor="$primary500"
+                                                  bgColor={theme.tokens.colors.primary['500']}
                                                   isLoading={loading}
                                                   isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                                   onPress={() => {

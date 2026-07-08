@@ -137,14 +137,14 @@ export const SelectThawDate = (props) => {
                               <ButtonGroup>
                                    <HStack >
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         style={{margin:5}}
                                         onPress={hideDatePicker}>
                                         <ButtonText color="$textLight200">{getTermFromDictionary("en", "cancel")}</ButtonText>
                                    </Button>
                                    <Button
                                         style={{margin:5}}
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                         if(freezeIndefinite)
                                         {

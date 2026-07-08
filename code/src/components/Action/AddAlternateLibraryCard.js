@@ -165,7 +165,7 @@ export const AddAlternateLibraryCard = (props) => {
                                    <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);

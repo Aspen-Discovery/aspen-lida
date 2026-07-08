@@ -120,7 +120,7 @@ export const CheckOut = (props) => {
           };
           return (
                <>
-                    <Button minWidth="100%" maxWidth="100%" bgColor="$primary500" onPress={() => setShowAddAlternateLibraryCardModal(true)}>
+                    <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowAddAlternateLibraryCardModal(true)}>
                          <ButtonText color="$textLight200">{title}</ButtonText>
                     </Button>
                     <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
@@ -174,7 +174,7 @@ export const CheckOut = (props) => {
                                              <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
@@ -207,7 +207,7 @@ export const CheckOut = (props) => {
                     <Button
                          minWidth="100%"
                          maxWidth="100%"
-                         bgColor="$primary500"
+                         bgColor={theme.tokens.colors.primary['500']}
                          variant="solid"
                          onPress={async () => {
                               setLoading(true);

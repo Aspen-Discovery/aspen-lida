@@ -26,7 +26,7 @@ export const InvalidCredentials = () => {
                          <AlertDialogBody><Text color={textColor}>{getTermFromDictionary(language, 'error_invalid_credentials')}</Text></AlertDialogBody>
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
-                                   <Button bgColor="$primary500" onPress={signOut} ref={cancelRef}>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut} ref={cancelRef}>
                                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                    </Button>
                               </ButtonGroup>

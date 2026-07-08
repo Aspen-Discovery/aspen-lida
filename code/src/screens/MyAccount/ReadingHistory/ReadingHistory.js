@@ -454,7 +454,7 @@ export const MyReadingHistory = () => {
                          <ScrollView horizontal>
                               <ButtonGroup size="sm">
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         onPress={async () => {
                                             if (page > 1) {
                                                  updatePage(page - 1)
@@ -464,7 +464,7 @@ export const MyReadingHistory = () => {
                                         <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         onPress={async () => {
                                              if (readingHistory?.hasMore) {
                                                   logDebugMessage('Adding to page');

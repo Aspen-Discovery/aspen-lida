@@ -330,7 +330,7 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
         <Center>
             <Button
                 onPress={handleUpdatePermissions}
-                bgColor="$primary500"
+                bgColor={theme.tokens.colors.primary['500']}
                 isDisabled={isUpdating}
             >
                 <ButtonText color="$textLight200">
@@ -369,7 +369,7 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                                     Linking.openSettings();
                                     setShowAlertDialog(false);
                                 }}
-                                bgColor="$primary500"
+                                bgColor={theme.tokens.colors.primary['500']}
                             >
                                 <ButtonText color="$textLight200">
                                     {getTermFromDictionary(language, 'open_device_settings')}

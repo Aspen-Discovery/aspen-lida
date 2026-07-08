@@ -350,7 +350,7 @@ export const MyCheckouts = () => {
                                    isLoadingText={getTermFromDictionary(language, 'renewing_all', true)}
                                    isDisabled={renewAll}
                                    size="sm"
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    onPress={() => {
                                         if (renewAll) return;
                                         setRenewAll(true);
@@ -470,14 +470,14 @@ export const MyCheckouts = () => {
                     <HStack space="$2">
                          <Button
                               m="$2"
-                              borderColor="$primary500"
+                              borderColor={theme.tokens.colors.primary['500']}
                               size="sm"
                               variant="outline"
                               onPress={() => {
                                    setLoading(true);
                                    reloadCheckouts();
                               }}>
-                              <ButtonText color="$primary500">{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
                          </Button>
                     </HStack>
                );
@@ -518,8 +518,8 @@ export const MyCheckouts = () => {
                               <AlertDialogBody><Text>{renewConfirmationResponse?.message ? decodeMessage(renewConfirmationResponse.message) : 'Unable to renew checkout for unknown error. Please contact the library.'}</Text></AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
-                                        <Button variant="outline" borderColor="$primary500" onPress={() => setRenewConfirmationIsOpen(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} onPress={() => setRenewConfirmationIsOpen(false)}>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
                                              isLoading={confirmingRenewal}

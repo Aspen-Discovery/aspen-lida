@@ -161,7 +161,7 @@ export const MyAlternateLibraryCard = () => {
                               ) : null}
                               <ButtonGroup>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              setIsLoading(true);
                                              updateCard().then(() => {

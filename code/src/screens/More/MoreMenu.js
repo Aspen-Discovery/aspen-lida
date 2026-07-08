@@ -121,11 +121,11 @@ export const MoreMenu = () => {
                               </ModalBody>
                               <ModalFooter>
                                    <ButtonGroup>
-                                        <Button variant="outline" borderColor="$primary500" onPress={toggleDeleteConfirmationModal}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} onPress={toggleDeleteConfirmationModal}>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                         </Button>
                                         <Button
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                             isLoading={deleting}
                                             isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                             onPress={async () => {
@@ -158,11 +158,11 @@ export const MoreMenu = () => {
                               </ModalBody>
                               <ModalFooter>
                                         {deleteResults.success === true ? (
-                                            <Button bgColor="$primary500" onPress={signOut}>
+                                            <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
                                                  <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         ) : (
-                                            <Button bgColor="$primary500"  variant="primary" onPress={toggleDeleteResultsModal}>
+                                            <Button bgColor={theme.tokens.colors.primary['500']}  variant="primary" onPress={toggleDeleteResultsModal}>
                                                  <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         )}

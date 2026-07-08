@@ -94,7 +94,7 @@ export function UseColorMode(props) {
      const toggledColorMode = (colorMode === 'dark' ? 'light' : 'dark');
      const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
      const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
-     const darkText = useToken('colors', 'textLight950');
+     const darkText = useToken('colors', 'textLight800');
      const lightText = useToken('colors', 'textLight50');
      const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
      const { updateColorMode, updateTextColor, theme } = React.useContext(ThemeContext);
@@ -115,7 +115,7 @@ export function UseColorMode(props) {
           return (
                <HStack alignItems="center">
                     <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
-                         <ButtonIcon as={MaterialIcons} name={currentModeB} size="sm" color="$primary500" />
+                         <ButtonIcon as={MaterialIcons} name={currentModeB} size="sm" color={theme.tokens.colors.primary['500']} />
                          <ButtonText fontSize="$sm" color={iconColor}> {currentColorMode}</ButtonText>
                     </Button>
                </HStack>
@@ -125,7 +125,7 @@ export function UseColorMode(props) {
      return (
           <Box alignItems="center">
                <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
-                    <ButtonIcon as={MaterialIcons} name={currentMode} size="sm" color="$primary500" />
+                    <ButtonIcon as={MaterialIcons} name={currentMode} size="sm" color={theme.tokens.colors.primary['500']} />
                </Button>
           </Box>
      );

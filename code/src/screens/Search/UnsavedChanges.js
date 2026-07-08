@@ -64,7 +64,7 @@ export const UnsavedChangesExit = (props) => {
                          </AlertDialog.Body>
                          <AlertDialog.Footer>
                               <ButtonGroup space="sm">
-                                   <Button bgColor="$primary500" onPress={updateClose} ref={cancelRef}>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={updateClose} ref={cancelRef}>
                                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={forceClose}>

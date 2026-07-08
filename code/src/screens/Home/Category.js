@@ -145,7 +145,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
      return (
           <Pressable maxWidth="80%" /*onPress={() => onPressCategory(category, textId, source)}*/>
                <Text
-                    color={colorMode === 'light' ? "$gray800" : "$coolGray200"}
+                    color={colorMode === 'light' ? "$warmGray600" : "$coolGray200"}
                     bold
                     mb="$1"
                     fontSize="$lg"
@@ -346,10 +346,10 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
                              variant="solid"
                              sx={{ paddingHorizontal: 12, height: 34 }}
                              onPress={() => onSelect(index)}>
-                          <ButtonText fontWeight="$medium" color="$textLight200" >
+                          <ButtonText fontWeight="$medium" color="$warmGray800" >
                                {subCategory.label}
                           </ButtonText>
-                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$textLight200" ml="$4" />)}
+                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$warmGray800" ml="$4" />)}
                      </Button>
                 ))}
          </ButtonGroup>
@@ -383,7 +383,7 @@ const DisplayMoreResultsButton = ({ category }) => {
                alignItems="center"
                justifyContent="center"
                mr="$3"
-               bgColor="$primary500"
+               bgColor={theme.tokens.colors.primary['500']}
                style={{
                     borderRadius: "$sm",
                }}

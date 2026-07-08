@@ -81,6 +81,7 @@ const DisplayCategory = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
+     const {textColor} = React.useContext(ThemeContext);
 
      const updateToggle = async (category) => {
           const key = category['key'] ?? category['sourceId'];
@@ -104,6 +105,7 @@ const DisplayCategory = (data) => {
                <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                     <Text
                          flexWrap="wrap"
+                         color={textColor}
                          bold
                          maxW="80%"
                          fontSize="$lg">

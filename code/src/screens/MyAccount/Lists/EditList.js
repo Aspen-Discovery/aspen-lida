@@ -115,7 +115,7 @@ const EditList = (props) => {
      return (
           <>
                <ButtonGroup size="sm" justifyContent="center" >
-                    <Button onPress={() => setShowModal(true)} bgColor="$primary500">
+                    <Button onPress={() => setShowModal(true)} bgColor={theme.tokens.colors.primary['500']}>
                          <ButtonIcon color="$textLight200" as={MaterialIcons} name="edit" mr="$1" />
                          <ButtonText color="$textLight200">{getTermFromDictionary(language, 'edit')}</ButtonText>
                     </Button>
@@ -209,11 +209,11 @@ const EditList = (props) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={() => setShowModal(false)} borderColor="$primary500">
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button variant="outline" onPress={() => setShowModal(false)} borderColor={theme.tokens.colors.primary['500']}>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                         onPress={() => {
