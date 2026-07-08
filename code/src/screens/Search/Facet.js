@@ -123,7 +123,7 @@ export const Facet = ({ route, navigation }) => {
                     <Box p="$5">
                          <Input
                               size="lg"
-                              borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                              borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                               color={textColor}
                               variant="outline"
                          >

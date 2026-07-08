@@ -318,10 +318,10 @@ export const MyReadingHistory = () => {
                     p="$5"
                     bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
                     borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}
+                    borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
                     flexWrap="nowrap">
                     <VStack space="sm">
-                         <Input borderColor={colorMode === 'light' ? '$none' : "$gray400"}>
+                         <Input borderColor={colorMode === 'light' ? '$none' : "$warmGray400"}>
                               <InputField
                                    returnKeyType="search"
                                    variant="outline"
@@ -448,7 +448,7 @@ export const MyReadingHistory = () => {
                          p="$2"
                          borderTopWidth="$1"
                          bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
-                         borderColor={colorMode === 'light' ? "$coolGray400" : "$gray600"}
+                         borderColor={colorMode === 'light' ? "$coolGray400" : "$warmGray600"}
                          flexWrap="nowrap"
                          alignItems="center">
                          <ScrollView horizontal>
@@ -568,7 +568,7 @@ const Item = (data) => {
      let url = library.baseUrl + '/bookcover.php?id=' + item.permanentId + '&size=medium';
      if (item.title) {
           return (
-               <Pressable onPress={toggle} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray400" : "$gray600"} pl="$4" pr="$5" py="$2">
+               <Pressable onPress={toggle} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2">
                     <HStack space="md">
                          <VStack maxW="30%">
                               <Image

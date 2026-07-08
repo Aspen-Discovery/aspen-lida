@@ -334,7 +334,7 @@ export const MyLists = () => {
                     p="$2"
                     borderTopWidth="$1"
                     bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
-                    borderColor={colorMode === 'light' ? "$coolGray400" : "$gray600"}
+                    borderColor={colorMode === 'light' ? "$coolGray400" : "$warmGray600"}
                     flexWrap="nowrap"
                     alignItems="center">
                     <ScrollView horizontal>

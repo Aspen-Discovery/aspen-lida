@@ -140,7 +140,7 @@ export const SearchResults = () => {
                     label = num + ' ' + getTermFromDictionary(language, 'result');
                }
                return (
-                    <Box bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}>
+                    <Box bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}>
                          <Box m="$2">
                               <Text color={textColor}>{label}</Text>
                          </Box>
@@ -154,7 +154,7 @@ export const SearchResults = () => {
      const Paging = () => {
           if (data.totalPages > 1) {
                return (
-                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap" alignItems="center">
+                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" alignItems="center">
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
@@ -368,7 +368,7 @@ const DisplayResult = (data) => {
           let roomData = item?.room ?? null;
 
           return (
-               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? "$warmGray400" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                     <HStack space="md">
                          <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                               <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -422,7 +422,7 @@ const DisplayResult = (data) => {
      }
 
      return (
-          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                <HStack space="md">
                     <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                          <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -493,7 +493,7 @@ const FilterBar = ({ navigation }) => {
                     paddingBottom="$0"
                     sx={{
                          bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-                         borderColor: colorMode === 'light' ? "$coolGray200" : "$gray600",
+                         borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
                     }}
                     flexWrap="nowrap">
                     <ScrollView horizontal>
@@ -541,10 +541,10 @@ const SearchBox = ({term, navigation}) => {
      return (
          <Box padding="$2" sx={{
               bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-              borderColor: colorMode === 'light' ? "$coolGray200" : "$gray600",
+              borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
          }} borderBottomWidth="$1">
               <FormControl pb="$5">
-                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                         <InputSlot>
                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                         </InputSlot>
@@ -617,7 +617,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                    size="sm"
                                    variant="outline"
                                    sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$gray400",
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
                                    }}
                                    onPress={() => {
                                         navigation.push('modal', {
@@ -643,7 +643,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                               size="sm"
                               variant="outline"
                               sx={{
-                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$gray400",
+                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$warmGray400",
                               }}
                               onPress={() => {
                                    navigation.push('modal', {
@@ -699,7 +699,7 @@ const CreateFilterButton = ({navigation}) => {
                                    size="sm"
                                    key={index}
                                    sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$gray400",
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
                                    }}
                                    onPress={() => {
                                         navigation.push('modal', {

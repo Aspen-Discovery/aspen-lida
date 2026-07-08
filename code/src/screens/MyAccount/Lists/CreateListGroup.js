@@ -56,7 +56,7 @@ const CreateListGroup = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField id="title" onChangeText={(text) => setTitle(text)} returnKeyType="next" defaultValue={title} color={textColor} />
                                    </Input>
                               </FormControl>

@@ -42,7 +42,7 @@ export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'rename_list_group_to')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="title" defaultValue={currentTitle} autoComplete="off" onChangeText={(text) => setTitle(text)} color={textColor}/></Input>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField id="title" defaultValue={currentTitle} autoComplete="off" onChangeText={(text) => setTitle(text)} color={textColor}/></Input>
                               </FormControl>
                          </ModalBody>
                          <ModalFooter>

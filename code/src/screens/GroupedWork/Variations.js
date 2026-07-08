@@ -446,8 +446,8 @@ const Variation = (props) => {
                               />
                          ))}
                     </ButtonGroup>
-                    <Button width="100%" mt="$2" size="xs" variant="solid" bgColor="$gray200" onPress={handleOpenEditions}>
-                         <ButtonText color="$gray900">{getTermFromDictionary(language, 'show_editions')}</ButtonText>
+                    <Button width="100%" mt="$2" size="xs" variant="solid" bgColor="$warmGray200" onPress={handleOpenEditions}>
+                         <ButtonText color="$warmGray900">{getTermFromDictionary(language, 'show_editions')}</ButtonText>
                     </Button>
                </Center>
           </Box>

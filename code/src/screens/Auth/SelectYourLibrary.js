@@ -113,7 +113,7 @@ export const SelectYourLibrary = (payload) => {
                          </ModalHeader>
                          <ModalBody>
                               <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} p="$2" pb={query ? 0 : 5}>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField variant="filled"
                                              size="$lg"
                                              autoCorrect={false}

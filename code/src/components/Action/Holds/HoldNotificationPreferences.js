@@ -69,7 +69,7 @@ export const HoldNotificationPreferences = (props) => {
                                         {getTermFromDictionary(language, 'hold_phone_number')}
                                    </FormControlLabelText>
                               </FormControlLabel>
-                              <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                              <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                    <InputField color={textColor} name="phoneNumber" defaultValue={phoneNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_phone_number')} onChangeText={(value) => setPhoneNumber(value)} />
                               </Input>
                          </FormControl>
@@ -145,7 +145,7 @@ export const HoldNotificationPreferences = (props) => {
                                                   {getTermFromDictionary(language, 'hold_sms_number')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                              <InputField color={textColor} name="smsNumber" defaultValue={smsNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_number')} onChangeText={(value) => setSMSNumber(value)} />
                                         </Input>
                                         <FormControlHelper mb="$2">

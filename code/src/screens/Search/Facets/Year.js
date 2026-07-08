@@ -70,7 +70,7 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                               >
                                    <InputField
                                         color={textColor}
@@ -85,7 +85,7 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                               >
                                    <InputField
                                         color={textColor}

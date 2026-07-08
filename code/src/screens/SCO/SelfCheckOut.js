@@ -298,7 +298,7 @@ export const SelfCheckOut = () => {
                                         </ModalHeader>
                                         <ModalBody>
                                              <FormControl pb="$5">
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                        <InputField color={textColor} keyboardType={keyboardType === 1 ? 'number-pad' : 'default'} variant="outline" autoCapitalize="none" placeholder={getTermFromDictionary(language, 'enter_barcode')} size="$lg" defaultValue={newBarcode} onChangeText={(text) => setNewBarcode(text)} />
                                                   </Input>
                                              </FormControl>
@@ -383,7 +383,7 @@ export const SelfCheckOut = () => {
                                                   <FormControlLabel>
                                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'does_barcode_match_item')}</FormControlLabelText>
                                                   </FormControlLabel>
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                        <InputField id="barcode" autoCapitalize="none" autoCorrect={false} onChangeText={(text) => setTempBarcode(text)} defaultValue={tempBarcode} color={textColor} />
                                                   </Input>
                                              </FormControl>

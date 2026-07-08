@@ -168,7 +168,7 @@ export const MyHold = (props) => {
                if (section === 'Pending') {
                     return (
                          <Center>
-                              <Checkbox value={method + '|' + hold.recordId + '|' + hold.cancelId + '|' + hold.source + '|' + hold.userId} my="$3" size="md" accessibilityLabel="Check item" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                              <Checkbox value={method + '|' + hold.recordId + '|' + hold.cancelId + '|' + hold.source + '|' + hold.userId} my="$3" size="md" accessibilityLabel="Check item" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                    <CheckboxIndicator
                                         _checked={{
                                              color: theme['tokens']['colors']['primary']['500'],
@@ -336,7 +336,7 @@ export const MyHold = (props) => {
 
      return (
           <>
-               <Pressable onPress={handleClose} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$gray400"} pl="$4" pr="$20" py="$2">
+               <Pressable onPress={handleClose} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$warmGray400"} pl="$4" pr="$20" py="$2">
                     <HStack space="sm" maxW="95%">
                          {initializeLeftColumn()}
                          <VStack>

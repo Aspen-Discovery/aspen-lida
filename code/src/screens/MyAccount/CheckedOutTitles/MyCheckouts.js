@@ -501,7 +501,7 @@ export const MyCheckouts = () => {
 
      return (
           <Box flex={1}>
-               <Box p="$2" bgColor="coolGray.100" borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"} flexWrap="nowrap">
+               <Box p="$2" bgColor="coolGray.100" borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} flexWrap="nowrap">
                     {showSystemMessage()}
                     <ScrollView horizontal>{actionButtons()}</ScrollView>
                </Box>

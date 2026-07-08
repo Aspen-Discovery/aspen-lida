@@ -208,7 +208,7 @@ export const ResetExpiredPin = (props) => {
                                              <FormControlLabel>
                                                   <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_pin')}</FormControlLabelText>
                                              </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                   <InputField
                                                        keyboardType={pinValidationRules.onlyDigitsAllowed === '1' ? 'numeric' : 'default'}
                                                        autoCapitalize="none"
@@ -238,7 +238,7 @@ export const ResetExpiredPin = (props) => {
                                              <FormControlLabel>
                                                   <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_pin_confirmed')}</FormControlLabelText>
                                              </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                   <InputField
                                                        keyboardType={pinValidationRules.onlyDigitsAllowed === '1' ? 'numeric' : 'default'}
                                                        autoCapitalize="none"

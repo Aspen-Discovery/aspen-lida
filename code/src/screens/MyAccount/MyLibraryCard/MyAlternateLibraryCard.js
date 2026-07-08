@@ -29,6 +29,11 @@ export const MyAlternateLibraryCard = () => {
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
      const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
 
+     React.useEffect(() => {
+          setCard(user?.alternateLibraryCard ?? '');
+          setPassword(user?.alternateLibraryCardPassword ?? '');
+     }, [user]);
+
      const [isLoading, setIsLoading] = React.useState(false);
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
@@ -121,8 +126,6 @@ export const MyAlternateLibraryCard = () => {
                     getErrorMessage(data.code ?? 0, data.problem);
                }
           });
-          setCard('');
-          setPassword('');
      };
 
      return (
@@ -140,8 +143,8 @@ export const MyAlternateLibraryCard = () => {
                                              {cardLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                        <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                        <InputField textContentType="none" color={textColor} name="card" value={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                    </Input>
                               </FormControl>
                               {showAlternateLibraryCardPassword ? (
@@ -151,8 +154,8 @@ export const MyAlternateLibraryCard = () => {
                                                   {passwordLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                             <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
+                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                             <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" value={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                              <InputSlot onPress={toggleShowPassword}>
                                                   <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
                                              </InputSlot>

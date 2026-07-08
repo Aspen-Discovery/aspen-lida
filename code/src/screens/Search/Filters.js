@@ -63,7 +63,7 @@ export const FiltersScreen = () => {
 
      const renderFilter = (label, index) => {
           return (
-               <Pressable key={index} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openCluster(label)}>
+               <Pressable key={index} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} py="$5" onPress={() => openCluster(label)}>
                     <VStack alignContent="center">
                          <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                               <VStack>
@@ -303,7 +303,7 @@ export const FiltersScreen = () => {
                          <VStack space="md">
                               <FormControl>
                                    <Input
-                                        borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                                        borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                                         color={textColor}
                                         variant="outline"
                                    >
@@ -335,7 +335,7 @@ export const FiltersScreen = () => {
 
                          {!isLoading ? (
                               <>
-                                   <Pressable key={0} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openSearchIndexes()}>
+                                   <Pressable key={0} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} py="$5" onPress={() => openSearchIndexes()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>
@@ -346,7 +346,7 @@ export const FiltersScreen = () => {
                                              </HStack>
                                         </VStack>
                                    </Pressable>
-                                   <Pressable key={1} borderBottomWidth="$1"  borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} py="$5" onPress={() => openSearchSources()}>
+                                   <Pressable key={1} borderBottomWidth="$1"  borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} py="$5" onPress={() => openSearchSources()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>

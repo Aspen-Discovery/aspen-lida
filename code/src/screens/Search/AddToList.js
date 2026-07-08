@@ -248,7 +248,7 @@ const AddToList = (props) => {
                                                        <FormControlLabel>
                                                             <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                                        </FormControlLabel>
-                                                       <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                       <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                             <InputField id="title" onChangeText={(text) => saveTitle(text)} returnKeyType="next" color={textColor} />
                                                        </Input>
                                                   </FormControl>
@@ -256,7 +256,7 @@ const AddToList = (props) => {
                                                        <FormControlLabel>
                                                             <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
                                                        </FormControlLabel>
-                                                       <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                       <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                             <TextareaInput color={textColor} />
                                                        </Textarea>
                                                   </FormControl>
@@ -271,14 +271,14 @@ const AddToList = (props) => {
                                                             }}>
                                                             <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                                                  <Radio value="1" my="$1">
-                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                                       </RadioIndicator>
                                                                       <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                                                  </Radio>
                                                                  <Radio value="0" my="$1">
-                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                                       </RadioIndicator>
                                                                       <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                                                  </Radio>
@@ -315,7 +315,7 @@ const AddToList = (props) => {
                                                                  <FormControlLabel>
                                                                       <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
                                                                  </FormControlLabel>
-                                                                 <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                                 <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                                       <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} color={textColor} />
                                                                  </Input>
                                                             </FormControl>

@@ -298,7 +298,7 @@ export const MyList = () => {
           }
 
           return (
-               <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} pl="$4" pr="$5" py="$2" onPress={() => handleOpenItem(item.id, item.title)}>
+               <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={() => handleOpenItem(item.id, item.title)}>
                     <HStack space="sm">
                          <VStack maxW="35%">
                               <Image
@@ -350,7 +350,7 @@ export const MyList = () => {
                     p="$2"
                     bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
                     borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}
+                    borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
                     flexWrap="nowrap"
                     alignItems="center">
                     <ScrollView horizontal>
@@ -410,7 +410,7 @@ export const MyList = () => {
                     p="$2"
                     bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
                     borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}
+                    borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
                     flexWrap="nowrap">
                     <ScrollView horizontal>
                          <HStack space="sm">

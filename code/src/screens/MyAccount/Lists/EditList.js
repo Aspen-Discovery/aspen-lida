@@ -135,7 +135,7 @@ const EditList = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} color={textColor}/></Input>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} color={textColor}/></Input>
                               </FormControl>
                               <FormControl pb="$5">
                                    <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText></FormControlLabel>
@@ -152,14 +152,14 @@ const EditList = (props) => {
                                         }}>
                                         <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                              <Radio value="false" my="$1">
-                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                   </RadioIndicator>
                                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
                                              <Radio value="true" my="$1">
-                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                   </RadioIndicator>
                                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
@@ -282,8 +282,8 @@ const DeleteList = (props) => {
                                              onChange={(isChecked) => setOptOutOfSoftDeletion(isChecked)}
                                              alignItems="center"
                                         >
-                                             <CheckboxIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                  <CheckboxIcon as={CheckIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                             <CheckboxIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                  <CheckboxIcon as={CheckIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                              </CheckboxIndicator>
                                              <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'opt_out_soft_deletion')}</CheckboxLabel>
                                         </Checkbox>
