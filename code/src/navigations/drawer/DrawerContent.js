@@ -9,7 +9,7 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import _, { values } from 'lodash';
-import { Badge, BadgeText, Box, Button, ButtonText, Divider, HStack, Icon, Image, Pressable, Text, useToken, VStack } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Button, ButtonText, ButtonIcon, Divider, HStack, Icon, Image, Pressable, Text, useToken, VStack } from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
@@ -1333,11 +1333,12 @@ async function addStoredNotification(message) {
 function LogOutButton() {
      const { language } = React.useContext(LanguageContext);
      const { signOut } = React.useContext(AuthContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
 
      return (
-          <Button size="md" action="secondary" onPress={signOut} leftIcon={<Icon as={MaterialIcons} name="logout" size="xs" color={textColor} />}>
-               <ButtonText color={textColor}>{getTermFromDictionary(language, 'logout')}</ButtonText>
+          <Button size="md" action="secondary" onPress={signOut} bgColor={theme.tokens.colors.primary['500']}>
+               <ButtonIcon as={MaterialIcons} name="logout" size="xs" color={theme.tokens.colors.primary['500-text']} />
+               <ButtonText color={theme.tokens.colors.primary['500-text']}> {getTermFromDictionary(language, 'logout')}</ButtonText>
           </Button>
      );
 }

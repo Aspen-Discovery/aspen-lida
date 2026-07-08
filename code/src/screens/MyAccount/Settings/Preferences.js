@@ -52,7 +52,7 @@ export const PreferencesScreen = () => {
                <VStack divider={<Divider />} space="$md">
                     <VStack space="$md" mx={4} my={8}>
                          <VStack>
-                              <Pressable py="$2" onPress={() => navigate('MyPreferences_ManageBrowseCategories')}>
+                              <Pressable py="$2" onPress={() => navigate('MyPreferences_ManageBrowseCategories', { prevRoute: 'Preferences' })}>
                                    <HStack space="xs" alignItems="center">
                                         <Icon as={MaterialIcons} name="chevron-right" size="xl" color={textColor} />
                                         <Text color={textColor} fontWeight="$medium">{getTermFromDictionary(language, 'manage_browse_categories')}</Text>
@@ -66,7 +66,7 @@ export const PreferencesScreen = () => {
                                        </HStack>
                                   </Pressable>
                               ) : null}
-                              <Pressable py="v" onPress={() => navigate('PermissionDashboard')}>
+                              <Pressable py="$2" onPress={() => navigate('PermissionDashboard')}>
                                    <HStack space="xs" alignItems="center">
                                         <Icon as={MaterialIcons} name="chevron-right" size="xl" color={textColor} />
                                         <Text color={textColor} fontWeight="$medium">{getTermFromDictionary(language, 'device_permissions')}</Text>
