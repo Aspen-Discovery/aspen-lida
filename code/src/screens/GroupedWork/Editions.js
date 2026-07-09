@@ -181,12 +181,12 @@ export const Editions = () => {
                               <AlertDialogFooter>
                                    <ButtonGroup space="sm">
                                         {response?.action ? (
-                                             <Button onPress={() => handleNavigation(response.action)} variant="solid" bgColor="$primary500">
+                                             <Button onPress={() => handleNavigation(response.action)} variant="solid" bgColor={theme.tokens.colors.primary['500']}>
                                                   <ButtonText color="$textLight200">{response.action}</ButtonText>
                                              </Button>
                                         ) : null}
-                                        <Button variant="outline" borderColor="$primary500" ref={cancelResponseRef} onPress={() => setResponseIsOpen(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} ref={cancelResponseRef} onPress={() => setResponseIsOpen(false)}>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>
@@ -204,13 +204,13 @@ export const Editions = () => {
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
                                         <Button variant="link" onPress={() => setHoldConfirmationIsOpen(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
                                              isLoading={confirmingHold}
                                              isLoadingText="Placing hold..."
                                              variant="solid"
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              onPress={async () => {
                                                   setConfirmingHold(true);
                                                   await confirmHold(holdConfirmationResponse.recordId, holdConfirmationResponse.confirmationId, language, library.baseUrl).then(async (result) => {
@@ -285,13 +285,13 @@ export const Editions = () => {
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
                                         <Button variant="link" onPress={() => setHoldItemSelectIsOpen(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
                                              isLoading={placingItemHold}
                                              isLoadingText="Placing hold..."
                                              variant="solid"
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              onPress={async () => {
                                                   setPlacingItemHold(true);
                                                   await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {

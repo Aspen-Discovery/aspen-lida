@@ -151,7 +151,7 @@ const ScreenBrightnessPermissionUpdate = (payload) => {
                               setShowAlertDialog(true);
                          }
                     }}
-                    bgColor="$primary500">
+                    bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
                </Button>
                <AlertDialog
@@ -174,7 +174,7 @@ const ScreenBrightnessPermissionUpdate = (payload) => {
                                              Linking.openSettings();
                                              setShowAlertDialog(false);
                                         }}
-                                        bgColor="$primary500">
+                                        bgColor={theme.tokens.colors.primary['500']}>
                                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={() => setShowAlertDialog(false)}>

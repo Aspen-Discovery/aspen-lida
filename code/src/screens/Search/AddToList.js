@@ -124,7 +124,7 @@ const AddToList = (props) => {
 
      const RegularButton = () => {
           return (
-               <Button width={btnWidth} onPress={toggleModal} color="$primary500">
+               <Button width={btnWidth} onPress={toggleModal} color={theme.tokens.colors.primary['500']}>
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
                </Button>
           );
@@ -188,7 +188,7 @@ const AddToList = (props) => {
                                                        <HStack space="sm" alignItems="center">
                                                             <Text color={textColor}>{getTermFromDictionary(language, 'or')}</Text>
                                                             <Button
-                                                                 bgColor="$primary500"
+                                                                 bgColor={theme.tokens.colors.primary['500']}
                                                                  size="sm"
                                                                  onPress={() => {
                                                                       setScreen('create-new');
@@ -212,7 +212,7 @@ const AddToList = (props) => {
                                              </Button>
                                              {!_.isEmpty(lists) ? (
                                                   <Button
-                                                       bgColor="$primary500"
+                                                       bgColor={theme.tokens.colors.primary['500']}
                                                        isLoading={loading}
                                                        onPress={() => {
                                                             setLoading(true);
@@ -226,7 +226,7 @@ const AddToList = (props) => {
                                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save_to_list')}</ButtonText>
                                                   </Button>
                                              ) : (
-                                                  <Button bgColor="$primary500">
+                                                  <Button bgColor={theme.tokens.colors.primary['500']}>
                                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                                                   </Button>
                                              )}
@@ -248,7 +248,7 @@ const AddToList = (props) => {
                                                        <FormControlLabel>
                                                             <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                                        </FormControlLabel>
-                                                       <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                       <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                             <InputField id="title" onChangeText={(text) => saveTitle(text)} returnKeyType="next" color={textColor} />
                                                        </Input>
                                                   </FormControl>
@@ -256,7 +256,7 @@ const AddToList = (props) => {
                                                        <FormControlLabel>
                                                             <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
                                                        </FormControlLabel>
-                                                       <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                       <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                             <TextareaInput color={textColor} />
                                                        </Textarea>
                                                   </FormControl>
@@ -271,14 +271,14 @@ const AddToList = (props) => {
                                                             }}>
                                                             <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                                                  <Radio value="1" my="$1">
-                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                                       </RadioIndicator>
                                                                       <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                                                  </Radio>
                                                                  <Radio value="0" my="$1">
-                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                                      <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                                           <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                                       </RadioIndicator>
                                                                       <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                                                  </Radio>
@@ -315,7 +315,7 @@ const AddToList = (props) => {
                                                                  <FormControlLabel>
                                                                       <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
                                                                  </FormControlLabel>
-                                                                 <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                                 <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                                       <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} color={textColor} />
                                                                  </Input>
                                                             </FormControl>
@@ -400,7 +400,7 @@ const AddToList = (props) => {
                                                   <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
                                              <Button
-                                                  bgColor="$primary500"
+                                                  bgColor={theme.tokens.colors.primary['500']}
                                                   isLoading={loading}
                                                   isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                                   onPress={() => {

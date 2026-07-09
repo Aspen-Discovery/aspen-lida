@@ -275,7 +275,7 @@ export const Settings_PickupLocations = () => {
 				</FormControl>
 			) : null}
 			<ButtonGroup>
-				<Button bgColor="$primary500"
+				<Button bgColor={theme.tokens.colors.primary['500']}
                          onPress={async () => {
                               setLoading(true);
                               await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {

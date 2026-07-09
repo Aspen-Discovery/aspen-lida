@@ -298,18 +298,18 @@ export const SelfCheckOut = () => {
                                         </ModalHeader>
                                         <ModalBody>
                                              <FormControl pb="$5">
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                        <InputField color={textColor} keyboardType={keyboardType === 1 ? 'number-pad' : 'default'} variant="outline" autoCapitalize="none" placeholder={getTermFromDictionary(language, 'enter_barcode')} size="$lg" defaultValue={newBarcode} onChangeText={(text) => setNewBarcode(text)} />
                                                   </Input>
                                              </FormControl>
                                         </ModalBody>
                                         <ModalFooter>
                                              <ButtonGroup>
-                                                  <Button variant="outline" onPress={toggle} borderColor="$primary500">
-                                                       <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                                  <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
+                                                       <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                                   </Button>
                                                   <Button
-                                                       bgColor="$primary500"
+                                                       bgColor={theme.tokens.colors.primary['500']}
                                                        onPress={() => {
                                                             navigation.replace('SelfCheckOut', {
                                                                  barcode: newBarcode,
@@ -342,7 +342,7 @@ export const SelfCheckOut = () => {
                     <FlatList data={items} keyExtractor={(item, index) => index.toString()} ListEmptyComponent={currentCheckOutEmpty()} ListHeaderComponent={currentCheckoutHeader()} renderItem={({ item }) => currentCheckOutItem(item)} />
                )}
                <Center pt="$5">
-                    <Button onPress={() => finishSession()} bgColor="$primary500" size="sm">
+                    <Button onPress={() => finishSession()} bgColor={theme.tokens.colors.primary['500']} size="sm">
                          <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_finish')}</ButtonText>
                     </Button>
                </Center>
@@ -358,8 +358,8 @@ export const SelfCheckOut = () => {
                               </AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="sm">
-                                        <Button variant="outline" borderColor="$primary500" onPress={() => setOpenConfirmAlert(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} onPress={() => setOpenConfirmAlert(false)}>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>
@@ -383,7 +383,7 @@ export const SelfCheckOut = () => {
                                                   <FormControlLabel>
                                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'does_barcode_match_item')}</FormControlLabelText>
                                                   </FormControlLabel>
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                        <InputField id="barcode" autoCapitalize="none" autoCorrect={false} onChangeText={(text) => setTempBarcode(text)} defaultValue={tempBarcode} color={textColor} />
                                                   </Input>
                                              </FormControl>
@@ -392,12 +392,12 @@ export const SelfCheckOut = () => {
                               </AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="sm">
-                                        <Button variant="outline" borderColor="$primary500" onPress={() => setIsOpen(false)}>
-                                             <ButtonText color="$primary500">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} onPress={() => setIsOpen(false)}>
+                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                         {itemNotFound && tempBarcode ? (
                                              <Button
-                                                  bgColor="$primary500"
+                                                  bgColor={theme.tokens.colors.primary['500']}
                                                   onPress={() => {
                                                        navigation.replace('SelfCheckOut', {
                                                             barcode: tempBarcode,
@@ -430,10 +430,10 @@ export const SelfCheckOut = () => {
                               </AlertDialogBody>
                               <AlertDialogFooter>
                                    <HStack width="$full" justifyContent="center">
-                                        <Button size="sm" onPress={() => startNewSession()} bgColor="$primary500" mr="$5">
+                                        <Button size="sm" onPress={() => startNewSession()} bgColor={theme.tokens.colors.primary['500']} mr="$5">
                                              <ButtonText color="$textLight200">{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                         </Button>
-                                        <Button size="sm" bgColor="$primary500" onPress={() => goToCheckouts()}>
+                                        <Button size="sm" bgColor={theme.tokens.colors.primary['500']} onPress={() => goToCheckouts()}>
                                              <ButtonText color="$textLight200">{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
                                         </Button>
                                    </HStack>

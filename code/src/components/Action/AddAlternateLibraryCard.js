@@ -133,7 +133,7 @@ export const AddAlternateLibraryCard = (props) => {
                                         {cardLabel}
                                    </FormControlLabelText>
                               </FormControlLabel>
-                              <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                              <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                    <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                               </Input>
                          </FormControl>
@@ -144,7 +144,7 @@ export const AddAlternateLibraryCard = (props) => {
                                              {passwordLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                         <InputSlot onPress={toggleShowPassword}>
                                              <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
@@ -165,7 +165,7 @@ export const AddAlternateLibraryCard = (props) => {
                                    <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$primary500"
+                                   bgColor={theme.tokens.colors.primary['500']}
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);

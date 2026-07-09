@@ -224,9 +224,7 @@ const ButtonOptions = (props) => {
      const { theme } = React.useContext(ThemeContext);
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
-     const { language, showManageCategories, onRefreshCategories, discoveryVersion, maxNum, onLoadAllCategories } = props;
-
-     const version = formatDiscoveryVersion(discoveryVersion);
+     const { language, showManageCategories, onRefreshCategories, maxNum, onLoadAllCategories } = props;
 
      return (
           <Center>
@@ -241,10 +239,8 @@ const ButtonOptions = (props) => {
                     }}>
                     <Button
                          isDisabled={maxNum === 9999}
-                         sx={{
-                              bg: theme['tokens']['colors']['primary']['500'],
-                              size: 'md',
-                         }}
+                         bg={theme.tokens.colors.primary['500']}
+                         size="md"
                          onPress={() => {
                               setLoading(true);
                               onLoadAllCategories();
@@ -255,12 +251,16 @@ const ButtonOptions = (props) => {
                          {loading ? (
                            <ButtonSpinner key="spinner" color="$textLight200" mr="$1" />
                          ) : (
-                           <ButtonIcon key="icon" as={ClockIcon} color="$textLight200" mr="$1" size="sm" />
+                              <ButtonIcon
+                                   key="icon"
+                                   as={ClockIcon}
+                                   color={theme.tokens.colors.primary['500-text']}
+                                   mr="$1"
+                                   size="sm"
+                              />
                          )}
                          <ButtonText
-                              sx={{
-                                   color: theme['tokens']['colors']['primary']['500-text'],
-                              }}
+                              color={theme.tokens.colors.primary['500-text']}
                               size="sm"
                               fontWeight="$medium">
                               {getTermFromDictionary(language, 'browse_categories_load_all')}
@@ -268,17 +268,18 @@ const ButtonOptions = (props) => {
                     </Button>
 
                     <Button
-                         sx={{
-                              bg: theme['tokens']['colors']['primary']['500'],
-                         }}
+                         bg={theme['tokens']['colors']['primary']['500']}
                          onPress={() => {
                               showManageCategories();
                          }}>
-                         <ButtonIcon as={Settings} color="$textLight200" mr="$1" size="sm" />
+                         <ButtonIcon
+                              as={Settings}
+                              color={theme.tokens.colors.primary['500-text']}
+                              mr="$1"
+                              size="sm"
+                         />
                          <ButtonText
-                              sx={{
-                                   color: theme['tokens']['colors']['primary']['500-text'],
-                              }}
+                              color={theme.tokens.colors.primary['500-text']}
                               size="sm"
                               fontWeight="$medium">
                               {getTermFromDictionary(language, 'browse_categories_manage')}
@@ -287,9 +288,7 @@ const ButtonOptions = (props) => {
 
                     <Button
                          isDisabled={refreshing}
-                         sx={{
-                              bg: theme['tokens']['colors']['primary']['500'],
-                         }}
+                         bg={theme.tokens.colors.primary['500']}
                          onPress={() => {
                               setRefreshing(true);
                               onRefreshCategories();
@@ -297,9 +296,9 @@ const ButtonOptions = (props) => {
                                    setRefreshing(false);
                               }, 2000);
                          }}>
-                         {refreshing ? <ButtonSpinner color="$textLight200" /> : <ButtonIcon as={RotateCwIcon} color="$textLight200" mr="$1" size="sm" />}
+                         {refreshing ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonIcon as={RotateCwIcon} color={theme.tokens.colors.primary['500-text']} mr="$1" size="sm" />}
 
-                         <ButtonText size="sm" fontWeight="$medium" sx={{ color: theme['tokens']['colors']['primary']['500-text'] }}>
+                         <ButtonText size="sm" fontWeight="$medium" color={theme.tokens.colors.primary['500-text']}>
                               {getTermFromDictionary(language, 'browse_categories_refresh')}
                          </ButtonText>
                     </Button>

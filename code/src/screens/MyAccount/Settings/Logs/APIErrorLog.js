@@ -69,7 +69,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
      };
 
      const renderEntry = ({ item }) => (
-          <Box borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} px="$3" py="$3">
+          <Box borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} px="$3" py="$3">
                <VStack space="xs">
                     <Text size="xs" color={textColor}>
                          {formatDate(item.created_at)}

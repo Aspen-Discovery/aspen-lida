@@ -432,8 +432,8 @@ const CreateLibraryCard = (data) => {
                     {showExpirationDate && expirationDate && !neverExpires && numCards > 1 ? <Text color={textColor}>{expirationText}</Text> : null}
                     {numCards > 1 ? (
                          <Button variant="link" onPress={() => openBarcodeModal && openBarcodeModal(card)}>
-                              <ButtonIcon color="$primary500" as={MaterialCommunityIcons} name="barcode-scan" size="lg" mr="$1" />
-                              <ButtonText color="$primary500">{getTermFromDictionary(language, 'open_barcode')}</ButtonText>
+                              <ButtonIcon color={theme.tokens.colors.primary['500']} as={MaterialCommunityIcons} name="barcode-scan" size="lg" mr="$1" />
+                              <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'open_barcode')}</ButtonText>
                          </Button>
                     ) : (
                          <VStack alignItems="center" space="sm">
@@ -705,7 +705,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                         </Text>
                                         <Button
                                              size="md"
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              onPress={rotateToLandscape}
                                              mt="$2">
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-landscape" size="sm" mr="$2" />
@@ -720,7 +720,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                    <Center mt="$2" mb="$2">
                                         <Button
                                              size="md"
-                                             bgColor="$primary500"
+                                             bgColor={theme.tokens.colors.primary['500']}
                                              onPress={rotateToPortrait}>
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-portrait" size="sm" mr="$2" />
                                              <ButtonText color="$textLight200">

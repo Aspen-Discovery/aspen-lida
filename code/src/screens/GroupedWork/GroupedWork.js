@@ -289,7 +289,7 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
-     const textColor = colorMode === 'light' ? "$gray800" : "$coolGray200";
+     const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";
 
      let showMoreInfoBtn = false;
      if(library?.showMoreInfoBtn) {

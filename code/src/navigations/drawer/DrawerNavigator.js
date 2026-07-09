@@ -17,15 +17,13 @@ const AccountDrawer = () => {
                initialRouteName="TabsNavigator"
                screenOptions={{
                     drawerType: 'front',
-                    drawerHideStatusBarOnOpen: true,
+                    drawerHideStatusBarOnOpen: false,
                     drawerPosition: 'left',
                     headerShown: false,
                     backBehavior: 'none',
                     lazy: false,
                     drawerStyle: {
-                         height: screenHeight - insets.top - insets.bottom,
-                         marginTop: insets.top,
-                         marginBottom: insets.bottom ,
+                         width: Dimensions.get('window').width * 0.8,
                     },
                }}
                drawerContent={(props) => <DrawerContent {...props} />}>
