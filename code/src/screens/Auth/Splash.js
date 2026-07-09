@@ -7,7 +7,7 @@ const splashBackgroundColor = Constants.expoConfig.splash.backgroundColor;
 
 export const SplashScreen = () => {
      return (
-          <Center flex={1} px="$3" bgColor={splashBackgroundColor}>
+          <Center testID="splash-center" flex={1} px="$3" style={{ backgroundColor: splashBackgroundColor }}>
                <VStack space="md" alignItems="center">
                     <Image source={{ uri: splashImage }} size="2xl" alt={getTermFromDictionary('en', 'app_name')} />
                     <Spinner size="small" />
