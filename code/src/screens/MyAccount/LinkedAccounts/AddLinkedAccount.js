@@ -55,7 +55,7 @@ const AddLinkedAccount = () => {
 
      return (
           <Center>
-               <Button onPress={toggle} bgColor="$primary500">
+               <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'linked_add_an_account')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
@@ -70,7 +70,7 @@ const AddLinkedAccount = () => {
                          <ModalBody>
                               <FormControl>
                                    <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'username')}</FormControlLabelText></FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField onChangeText={(text) => setNewUser(text)}
                                                       autoCorrect={false}
                                                       autoCapitalize="none"
@@ -91,7 +91,7 @@ const AddLinkedAccount = () => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'password')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField onChangeText={(text) => setPassword(text)} value={password} color={textColor} autoCorrect={false}
                                                     autoCapitalize="none" id="password" returnKeyType="next"
                                                     textContentType="password" required size="$lg" type={showPassword ? 'text' : 'password'} ref={passwordRef}
@@ -105,10 +105,10 @@ const AddLinkedAccount = () => {
                          <ModalFooter>
                               <ButtonGroup>
                                    <Button variant="link" onPress={toggle}>
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'adding', true)}
                                         onPress={async () => {

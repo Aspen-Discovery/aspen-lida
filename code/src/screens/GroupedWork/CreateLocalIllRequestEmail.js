@@ -108,7 +108,7 @@ const Request = (payload) => {
                                    {getTermFromDictionary(language, 'volume')}
                               </FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                               <InputField
                                    id="volume"
                                    size="$lg"

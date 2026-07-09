@@ -121,7 +121,7 @@ const Item = (data) => {
                     openSavedSearch();
                }}
                borderBottomWidth="$1"
-               borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"}
+               borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
                px="$1"
                py="$2">
                <HStack space="md" justifyContent="flex-start">

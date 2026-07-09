@@ -515,7 +515,7 @@ export const MyHolds = () => {
           };
 
           return (
-               <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap">
+               <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap">
                     {showSystemMessage()}
                     <ScrollView horizontal>
                          <HStack space="sm">
@@ -563,7 +563,7 @@ export const MyHolds = () => {
           logDebugMessage("Display Holds section " + title);
           if (title === 'Pending') {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
+                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
                          <Heading pb="$1" pt="$3" color={textColor}>
                               {getTermFromDictionary(language, 'pending_holds')}
                          </Heading>
@@ -578,7 +578,7 @@ export const MyHolds = () => {
                );
           } else {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$gray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
+                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
                          <Heading pb="$1" color={textColor}>{getTermFromDictionary(language, 'holds_ready_for_pickup')}</Heading>
                          <Alert action="info" mb="$2">
                               <AlertIcon as={InfoIcon} mr="$3" />

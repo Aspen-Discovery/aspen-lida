@@ -6,7 +6,7 @@ import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
 import { popToast } from '../../components/loadError';
-import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
@@ -17,6 +17,7 @@ const ContactButtons = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const location = data.data;
      const { language } = React.useContext(LanguageContext);
+     const { textColor: themeTextColor, colorMode } = React.useContext(ThemeContext);
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -138,89 +139,81 @@ const ContactButtons = (data) => {
      if (location.phone || location.email || location.homeLink || location.latitude !== 0) {
           return (
                <Box mb={4}>
-                    <ButtonGroup flexWrap="wrap" size="sm" justifyContent="space-between" variant="outline">
+                    <ButtonGroup flexWrap="wrap" size="sm" justifyContent="space-between">
                          {location.phone ? (
                               <Button
+                                   variant="outline"
                                    width="23%"
                                    onPress={() => callLibrary()}
-                                   _text={{
-                                        padding: 0,
-                                        textAlign: 'center',
-                                        fontSize: '$xs',
-                                        color: useColorModeValue('coolGray.600', 'warmGray.200'),
-                                   }}
                                    style={{
-                                        flex: 1,
-                                        flexWrap: 'wrap',
-                                        alignContent: 'center',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        paddingVertical: 10,
+                                        paddingHorizontal: 2,
+                                        height: 'auto',
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="call" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="call" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
-                                   <ButtonText>{getTermFromDictionary(language, 'call_the_library')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'call_the_library')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.email ? (
                               <Button
+                                   variant="outline"
                                    width="23%"
                                    onPress={() => emailLibrary()}
-                                   _text={{
-                                        padding: 0,
-                                        textAlign: 'center',
-                                        fontSize: '$xs',
-                                        color: useColorModeValue('coolGray.600', 'warmGray.200'),
-                                   }}
                                    style={{
-                                        flex: 1,
-                                        flexWrap: 'wrap',
-                                        alignContent: 'center',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        paddingVertical: 10,
+                                        paddingHorizontal: 2,
+                                        height: 'auto',
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="email" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="email" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
-                                   <ButtonText>{getTermFromDictionary(language, 'email_a_librarian')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'email_a_librarian')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.latitude !== 0 ? (
                               <Button
+                                   variant="outline"
                                    width="23%"
                                    onPress={() => getDirections()}
-                                   _text={{
-                                        padding: 0,
-                                        textAlign: 'center',
-                                        fontSize: 'xs',
-                                        color: useColorModeValue('coolGray.600', 'warmGray.200'),
-                                   }}
                                    style={{
-                                        flex: 1,
-                                        flexWrap: 'wrap',
-                                        alignContent: 'center',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        paddingVertical: 10,
+                                        paddingHorizontal: 2,
+                                        height: 'auto',
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="map" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="map" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
-                                   <ButtonText>{getTermFromDictionary(language, 'get_directions')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'get_directions')}</ButtonText>
                               </Button>
                          ) : null}
                          {location.homeLink ? (
                               <Button
+                                   variant="outline"
                                    width="23%"
                                    onPress={() => visitWebsite()}
-                                   _text={{
-                                        padding: 0,
-                                        textAlign: 'center',
-                                        fontSize: 'xs',
-                                        color: useColorModeValue('coolGray.600', 'warmGray.200'),
-                                   }}
                                    style={{
-                                        flex: 1,
-                                        flexWrap: 'wrap',
-                                        alignContent: 'center',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        paddingVertical: 10,
+                                        paddingHorizontal: 2,
+                                        height: 'auto',
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
                                    }}>
                                    <Center>
-                                        <Icon as={MaterialIcons} name="home" size="md" color="$coolGray600" _dark={{ color: 'warmGray.200' }} />
+                                        <Icon as={MaterialIcons} name="home" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
-                                   <ButtonText>{getTermFromDictionary(language, 'visit_our_website')}</ButtonText>
+                                   <ButtonText color={themeTextColor} style={{ textAlign: 'center', fontSize: 10 }}>{getTermFromDictionary(language, 'visit_our_website')}</ButtonText>
                               </Button>
                          ) : null}
                     </ButtonGroup>

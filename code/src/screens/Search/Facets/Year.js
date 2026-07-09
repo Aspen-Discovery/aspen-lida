@@ -70,7 +70,7 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                               >
                                    <InputField
                                         color={textColor}
@@ -85,7 +85,7 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                               <Input
                                    size="lg"
                                    flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}
+                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
                               >
                                    <InputField
                                         color={textColor}
@@ -104,14 +104,14 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                                    {getTermFromDictionary(language, 'published_in_the_last')}
                               </Text>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={() => _updateYearTo(1)} borderColor="$primary500">
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'year')}</ButtonText>
+                                   <Button variant="outline" onPress={() => _updateYearTo(1)} borderColor={theme.tokens.colors.primary['500']}>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'year')}</ButtonText>
                                    </Button>
-                                   <Button variant="outline" onPress={() => _updateYearTo(5)} borderColor="$primary500">
-                                        <ButtonText color="$primary500">5 {getTermFromDictionary(language, 'years')}</ButtonText>
+                                   <Button variant="outline" onPress={() => _updateYearTo(5)} borderColor={theme.tokens.colors.primary['500']}>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>5 {getTermFromDictionary(language, 'years')}</ButtonText>
                                    </Button>
-                                   <Button variant="outline" onPress={() => _updateYearTo(10)} borderColor="$primary500">
-                                        <ButtonText color="$primary500">10 {getTermFromDictionary(language, 'years')}</ButtonText>
+                                   <Button variant="outline" onPress={() => _updateYearTo(10)} borderColor={theme.tokens.colors.primary['500']}>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>10 {getTermFromDictionary(language, 'years')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </VStack>

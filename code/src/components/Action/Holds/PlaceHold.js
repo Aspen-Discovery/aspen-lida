@@ -189,7 +189,7 @@ export const PlaceHold = (props) => {
                <>
                     <Button
                          size="md"
-                         bgColor="$primary500"
+                         bgColor={theme.tokens.colors.primary['500']}
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
