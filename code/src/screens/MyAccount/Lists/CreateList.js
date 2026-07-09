@@ -94,7 +94,7 @@ const CreateList = (props) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="sm" bgColor="$primary500">
+               <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonIcon color="$textLight200" as={MaterialIcons} name="add" mr="$1" />
                     <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                </Button>
@@ -114,7 +114,7 @@ const CreateList = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField id="title" onChangeText={(text) => setTitle(text)} returnKeyType="next" defaultValue={title} color={textColor} />
                                    </Input>
                               </FormControl>
@@ -122,7 +122,7 @@ const CreateList = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Textarea id="description" onChangeText={(text) => setDescription(text)} defaultValue={description} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Textarea id="description" onChangeText={(text) => setDescription(text)} defaultValue={description} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <TextareaInput color={textColor} />
                                    </Textarea>
                               </FormControl>
@@ -138,14 +138,14 @@ const CreateList = (props) => {
                                         }}>
                                         <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                              <Radio value="false" my="$1">
-                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                   </RadioIndicator>
                                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
                                              <Radio value="true" my="$1">
-                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$gray300"} />
+                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
                                                   </RadioIndicator>
                                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
@@ -182,7 +182,7 @@ const CreateList = (props) => {
                                              <FormControlLabel>
                                                   <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
                                              </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                                   <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} color={textColor} />
                                              </Input>
                                         </FormControl>
@@ -271,7 +271,7 @@ const CreateList = (props) => {
                                         <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
                                         onPress={async () => {

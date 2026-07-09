@@ -57,7 +57,7 @@ export const LoadingScreen = () => {
      const { category, updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
      const { language, updateLanguage, updateLanguages, updateDictionary, dictionary, languageDisplayName, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, updateTheme, colorMode, updateColorMode } = React.useContext(ThemeContext);
+     const { theme, updateTheme, colorMode, updateColorMode, textColor } = React.useContext(ThemeContext);
 
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
@@ -665,11 +665,11 @@ export const LoadingScreen = () => {
           <Center flex={1} px="$3" width="$full">
                <Box w="90%" maxW={400} pt={insets.top} pb={insets.bottom} pl={insets.left} pr={insets.right}>
                     <VStack>
-                         <Heading pb="$5" color="$primary500" size="md">
+                         <Heading pb="$5" size="md" color={textColor}>
                               {loadingText}
                          </Heading>
                          <Progress value={progress} width="$full" h="$3" size="lg">
-                              <Progress.FilledTrack bg="$primary500" />
+                              <Progress.FilledTrack />
                          </Progress>
                     </VStack>
                </Box>

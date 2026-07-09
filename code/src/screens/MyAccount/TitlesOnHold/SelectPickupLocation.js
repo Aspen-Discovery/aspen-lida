@@ -164,15 +164,15 @@ export const SelectPickupLocation = (props) => {
                                    >
                                    <Button
                                         variant="outline"
-                                        borderColor="$primary500"
+                                        borderColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              setShowModal(false);
                                         }}>
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
                                         isLoading={loading}
-                                        bgColor="$primary500"
+                                        bgColor={theme.tokens.colors.primary['500']}
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);

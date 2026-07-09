@@ -80,7 +80,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='text'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='text'
 										                   key={key}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
@@ -104,7 +104,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='password'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='password'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
@@ -127,7 +127,7 @@ export const SelfRegistration = () => {
 								return (
 									<FormControl my="$2" isRequired={required}>
 										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}><InputField type='email'
+										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='email'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}

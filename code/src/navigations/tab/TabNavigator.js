@@ -106,6 +106,14 @@ export default function TabNavigator() {
                               //tabBarLabel: moreTabLabel,
                          }
                     }
+                    listeners={({ navigation }) => ({
+                         tabPress: (e) => {
+                              e.preventDefault();
+                              navigation.navigate('MoreTab', {
+                                   screen: 'MoreMenu',
+                              });
+                         },
+                    })}
                />
           </Tab.Navigator>
      );

@@ -19,7 +19,7 @@ export const LoadingSpinner = (props) => {
           return (
                <Center flex={1} px="$3">
                     <VStack space="md" alignItems="center">
-                         <Spinner size="large" color="$primary500" accessibilityLabel="Loading..." />
+                         <Spinner size="large" color={theme.tokens.colors.primary['500']} accessibilityLabel="Loading..." />
                          <Heading size="md" color={textColor}>
                               {props.message}
                          </Heading>
@@ -31,7 +31,7 @@ export const LoadingSpinner = (props) => {
      return (
           <Center flex={1}>
                <HStack>
-                    <Spinner color="$primary500" size="large" accessibilityLabel="Loading..." />
+                    <Spinner color={theme.tokens.colors.primary['500']} size="large" accessibilityLabel="Loading..." />
                </HStack>
           </Center>
      );

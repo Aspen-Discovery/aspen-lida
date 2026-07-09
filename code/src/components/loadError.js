@@ -34,7 +34,7 @@ export const LoadError = (props) => {
                     {getTermFromDictionary('en', 'error_loading_results')}
                </Text>
                {reloadAction ? (
-                    <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor="$primary500">
+                    <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme.tokens.colors.primary['500']}>
                          <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color="$textLight200" /></ButtonIcon>
                          <ButtonText color="$textLight200">{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
@@ -132,7 +132,7 @@ export const DisplayErrorAlertDialog = (props) => {
                     </AlertDialogBody>
                     <AlertDialogFooter>
                         <ButtonGroup space="md">
-                            <Button onPress={onClose} bgColor="$primary500" ref={cancelRef}>
+                            <Button onPress={onClose} bgColor={theme.tokens.colors.primary['500']} ref={cancelRef}>
                                 <ButtonText color="$textLight200">{getTermFromDictionary(language, 'close_window')}</ButtonText>
                             </Button>
                         </ButtonGroup>

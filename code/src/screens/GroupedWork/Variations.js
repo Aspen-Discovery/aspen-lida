@@ -145,12 +145,12 @@ export const Variations = (props) => {
                                         <AlertDialogFooter>
                                              <ButtonGroup space="sm">
                                                   {response?.action ? (
-                                                       <Button bgColor="$primary500" onPress={() => handleNavigation(response.action)}>
+                                                       <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => handleNavigation(response.action)}>
                                                             <ButtonText color="$textLight200">{response.action}</ButtonText>
                                                        </Button>
                                                   ) : null}
                                                   <Button variant="link" onPress={() => setResponseIsOpen(false)}>
-                                                       <ButtonText color="$primary500">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                                   </Button>
                                              </ButtonGroup>
                                         </AlertDialogFooter>
@@ -168,13 +168,13 @@ export const Variations = (props) => {
                                         <AlertDialogFooter>
                                              <ButtonGroup space="md">
                                                   <Button variant="link" onPress={() => setHoldConfirmationIsOpen(false)}>
-                                                       <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                                   </Button>
                                                   <Button
                                                        isLoading={confirmingHold}
                                                        isLoadingText="Placing hold..."
                                                        variant="solid"
-                                                       bgColor="$primary500"
+                                                       bgColor={theme.tokens.colors.primary['500']}
                                                        onPress={async () => {
                                                             setConfirmingHold(true);
                                                             await confirmHold(holdConfirmationResponse.recordId, holdConfirmationResponse.confirmationId, language, library.baseUrl).then(async (result) => {
@@ -251,13 +251,13 @@ export const Variations = (props) => {
                                         <AlertDialogFooter>
                                              <ButtonGroup space="md">
                                                   <Button variant="link" onPress={() => setHoldItemSelectIsOpen(false)}>
-                                                       <ButtonText color="$primary500">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                                   </Button>
                                                   <Button
                                                        isLoading={placingItemHold}
                                                        isLoadingText="Placing hold..."
                                                        variant="solid"
-                                                       bgColor="$primary500"
+                                                       bgColor={theme.tokens.colors.primary['500']}
                                                        onPress={async () => {
                                                             setPlacingItemHold(true);
                                                             await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
@@ -446,8 +446,8 @@ const Variation = (props) => {
                               />
                          ))}
                     </ButtonGroup>
-                    <Button width="100%" mt="$2" size="xs" variant="solid" bgColor="$gray200" onPress={handleOpenEditions}>
-                         <ButtonText color="$gray900">{getTermFromDictionary(language, 'show_editions')}</ButtonText>
+                    <Button width="100%" mt="$2" size="xs" variant="solid" bgColor="$warmGray200" onPress={handleOpenEditions}>
+                         <ButtonText color="$warmGray900">{getTermFromDictionary(language, 'show_editions')}</ButtonText>
                     </Button>
                </Center>
           </Box>

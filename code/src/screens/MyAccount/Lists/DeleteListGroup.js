@@ -41,8 +41,8 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor="$primary500">
-                                        <ButtonText color="$primary500">{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                   <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
+                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button bgColor="$danger500"
                                            isLoading={loading}

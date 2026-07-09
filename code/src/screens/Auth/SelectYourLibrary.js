@@ -92,7 +92,7 @@ export const SelectYourLibrary = (payload) => {
 
      return (
           <Center>
-               <Button onPress={() => setShowModal(true)} m="$5" size="md" bgColor="$primary500">
+               <Button onPress={() => setShowModal(true)} m="$5" size="md" bgColor={theme.tokens.colors.primary['500']}>
                     <ButtonIcon as={MaterialIcons} name="place" mr="$1" color="$textLight200" />
                     <ButtonText color="$textLight200">{selectedLibrary?.name ? selectedLibrary.name : getTermFromDictionary('en', 'select_your_library')}</ButtonText>
                </Button>
@@ -113,7 +113,7 @@ export const SelectYourLibrary = (payload) => {
                          </ModalHeader>
                          <ModalBody>
                               <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} p="$2" pb={query ? 0 : 5}>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$gray300"}>
+                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                                         <InputField variant="filled"
                                              size="$lg"
                                              autoCorrect={false}

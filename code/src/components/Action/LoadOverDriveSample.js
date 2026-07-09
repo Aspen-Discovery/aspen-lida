@@ -21,14 +21,14 @@ export const LoadOverDriveSample = (props) => {
                variant="link"
                mb="$1"
                borderWidth="$1"
-               borderColor="$primary500"
+               borderColor={theme.tokens.colors.primary['500']}
                onPress={() => {
                     setLoading(true);
                     completeAction(props.id, props.type, user.id, props.formatId, props.sampleNumber, '', '', '', library.baseUrl, '', '', '', '').then((r) => {
                          setLoading(false);
                     });
                }}>
-               {loading ? <ButtonSpinner color="$primary500" /> : <ButtonText color="$primary500">{props.title}</ButtonText>}
+               {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500']} /> : <ButtonText color={theme.tokens.colors.primary['500']}>{props.title}</ButtonText>}
           </Button>
      );
 };

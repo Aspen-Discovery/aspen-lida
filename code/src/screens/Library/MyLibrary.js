@@ -8,7 +8,7 @@ import { colorMode, useColorModeValue } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -27,6 +27,7 @@ export const MyLibrary = () => {
      const [openToday, setOpenToday] = React.useState(false);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const { textColor } = React.useContext(ThemeContext);
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -119,16 +120,16 @@ export const MyLibrary = () => {
                ) : null}
                <Box safeArea={5} mt={location.locationImage ? 40 : 0} mx="$2">
                     {showSystemMessage()}
-                    {library.displayName !== location.displayName ? <Heading mb={2}>{location.displayName}</Heading> : <Heading mb={1}>{library.displayName}</Heading>}
-                    {location.address ? <Text>{location.address}</Text> : null}
+                    {library.displayName !== location.displayName ? <Heading color={textColor} mb={2}>{location.displayName}</Heading> : <Heading color={textColor} mb={1}>{library.displayName}</Heading>}
+                    {location.address ? <Text color={textColor}>{location.address}</Text> : null}
                     {location.phone ? (
-                         <Text>
-                              <Text>{getTermFromDictionary(language, 'phone')}: </Text>
-                              <Text>{location.phone}</Text>
+                         <Text color={textColor}>
+                              <Text color={textColor}>{getTermFromDictionary(language, 'phone')}: </Text>
+                              <Text color={textColor}>{location.phone}</Text>
                          </Text>
                     ) : null}
                     {hasHours ? (
-                         <Text mt={4} mb={2}>
+                         <Text color={textColor} mt={4} mb={2}>
                               <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
                                    <BadgeText>
                                         {hoursLabel}
@@ -144,7 +145,7 @@ export const MyLibrary = () => {
                          <>
                               <Divider mt={5} mb={2} />
                               <Button variant="ghost" size="sm" onPress={selectLocations}>
-                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
+                                   <ButtonText color={textColor}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                               </Button>
                          </>
                     ) : null}
