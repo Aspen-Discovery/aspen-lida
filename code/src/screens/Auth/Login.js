@@ -73,65 +73,71 @@ export const LoginScreen = () => {
      useFocusEffect(
           React.useCallback(() => {
                const bootstrapAsync = async () => {
-                    await getPermissions('statusCheck').then(async (result) => {
-                         if (result.success === false && result.status === 'undetermined' && GLOBALS.releaseChannel !== 'DEV' && Platform.OS === 'android') {
-                              setShouldRequestPermissions(true);
-                              setPermissionStatus(result.status);
-                         }
-
-                         if (result.status !== 'granted' && Platform.OS === 'ios') {
-                              setPermissionRequested(true);
-                              setPermissionStatus(result.status);
-                              await getPermissions('request');
-                         }
-                    });
-
-                    await fetchNearbyLibrariesFromGreenhouse().then((result) => {
-                         if (result.success) {
-                              setLibraries(result.libraries);
-                              if (!result.shouldShowSelectLibrary) {
-                                   if (result.libraries.length == 1) {
-                                        setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
-                                        logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
-                                        updateSelectedLibrary(result.libraries[0]);
-                                   }else{
-                                        logInfoMessage('Found ' + result.libraries.length + ' libraries, but shouldShowSelectLibrary is false');
-                                        setShowShouldSelectLibrary(true);
-                                   }
-                              }else{
-                                   logInfoMessage('Found ' + result.libraries.length + ' libraries');
-                                   setShowShouldSelectLibrary(true);
+                    try {
+                         await getPermissions('statusCheck').then(async (result) => {
+                              if (result.success === false && result.status === 'undetermined' && GLOBALS.releaseChannel !== 'DEV' && Platform.OS === 'android') {
+                                   setShouldRequestPermissions(true);
+                                   setPermissionStatus(result.status);
                               }
-                         }
-                    });
 
-                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                         if (mode === 'light' || mode === 'dark') {
-                              updateColorMode(mode);
-                         } else {
-                              updateColorMode('light');
-                         }
-                    });
-
-                    await createGlueTheme(Constants.expoConfig.extra.apiUrl).then((result) => {
-                         updateTheme(result);
-                    });
-
-                    if (isCommunity) {
-                         await fetchAllLibrariesFromGreenhouse().then((response) => {
-                              if(response.success) {
-                                   const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
-                                   setAllLibraries(libraries);
-                              } else {
-                                   setAllLibraries([]);
-                                   logDebugMessage("Error loading libraries from Greenhouse");
-                                   logDebugMessage(response);
-                                   getErrorMessage(response.code ?? 0, response.problem)
+                              if (result.status !== 'granted' && Platform.OS === 'ios') {
+                                   setPermissionRequested(true);
+                                   setPermissionStatus(result.status);
+                                   await getPermissions('request');
                               }
                          });
-                    }
 
-                    setIsLoading(false);
+                         await fetchNearbyLibrariesFromGreenhouse().then((result) => {
+                              if (result.success) {
+                                   setLibraries(result.libraries);
+                                   if (!result.shouldShowSelectLibrary) {
+                                        if (result.libraries.length == 1) {
+                                             setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
+                                             logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
+                                             updateSelectedLibrary(result.libraries[0]);
+                                        }else{
+                                             logInfoMessage('Found ' + result.libraries.length + ' libraries, but shouldShowSelectLibrary is false');
+                                             setShowShouldSelectLibrary(true);
+                                        }
+                                   }else{
+                                        logInfoMessage('Found ' + result.libraries.length + ' libraries');
+                                        setShowShouldSelectLibrary(true);
+                                   }
+                              }
+                         });
+
+                         await AsyncStorage.getItem('@colorMode').then(async (mode) => {
+                              if (mode === 'light' || mode === 'dark') {
+                                   updateColorMode(mode);
+                              } else {
+                                   updateColorMode('light');
+                              }
+                         });
+
+                         await createGlueTheme(Constants.expoConfig.extra.apiUrl).then((result) => {
+                              updateTheme(result);
+                         });
+
+                         if (isCommunity) {
+                              await fetchAllLibrariesFromGreenhouse().then((response) => {
+                                   if(response.success) {
+                                        const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
+                                        setAllLibraries(libraries);
+                                   } else {
+                                        setAllLibraries([]);
+                                        logDebugMessage("Error loading libraries from Greenhouse");
+                                        logDebugMessage(response);
+                                        getErrorMessage(response.code ?? 0, response.problem)
+                                   }
+                              });
+                         }
+                    } catch (e) {
+                         // never leave the login screen stuck on the splash spinner
+                         logDebugMessage('Error during login screen bootstrap');
+                         logDebugMessage(e);
+                    } finally {
+                         setIsLoading(false);
+                    }
                };
                bootstrapAsync().then(() => {
                     return () => bootstrapAsync();

@@ -19,6 +19,7 @@ import { createTheme, saveTheme } from './src/themes/theme';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db/sqlite';
+import { purgeExpiredApiErrorLogs } from './src/util/db';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
 enableScreens();
@@ -69,6 +70,11 @@ export default function AppContainer() {
           (async () => {
                try {
                     await initDatabase();
+                    // trim old API log rows in the background; without this the table grows
+                    // unbounded (a row per API error) and slows every write on the request path
+                    purgeExpiredApiErrorLogs(24).catch((e) => {
+                         logDebugMessage('Could not purge expired API error logs: ' + e);
+                    });
                } catch (error) {
                     logErrorMessage('Failed to initialize SQLite');
                     logErrorMessage(error);
@@ -108,21 +114,27 @@ export default function AppContainer() {
 
                if (colorMode) {
                     logDebugMessage("5 Creating Theme ");
-                    await createTheme(colorMode).then(async (result) => {
-                         logDebugMessage("5a retrieved data from createTheme");
-                         setAspenTheme(result);
-                         updateTheme(result);
-                         logDebugMessage("5b Set Aspen Theme");
-                         if (result.colors?.primary['baseContrast'] === '#000000') {
-                              setStatusBarColor('dark-content');
-                         } else {
-                              setStatusBarColor('light-content');
-                         }
-                         logDebugMessage("5c Saving Theme");
-                         await saveTheme(result);
-                    });
-
-                    setLoading(false);
+                    try {
+                         await createTheme(colorMode).then(async (result) => {
+                              logDebugMessage("5a retrieved data from createTheme");
+                              setAspenTheme(result);
+                              updateTheme(result);
+                              logDebugMessage("5b Set Aspen Theme");
+                              if (result.colors?.primary?.['baseContrast'] === '#000000') {
+                                   setStatusBarColor('dark-content');
+                              } else {
+                                   setStatusBarColor('light-content');
+                              }
+                              logDebugMessage("5c Saving Theme");
+                              await saveTheme(result);
+                         });
+                    } catch (e) {
+                         // never leave the app stuck on the splash screen because theming failed
+                         logErrorMessage('Could not create theme, continuing with defaults');
+                         logErrorMessage(e);
+                    } finally {
+                         setLoading(false);
+                    }
                }
           };
           setupNativeBaseTheme().then(() => {

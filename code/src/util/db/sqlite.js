@@ -3,18 +3,24 @@ import { versionUpdates, compareReleaseKeys } from './versionUpdates';
 import { logDebugMessage, logErrorMessage } from '../logging';
 
 const DB_NAME = 'aspen_lida.db';
-let dbInstance = null;
+let dbPromise = null;
 
 /**
  * Returns a singleton instance of the SQLite database connection.
- * If the connection has not been established yet, it will be created and stored for future use.
+ * The opening promise (not the instance) is cached so concurrent callers during
+ * startup share one connection instead of each opening their own, which caused
+ * "database is locked" errors on Android. If opening fails, the cache is cleared
+ * so a later call can retry.
  * @returns {Promise<*>}
  */
 export async function getDb() {
-     if (!dbInstance) {
-          dbInstance = await SQLite.openDatabaseAsync(DB_NAME);
+     if (!dbPromise) {
+          dbPromise = SQLite.openDatabaseAsync(DB_NAME).catch((error) => {
+               dbPromise = null;
+               throw error;
+          });
      }
-     return dbInstance;
+     return dbPromise;
 }
 
 /**

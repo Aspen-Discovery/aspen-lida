@@ -39,6 +39,32 @@ export async function refreshProfile(url = null) {
 }
 
 /**
+ * Fetch a wallet pass for the patron's library card (see WALLET-PASS-SPEC.md).
+ * Generated and signed server-side. For platform 'apple' the response carries a
+ * base64-encoded .pkpass in result.passData; for platform 'google' it carries a
+ * signed-JWT "Save to Google Wallet" link in result.saveUrl.
+ * @param url
+ * @param barcode which card to build the pass for (supports linked accounts); null = primary
+ * @param platform 'apple' or 'google'
+ * @returns {Promise<*|{ok: boolean, status, problem: string, data, config: {}}|undefined>}
+ */
+export async function fetchWalletPass(url = null, barcode = null, platform = 'apple') {
+     const client = userClient(url, GLOBALS.timeoutAverage);
+     logDebugMessage('Fetching wallet pass for platform ' + platform);
+
+     return await client.post(
+          '/UserAPI?method=getPatronWalletPass',
+          {},
+          {
+               params: {
+                    platform,
+                    barcode,
+               },
+          }
+     );
+}
+
+/**
  * Refreshes the profile information for the user, forcing a reload from the ILS.
  * @param url
  * @returns {Promise<{success: boolean, errorFetching: boolean}|*>}

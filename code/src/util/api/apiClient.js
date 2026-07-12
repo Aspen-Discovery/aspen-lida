@@ -7,6 +7,21 @@ import { API_KEY_1, API_KEY_2, API_KEY_3, API_KEY_4, API_KEY_5 } from '@env';
 import * as Sentry from '@sentry/react-native';
 import { insertApiErrorLog } from '../db';
 
+/**
+ * Write an API log entry without ever throwing or blocking the request path.
+ * A failed SQLite write (locked db, missing table during first-launch migration,
+ * full disk) must never turn an API response into a rejected promise.
+ */
+function safeInsertApiErrorLog(details) {
+     try {
+          insertApiErrorLog(details).catch((e) => {
+               logDebugMessage('Failed to write API error log entry: ' + e);
+          });
+     } catch (e) {
+          logDebugMessage('Failed to write API error log entry: ' + e);
+     }
+}
+
 const ERROR_TYPES = {
      TIMEOUT: 'TIMEOUT_ERROR',
      CONNECTION: 'CONNECTION_ERROR',
@@ -217,8 +232,8 @@ export class ApiClient {
                          logErrorMessage("Could not parse response from " + url + " as json");
                          logErrorMessage("Raw body causing error: " + rawText);
 
+                         // leave data null; validateAspenResponse flags this as INVALID_RESPONSE_TYPE below
                          data = null;
-                         isResponseOk = false;
                     }
                } else if (contentType?.includes('text')) {
                     data = await response.text();
@@ -271,7 +286,7 @@ export class ApiClient {
                      * if the response contains debug information.
                      */
                     if (this.debugMode || data.debug || data.result?.debug) {
-                         await insertApiErrorLog({
+                         safeInsertApiErrorLog({
                               method: options.method,
                               endpoint: url,
                               status: response.status || null,
@@ -342,8 +357,8 @@ export class ApiClient {
                     });
                }
 
-               // Log all API errors to the database
-               await insertApiErrorLog(errorDetails);
+               // Log all API errors to the database (fire-and-forget; must never throw or reject)
+               safeInsertApiErrorLog(errorDetails);
 
                if (config.customErrorMessage) {
                     logDebugMessage(config.customErrorMessage);

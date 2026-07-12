@@ -8,14 +8,64 @@ import { ThemeContext } from '../context/initialContext';
 
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 import { getThemeInfo } from '../util/api/system';
+import { generateSwatches } from '../helpers/helpers';
 
 export const BackIcon = (props) => {
      const { theme } = React.useContext(ThemeContext);
      return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['colors']['primary']['baseContrast']} />;
 };
 
+const BACKUP_COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
+
+/**
+ * Read the swatches cached by saveTheme() on a previous launch.
+ * Returns [primary, secondary, tertiary] palettes, or null if the cache is absent/corrupt.
+ */
+async function loadCachedSwatches() {
+     try {
+          const entries = await AsyncStorage.multiGet(['primaryColors', 'secondaryColors', 'tertiaryColors']);
+          const palettes = entries.map(([, value]) => (value ? JSON.parse(value) : null));
+          if (palettes.every((palette) => palette && typeof palette === 'object')) {
+               logDebugMessage('Using cached theme colors for instant boot');
+               return palettes;
+          }
+     } catch (e) {
+          logErrorMessage('Unable to read cached theme colors');
+          logErrorMessage(e);
+     }
+     return null;
+}
+
+/**
+ * Fetch theme swatches for the boot path. Strategy:
+ * 1. cached palettes from the last launch (instant — no network on the splash screen),
+ *    refreshing the cache in the background for the next launch;
+ * 2. otherwise fetch from the server;
+ * 3. otherwise the backup palette. Never rejects — if this throws, the splash/loading
+ *    screens never resolve.
+ */
+async function getThemeInfoSafe(url = null) {
+     try {
+          const cached = await loadCachedSwatches();
+          if (cached) {
+               // background refresh; worst case the theme is one launch behind the server
+               getThemeInfo(url)
+                    .then((fresh) => saveTheme({ colors: { primary: fresh[0], secondary: fresh[1], tertiary: fresh[2] } }))
+                    .catch((e) => {
+                         logDebugMessage('Background theme refresh failed: ' + e);
+                    });
+               return cached;
+          }
+          return await getThemeInfo(url);
+     } catch (e) {
+          logErrorMessage('Failed to load theme info, using backup theme');
+          logErrorMessage(e);
+          return BACKUP_COLOR_SCHEMES.map(generateSwatches);
+     }
+}
+
 export async function createTheme(colorMode) {
-     const response = await getThemeInfo();
+     const response = await getThemeInfoSafe();
      const theme = extendTheme({
           colors: {
                primary: response[0],
@@ -36,7 +86,7 @@ export async function createTheme(colorMode) {
 }
 
 export async function createGlueTheme(url) {
-     const response = await getThemeInfo(url);
+     const response = await getThemeInfoSafe(url);
      const theme = extendTheme({
           colors: {
                primary: response[0],

@@ -13,6 +13,7 @@ import { Extrapolate, interpolate, useAnimatedStyle, useSharedValue } from 'reac
 import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
+import { AddToWalletButton } from '../../../components/AddToWalletButton';
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -450,6 +451,7 @@ const CreateLibraryCard = (data) => {
                               <Text color={textColor} fontSize="$xl" textAlign="center">{barcodeValue}</Text>
                          </VStack>
                     )}
+                    <AddToWalletButton card={card} />
                     {showExpirationDate && expirationDate && !neverExpires && numCards === 1 ? (
                          <Text color={textColor} fontSize="$sm" pt="$2">
                               {expirationText}

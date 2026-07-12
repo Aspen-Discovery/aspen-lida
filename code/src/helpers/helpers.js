@@ -300,7 +300,8 @@ export function generateSwatches(swatch) {
      const SATURATION_MAP = [0.32, 0.16, 0.08, 0.04, 0, 0, 0.04, 0.08, 0.16, 0.32];
      const HUE_MAP = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36];
 
-     let primaryColor = swatch.replace('#', '');
+     // Server themes can return null/undefined colors; never crash the boot path over one
+     let primaryColor = typeof swatch === 'string' ? swatch.replace('#', '') : '';
      if (!chroma.valid(primaryColor)) {
           primaryColor = '#C70833';
      }

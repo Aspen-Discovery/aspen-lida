@@ -12,6 +12,8 @@ export const GLOBALS = {
      timeoutAverage: 60000,
      timeoutSlow: 100000,
      timeoutFast: 30000,
+     // for boot-critical calls the user is staring at a splash screen; fail fast and fall back
+     timeoutBoot: 8000,
      appVersion: Constants.expoConfig.version,
      appBuild: Platform.OS === 'android' ? androidDist : iOSDist,
      appSessionId: Constants.expoConfig.sessionid,
@@ -123,6 +125,7 @@ export const LIBRARY = {
      localIll: [],
      id: 0,
      version: null,
+     appSettings: {},
 };
 
 export const BRANCH = {

@@ -137,11 +137,15 @@ export async function getAppSettings(url, timeout, slug) {
 
           logWarnMessage(`Did not get valid response from getAppSettings url: ${url} slug: ${slug}`);
           logWarnMessage(response);
-          return [];
+          LIBRARY.appSettings = LIBRARY.appSettings ?? {};
+          return LIBRARY.appSettings;
      } catch (err) {
-          popToast(getTermFromDictionary('en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
+          // note: getTermFromDictionary was referenced here without being imported, which made this
+          // catch block itself throw a ReferenceError; use the static English term instead
+          popToast('Unable to connect to the library', 'Could not retrieve App Settings, please try again later.', 'error');
           logErrorMessage(`Exception in getAppSettings ${err}`);
-          return [];
+          LIBRARY.appSettings = LIBRARY.appSettings ?? {};
+          return LIBRARY.appSettings;
      }
 }
 
@@ -255,14 +259,22 @@ export async function getLocations(url = null, language = 'en', latitude, longit
 }
 
 /**
- * Check if the provided URL is valid and has a working connection to Aspen Discovery by making a test API call
+ * Check if the provided URL is valid and has a working connection to Aspen Discovery by making a test API call.
+ * Distinguishes transient connectivity problems (timeout, dropped connection) from a genuinely
+ * dead/invalid url so callers don't destroy a valid session over a network blip.
  * @param url
- * @returns {Promise<boolean>}
+ * @returns {Promise<{connected: boolean, transient: boolean}>}
  */
 export async function checkCachedUrl(url) {
-     const client = createApiClient({ url, timeout: GLOBALS.timeoutFast });
+     // boot-critical: with the old 30s timeout (plus a retry) users stared at the splash
+     // screen for up to a minute before anything happened
+     const client = createApiClient({ url, timeout: GLOBALS.timeoutBoot });
      const response = await client.post('/SystemAPI?method=getCatalogStatus');
-     return !!response.ok;
+     const transientProblems = ['TIMEOUT_ERROR', 'CONNECTION_ERROR', 'NETWORK_ERROR'];
+     return {
+          connected: !!response.ok,
+          transient: !response.ok && transientProblems.includes(response.problem),
+     };
 }
 
 /**

@@ -87,16 +87,23 @@ export const LoadingScreen = () => {
                     updateColorMode('light');
                }
 
-               await createGlueTheme(LIBRARY.url).then((result) => {
-                    updateTheme(result);
+               try {
+                    await createGlueTheme(LIBRARY.url).then((result) => {
+                         updateTheme(result);
+                    });
+               } catch (e) {
+                    // continue with the current theme rather than freezing the loading chain
+                    logErrorMessage('Error creating theme on Loading screen');
+                    logErrorMessage(e);
+               } finally {
+                    // the query chain is gated on loadingTheme — it must ALWAYS be released
                     setLoadingTheme(false);
                     //if we have no library we should set error
                     //to avoid being stuck on loading screen.
-                    if(LIBRARY.url === null)
-                    {
+                    if (!LIBRARY.url) {
                          setHasError(true);
                     }
-               });
+               }
           });
 
           return unsubscribe;
@@ -129,7 +136,7 @@ export const LoadingScreen = () => {
                     }else if (LIBRARY.appSettings.loadingMessageType == 2) {
                          setLoadingText(LIBRARY.appSettings.loadingMessage);
                     }
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                } else {
                     logWarnMessage("Setting Error to true because catalog status returned not ok");
                     const error = getErrorMessage(data.code ?? 0, data.problem);
@@ -153,7 +160,7 @@ export const LoadingScreen = () => {
      const { isSuccess: translationQuerySuccess, status: translationQueryStatus, data: translationQuery } = useQuery(['active_language', PATRON.language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(PATRON.language ?? 'en', LIBRARY.url), {
           enabled: !!LIBRARY.url && catalogStatusSuccess,
           onSuccess: (data) => {
-               setProgress(progress + (100 / numSteps));
+               setProgress((prev) => prev + 100 / numSteps);
                updateDictionary(translationsLibrary);
                if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
                     setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
@@ -174,7 +181,7 @@ export const LoadingScreen = () => {
           enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     let languages = [];
                     if (data?.data?.result) {
                          logDebugMessage('Library languages saved at Loading');
@@ -221,12 +228,22 @@ export const LoadingScreen = () => {
           };
      }, []);
 
+     /**
+      * The queries below used to run strictly sequentially (each gated on the previous
+      * one's success), which meant 14 round trips one after another — minutes of progress
+      * bar on a slow server. Only three real data dependencies exist:
+      *   user            → library_system + languages
+      *   linked_accounts → user + library_system
+      *   system_messages → library_system + library_location
+      * Everything else fans out in parallel as soon as the catalog status confirms
+      * the server is reachable.
+      */
      const { isSuccess: librarySystemQuerySuccess, status: librarySystemQueryStatus, data: librarySystemQuery } = useQuery(['library_system', LIBRARY.url], () => getLibraryInfo(LIBRARY.url, LIBRARY.id), {
-          enabled: hasError === false && languagesQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const library = data.data.result?.library ?? [];
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     logDebugMessage("Updating library from Loading screen");
                     updateLibrary(library);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
@@ -250,7 +267,7 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: userQuerySuccess, status: userQueryStatus, data: userQuery } = useQuery(['user', LIBRARY.url, 'en'], () => refreshProfile(LIBRARY.url), {
-          enabled: hasError === false && librarySystemQuerySuccess,
+          enabled: hasError === false && librarySystemQuerySuccess && languagesQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const profile = data.data.result.profile ?? [];
@@ -263,7 +280,7 @@ export const LoadingScreen = () => {
                               logWarnMessage("Setting Error to true because profile response returned a success of false");
                               setHasError(true);
                          } else {
-                              setProgress(progress + (100 / numSteps));
+                              setProgress((prev) => prev + 100 / numSteps);
                               updateUser(profile);
                               updateLanguage(profile.interfaceLanguage ?? 'en');
                               updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
@@ -290,11 +307,11 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: libraryLinksQuerySuccess, status: libraryLinksQueryStatus, data: libraryLinksQuery } = useQuery(['library_links', LIBRARY.url], () => getLibraryLinks(LIBRARY.url), {
-          enabled: hasError === false && userQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const links = data.data.result?.items ?? [];
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     updateMenu(links);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
                          setLoadingText('Loading Browse Categories');
@@ -318,10 +335,10 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: browseCategoryQuerySuccess, status: browseCategoryQueryStatus, data: browseCategoryQuery } = useQuery(['browse_categories', LIBRARY.url, 'en', false], () => getHomeScreenFeed(5, LIBRARY.url), {
-          enabled: hasError === false && libraryLinksQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     const result = data.data.result;
                     updateBrowseCategories(result.browseCategories);
                     updateMaxCategories(5);
@@ -348,11 +365,11 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: browseCategoryListQuerySuccess, status: browseCategoryListQueryStatus, data: browseCategoryListQuery } = useQuery(['browse_categories_list', LIBRARY.url, 'en'], () => getBrowseCategoryListForUser(LIBRARY.url), {
-          enabled: hasError === false && browseCategoryQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const categories = _.sortBy(data.data.result, ['title']);
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
                          setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_2'));
                     }else if (LIBRARY.appSettings.loadingMessageType == 1) {
@@ -378,11 +395,11 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: libraryBranchQuerySuccess, status: libraryBranchQueryStatus, data: libraryBranchQuery } = useQuery(['library_location', LIBRARY.url, 'en'], () => getLocationInfo(LIBRARY.url), {
-          enabled: hasError === false && browseCategoryListQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const location = data.data.result?.location ?? [];
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     updateLocation(location);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
                          setLoadingText('Loading Library Locations');
@@ -406,13 +423,13 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: selfCheckQuerySuccess, status: selfCheckQueryStatus, data: selfCheckQuery } = useQuery(['self_check_settings', LIBRARY.url, 'en'], () => getSelfCheckSettings(LIBRARY.url), {
-          enabled: hasError === false && libraryBranchQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const settings = data.data.result ?? [];
                     logDebugMessage("Self Check Settings");
                     logDebugMessage(settings);
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
                          setLoadingText('Loading Self Check Information');
                     }
@@ -442,10 +459,10 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: linkedAccountQuerySuccess, status: linkedAccountQueryStatus, data: linkedAccountQuery } = useQuery(['linked_accounts', user ?? [], cards ?? [], LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
-          enabled: hasError === false && selfCheckQuerySuccess,
+          enabled: hasError === false && userQuerySuccess && librarySystemQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library?.barcodeStyle ?? 'UNKNOWN', data.data.result.linkedAccounts);
                     updateLinkedAccounts(linkedAccounts.accounts);
                     updateLibraryCards(linkedAccounts.cards);
@@ -471,12 +488,12 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: systemMessagesQuerySuccess, status: systemMessagesQueryStatus, data: systemMessagesQuery } = useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
-          enabled: hasError === false && linkedAccountQuerySuccess,
+     const { isSuccess: systemMessagesQuerySuccess, status: systemMessagesQueryStatus, data: systemMessagesQuery } = useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library?.libraryId, location?.locationId, LIBRARY.url), {
+          enabled: hasError === false && librarySystemQuerySuccess && libraryBranchQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const messages = _.castArray(data.data.result?.systemMessages ?? {});
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     updateSystemMessages(messages);
                     setIsReloading(false);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
@@ -501,7 +518,7 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: appPreferencesQuerySuccess, status: appPreferencesQueryStatus, data: appPreferencesQuery } = useQuery(['app_preferences', LIBRARY.url], () => getAppPreferencesForUser(LIBRARY.url, 'en'), {
-          enabled: hasError === false && systemMessagesQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const preferences = data.data.result ?? {
@@ -519,7 +536,7 @@ export const LoadingScreen = () => {
                          ],
                     }
                     updateAppPreferences(preferences);
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     setIsReloading(false);
                     if (LIBRARY.appSettings.loadingMessageType == 1) {
                          setLoadingText('Loading App Preferences');
@@ -543,11 +560,11 @@ export const LoadingScreen = () => {
      });
 
      const { isSuccess: notificationHistoryQuerySuccess, status: notificationHistoryQueryStatus, data: notificationHistoryQuery } = useQuery(['notification_history'], () => fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en'), {
-          enabled: hasError === false && appPreferencesQuerySuccess,
+          enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const notificationHistory = formatNotificationHistory(data.data.result)
-                    setProgress(progress + (100 / numSteps));
+                    setProgress((prev) => prev + 100 / numSteps);
                     updateNotificationHistory(notificationHistory);
                     updateInbox(notificationHistory?.inbox ?? []);
                     setIsReloading(false);
@@ -572,10 +589,28 @@ export const LoadingScreen = () => {
           }
      });
 
+     // with the queries running in parallel, wait for every one of them before navigating
+     // (previously the chain was sequential, so the last query implied all the others)
+     const allQueriesLoaded =
+          catalogStatusSuccess &&
+          translationQuerySuccess &&
+          languagesQuerySuccess &&
+          librarySystemQuerySuccess &&
+          userQuerySuccess &&
+          libraryLinksQuerySuccess &&
+          browseCategoryQuerySuccess &&
+          browseCategoryListQuerySuccess &&
+          libraryBranchQuerySuccess &&
+          selfCheckQuerySuccess &&
+          linkedAccountQuerySuccess &&
+          systemMessagesQuerySuccess &&
+          appPreferencesQuerySuccess &&
+          notificationHistoryQuerySuccess;
+
      React.useEffect(() => {
           if (
                !isReloading &&
-               notificationHistoryQueryStatus === 'success' &&
+               allQueriesLoaded &&
                !hasError &&
                catalogStatus === 0
           ) {
@@ -638,7 +673,7 @@ export const LoadingScreen = () => {
           }
      }, [
           isReloading,
-          notificationHistoryQueryStatus,
+          allQueriesLoaded,
           hasError,
           catalogStatus,
           hasIncomingUrlChanged,

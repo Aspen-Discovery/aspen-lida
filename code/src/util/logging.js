@@ -76,7 +76,33 @@ export function logSentryMessage(message, level = 'error') {
      }
 }
 
-export function getErrorMessage({ statusCode = null, problem, sendToSentry = false }) {
+/**
+ * Build a user-facing error message from an API failure.
+ * Accepts either positional arguments — getErrorMessage(statusCode, problem, sendToSentry) —
+ * which is how ~80 call sites invoke it, or a single options object —
+ * getErrorMessage({ statusCode, problem, sendToSentry }). The old object-only signature
+ * silently discarded the arguments at every positional call site, so users always saw
+ * the generic "An unexpected error occurred" message.
+ */
+export function getErrorMessage(statusCodeOrOptions = null, problemArg = undefined, sendToSentryArg = false) {
+     let statusCode = statusCodeOrOptions;
+     let problem = problemArg;
+     let sendToSentry = sendToSentryArg;
+
+     if (statusCodeOrOptions !== null && typeof statusCodeOrOptions === 'object') {
+          statusCode = statusCodeOrOptions.statusCode ?? null;
+          problem = statusCodeOrOptions.problem;
+          sendToSentry = statusCodeOrOptions.sendToSentry ?? false;
+     }
+
+     // treat non-string problems (objects passed by mistake) and 0/'' status codes as absent
+     if (typeof problem !== 'string' || problem === '') {
+          problem = undefined;
+     }
+     if (!statusCode) {
+          statusCode = null;
+     }
+
      let errorDetails;
      if (problem) {
           switch (problem) {

@@ -147,6 +147,10 @@ export function App() {
      );
 
      React.useEffect(() => {
+          // Check for OTA updates every 15 minutes. The previous 10 SECOND interval hammered
+          // the update servers and could trigger Updates.reloadAsync() while a patron was
+          // mid-task, which reads as a random crash/black screen.
+          const OTA_CHECK_INTERVAL = 15 * 60 * 1000;
           const timer = setInterval(async () => {
                if (!__DEV__) {
                     try {
@@ -168,7 +172,7 @@ export function App() {
                          // error checking for updates
                     }
                }
-          }, 10000);
+          }, OTA_CHECK_INTERVAL);
           return () => {
                clearInterval(timer);
           };
@@ -181,56 +185,70 @@ export function App() {
                let libraryUrl;
                let userKey;
                try {
-                    // Restore token stored in `AsyncStorage`
-                    userToken = await AsyncStorage.getItem('@userToken');
-                    libraryUrl = await AsyncStorage.getItem('@pathUrl');
-                    userKey = await SecureStore.getItemAsync('userKey');
-               } catch (e) {
-                    // Restoring token failed
-                    logErrorMessage("Error restoring token");
-                    logErrorMessage(e);
-                    dispatch({ type: 'SIGN_OUT' });
-               }
-
-               if (!userKey) {
-                    dispatch({ type: 'SIGN_OUT' });
-               }
-
-               if (!libraryUrl) {
-                    libraryUrl = LIBRARY.url;
-               }
-
-               if (userToken) {
-                    logDebugMessage('Session found');
-                    if (libraryUrl) {
-                         logDebugMessage('Trying to connect to: ', libraryUrl);
-                         await checkCachedUrl(libraryUrl).then(async (result) => {
-                              if (result) {
-                                   LIBRARY.url = libraryUrl;
-                                   logDebugMessage('Connection successful. Continuing...');
-                                   await trackAppLaunches(libraryUrl);
-                              } else {
-                                   logWarnMessage('Connection failed, logging out.');
-                                   userToken = null;
-                                   await RemoveData(queryClient, updateUser).then((res) => {
-                                        dispatch({ type: 'SIGN_OUT' });
-                                   });
-                              }
-                         });
-                    } else {
-                         logWarnMessage('No cached library url, logging out.');
-                         await RemoveData(queryClient, updateUser).then((res) => {
-                              dispatch({ type: 'SIGN_OUT' });
-                         });
+                    try {
+                         // Restore token stored in `AsyncStorage`
+                         userToken = await AsyncStorage.getItem('@userToken');
+                         libraryUrl = await AsyncStorage.getItem('@pathUrl');
+                         userKey = await SecureStore.getItemAsync('userKey');
+                    } catch (e) {
+                         // Restoring token failed
+                         logErrorMessage("Error restoring token");
+                         logErrorMessage(e);
+                         dispatch({ type: 'SIGN_OUT' });
                     }
-               } else {
-                    logDebugMessage('No session found. Starting new.');
+
+                    if (!userKey) {
+                         dispatch({ type: 'SIGN_OUT' });
+                    }
+
+                    if (!libraryUrl) {
+                         libraryUrl = LIBRARY.url;
+                    }
+
+                    if (userToken) {
+                         logDebugMessage('Session found');
+                         if (libraryUrl) {
+                              logDebugMessage('Trying to connect to: ', libraryUrl);
+                              await checkCachedUrl(libraryUrl).then(async (result) => {
+                                   if (result.connected) {
+                                        LIBRARY.url = libraryUrl;
+                                        logDebugMessage('Connection successful. Continuing...');
+                                        await trackAppLaunches(libraryUrl);
+                                   } else if (result.transient) {
+                                        // Network blip or slow server: keep the session instead of forcing
+                                        // the user to re-select their library and re-enter their card.
+                                        // If the server is genuinely down, the Loading screen surfaces the error.
+                                        LIBRARY.url = libraryUrl;
+                                        logWarnMessage('Could not verify library connection (transient network issue); keeping session.');
+                                   } else {
+                                        logWarnMessage('Connection failed, logging out.');
+                                        userToken = null;
+                                        await RemoveData(queryClient, updateUser).then((res) => {
+                                             dispatch({ type: 'SIGN_OUT' });
+                                        });
+                                   }
+                              });
+                         } else {
+                              logWarnMessage('No cached library url, logging out.');
+                              await RemoveData(queryClient, updateUser).then((res) => {
+                                   dispatch({ type: 'SIGN_OUT' });
+                              });
+                         }
+                    } else {
+                         logDebugMessage('No session found. Starting new.');
+                    }
+               } catch (e) {
+                    // Never leave the app stuck on the splash screen: fall through and restore
+                    // whatever token state we have (null token simply shows the login screen).
+                    logErrorMessage('Error during session bootstrap');
+                    logErrorMessage(e);
+               } finally {
+                    dispatch({
+                         type: 'RESTORE_TOKEN',
+                         token: userToken,
+                         refreshData: true,
+                    });
                }
-               dispatch({
-                    type: 'RESTORE_TOKEN',
-                    token: userToken,
-                    refreshData: true,
-               });
           };
           bootstrapAsync();
      }, []);

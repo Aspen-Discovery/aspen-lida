@@ -135,7 +135,9 @@ export async function fetchAllLibrariesFromGreenhouse() {
      });
 
      if (response.ok) {
-          const libraries = [...(response.data.libraries ?? [])].sort((a, b) => {
+          // libraries live under result, same as fetchNearbyLibrariesFromGreenhouse above;
+          // reading response.data.libraries returned undefined and made the list permanently empty
+          const libraries = [...(response.data?.result?.libraries ?? [])].sort((a, b) => {
                if (a.name !== b.name) return (a.name ?? '').localeCompare(b.name ?? '');
                return (a.librarySystem ?? '').localeCompare(b.librarySystem ?? '');
           });
