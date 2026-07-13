@@ -4,7 +4,13 @@ process.env.EXPO_OS = 'ios';
 jest.mock('expo-constants', () => {
   return {
     __esModule: true,
+    ExecutionEnvironment: {
+      Bare: 'bare',
+      Standalone: 'standalone',
+      StoreClient: 'storeClient',
+    },
     default: {
+      executionEnvironment: 'bare',
       expoConfig: {
         ios: {
           buildNumber: '1',
@@ -25,43 +31,6 @@ jest.mock('expo-constants', () => {
   };
 });
 
-/**
- * Mock objects for testing Aspen LiDA
- */
-jest.mock('@expo/vector-icons', () => {
-  const React = require('react');
-  const { Text } = require('react-native');
-  return {
-    MaterialIcons: (props) => React.createElement(Text, props, 'MaterialIcons'),
-    Ionicons: (props) => React.createElement(Text, props, 'Ionicons'),
-    // Add any other specific icons your app throws errors on here
-  };
-});
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
-
-jest.mock('@sentry/react-native', () => {
-  return {
-    __esModule: true,
-    init: jest.fn(),
-    captureException: jest.fn(),
-    captureMessage: jest.fn(),
-    captureEvent: jest.fn(),
-    addBreadcrumb: jest.fn(),
-    setUser: jest.fn(),
-    setTags: jest.fn(),
-    setExtra: jest.fn(),
-    startSpan: jest.fn((ctx, callback) => callback ? callback() : null),
-    // Sentry Navigation tracing mocks if your logging setup accesses them
-    ReactNavigationInstrumentation: jest.fn().mockImplementation(() => ({
-      registerNavigationContainer: jest.fn(),
-    })),
-    ReactNativeTracing: jest.fn().mockImplementation(() => ({})),
-  };
-});
-
 jest.mock('expo-device', () => {
   return {
     __esModule: true,
@@ -79,6 +48,20 @@ jest.mock('expo-device', () => {
     deviceType: 1, // 1 = PHONE
   };
 });
+
+jest.mock('expo-linking', () => ({
+  createURL: jest.fn(() => 'aspen-lida://'),
+  useLinkingURL: jest.fn(() => 'aspen-lida://'),
+  parse: jest.fn(() => ({ hostname: '', path: '', queryParams: {}, scheme: '' })),
+  openURL: jest.fn(),
+}));
+
+jest.mock('expo-notifications', () => ({
+  setNotificationHandler: jest.fn(),
+  addNotificationResponseReceivedListener: jest.fn(() => ({
+    remove: jest.fn(),
+  })),
+}));
 
 const mockSecureStore = {};
 jest.mock('expo-secure-store', () => {
@@ -165,5 +148,44 @@ jest.mock('expo-web-browser', () => {
     warmUpAsync: jest.fn().mockResolvedValue({}),
     coolDownAsync: jest.fn().mockResolvedValue({}),
     maybeCompleteAuthSession: jest.fn().mockReturnValue({ type: 'success' }),
+  };
+});
+
+// Mock React Native Safe Area Context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    MaterialIcons: (props) => React.createElement(Text, props, 'MaterialIcons'),
+    Ionicons: (props) => React.createElement(Text, props, 'Ionicons'),
+    // Add any other specific icons your app throws errors on here
+  };
+});
+
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);
+
+jest.mock('@sentry/react-native', () => {
+  return {
+    __esModule: true,
+    init: jest.fn(),
+    captureException: jest.fn(),
+    captureMessage: jest.fn(),
+    captureEvent: jest.fn(),
+    addBreadcrumb: jest.fn(),
+    setUser: jest.fn(),
+    setTags: jest.fn(),
+    setExtra: jest.fn(),
+    startSpan: jest.fn((ctx, callback) => callback ? callback() : null),
+    // Sentry Navigation tracing mocks if your logging setup accesses them
+    ReactNavigationInstrumentation: jest.fn().mockImplementation(() => ({
+      registerNavigationContainer: jest.fn(),
+    })),
+    ReactNativeTracing: jest.fn().mockImplementation(() => ({})),
   };
 });

@@ -46,3 +46,5 @@ app-configs/.env
 app-configs/*.env
 code/%ProgramData%/Microsoft/Windows/UUS/State/_active.uusver
 app-configs/build.json
+
+local.properties

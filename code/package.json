@@ -5,7 +5,8 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "test": "jest --watchAll"
+    "test": "jest",
+    "testContinuously": "jest --watchAll"
   },
   "dependencies": {
     "@expo/config-plugins": "~10.1.1",
@@ -96,6 +97,7 @@
     "@babel/plugin-transform-class-static-block": "^7.28.6",
     "@react-native-community/cli": "latest",
     "@testing-library/react-native": "14",
+    "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "babel-plugin-module-resolver": "^5.0.2",
@@ -132,9 +134,14 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "globals": {
+      "__DEV__": true
+    },
     "transformIgnorePatterns": [
-         "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui|@gluestack-ui/.*|@sentry/react-native|@react-native-async-storage/async-storage)"
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui|@gluestack-ui/.*|@sentry/react-native|@react-native-async-storage/async-storage|@legendapp/motion)"
     ],
-    "setupFiles": ["./jest.setup.js"]
+    "setupFiles": [
+      "./jest.setup.js"
+    ]
   }
 }

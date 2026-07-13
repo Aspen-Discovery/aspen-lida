@@ -1,30 +1,52 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused, useLinkTo, useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {useLinkTo, useNavigation} from '@react-navigation/native';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import _, {isEmpty, isUndefined} from 'lodash';
-import { Box, Center, Heading, Progress, VStack } from '@gluestack-ui/themed';
+import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
-import { checkVersion } from 'react-native-check-version';
-import { BrowseCategoryContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
-import { createGlueTheme } from '../../themes/theme';
-import { getLanguageDisplayName, getTermFromDictionary, getTranslatedTermsForUserPreferredLanguage, translationsLibrary } from '../../translations/TranslationService';
-import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getSystemMessages } from '../../util/api/system';
-import { getLocationInfo, getSelfCheckSettings } from '../../util/api/system';
-import { getHomeScreenFeed } from '../../util/api/search';
-import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, refreshProfile } from '../../util/api/user';
-import { formatLinkedAccounts, formatNotificationHistory } from '../../util/api/userHelper';
+import {
+     BrowseCategoryContext,
+     LanguageContext,
+     LibraryBranchContext,
+     LibrarySystemContext,
+     SystemMessagesContext,
+     ThemeContext,
+     UserContext
+} from '../../context/initialContext';
+import {createGlueTheme} from '../../themes/theme';
+import {
+     getLanguageDisplayName,
+     getTermFromDictionary,
+     getTranslatedTermsForUserPreferredLanguage,
+     translationsLibrary
+} from '../../translations/TranslationService';
+import {
+     getCatalogStatus,
+     getLibraryInfo,
+     getLibraryLanguages,
+     getLibraryLinks,
+     getLocationInfo,
+     getSelfCheckSettings,
+     getSystemMessages
+} from '../../util/api/system';
+import {getBrowseCategoryListForUser, getHomeScreenFeed} from '../../util/api/search';
+import {
+     fetchNotificationHistory,
+     getAppPreferencesForUser,
+     getLinkedAccounts,
+     refreshProfile
+} from '../../util/api/user';
+import {formatLinkedAccounts, formatNotificationHistory} from '../../util/api/userHelper';
 
-import { GLOBALS } from '../../util/globals';
-import { LIBRARY, PATRON } from '../../util/globals';
-import { getBrowseCategoryListForUser } from '../../util/api/search';
-import { CatalogOffline } from './CatalogOffline';
-import { ForceLogout } from './ForceLogout';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {LIBRARY, PATRON} from '../../util/globals';
+import {CatalogOffline} from './CatalogOffline';
+import {ForceLogout} from './ForceLogout';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
-import { stripHTML } from '../../helpers/helpers';
+import {getErrorMessage, logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../../util/logging.js';
+import {stripHTML} from '../../helpers/helpers';
 
 const prefix = Linking.createURL('/');
 
@@ -41,23 +63,22 @@ export const LoadingScreen = () => {
      const linkTo = useLinkTo();
      const navigation = useNavigation();
      const queryClient = useQueryClient();
-     const isFocused = useIsFocused();
+     const [isFocused, setIsFocused] = React.useState(0);
      const [progress, setProgress] = React.useState(0);
      const [isReloading, setIsReloading] = React.useState(false);
      const [hasError, setHasError] = React.useState(false);
      const [errorMessage, setErrorMessage] = React.useState(null);
      const [errorTitle, setErrorTitle] = React.useState(null);
-     const [hasUpdate, setHasUpdate] = React.useState(false);
      const [incomingUrl, setIncomingUrl] = React.useState('');
      const [hasIncomingUrlChanged, setIncomingUrlChanged] = React.useState(false);
 
-     const { user, updateUser, accounts, updateLinkedAccounts, cards, updateLibraryCards, updateAppPreferences, notificationHistory, updateNotificationHistory, updateInbox } = React.useContext(UserContext);
-     const { library, updateLibrary, updateMenu, updateCatalogStatus, catalogStatus, catalogStatusMessage, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const { location, updateLocation, updateScope, updateEnableSelfCheck, updateSelfCheckSettings } = React.useContext(LibraryBranchContext);
-     const { category, updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
-     const { language, updateLanguage, updateLanguages, updateDictionary, dictionary, languageDisplayName, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
-     const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, updateTheme, colorMode, updateColorMode, textColor } = React.useContext(ThemeContext);
+     const { user, updateUser,  updateLinkedAccounts, cards, updateLibraryCards, updateAppPreferences, updateNotificationHistory, updateInbox } = React.useContext(UserContext);
+     const { library, updateLibrary, updateMenu, updateCatalogStatus, catalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
+     const { location, updateLocation, updateEnableSelfCheck, updateSelfCheckSettings } = React.useContext(LibraryBranchContext);
+     const { updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
+     const { language, updateLanguage, updateLanguages, updateDictionary, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
+     const { updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const { updateTheme, updateColorMode, textColor } = React.useContext(ThemeContext);
 
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
@@ -68,38 +89,44 @@ export const LoadingScreen = () => {
 
      React.useEffect(() => {
           const unsubscribe = navigation.addListener('focus', async () => {
-               // The screen is focused
-               logDebugMessage('The Loading screen is focused.');
-               setIsReloading(true);
-               setProgress(0);
-               queryClient.clear();
-               try {
-                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                         if (mode === 'light' || mode === 'dark') {
-                              updateColorMode(mode);
-                         } else {
-                              updateColorMode('light');
+               logDebugMessage('Setting up focus listener');
+               //Only invoke the focus event once
+               unsubscribe();
+               if (isFocused === 0) {
+                    setIsFocused(1);
+                    // The screen is focused
+                    logDebugMessage('The Loading screen is focused.');
+                    setIsReloading(true);
+                    setProgress(0);
+                    queryClient.clear();
+                    try {
+                         await AsyncStorage.getItem('@colorMode').then(async (mode) => {
+                              if (mode === 'light' || mode === 'dark') {
+                                   updateColorMode(mode);
+                              } else {
+                                   updateColorMode('light');
+                              }
+                         });
+                    } catch (e) {
+                         // something went wrong (or the item didn't exist yet in storage)
+                         // so just set it to the default: light
+                         updateColorMode('light');
+                    }
+
+                    await createGlueTheme(LIBRARY.url).then((result) => {
+                         logDebugMessage("Creating glue theme");
+                         updateTheme(result);
+                         setLoadingTheme(false);
+                         //if we have no library we should set error
+                         //to avoid being stuck on loading screen.
+                         if (LIBRARY.url === null) {
+                              setHasError(true);
                          }
                     });
-               } catch (e) {
-                    // something went wrong (or the item didn't exist yet in storage)
-                    // so just set it to the default: light
-                    updateColorMode('light');
+               }else{
+                    logDebugMessage('isFocused is not 0.');
                }
-
-               await createGlueTheme(LIBRARY.url).then((result) => {
-                    logDebugMessage("Creating glue theme");
-                    updateTheme(result);
-                    setLoadingTheme(false);
-                    //if we have no library we should set error
-                    //to avoid being stuck on loading screen.
-                    if(LIBRARY.url === null)
-                    {
-                         setHasError(true);
-                    }
-               });
           });
-
           return unsubscribe;
      }, [navigation]);
 
@@ -111,7 +138,7 @@ export const LoadingScreen = () => {
      /**
       * First check to see if the catalog is online and check to see if offline mode is active.
       */
-     const { isSuccess: catalogStatusSuccess, status: catalogStatusQueryStatus, data: catalogStatusQuery } = useQuery(['catalog_status', LIBRARY.url], () => getCatalogStatus(LIBRARY.url), {
+     const { isSuccess: catalogStatusSuccess} = useQuery(['catalog_status', LIBRARY.url], () => getCatalogStatus(LIBRARY.url), {
           enabled: !!LIBRARY.url && !loadingTheme,
           onSuccess: (data) => {
                if(data.ok) {
@@ -125,12 +152,13 @@ export const LoadingScreen = () => {
                          message: catalogMessage
                     }
                     updateCatalogStatus(currentStatus);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading catalog...');
-                    }else if (LIBRARY.appSettings.loadingMessageType == 2) {
+                    }else if (LIBRARY.appSettings.loadingMessageType === 2) {
                          setLoadingText(LIBRARY.appSettings.loadingMessage);
                     }
-                    setProgress(progress + (100 / numSteps));
+                    logDebugMessage("Loaded catalog status");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                } else {
                     logWarnMessage("Setting Error to true because catalog status returned not ok");
                     const error = getErrorMessage(data.code ?? 0, data.problem);
@@ -145,20 +173,21 @@ export const LoadingScreen = () => {
                setHasError(true);
                setErrorTitle(null);
                setErrorMessage('Error checking catalog status. Please try again or contact the library.')
-          }
+          },
      });
 
      /**
-       * Preload parameterized translations for use on holds and checkouts pages. This does not halt loading LiDA.
-       */
-     const { isSuccess: translationQuerySuccess, status: translationQueryStatus, data: translationQuery } = useQuery(['active_language', PATRON.language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(PATRON.language ?? 'en', LIBRARY.url), {
+      * Preload parameterized translations for use on holds and checkouts pages. This does not halt loading LiDA.
+      */
+     useQuery(['active_language', PATRON.language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(PATRON.language ?? 'en', LIBRARY.url), {
           enabled: !!LIBRARY.url && catalogStatusSuccess,
           onSuccess: (data) => {
-               setProgress(progress + (100 / numSteps));
+               logDebugMessage("Loaded Translations");
+               setProgress(prevProgress => prevProgress + (100 / numSteps));
                updateDictionary(translationsLibrary);
-               if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
+               if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType === 0) {
                     setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
-               } else if (LIBRARY.appSettings.loadingMessageType == 1) {
+               } else if (LIBRARY.appSettings.loadingMessageType === 1) {
                     setLoadingText('Loading Languages');
                }
           },
@@ -171,18 +200,19 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: languagesQuerySuccess, status: languagesQueryStatus, data: languagesQuery } = useQuery(['languages', LIBRARY.url], () => getLibraryLanguages(LIBRARY.url), {
+     const { isSuccess: languagesQuerySuccess} = useQuery(['languages', LIBRARY.url], () => getLibraryLanguages(LIBRARY.url), {
           enabled: hasError === false && catalogStatusSuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    logDebugMessage("Loaded library languages");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     let languages = [];
                     if (data?.data?.result) {
                          logDebugMessage('Library languages saved at Loading');
-                         languages = _.sortBy(data.data.result.languages, 'weight', 'displayName');;
+                         languages = _.sortBy(data.data.result.languages, 'weight', 'displayName');
                     }
                     updateLanguages(languages);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Library Information');
                     }
                } else {
@@ -222,15 +252,15 @@ export const LoadingScreen = () => {
           };
      }, []);
 
-     const { isSuccess: librarySystemQuerySuccess, status: librarySystemQueryStatus, data: librarySystemQuery } = useQuery(['library_system', LIBRARY.url], () => getLibraryInfo(LIBRARY.url, LIBRARY.id), {
+     const { isSuccess: librarySystemQuerySuccess} = useQuery(['library_system', LIBRARY.url], () => getLibraryInfo(LIBRARY.url, LIBRARY.id), {
           enabled: hasError === false && languagesQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const library = data.data.result?.library ?? [];
-                    setProgress(progress + (100 / numSteps));
-                    logDebugMessage("Updating library from Loading screen");
+                    logDebugMessage("Loaded Library Info");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateLibrary(library);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading User Information');
                     }
                } else {
@@ -250,7 +280,7 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: userQuerySuccess, status: userQueryStatus, data: userQuery } = useQuery(['user', LIBRARY.url, 'en'], () => refreshProfile(LIBRARY.url), {
+     const { isSuccess: userQuerySuccess} = useQuery(['user', LIBRARY.url, 'en'], () => refreshProfile(LIBRARY.url), {
           enabled: hasError === false && librarySystemQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
@@ -264,14 +294,15 @@ export const LoadingScreen = () => {
                               logWarnMessage("Setting Error to true because profile response returned a success of false");
                               setHasError(true);
                          } else {
-                              setProgress(progress + (100 / numSteps));
+                              logDebugMessage("Loaded User Profile");
+                              setProgress(prevProgress => prevProgress + (100 / numSteps));
                               updateUser(profile);
                               updateLanguage(profile.interfaceLanguage ?? 'en');
                               updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
                               PATRON.language = profile.interfaceLanguage ?? 'en';
                          }
                     }
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Menu');
                     }
                } else {
@@ -290,15 +321,16 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: libraryLinksQuerySuccess, status: libraryLinksQueryStatus, data: libraryLinksQuery } = useQuery(['library_links', LIBRARY.url], () => getLibraryLinks(LIBRARY.url), {
+     const { isSuccess: libraryLinksQuerySuccess} = useQuery(['library_links', LIBRARY.url], () => getLibraryLinks(LIBRARY.url), {
           enabled: hasError === false && userQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const links = data.data.result?.items ?? [];
-                    setProgress(progress + (100 / numSteps));
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
+                    logDebugMessage("Loaded Library Links");
                     updateMenu(links);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
-                         setLoadingText('Loading Browse Categories');
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                         setLoadingText('Loading Home Screen Feed');
                     }
                } else {
                     logDebugMessage("Error loading library links");
@@ -318,17 +350,18 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: browseCategoryQuerySuccess, status: browseCategoryQueryStatus, data: browseCategoryQuery } = useQuery(['browse_categories', LIBRARY.url, 'en', false], () => getHomeScreenFeed(5, LIBRARY.url), {
+     const { isSuccess: browseCategoryQuerySuccess} = useQuery(['browse_categories', LIBRARY.url, 'en', false], () => getHomeScreenFeed(5, LIBRARY.url), {
           enabled: hasError === false && libraryLinksQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    logDebugMessage("Loaded Home Screen Feed");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     const result = data.data.result;
                     updateBrowseCategories(result.browseCategories);
                     updateMaxCategories(5);
                     updateHomeScreenLinks(result.homeScreenLinks);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
-                         setLoadingText('Loading Home Screen Feed');
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                         setLoadingText('Loading Browse Category List');
                     }
                } else {
                     logDebugMessage("Error loading browse categories and home screen links");
@@ -348,15 +381,16 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: browseCategoryListQuerySuccess, status: browseCategoryListQueryStatus, data: browseCategoryListQuery } = useQuery(['browse_categories_list', LIBRARY.url, 'en'], () => getBrowseCategoryListForUser(LIBRARY.url), {
+     const { isSuccess: browseCategoryListQuerySuccess} = useQuery(['browse_categories_list', LIBRARY.url, 'en'], () => getBrowseCategoryListForUser(LIBRARY.url), {
           enabled: hasError === false && browseCategoryQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const categories = _.sortBy(data.data.result, ['title']);
-                    setProgress(progress + (100 / numSteps));
-                    if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType == 0) {
+                    logDebugMessage("Loaded Browse Category List");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
+                    if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType === 0) {
                          setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_2'));
-                    }else if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    }else if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Branch Information');
                     }
                     updateBrowseCategoryList(categories);
@@ -378,14 +412,14 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: libraryBranchQuerySuccess, status: libraryBranchQueryStatus, data: libraryBranchQuery } = useQuery(['library_location', LIBRARY.url, 'en'], () => getLocationInfo(LIBRARY.url), {
+     const { isSuccess: libraryBranchQuerySuccess} = useQuery(['library_location', LIBRARY.url, 'en'], () => getLocationInfo(LIBRARY.url), {
           enabled: hasError === false && browseCategoryListQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const location = data.data.result?.location ?? [];
-                    setProgress(progress + (100 / numSteps));
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateLocation(location);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Library Locations');
                     }
                } else {
@@ -406,15 +440,14 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: selfCheckQuerySuccess, status: selfCheckQueryStatus, data: selfCheckQuery } = useQuery(['self_check_settings', LIBRARY.url, 'en'], () => getSelfCheckSettings(LIBRARY.url), {
+     const { isSuccess: selfCheckQuerySuccess} = useQuery(['self_check_settings', LIBRARY.url, 'en'], () => getSelfCheckSettings(LIBRARY.url), {
           enabled: hasError === false && libraryBranchQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
                     const settings = data.data.result ?? [];
-                    logDebugMessage("Self Check Settings");
-                    logDebugMessage(settings);
-                    setProgress(progress + (100 / numSteps));
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    logDebugMessage("Loading Self Check Settings");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Self Check Information');
                     }
                     if (settings.success) {
@@ -442,16 +475,17 @@ export const LoadingScreen = () => {
 
      });
 
-     const { isSuccess: linkedAccountQuerySuccess, status: linkedAccountQueryStatus, data: linkedAccountQuery } = useQuery(['linked_accounts', user ?? [], cards ?? [], LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
+     const { isSuccess: linkedAccountQuerySuccess} = useQuery(['linked_accounts', user ?? [], cards ?? [], LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
           enabled: hasError === false && selfCheckQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
-                    setProgress(progress + (100 / numSteps));
+                    logDebugMessage("Loaded Linked Accounts");
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library?.barcodeStyle ?? 'UNKNOWN', data.data.result.linkedAccounts);
                     updateLinkedAccounts(linkedAccounts.accounts);
                     updateLibraryCards(linkedAccounts.cards);
                     setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
                          setLoadingText('Loading Linked Accounts');
                     }
                } else {
@@ -472,16 +506,17 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: systemMessagesQuerySuccess, status: systemMessagesQueryStatus, data: systemMessagesQuery } = useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
+     const { isSuccess: systemMessagesQuerySuccess} = useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
           enabled: hasError === false && linkedAccountQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
+                    logDebugMessage("Loaded System Messages");
                     const messages = _.castArray(data.data.result?.systemMessages ?? {});
-                    setProgress(progress + (100 / numSteps));
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateSystemMessages(messages);
                     setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
-                         setLoadingText('Loading System Messages');
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                         setLoadingText('Loading App Preferences');
                     }
                } else {
                     logDebugMessage("Error loading system messages");
@@ -501,10 +536,11 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: appPreferencesQuerySuccess, status: appPreferencesQueryStatus, data: appPreferencesQuery } = useQuery(['app_preferences', LIBRARY.url], () => getAppPreferencesForUser(LIBRARY.url, 'en'), {
+     const { isSuccess: appPreferencesQuerySuccess } = useQuery(['app_preferences', LIBRARY.url], () => getAppPreferencesForUser(LIBRARY.url, 'en'), {
           enabled: hasError === false && systemMessagesQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
+                    logDebugMessage("Loaded App Preferences");
                     const preferences = data.data.result ?? {
                          onboardAppNotifications: 0,
                          shouldAskBrightness: 0,
@@ -520,10 +556,10 @@ export const LoadingScreen = () => {
                          ],
                     }
                     updateAppPreferences(preferences);
-                    setProgress(progress + (100 / numSteps));
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
-                         setLoadingText('Loading App Preferences');
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                         setLoadingText('Loading Notification History');
                     }
                } else {
                     logDebugMessage("Error loading app preferences");
@@ -543,17 +579,18 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: notificationHistoryQuerySuccess, status: notificationHistoryQueryStatus, data: notificationHistoryQuery } = useQuery(['notification_history'], () => fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en'), {
+     const { status: notificationHistoryQueryStatus } = useQuery(['notification_history'], () => fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en'), {
           enabled: hasError === false && appPreferencesQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {
+                    logDebugMessage("Loaded Notification History");
                     const notificationHistory = formatNotificationHistory(data.data.result)
-                    setProgress(progress + (100 / numSteps));
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateNotificationHistory(notificationHistory);
                     updateInbox(notificationHistory?.inbox ?? []);
                     setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType == 1) {
-                         setLoadingText('Loading Notification History');
+                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                         setLoadingText('Finished, loading LiDA');
                     }
                } else {
                     logDebugMessage("Error loading notification history");
@@ -580,6 +617,7 @@ export const LoadingScreen = () => {
                !hasError &&
                catalogStatus === 0
           ) {
+               logDebugMessage("Checking incoming url");
                if (hasIncomingUrlChanged) {
                     let url = decodeURIComponent(incomingUrl).replace(/\+/g, ' ');
                     url = url.replace('aspen-lida://', prefix);
@@ -668,7 +706,7 @@ export const LoadingScreen = () => {
                          <Heading pb="$5" size="md" color={textColor}>
                               {loadingText}
                          </Heading>
-                         <Progress value={progress} width="$full" h="$3" size="lg">
+                         <Progress value={progress} width="$full" h="$3" size="lg" testID="progress-bar">
                               <Progress.FilledTrack />
                          </Progress>
                     </VStack>
@@ -676,28 +714,3 @@ export const LoadingScreen = () => {
           </Center>
      );
 };
-
-async function checkStoreVersion() {
-     try {
-          const version = await checkVersion({
-               bundleId: GLOBALS.bundleId,
-               currentVersion: GLOBALS.appVersion,
-          });
-          if (version.needsUpdate) {
-               return {
-                    needsUpdate: true,
-                    url: version.url,
-                    latest: version.version,
-               };
-          }
-     } catch (e) {
-          logErrorMessage("Error checking store version");
-          logErrorMessage(e);
-     }
-
-     return {
-          needsUpdate: false,
-          url: null,
-          latest: GLOBALS.appVersion,
-     };
-}

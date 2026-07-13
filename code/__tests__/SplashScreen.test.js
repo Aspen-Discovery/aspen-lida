@@ -1,9 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import {SplashScreen} from '../src/screens/Auth/Splash'; // Or any component you want to test
+import {SplashScreen} from '../src/screens/Auth/Splash';
 import * as TranslationService from '../src/translations/TranslationService';
 
+/*
+ *  Basic test to ensure the screen itself renders properly without crashing.
+ */
 describe('<SplashScreen />', () => {
      it('renders correctly', async () => {
           const translationSpy = jest
@@ -31,6 +34,9 @@ describe('<SplashScreen />', () => {
      });
 });
 
+/*
+ * Make sure we render full screen
+ */
 describe('<SplashScreen /> - Layout Styles', () => {
   it('applies full screen container styles', async () => {
     await render(<SplashScreen />);
@@ -48,6 +54,9 @@ describe('<SplashScreen /> - Layout Styles', () => {
   });
 });
 
+/*
+ * Make sure the correct background color is set based on the overall environment (as defined in jest.setup.js)
+ */
 describe('<SplashScreen /> - Color Theme', () => {
   it('applies the correct background color configuration', async () => {
     await render(<SplashScreen />);
