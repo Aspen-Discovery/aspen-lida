@@ -124,6 +124,7 @@ export const LIBRARY = {
      version: null,
      appSettingsUrl: null,
      appSettingsSlug: null,
+     appSettings: null,
 };
 
 export const BRANCH = {
