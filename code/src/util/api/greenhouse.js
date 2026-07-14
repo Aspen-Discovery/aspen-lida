@@ -137,7 +137,8 @@ export async function fetchAllLibrariesFromGreenhouse() {
      });
 
      if (response.ok) {
-          const libraries = [...(response.data.libraries ?? [])].sort((a, b) => {
+          const data = response.data?.result;
+          const libraries = [...(data.libraries ?? [])].sort((a, b) => {
                if (a.name !== b.name) return (a.name ?? '').localeCompare(b.name ?? '');
                return (a.librarySystem ?? '').localeCompare(b.librarySystem ?? '');
           });
