@@ -92,7 +92,7 @@ export const NotificationsOnboard = (props) => {
                               <Button
                                    isLoading={isLoading}
                                    isLoadingText={getTermFromDictionary(language, 'updating', true)}
-                                   bgColor="$danger700"
+                                   bgColor="$error700"
                                    onPress={() => {
                                         setIsLoading(true);
                                         onClose().then(() => navigateStack('MoreTab', 'PermissionNotificationDescription', { prevRoute: 'notifications_onboard' }));

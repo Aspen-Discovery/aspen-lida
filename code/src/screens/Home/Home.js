@@ -31,7 +31,7 @@ export const DiscoverHomeScreen = () => {
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
 
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
      const { notificationOnboard } = React.useContext(UserContext);
@@ -249,7 +249,7 @@ const ButtonOptions = (props) => {
                               }, 2500);
                          }}>
                          {loading ? (
-                           <ButtonSpinner key="spinner" color="$textLight200" mr="$1" />
+                           <ButtonSpinner key="spinner" color={theme.tokens.colors.primary['500-text']} mr="$1" />
                          ) : (
                               <ButtonIcon
                                    key="icon"

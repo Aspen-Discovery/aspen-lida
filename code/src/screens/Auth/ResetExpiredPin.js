@@ -272,7 +272,7 @@ export const ResetExpiredPin = (props) => {
                                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
                                              <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => updatePIN()}>
-                                                  <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>
+                                                  <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
                                    </AlertDialogFooter>

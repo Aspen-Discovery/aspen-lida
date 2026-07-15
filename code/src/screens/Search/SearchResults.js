@@ -35,7 +35,7 @@ import { getCleanTitle } from '../../helpers/item';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS, SearchGlobal } from '../../util/globals';
-import { formatDiscoveryVersion, decodeHTML, isValidUrl } from '../../helpers/helpers';
+import { decodeHTML, isValidUrl } from '../../helpers/helpers';
 import { getAppliedFilters, getAvailableFacetsKeys, getSortList } from '../../util/api/search';
 import { setDefaultFacets } from '../../util/api/searchHelper';
 
@@ -158,7 +158,7 @@ export const SearchResults = () => {
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
@@ -170,7 +170,7 @@ export const SearchResults = () => {
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -501,7 +501,7 @@ const FilterBar = ({ navigation }) => {
                               size="sm"
                               variant="solid"
                               mr="$1"
-                              bg="$primary600"
+                              bg={theme.tokens.colors.primary['600']}
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
@@ -510,8 +510,8 @@ const FilterBar = ({ navigation }) => {
                                         },
                                    });
                               }}>
-                              <ButtonIcon color={theme['tokens']['colors']['primary']['600-text']} as={SlidersHorizontalIcon} mr="$1" />
-                              <ButtonText color={theme['tokens']['colors']['primary']['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
+                              <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
+                              <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
                          <CreateFilterButton navigation={navigation}/>
                     </ScrollView>

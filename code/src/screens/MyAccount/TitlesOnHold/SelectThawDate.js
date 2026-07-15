@@ -123,7 +123,7 @@ export const SelectThawDate = (props) => {
                                                   backgroundColor: theme['tokens']['colors']['primary']['500'],
                                              },
                                         }}>
-                                             {freezeIndefinite && <Icon as={MaterialIcons} name="check" color="$textLight200" size="sm" />}
+                                             {freezeIndefinite && <Icon as={MaterialIcons} name="check" color={theme.tokens.colors.primary['500-text']} size="sm" />}
                                         </CheckboxIndicator>
                                         <CheckboxLabel pl="$2" color={textColor}>
                                              <Text color={textColor}>
@@ -140,7 +140,7 @@ export const SelectThawDate = (props) => {
                                         bgColor={theme.tokens.colors.primary['500']}
                                         style={{margin:5}}
                                         onPress={hideDatePicker}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary("en", "cancel")}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary("en", "cancel")}</ButtonText>
                                    </Button>
                                    <Button
                                         style={{margin:5}}
@@ -154,7 +154,7 @@ export const SelectThawDate = (props) => {
                                              setDatePickerVisibility(true);
                                         }
                                    }}>
-                                        <ButtonText color="$textLight200">{freezeIndefinite ? getTermFromDictionary("en", "freeze_hold_without_reactivation"): getTermFromDictionary("en", "freeze_hold_choose_reactivation")}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{freezeIndefinite ? getTermFromDictionary("en", "freeze_hold_without_reactivation"): getTermFromDictionary("en", "freeze_hold_choose_reactivation")}</ButtonText>
                                    </Button>
                                    </HStack>
                               </ButtonGroup>

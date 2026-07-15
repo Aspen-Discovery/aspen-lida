@@ -116,8 +116,8 @@ const EditList = (props) => {
           <>
                <ButtonGroup size="sm" justifyContent="center" >
                     <Button onPress={() => setShowModal(true)} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon color="$textLight200" as={MaterialIcons} name="edit" mr="$1" />
-                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'edit')}</ButtonText>
+                         <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="edit" mr="$1" />
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'edit')}</ButtonText>
                     </Button>
                     <DeleteList listId={listId} />
                </ButtonGroup>
@@ -146,9 +146,9 @@ const EditList = (props) => {
                                      <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <RadioGroup
-                                        value={isPublic}
+                                        value={isPublic ? "true" : "false"}
                                         onChange={(nextValue) => {
-                                             setPublic(nextValue);
+                                             setPublic(nextValue === "true");
                                         }}>
                                         <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                              <Radio value="false" my="$1">
@@ -197,9 +197,9 @@ const EditList = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId == -1 ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId == -1 ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                        {_.map(listGroups.groups, function (item, index, array) {
-                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                        })}
                                                   </SelectScrollView>
                                              </SelectContent>
@@ -228,7 +228,7 @@ const EditList = (props) => {
                                                   queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -254,7 +254,7 @@ const DeleteList = (props) => {
 
      return (
           <Center>
-               <Button bgColor="$danger500" onPress={() => setIsOpen(!isOpen)} size="sm" >
+               <Button bgColor="$error500" onPress={() => setIsOpen(!isOpen)} size="sm" >
                     <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1"/>
                     <ButtonText color="$white">Delete List</ButtonText>
                </Button>
@@ -296,7 +296,7 @@ const DeleteList = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$danger500"
+                                        bgColor="$error500"
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                         onPress={() => {

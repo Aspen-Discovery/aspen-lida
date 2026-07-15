@@ -1,6 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import _ from 'lodash';
 import {
      Actionsheet,
      ActionsheetContent,
@@ -13,20 +12,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
-import { getAuthor, getCheckedOutTo, getCleanTitle, getDueDate, getFormat, getRenewalCount, getTitle, isOverdue, willAutoRenew, getCollectionName } from '../../../helpers/item';
+import {
+     getAuthor,
+     getCheckedOutTo,
+     getCleanTitle,
+     getDueDate,
+     getFormat,
+     getRenewalCount,
+     getTitle,
+     isOverdue,
+     willAutoRenew,
+     getCollectionName,
+     CheckoutAccessLabel
+} from '../../../helpers/item';
 import { navigate, navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from '../../../util/api/user';
 import { stripHTML, formatDiscoveryVersion } from '../../../helpers/helpers';
 
-const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
-
 export const MyCheckout = (props) => {
-     const checkout = props.data;
-     const checkoutSource = props.checkoutSource
-     const setRenewConfirmationIsOpen = props.setRenewConfirmationIsOpen;
-     const setRenewConfirmationResponse = props.setRenewConfirmationResponse;
-     const reloadCheckouts = props.reloadCheckouts;
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -38,12 +42,14 @@ export const MyCheckout = (props) => {
      const [returning, setReturn] = useState(false);
      const [renewing, setRenew] = useState(false);
      const [isOpen, setIsOpen] = React.useState(false);
-     const [label, setAccessLabel] = React.useState('Access Online');
 
-     if (checkoutSource != 'all' && checkoutSource != checkout.source) {
-          //console.log("Hiding checkout that is the wrong source " + checkoutSource);
-          return null;
-     }
+     const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
+
+     const checkout = props.data;
+     const checkoutSource = props.checkoutSource
+     const setRenewConfirmationIsOpen = props.setRenewConfirmationIsOpen;
+     const setRenewConfirmationResponse = props.setRenewConfirmationResponse;
+     const reloadCheckouts = props.reloadCheckouts;
 
      const openGroupedWork = (item, title) => {
           navigateStack('AccountScreenTab', 'MyCheckout', {
@@ -71,52 +77,6 @@ export const MyCheckout = (props) => {
      if (library.libbyReaderName) {
           libbyReaderName = library.libbyReaderName;
      }
-
-     let formatId;
-     React.useEffect(() => {
-          async function preloadTranslations() {
-               if (checkout?.checkoutSource) {
-                    if (checkout.checkoutSource === 'OverDrive') {
-                         if (checkout.overdriveRead === 1) {
-                              formatId = 'ebook-overdrive';
-                              await getTranslationsWithValues('checkout_read_online', libbyReaderName, language, library.baseUrl).then((term) => {
-                                   setAccessLabel(_.toString(term));
-                              });
-                         } else if (checkout.overdriveListen === 1) {
-                              formatId = 'audiobook-overdrive';
-                              await getTranslationsWithValues('checkout_listen_online', libbyReaderName, language, library.baseUrl).then((term) => {
-                                   setAccessLabel(_.toString(term));
-                              });
-                         } else if (checkout.overdriveVideo === 1) {
-                              formatId = 'video-streaming';
-                              await getTranslationsWithValues('checkout_watch_online', libbyReaderName, language, library.baseUrl).then((term) => {
-                                   setAccessLabel(_.toString(term));
-                              });
-                         } else if (checkout.overdriveMagazine === 1) {
-                              formatId = 'magazine-overdrive';
-                              await getTranslationsWithValues('checkout_read_online', libbyReaderName, language, library.baseUrl).then((term) => {
-                                   setAccessLabel(_.toString(term));
-                              });
-                         } else {
-                              formatId = '';
-                              await getTranslationsWithValues('checkout_access_online', libbyReaderName, language, library.baseUrl).then((term) => {
-                                   setAccessLabel(_.toString(term));
-                              });
-                         }
-                    } else {
-                         let source = checkout.checkoutSource;
-                         if (checkout.checkoutSource === 'Axis360') {
-                              source = 'Boundless';
-                         }
-                         await getTranslationsWithValues('checkout_access_online', source, language, library.baseUrl).then((term) => {
-                              setAccessLabel(_.toString(term));
-                         });
-                    }
-               }
-          }
-
-          preloadTranslations();
-     }, [language]);
 
      let returnEarly = false;
      if (checkout.canReturnEarly === 1 || checkout.canReturnEarly === '1' || checkout.canReturnEarly === true || checkout.canReturnEarly === 'true') {
@@ -177,7 +137,7 @@ export const MyCheckout = (props) => {
                          {isOverdue(checkout.overdue)}
                          {getAuthor(checkout.author)}
                          {getFormat(checkout.format, checkout.source)}
-						{getCollectionName(checkout.source, checkout.collectionName ?? null)}
+                         {getCollectionName(checkout.source, checkout.collectionName ?? null)}
                          {getCheckedOutTo(checkout.user)}
                          {getDueDate(checkout.dueDate)}
                          {getRenewalCount(checkout.renewCount ?? 0, checkout.maxRenewals ?? null)}
@@ -193,19 +153,19 @@ export const MyCheckout = (props) => {
                          <ActionsheetItem h={60} px="$4">
                               <ActionsheetItemText bold color={textColor}>{checkout.title}</ActionsheetItemText>
                          </ActionsheetItem>
-						 {checkout.groupedWorkId ? (
-                         <ActionsheetItem
-                              onPress={() => {
-                                   openGroupedWork(checkout.groupedWorkId, checkout.title);
-                                   toggle();
-                              }}
-                              >
-                              <ActionsheetIcon>
-                                   <Icon as={MaterialIcons} name="search" mr="$1" size="md" color={textColor}/>
-                              </ActionsheetIcon>
-                              <ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'view_item_details')}</ActionsheetItemText>
-                         </ActionsheetItem>
-						 ): null}
+                         {checkout.groupedWorkId ? (
+                              <ActionsheetItem
+                                   onPress={() => {
+                                        openGroupedWork(checkout.groupedWorkId, checkout.title);
+                                        toggle();
+                                   }}
+                                   >
+                                   <ActionsheetIcon>
+                                        <Icon as={MaterialIcons} name="search" mr="$1" size="md" color={textColor}/>
+                                   </ActionsheetIcon>
+                                   <ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'view_item_details')}</ActionsheetItemText>
+                              </ActionsheetItem>
+                         ): null}
                          {renewMessage ? (
                               <ActionsheetItem
                                    maxwidth="$full"
@@ -255,7 +215,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                    onPress={() => {
                                         setAccess(true);
-                                        viewOverDriveItem(checkout.userId, formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
+                                        viewOverDriveItem(checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
                                              setAccess(false);
                                              toggle();
                                         });
@@ -264,13 +224,13 @@ export const MyCheckout = (props) => {
                                    <ActionsheetIcon>
                                         <Icon as={MaterialIcons} name="book" mr="$1" size="md" color={textColor} />
                                    </ActionsheetIcon>
-                                   <ActionsheetItemText color={textColor}>{label}</ActionsheetItemText>
+                                   <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
                               </ActionsheetItem>
                          ) : null}
                          {checkout.source === 'palace_project' ? (
                               <ActionsheetItem onPress={() => handleOpenPalaceProjectInstructions()}>
                                    <ActionsheetIcon>
-                                        <Icon as={MaterialIcons} name="info" color="trueGray.400" mr="1" size="6" color={textColor} />
+                                        <Icon as={MaterialIcons} name="info" color="trueGray.400" mr="1" size="6" />
                                    </ActionsheetIcon>
                                    <ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'access_instructions')}</ActionsheetItemText>
                               </ActionsheetItem>
@@ -291,7 +251,7 @@ export const MyCheckout = (props) => {
                                         <ActionsheetIcon>
                                              <Icon as={MaterialIcons} name="book" mr="$1" size="md"  color={textColor}/>
                                         </ActionsheetIcon>
-                                        <ActionsheetItemText color={textColor}>{label}</ActionsheetItemText>
+                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
                                    </ActionsheetItem>
                                    <ActionsheetItem
                                         isLoading={returning}
@@ -308,6 +268,7 @@ export const MyCheckout = (props) => {
                                         <ActionsheetIcon>
                                              <Icon as={MaterialIcons} name="logout" mr="$1" size="md"  color={textColor} />
                                         </ActionsheetIcon>
+                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
                                         <ActionsheetItemText  color={textColor}>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
                                    </ActionsheetItem>
                               </>

@@ -326,7 +326,7 @@ export const HoldPrompt = (props) => {
      return (
           <>
                <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowModal(true)}>
-                    <ButtonText color="$textLight200">{title}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>
                </Button>
                <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
@@ -434,7 +434,7 @@ export const HoldPrompt = (props) => {
                                                   }
                                              });
                                         }}>
-                                        {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                        {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -508,9 +508,9 @@ export const HoldPrompt = (props) => {
                                                        <SelectScrollView>
                                                             {locations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -575,9 +575,9 @@ export const HoldPrompt = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}  />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}  />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -604,7 +604,7 @@ export const HoldPrompt = (props) => {
                                                   setShowModal(false);
                                                   setShowAddAlternateLibraryCardModal(true);
                                              }}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                         </Button>
                                    ) : (
                                         <Button
@@ -688,7 +688,7 @@ export const HoldPrompt = (props) => {
                                                        }
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                             {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                                         </Button>
                                    )}
                               </ButtonGroup>

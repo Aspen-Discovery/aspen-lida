@@ -397,7 +397,7 @@ const DisplayMoreResultsButton = ({ category }) => {
                          height: 250,
                     },
                }}>
-               <Text bold color="$textLight200">{getTermFromDictionary(language, 'view_more')}</Text>
+               <Text bold color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_more')}</Text>
           </Pressable>
      )
 }

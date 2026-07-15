@@ -315,7 +315,7 @@ export const GetLoginForm = (props) => {
                               setLoading(true);
                               await initialValidation();
                          }}>
-                         <ButtonText color="$textLight200">{getTermFromDictionary('en', 'login')}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'login')}</ButtonText>
                     </Button>
                </Center>
           </>

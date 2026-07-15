@@ -25,7 +25,7 @@ export const ForceLogout = (props) => {
 					<AlertDialogFooter>
 						<ButtonGroup space="sm">
 							<Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut} ref={cancelRef}>
-								<ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+								<ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
 							</Button>
 						</ButtonGroup>
 					</AlertDialogFooter>

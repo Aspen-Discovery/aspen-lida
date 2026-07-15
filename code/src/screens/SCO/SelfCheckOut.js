@@ -319,7 +319,7 @@ export const SelfCheckOut = () => {
                                                                  items,
                                                             });
                                                        }}>
-                                                       <ButtonText color="$textLight200">{getTermFromDictionary(language, 'add_new_item')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'add_new_item')}</ButtonText>
                                                   </Button>
                                              </ButtonGroup>
                                         </ModalFooter>
@@ -343,7 +343,7 @@ export const SelfCheckOut = () => {
                )}
                <Center pt="$5">
                     <Button onPress={() => finishSession()} bgColor={theme.tokens.colors.primary['500']} size="sm">
-                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_finish')}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_finish')}</ButtonText>
                     </Button>
                </Center>
                <Center>
@@ -407,7 +407,7 @@ export const SelfCheckOut = () => {
                                                             items,
                                                        });
                                                   }}>
-                                                  <ButtonText textColor="$textLight200">{getTermFromDictionary(language, 'try_again')}</ButtonText>
+                                                  <ButtonText textColor={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'try_again')}</ButtonText>
                                              </Button>
                                         ) : null}
                                    </ButtonGroup>
@@ -431,10 +431,10 @@ export const SelfCheckOut = () => {
                               <AlertDialogFooter>
                                    <HStack width="$full" justifyContent="center">
                                         <Button size="sm" onPress={() => startNewSession()} bgColor={theme.tokens.colors.primary['500']} mr="$5">
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                         </Button>
                                         <Button size="sm" bgColor={theme.tokens.colors.primary['500']} onPress={() => goToCheckouts()}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
                                         </Button>
                                    </HStack>
                               </AlertDialogFooter>

@@ -134,7 +134,7 @@ export const MoreMenu = () => {
                                                       setShowDeleteResultsModal(true);
                                                  });
                                             }}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </ModalFooter>
@@ -159,11 +159,11 @@ export const MoreMenu = () => {
                               <ModalFooter>
                                         {deleteResults.success === true ? (
                                             <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
-                                                 <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         ) : (
                                             <Button bgColor={theme.tokens.colors.primary['500']}  variant="primary" onPress={toggleDeleteResultsModal}>
-                                                 <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                             </Button>
                                         )}
 

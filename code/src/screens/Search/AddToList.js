@@ -106,8 +106,8 @@ const AddToList = (props) => {
           return (
                <Center>
                     <Button mt="$3" onPress={toggleModal} bgColor={theme['tokens']['colors']['tertiary']['500']}>
-                         <ButtonIcon color={theme['tokens']['colors']['tertiary']['500-text']} as={MaterialIcons} name="bookmark"/>
-                         <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
+                         <ButtonIcon color={theme.tokens.colors.tertiary['500-text']} as={MaterialIcons} name="bookmark"/>
+                         <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
                     </Button>
                </Center>
           );
@@ -125,7 +125,7 @@ const AddToList = (props) => {
      const RegularButton = () => {
           return (
                <Button width={btnWidth} onPress={toggleModal} color={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'add_to_list')}</ButtonText>
                </Button>
           );
      };
@@ -178,7 +178,7 @@ const AddToList = (props) => {
                                                                            </SelectDragIndicatorWrapper>
                                                                            <SelectScrollView>
                                                                                 {_.map(lists, function (item, index, array) {
-                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={listId == item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: listId == item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={listId == item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listId == item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                                                 })}
                                                                            </SelectScrollView>
                                                                       </SelectContent>
@@ -193,7 +193,7 @@ const AddToList = (props) => {
                                                                  onPress={() => {
                                                                       setScreen('create-new');
                                                                  }}>
-                                                                 <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+                                                                 <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                                                             </Button>
                                                        </HStack>
                                                   </VStack>
@@ -223,11 +223,11 @@ const AddToList = (props) => {
                                                                  setOpen(false);
                                                             });
                                                        }}>
-                                                       <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save_to_list')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save_to_list')}</ButtonText>
                                                   </Button>
                                              ) : (
                                                   <Button bgColor={theme.tokens.colors.primary['500']}>
-                                                       <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                                                   </Button>
                                              )}
                                         </ButtonGroup>
@@ -301,9 +301,9 @@ const AddToList = (props) => {
                                                                            <SelectDragIndicator />
                                                                       </SelectDragIndicatorWrapper>
                                                                       <SelectScrollView>
-                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} bgColor={addToGroup === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} bgColor={addToGroup === 'new' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'new' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                                           {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} bgColor={addToGroup === 'existing' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'existing' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />}
+                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} bgColor={addToGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} bgColor={addToGroup === 'new' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'new' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                                           {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} bgColor={addToGroup === 'existing' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'existing' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />}
                                                                       </SelectScrollView>
                                                                  </SelectContent>
                                                             </SelectPortal>
@@ -336,9 +336,9 @@ const AddToList = (props) => {
                                                                                           <SelectDragIndicator />
                                                                                      </SelectDragIndicatorWrapper>
                                                                                      <SelectScrollView>
-                                                                                          <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroup === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                                                          <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                                                           {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                                               return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroup === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                                               return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                                                           })}
                                                                                      </SelectScrollView>
                                                                                 </SelectContent>
@@ -379,7 +379,7 @@ const AddToList = (props) => {
                                                                            </SelectDragIndicatorWrapper>
                                                                            <SelectScrollView>
                                                                                 {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: existingGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: existingGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                                                 })}
                                                                            </SelectScrollView>
                                                                       </SelectContent>
@@ -414,7 +414,7 @@ const AddToList = (props) => {
                                                             setScreen('add-new');
                                                        });
                                                   }}>
-                                                  <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_list')}</ButtonText>
+                                                  <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
                                    </>

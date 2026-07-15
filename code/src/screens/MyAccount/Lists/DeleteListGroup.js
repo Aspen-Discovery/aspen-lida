@@ -23,7 +23,7 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="xs" bgColor="$danger500">
+               <Button onPress={toggle} size="xs" bgColor="$error500">
                     <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1" />
                     <ButtonText color="$white">{getTermFromDictionary(language, 'delete_list_group')}</ButtonText>
                </Button>
@@ -44,7 +44,7 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
                                    <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
                                         <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                   <Button bgColor="$danger500"
+                                   <Button bgColor="$error500"
                                            isLoading={loading}
                                            isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                            onPress={() => {

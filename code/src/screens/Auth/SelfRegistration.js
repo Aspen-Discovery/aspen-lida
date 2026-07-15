@@ -174,7 +174,7 @@ export const SelfRegistration = () => {
 													</SelectDragIndicatorWrapper>
 													<SelectScrollView>
 														{_.map(values, function (item, index, array) {
-															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: property === index ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: property === index ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
 														})}
 													</SelectScrollView>
 												</SelectContent>

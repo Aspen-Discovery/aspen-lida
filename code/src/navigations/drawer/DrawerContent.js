@@ -297,7 +297,7 @@ export const DrawerContent = (props) => {
           }
      });
 
-     useQuery(['linked_accounts', library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
+     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
           initialData: accounts,
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
@@ -320,25 +320,6 @@ export const DrawerContent = (props) => {
           },
           onError: (error) => {
                logDebugMessage("Error fetching linked accounts");
-               logErrorMessage(error);
-          }
-     });
-
-     useQuery(['viewer_accounts', user.id, library.baseUrl, language], () => getViewerAccounts(library.baseUrl, language), {
-          initialData: viewers,
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    updateLinkedViewerAccounts(values(data.data?.result?.viewers ?? []));
-               } else {
-                    logDebugMessage("Error fetching linked viewer accounts");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching linked viewer accounts");
                logErrorMessage(error);
           }
      });

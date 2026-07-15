@@ -84,12 +84,12 @@ export const SelectPickupLocation = (props) => {
                          setShowModal(false);
                     }}>
                     <Box
-                         bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
+                         bgColor={colorMode === 'light' ? '#F6F6F6' : '#262626'}
                          rounded="$md"
                          p="$1">
                          <VStack space="sm">
                               <HStack
-                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
+                                   bgColor={colorMode === 'light' ? '#F6F6F6' : '#262626'}
                                    p="$4"
                                    borderBottomWidth="$1"
                                    borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
@@ -144,7 +144,7 @@ export const SelectPickupLocation = (props) => {
                                                                  const locationId = item.locationId;
                                                                  const code = item.code;
                                                                  const id = locationId.concat('_', code);
-                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>;
+                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>;
                                                             })}
                                                        </ScrollView>
                                                   </SelectContent>
@@ -183,7 +183,7 @@ export const SelectPickupLocation = (props) => {
                                                   setLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'change_location')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'change_location')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </VStack>

@@ -356,7 +356,7 @@ export const MyList = () => {
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
                               <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => setPage(page - 1)} isDisabled={page === 1}>
-                                   <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}
@@ -367,7 +367,7 @@ export const MyList = () => {
                                         }
                                    }}
                                    isDisabled={isPreviousData || !data?.hasMore}>
-                                   <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
@@ -437,10 +437,10 @@ export const MyList = () => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "title" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} bgColor={sort == "dateAdded" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "dateAdded" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} bgColor={sort == "recentlyAdded" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "recentlyAdded" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.custom} value="custom" key={3} bgColor={sort == "custom" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "custom" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "title" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} bgColor={sort == "dateAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "dateAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} bgColor={sort == "recentlyAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "recentlyAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.custom} value="custom" key={3} bgColor={sort == "custom" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "custom" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>

@@ -94,7 +94,6 @@ export const MyCheckouts = () => {
      };
 
      const toggleCheckoutSource = async (value) => {
-          const originalCheckoutSource = checkoutSource;
           setCheckoutSource(value);
           //setLoading(true);
           //console.log('changing checkouts from ' + originalCheckoutSource + ' to ' + value);
@@ -259,11 +258,26 @@ export const MyCheckouts = () => {
           setLoading(false);
      };
 
+     const filteredCheckouts = React.useMemo(() => {
+          if (checkoutSource === 'all') {
+               return checkouts;
+          }
+          // Map some UI filter values to the actual data source names if they differ
+          const sourceMap = {
+               ils: 'ils',
+               overdrive: 'overdrive',
+               cloud_library: 'cloud_library',
+               hoopla: 'hoopla',
+               axis360: 'axis_360', // Ensure this matches your checkout.source payload key
+               palace_project: 'palace_project'
+          };
+
+          const targetSource = sourceMap[checkoutSource] || checkoutSource;
+          return checkouts.filter(checkout => checkout.source === targetSource);
+     }, [checkouts, checkoutSource]);
+
      if (isFetchingCheckouts || isLoading) {
           return loadingSpinner();
-     }
-
-     const filterCheckouts = (source) => {
      }
 
      const actionButtons = () => {
@@ -375,8 +389,8 @@ export const MyCheckouts = () => {
                                              setRenewAll(false);
                                         });
                                    }}>
-                                   {!renewAll && <ButtonIcon color="$textLight200" as={MaterialIcons} name="autorenew" />}
-                                   <ButtonText color="$textLight200">
+                                   {!renewAll && <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="autorenew" />}
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                         {renewAll ? getTermFromDictionary(language, 'renewing_all', true) : getTermFromDictionary(language, 'checkout_renew_all')}
                                    </ButtonText>
                               </Button>
@@ -413,13 +427,13 @@ export const MyCheckouts = () => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} bgColor={checkoutSource == "all" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "all" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} bgColor={checkoutSource == "ils" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "ils" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2}  bgColor={checkoutSource == "overdrive" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "overdrive" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/> : null}
-                                                       {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3}  bgColor={checkoutSource == "hoopla" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "hoopla" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/> : null}
-                                                       {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4}  bgColor={checkoutSource == "cloud_library" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "cloud_library" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
-                                                       {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} bgColor={checkoutSource == "axis360" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "axis360" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
-                                                       {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6}  bgColor={checkoutSource == "palace_project" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: checkoutSource == "palace_project" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} bgColor={checkoutSource == "all" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "all" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} bgColor={checkoutSource == "ils" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "ils" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2}  bgColor={checkoutSource == "overdrive" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "overdrive" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/> : null}
+                                                       {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3}  bgColor={checkoutSource == "hoopla" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "hoopla" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/> : null}
+                                                       {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4}  bgColor={checkoutSource == "cloud_library" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "cloud_library" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
+                                                       {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} bgColor={checkoutSource == "axis360" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "axis360" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
+                                                       {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6}  bgColor={checkoutSource == "palace_project" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "palace_project" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
@@ -450,13 +464,13 @@ export const MyCheckouts = () => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userCheckoutSortMethod == "sortTitle" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "sortTitle" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.author} value="author" key={1} bgColor={userCheckoutSortMethod == "author" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "author" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} bgColor={userCheckoutSortMethod == "dueAsc" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueAsc" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} bgColor={userCheckoutSortMethod == "dueDesc" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueDesc" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.format} value="format" key={4} bgColor={userCheckoutSortMethod == "format" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "format" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} bgColor={userCheckoutSortMethod == "libraryAccount" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "libraryAccount" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} bgColor={userCheckoutSortMethod == "timesRenewed" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "timesRenewed" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userCheckoutSortMethod == "sortTitle" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "sortTitle" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.author} value="author" key={1} bgColor={userCheckoutSortMethod == "author" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "author" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} bgColor={userCheckoutSortMethod == "dueAsc" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueAsc" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} bgColor={userCheckoutSortMethod == "dueDesc" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueDesc" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.format} value="format" key={4} bgColor={userCheckoutSortMethod == "format" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "format" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} bgColor={userCheckoutSortMethod == "libraryAccount" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "libraryAccount" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} bgColor={userCheckoutSortMethod == "timesRenewed" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "timesRenewed" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
@@ -552,9 +566,21 @@ export const MyCheckouts = () => {
                          </AlertDialogContent>
                     </AlertDialog>
                </Center>
-               <FlatList data={checkouts} ListEmptyComponent={noCheckouts}
-                    renderItem={({ item }) => <MyCheckout data={item} reloadCheckouts={reloadCheckouts} checkoutSource={checkoutSource} />}
-                    keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} setRenewConfirmationIsOpen={setRenewConfirmationIsOpen} setRenewConfirmationResponse={setRenewConfirmationResponse} />
+               <FlatList
+                    data={filteredCheckouts} L
+                    istEmptyComponent={noCheckouts}
+                    renderItem={({ item }) =>
+                         <MyCheckout data={item}
+                                reloadCheckouts={reloadCheckouts}
+                                checkoutSource={checkoutSource}
+                                setRenewConfirmationIsOpen={setRenewConfirmationIsOpen}
+                                setRenewConfirmationResponse={setRenewConfirmationResponse}
+                         />
+                    }
+                    keyExtractor={(item, index) => index.toString()}
+                    contentContainerStyle={{ paddingBottom: 30 }}
+
+               />
           </Box>
      );
 };

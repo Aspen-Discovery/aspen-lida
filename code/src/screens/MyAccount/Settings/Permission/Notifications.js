@@ -335,7 +335,7 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                 bgColor={theme.tokens.colors.primary['500']}
                 isDisabled={isUpdating}
             >
-                <ButtonText color="$textLight200">
+                <ButtonText color={theme.tokens.colors.primary['500-text']}>
                     {permissionStatus ?
                         getTermFromDictionary(language, 'revoke_device_settings') :
                         getTermFromDictionary(language, 'update_device_settings')}
@@ -373,7 +373,7 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                                 }}
                                 bgColor={theme.tokens.colors.primary['500']}
                             >
-                                <ButtonText color="$textLight200">
+                                <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                     {getTermFromDictionary(language, 'open_device_settings')}
                                 </ButtonText>
                             </Button>

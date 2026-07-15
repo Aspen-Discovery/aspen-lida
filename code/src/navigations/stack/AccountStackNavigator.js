@@ -342,7 +342,7 @@ const AccountStackNavigator = () => {
                          headerLeft: () => null,
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color="$textLight200" />
+                                   <CloseIcon size={5} color={theme.tokens.colors.primary['500-text']} />
                               </Pressable>
                          ),
                     })}
