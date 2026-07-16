@@ -69,6 +69,10 @@ export const DisplayEventResult = (props) => {
                eventSource = 'assabet';
           }
 
+          if (item.source === 'aspenEvent') {
+               eventSource = 'aspenEvent';
+          }
+
           if (item.bypass) {
                openURL(item.url);
           } else {

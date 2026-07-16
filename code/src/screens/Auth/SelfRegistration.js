@@ -230,7 +230,7 @@ export const SelfRegistration = () => {
 					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 					style={{ flex: 1 }}
 				>
-					<ScrollView contentContainerStyle={{ flexGrow: 1 }} bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}>
+					<ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 						<Box p="$3">
 						{!showResults ? (
 							<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_message')}</Text>

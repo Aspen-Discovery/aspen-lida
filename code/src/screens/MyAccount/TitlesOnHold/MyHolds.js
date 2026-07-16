@@ -320,8 +320,8 @@ export const MyHolds = () => {
                                                   accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                                   onValueChange={(itemValue) => togglePendingSort(itemValue)}>
                                                   <SelectTrigger variant="outline" size="sm">
-                                                       <SelectInput pt="$2" fontSize="$sm" color={textColor} value={pendingSortLabel()}/>
-                                                       <SelectIcon mr="$3">
+                                                       <SelectInput fontSize="$sm" color={textColor} value={pendingSortLabel()}/>
+                                                       <SelectIcon mr="$0">
                                                             <Icon color={textColor} as={ChevronDownIcon} />
                                                        </SelectIcon>
                                                   </SelectTrigger>
@@ -669,7 +669,18 @@ export const MyHolds = () => {
                                    renderSectionHeader={({ section: { title } }) => displaySectionHeader(title)}
                                    renderSectionFooter={({ section: { title } }) => displaySectionFooter(title)}
                                    contentContainerStyle={{ paddingBottom: 30 }}
-                                   keyExtractor={(item, index) => item.id?.toString() ?? item.key?.toString() ?? `hold-${index}`}
+                                   keyExtractor={(item, index) => {
+                                        const source = item.source ?? '';
+                                        const cancelId = item.cancelId ?? '';
+
+                                        // If we have at least one valid identifier, combine them
+                                        if (source || cancelId) {
+                                             return `${source}-${cancelId}`;
+                                        }
+
+                                        // Fallback to index if the unique identifiers are totally missing
+                                        return `hold-fallback-${index}`;
+                                   }}
                               />
                          ) : null}
                     </CheckboxGroup>

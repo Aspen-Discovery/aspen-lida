@@ -329,8 +329,7 @@ export const MyHold = (props) => {
           }
      };
 
-     if (holdSource != 'all' && holdSource != hold.source) {
-          logDebugMessage("Hiding hold that is the wrong source " + holdSource);
+     if (holdSource !== 'all' && holdSource !== hold.source) {
           return null;
      }
 

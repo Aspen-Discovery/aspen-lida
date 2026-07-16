@@ -284,8 +284,8 @@ export const getCheckedOutTo = (props) => {
      const {textColor} = React.useContext(ThemeContext);
      if (user.id !== checkedOutTo) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap" color={textColor}>
-                    <Text fontSize="$xs" bold>
+               <HStack space="xs" maxW="$full" flexWrap="wrap">
+                    <Text fontSize="$xs" bold color={textColor}>
                          {getTermFromDictionary(language, 'checked_out_to')}:
                     </Text>
                     <Text fontSize="$xs" color={textColor}>

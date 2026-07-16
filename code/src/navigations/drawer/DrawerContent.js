@@ -8,7 +8,7 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import _, { values } from 'lodash';
+import _ from 'lodash';
 import { Badge, BadgeText, Box, Button, ButtonText, ButtonIcon, Divider, HStack, Icon, Image, Pressable, Text, useToken, VStack } from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
@@ -671,8 +671,8 @@ export const DrawerContent = (props) => {
                               <HStack space={2}>
                                    <LogOutButton />
                               </HStack>
-                              <HStack space={2}>
-                                   <UseColorMode showText={false} />
+                              <HStack space={2} mt={8}>
+                                   <UseColorMode showText={false}/>
                                    <LanguageSwitcher />
                               </HStack>
                          </VStack>
@@ -1165,7 +1165,6 @@ const Events = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
 
      const [savedEventsSummary, setSavedEventsSummary] = React.useState('');
      React.useEffect(() => {
@@ -1218,8 +1217,7 @@ const YearInReview = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
+      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
 
      let shouldShowYearInReview = false;
@@ -1247,8 +1245,7 @@ const YearInReview = () => {
 };
 
 const Campaigns = () => {
-     const { user } = React.useContext(UserContext);
-	const { library } = React.useContext(LibrarySystemContext);
+     const { library } = React.useContext(LibrarySystemContext);
 	const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
      if (library.hasCommunityEngagementEnabled) {

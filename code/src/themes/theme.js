@@ -100,7 +100,8 @@ export function UseColorMode(props) {
      const { updateColorMode, updateTextColor, theme } = React.useContext(ThemeContext);
 
      const switchColorMode = async () => {
-          if (colorMode == 'light') {
+          let newColorMode;
+          if (colorMode === 'light') {
                newColorMode = 'dark';
           }else{
                newColorMode = 'light';
