@@ -219,7 +219,7 @@ export const AddAlternateLibraryCard = (props) => {
                                              }
                                         });
                                    }}>
-                                   {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                   {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                               </Button>
                          </ButtonGroup>
                     </ModalFooter>

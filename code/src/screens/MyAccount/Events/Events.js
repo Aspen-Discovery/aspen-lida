@@ -13,7 +13,7 @@ import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigate } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -31,7 +31,7 @@ export const MyEvents = () => {
      const { language } = React.useContext(LanguageContext);
      const { user, savedEvents, updateSavedEvents } = React.useContext(UserContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const url = library.baseUrl;
+     const { theme, colorMode} = React.useContext(ThemeContext);
      const pageSize = 25;
      const systemMessagesForScreen = [];
 
@@ -63,22 +63,22 @@ export const MyEvents = () => {
                if(data.ok) {
                     let morePages = false;
 
-                    if (data.data.page_current !== data.data.page_total) {
+                    if (data.data.result.page_current !== data.data.result.page_total) {
                          morePages = true;
                     }
 
                     const events = {
-                         events: data.data.events ?? [],
-                         totalResults: data.data.totalResults ?? 0,
-                         curPage: data.data.page_current ?? 0,
-                         totalPages: data.data.page_total ?? 0,
+                         events: data.data.result.events ?? [],
+                         totalResults: data.data.result.totalResults ?? 0,
+                         curPage: data.data.result.page_current ?? 0,
+                         totalPages: data.data.result.page_total ?? 0,
                          hasMore: morePages,
-                         filter: data.data.filter ?? filterBy,
-                         message: data.data?.message ?? null,
+                         filter: data.data.result.filter ?? filterBy,
+                         message: data.data?.result?.message ?? null,
                     }
 
                     updateSavedEvents(events.events);
-                    updateEvents(data.data ?? []);
+                    updateEvents(data.data.result ?? []);
 
                     if (data.data.totalPages) {
                          let tmp = getTermFromDictionary(language, 'page_of_page');
@@ -115,20 +115,26 @@ export const MyEvents = () => {
                          <Button
                               variant={filterBy === 'all' ? 'solid' : 'outline'}
                               onPress={() => setFilterBy('all')}
+                              bgColor={filterBy === 'all' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              borderColor={theme.tokens.colors.primary['500']}
                               action="primary">
-                              <ButtonText>{getTermFromDictionary(language, 'all_events')}</ButtonText>
+                              <ButtonText color={filterBy === 'all' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'all_events')}</ButtonText>
                          </Button>
                          <Button
                               variant={filterBy === 'upcoming' ? 'solid' : 'outline'}
                               action="primary"
+                              bgColor={filterBy === 'upcoming' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              borderColor={theme.tokens.colors.primary['500']}
                               onPress={() => setFilterBy('upcoming')}>
-                              <ButtonText>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
+                              <ButtonText color={filterBy === 'upcoming' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
                          </Button>
                          <Button
                               action="primary"
                               variant={filterBy === 'past' ? 'solid' : 'outline'}
+                              bgColor={filterBy === 'past' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              borderColor={theme.tokens.colors.primary['500']}
                               onPress={() => setFilterBy('past')}>
-                              <ButtonText>{getTermFromDictionary(language, 'past_events')}</ButtonText>
+                              <ButtonText color={filterBy === 'past' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'past_events')}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </Box>
@@ -198,7 +204,7 @@ export const MyEvents = () => {
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
+          <Box style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                {getActionButtons()}
                {events.length === 0 || status === 'loading' || isFetching ? (
@@ -210,7 +216,7 @@ export const MyEvents = () => {
                          <FlatList data={Object.keys(savedEvents)} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={savedEvents[item]} filterBy={filterBy} setLoading={setLoading} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
                     </>
                )}
-          </SafeAreaView>
+          </Box>
      );
 };
 
@@ -380,7 +386,7 @@ const Item = (data) => {
                                    contentFit="cover"
                               />
 
-                              <Button size="sm" variant="ghost" action="negative" style={{ flex: 1, flexWrap: 'wrap' }} onPress={() => removeEvent()}>
+                              <Button size="sm" variant="ghost" action="negative" onPress={() => removeEvent()}>
                                    <ButtonIcon as={MaterialIcons} name="delete" size="xs" mr="$1" />
                                    <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                               </Button>

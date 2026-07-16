@@ -1,6 +1,5 @@
 import React from 'react';
 import { ChevronRight, Dot } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -104,7 +103,7 @@ export const MyNotificationHistory = () => {
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
@@ -116,7 +115,7 @@ export const MyNotificationHistory = () => {
                                         }}
                                         isDisabled={isPreviousData || !data?.hasMore}
                                         size="sm">
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -136,7 +135,7 @@ export const MyNotificationHistory = () => {
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
+          <Box style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box safeArea="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     loadingSpinner()
@@ -147,7 +146,7 @@ export const MyNotificationHistory = () => {
                          <FlatList data={inbox} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={item} handleOpenMyMessage={handleOpenMyMessage} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
                     </>
                )}
-          </SafeAreaView>
+          </Box>
      );
 };
 

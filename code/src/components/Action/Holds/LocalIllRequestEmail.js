@@ -27,7 +27,7 @@ export const StartLocalIllRequestEmail = (props) => {
                minWidth="100%"
                maxWidth="100%"
                onPress={openLocalIllRequestEmail}>
-               <ButtonText color="$textLight200" textAlign="center">
+               <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
                     {props.title}
                </ButtonText>
           </Button>

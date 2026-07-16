@@ -171,10 +171,10 @@ export const MyAlternateLibraryCard = () => {
                                                   setIsLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$danger700"
+                                        bgColor="$error700"
                                         onPress={() => {
                                              setIsLoading(true);
                                              deleteCard().then(() => {

@@ -160,7 +160,7 @@ export const MyLists = () => {
      });
 
      useQueries({
-          queries: sortedLists?.map((list) => {
+          queries: (sortedLists ?? []).map((list) => {
                return {
                     queryKey: ['list', list.id, user.id],
                     queryFn: () => getListTitles(list.id, library.baseUrl, 1, 25, 25, 'dateAdded'),
@@ -169,7 +169,7 @@ export const MyLists = () => {
      });
 
      useQueries({
-          queries: sortedLists?.map((list) => {
+          queries: (sortedLists ?? []).map((list) => {
                return {
                     queryKey: ['list-details', list.id, user.id],
                     queryFn: () => getListDetails(list.id, library.baseUrl),
@@ -347,7 +347,7 @@ export const MyLists = () => {
                                         }
                                    }}
                                    isDisabled={page === 1}>
-                                   <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'previous')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}
@@ -359,7 +359,7 @@ export const MyLists = () => {
                                         }
                                    }}
                                    isDisabled={!($type?.page_current !== $type?.page_total)}>
-                                   <ButtonText color="$textLight200" >{getTermFromDictionary(language, 'next')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
@@ -410,9 +410,9 @@ export const MyLists = () => {
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                  return <SelectItem key={index} value={item.id} label={item.title} bgColor={currentListGroup === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: currentListGroup === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                  return <SelectItem key={index} value={item.id} label={item.title} bgColor={currentListGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: currentListGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                              })}
-                                             {listGroups.unassigned > 0 ? <SelectItem key={-1} value="-1" label={getTermFromDictionary(language, 'unassigned_lists')} bgColor={currentListGroup == '-1' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: currentListGroup == '-1' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} /> : null}
+                                             {listGroups.unassigned > 0 ? <SelectItem key={-1} value="-1" label={getTermFromDictionary(language, 'unassigned_lists')} bgColor={currentListGroup == '-1' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: currentListGroup == '-1' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
                                         </SelectScrollView>
                                    </SelectContent>
                               </SelectPortal>

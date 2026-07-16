@@ -25,8 +25,8 @@ export const LoadError = (props) => {
      return (
           <Center flex={1}>
                <HStack>
-                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color={theme['tokens']['colors']['error']['500']} />
-                    <Heading color={theme['tokens']['colors']['error']['500']} mb="$2">
+                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color="$error500" />
+                    <Heading color="$error500" mb="$2">
                          {getTermFromDictionary('en', 'error')}
                     </Heading>
                </HStack>
@@ -35,11 +35,11 @@ export const LoadError = (props) => {
                </Text>
                {reloadAction ? (
                     <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color="$textLight200" /></ButtonIcon>
-                         <ButtonText color="$textLight200">{getTermFromDictionary('en', 'button_reload')}</ButtonText>
+                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color={theme.tokens.colors.primary['500-text']} /></ButtonIcon>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
                ) : null}
-               <Text size="xs" w="75%" mt="$5" color={theme['tokens']['colors']['muted']['500']} textAlign="center">
+               <Text size="xs" w="75%" mt="$5" color="$muted500" textAlign="center">
                     ERROR: {error}
                </Text>
           </Center>
@@ -133,7 +133,7 @@ export const DisplayErrorAlertDialog = (props) => {
                     <AlertDialogFooter>
                         <ButtonGroup space="md">
                             <Button onPress={onClose} bgColor={theme.tokens.colors.primary['500']} ref={cancelRef}>
-                                <ButtonText color="$textLight200">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                             </Button>
                         </ButtonGroup>
                     </AlertDialogFooter>

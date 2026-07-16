@@ -33,7 +33,7 @@ export const CatalogOffline = () => {
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
                                         <Button onPress={signOut} bgColor={theme.tokens.colors.primary['500']} ref={cancelRef}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>

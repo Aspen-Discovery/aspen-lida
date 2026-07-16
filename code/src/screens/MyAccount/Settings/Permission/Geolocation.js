@@ -143,7 +143,7 @@ const GeolocationPermissionUpdate = (payload) => {
      return (
           <Center>
                <Button onPress={() => setShowAlertDialog(true)} bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
                </Button>
                <AlertDialog
                     isOpen={showAlertDialog}
@@ -166,7 +166,7 @@ const GeolocationPermissionUpdate = (payload) => {
                                              setShowAlertDialog(false);
                                         }}
                                         bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={() => setShowAlertDialog(false)}>
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'not_now')}</ButtonText>

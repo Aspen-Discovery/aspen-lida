@@ -251,7 +251,7 @@ const Request = (payload) => {
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {locations.map((location, index) => {
-                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>

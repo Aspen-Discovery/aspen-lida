@@ -94,7 +94,7 @@ export const SelectVolume = (props) => {
                                                   <SelectScrollView>
                                                        {_.map(data, function (item, index, array) {
                                                             if (item.volumeId === volume) {
-                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']}  sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text']} }} />;
+                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme.tokens.colors.tertiary['300']}  sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }} />;
                                                             }
                                                             return <SelectItem label={item.label} value={item.volumeId} key={index} sx={{ _text: { color: textColor } }} />;
                                                        })}

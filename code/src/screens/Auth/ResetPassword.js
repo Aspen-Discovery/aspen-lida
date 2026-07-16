@@ -228,7 +228,7 @@ const AspenResetPassword = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                                    <Button onPress={resetWindow} bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -304,7 +304,7 @@ const AspenResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -369,7 +369,7 @@ const KohaResetPassword = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -404,7 +404,7 @@ const KohaResetPassword = (props) => {
                                              setResend(true);
                                              initiateResetPassword();
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'resend_email')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'resend_email')}</ButtonText>
                                    </Button>
                               </Center>
                          </ModalBody>
@@ -460,7 +460,7 @@ const KohaResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -521,7 +521,7 @@ const SirsiResetPassword = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -595,7 +595,7 @@ const SirsiResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -660,7 +660,7 @@ const EvergreenResetPassword = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -695,7 +695,7 @@ const EvergreenResetPassword = (props) => {
                                              setResend(true);
                                              initiateResetPassword();
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'resend_email')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'resend_email')}</ButtonText>
                                    </Button>
                               </Center>
                          </ModalBody>
@@ -751,7 +751,7 @@ const EvergreenResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -812,7 +812,7 @@ const SymphonyResetPassword = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -886,7 +886,7 @@ const SymphonyResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>
@@ -947,7 +947,7 @@ const MillenniumResetPassword = (props) => {
                               </Button>
                               {!_.isEmpty(results.error) ? (
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               ) : null}
                          </ButtonGroup>
@@ -990,7 +990,7 @@ const MillenniumResetPassword = (props) => {
                               <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                          </Button>
                          <Button isLoading={isProcessing} isLoadingText={getTermFromDictionary('en', 'button_processing', true)} bgColor={theme.tokens.colors.primary['500']} onPress={initiateResetPassword}>
-                              <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </ModalFooter>

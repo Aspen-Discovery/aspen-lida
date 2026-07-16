@@ -27,7 +27,7 @@ export const Facet = ({ route, navigation }) => {
      const [facets, setFacets] = React.useState(route.params?.facets ?? []);
      const [numFacets, setNumFacets] = React.useState(0);
      const [category] = React.useState(route.params?.extra['field'] ?? '');
-     const [multiSelect] = React.useState(Boolean(route.params?.extra['multiSelect']));
+     const [multiSelect] = React.useState(Boolean(route.params?.extra?.multiSelect));
      const [filterByQuery, setFilterByQuery] = React.useState('');
      const [isUpdating, setIsUpdating] = React.useState(false);
      const [values, setValues] = React.useState([]);
@@ -165,7 +165,11 @@ export const Facet = ({ route, navigation }) => {
 
      const updateCheckboxFacet = (group, value, newValue) => {
           logDebugMessage("Updating facet " + group + " with value " + value + " to " + newValue);
-          logDebugMessage("Existing values are " + values);
+          if (values) {
+               logDebugMessage("Existing values are " + values);
+          }else{
+               logDebugMessage("No existing values");
+          }
           let newValues = values;
           if (newValue) {
                newValues = [...values, value];
@@ -219,7 +223,7 @@ export const Facet = ({ route, navigation }) => {
 
      const actionButtons = () => {
           return (
-               <Box p="$3" bgColor={colorMode === 'light' ? theme['tokens']['colors']['coolGray']['50'] : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
+               <Box p="$3" bgColor={colorMode === 'light' ? "$coolGray50" : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => resetCluster()}>
@@ -231,7 +235,7 @@ export const Facet = ({ route, navigation }) => {
                                    onPress={() => {
                                         updateSearch();
                                    }}>
-                                   <ButtonText color="$textLight200">
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                         {isUpdating ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}
                                    </ButtonText>
                               </Button>

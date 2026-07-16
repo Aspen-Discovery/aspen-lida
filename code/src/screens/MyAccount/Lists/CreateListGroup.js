@@ -37,8 +37,8 @@ const CreateListGroup = (props) => {
      return (
           <Center>
                <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color="$textLight200" as={MaterialIcons} name="add" mr="$1" />
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list_group')}</ButtonText>
+                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="add" mr="$1" />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list_group')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
@@ -85,9 +85,9 @@ const CreateListGroup = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                            <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                             {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                 return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                 return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -122,7 +122,7 @@ const CreateListGroup = (props) => {
                                                   }
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_list_group')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list_group')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

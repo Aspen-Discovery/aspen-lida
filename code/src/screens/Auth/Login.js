@@ -22,7 +22,6 @@ import { ForgotBarcode } from './ForgotBarcode';
 import { GetLoginForm } from './LoginForm';
 import { ResetPassword } from './ResetPassword';
 import { SelectYourLibrary } from './SelectYourLibrary';
-import { SelfRegistration } from './SelfRegistration';
 import { SplashScreen } from './Splash';
 import { createGlueTheme } from '../../themes/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,7 +53,6 @@ export const LoginScreen = () => {
      const [showForgotBarcodeModal, setShowForgotBarcodeModal] = React.useState(false);
      const [ils, setIls] = React.useState('koha');
      const [enableSelfRegistration, setEnableSelfRegistration] = React.useState(false);
-     const [selfRegistrationFields, setSelfRegistrationFields] = React.useState([]);
      const [selfRegistrationURL, setSelfRegistrationURL] = React.useState("");
      const [showApiErrorButton, setShowApiErrorButton] = React.useState(false);
      const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
@@ -90,7 +88,7 @@ export const LoginScreen = () => {
                          if (result.success) {
                               setLibraries(result.libraries);
                               if (!result.shouldShowSelectLibrary) {
-                                   if (result.libraries.length == 1) {
+                                   if (result.libraries.length === 1) {
                                         setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
                                         logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
                                         updateSelectedLibrary(result.libraries[0]);
@@ -250,7 +248,7 @@ export const LoginScreen = () => {
 
      const loginScreenContent = (
           <SafeAreaView flex={1}>
-               <Box px="$5" h="$full" alignItems="center" justifyContent="center" bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}>
+               <Box px="$5" h="$full" alignItems="center" justifyContent="center">
                     <Pressable onPress={onLogoTap}>
                          <Image source={{ uri: logoImage }} rounded="$2xl" size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
                     </Pressable>
@@ -262,14 +260,14 @@ export const LoginScreen = () => {
                               {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
                          </ButtonGroup>
                          {enableSelfRegistration ? (
-                              <Button mt="$3" variant="link" onPress={openSelfRegistration} color={theme.tokens.colors.primary['500']}>
+                              <Button mt="$3" variant="link" onPress={openSelfRegistration}>
                                    <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
                               </Button>
                          ) : null}
                          {isCommunity && Platform.OS !== 'android' ? (
                               <Button mt="$5" size="xs" variant="link">
-                                   <ButtonIcon mr="$1" as={Ionicons} name="navigate-circle-outline" color={theme['tokens']['colors']['tertiary']['500']} />
-                                   <ButtonText color={theme['tokens']['colors']['tertiary']['500']}>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
+                                   <ButtonIcon mr="$1" as={Ionicons} name="navigate-circle-outline" bg={theme['tokens']['colors']['tertiary']['500']} />
+                                   <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
                               </Button>
                          ) : null}
                          <Center>

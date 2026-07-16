@@ -155,9 +155,9 @@ export const StartCheckOutSession = () => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} bgColor={activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.ils_barcode ?? user.cat_username) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} bgColor={activeAccount === (user.ils_barcode ?? user.cat_username) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (user.ils_barcode ?? user.cat_username) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                        {availableAccounts.map((item, index) => {
-                                                            return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} bgColor={activeAccount === (item.ils_barcode || item.cat_username) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.ils_barcode || item.cat_username) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>;
+                                                            return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} bgColor={activeAccount === (item.ils_barcode || item.cat_username) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (item.ils_barcode || item.cat_username) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>;
                                                        })}
                                                   </SelectScrollView>
                                              </SelectContent>
@@ -168,10 +168,10 @@ export const StartCheckOutSession = () => {
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
                                    <Button ref={cancelRef} onPress={() => GoBackHome()} bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button onPress={() => StartNewSession()} bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_start')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_start')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

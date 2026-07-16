@@ -44,7 +44,7 @@ export const MyLibraryCard = () => {
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
-     useQuery(['linked_accounts', user, cards, library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
+     useQuery(['linked_accounts', user, library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
           initialData: accounts,
           onSuccess: (data) => {
                if(data.ok) {
@@ -71,7 +71,7 @@ export const MyLibraryCard = () => {
 
      React.useEffect(() => {
           const updateAccounts = navigation.addListener('focus', async () => {
-               queryClient.invalidateQueries({ queryKey: ['linked_accounts', library.baseUrl, language] });
+               queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
           });
           const brightenScreen = navigation.addListener('focus', async () => {
                const { status } = await Brightness.getPermissionsAsync();
@@ -270,7 +270,7 @@ export const MyLibraryCard = () => {
                                                             setCurrentCardIndex(index);
                                                             setShowDrawer(false);
                                                        }}>
-                                                       <ButtonText color={index === currentCardIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>
+                                                       <ButtonText color={index === currentCardIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>
                                                             {card.displayName}
                                                        </ButtonText>
                                                   </Button>
@@ -529,7 +529,7 @@ const CardCarousel = (data) => {
                               animated: false,
                          });
                     }}>
-                    <ButtonText color={index === currentIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>{card.displayName}</ButtonText>
+                    <ButtonText color={index === currentIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>{card.displayName}</ButtonText>
                </Button>
           );
      };
@@ -709,7 +709,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                              onPress={rotateToLandscape}
                                              mt="$2">
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-landscape" size="sm" mr="$2" />
-                                             <ButtonText color="$textLight200">
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                                   {getTermFromDictionary(language, 'rotate_to_landscape') || 'Rotate to Landscape'}
                                              </ButtonText>
                                         </Button>
@@ -723,7 +723,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                              bgColor={theme.tokens.colors.primary['500']}
                                              onPress={rotateToPortrait}>
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-portrait" size="sm" mr="$2" />
-                                             <ButtonText color="$textLight200">
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                                   {getTermFromDictionary(language, 'rotate_to_portrait') || 'Rotate to Portrait'}
                                              </ButtonText>
                                         </Button>

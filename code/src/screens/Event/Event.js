@@ -60,7 +60,6 @@ export const EventScreen = () => {
      const queryClient = useQueryClient();
      const id = route.params.id;
      const source = route.params.source;
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -587,7 +586,7 @@ const AddToYourEvents = ({ id, source }) => {
 
      return (
           <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
           </Button>
      );
 };
@@ -597,7 +596,7 @@ const InYourEvents = () => {
      const { theme } = React.useContext(ThemeContext);
      return (
           <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
           </Button>
      );
 };
@@ -628,7 +627,7 @@ const RegistrationModal = ({ event }) => {
      return (
           <>
                <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
-                    <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
                </Button>
                <Modal isOpen={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
@@ -650,7 +649,7 @@ const RegistrationModal = ({ event }) => {
                                         }}>
                                         <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

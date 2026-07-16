@@ -81,7 +81,7 @@ export const SelectItemHold = (props) => {
                                              {_.map(Object.keys(copies), function (item, index, array) {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme['tokens']['colors']['tertiary']['300']}  sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text']} }}/>;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']}  sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }}/>;
                                                   }
                                                   return <SelectItem label={copy.location} value={copy.id} key={copy.id} sx={{ _text: { color: textColor } }} />;
                                              })}

@@ -20,7 +20,7 @@ export const OpenSideLoad = (props) => {
                     setLoading(true);
                     await openSideLoad(props.url).then((r) => setLoading(false));
                }}>
-               {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{props.title}</ButtonText>}
+               {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{props.title}</ButtonText>}
           </Button>
      );
 };

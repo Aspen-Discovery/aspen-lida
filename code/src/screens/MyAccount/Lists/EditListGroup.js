@@ -25,8 +25,8 @@ export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
      return (
           <Center>
                <Button onPress={toggle} size="xs" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color="$textLight200" as={MaterialIcons} name="edit" mr="$1" />
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'rename_list_group')}</ButtonText>
+                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="edit" mr="$1" />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'rename_list_group')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
@@ -66,7 +66,7 @@ export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
                                                      });
                                                 });
                                            }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

@@ -158,7 +158,7 @@ export const Settings_PickupLocations = () => {
 							<SelectScrollView>
 								{locations.map((availableLocations, index) => {
 									if (availableLocations.code === location) {
-										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 									}
 									return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 										_text: { color: textColor }
@@ -202,7 +202,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location1Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -244,7 +244,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location2Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -286,7 +286,7 @@ export const Settings_PickupLocations = () => {
                               })
                          }}
                          isDisabled={loading}>
-					{loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>}
+					{loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>}
 				</Button>
 			</ButtonGroup>
 		</Box>

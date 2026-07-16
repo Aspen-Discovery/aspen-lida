@@ -155,7 +155,7 @@ export const ActionButton = (data) => {
                            await passUserToDiscovery(library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_material_request_ils') {
@@ -171,7 +171,7 @@ export const ActionButton = (data) => {
                            await passUserToDiscovery(library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_external_request') {
@@ -198,7 +198,7 @@ export const ActionButton = (data) => {
                               }
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_email') {
@@ -226,7 +226,7 @@ export const ActionButton = (data) => {
                               maxWidth="100%"
                               onPress={async () => {setShowIllUnavailableModal(true)}}
                          >
-                              <ButtonText color="$textLight200">{action.title}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                          </Button>
                          <Modal isOpen={showIllUnavailableModal} size="lg" avoidKeyboard={true} onClose={() => setShowIllUnavailableModal(false)}>
                               <ModalBackdrop />

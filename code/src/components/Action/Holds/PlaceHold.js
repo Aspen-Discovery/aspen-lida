@@ -241,9 +241,9 @@ export const PlaceHold = (props) => {
                               });
                          }}>
                          {loading ? (
-                              <ButtonSpinner color="$textLight200" />
+                              <ButtonSpinner color={theme.tokens.colors.primary['500-text']} />
                          ) : (
-                              <ButtonText color="$textLight200" textAlign="center">
+                              <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
                                    {title}
                               </ButtonText>
                          )}

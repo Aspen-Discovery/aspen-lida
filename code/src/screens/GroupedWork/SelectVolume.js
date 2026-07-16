@@ -1,7 +1,6 @@
 import { FormControl, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Platform } from 'react-native';
 import { LibrarySystemContext } from '../../context/initialContext';
 import { getVolumes } from '../../util/api/item';
 import { loadingSpinner } from '../../components/loadingSpinner';

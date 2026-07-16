@@ -15,7 +15,7 @@ export const SearchSourceScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor } = React.useContext(ThemeContext);
      console.log('currentSource: ' + currentSource);
 
      const search = async () => {
@@ -57,7 +57,7 @@ export const SearchSourceScreen = () => {
                                         <Pressable p="$0.5" py="$2" onPress={() => updateSource(index)}>
                                              {currentSource === index ? (
                                                   <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                       <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" />
+                                                       <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} />
                                                        <Text color={textColor} ml="$2">
                                                             {source.name}
                                                        </Text>

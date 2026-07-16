@@ -74,7 +74,7 @@ export const SelectNewHoldSublocation = (props) => {
                                                        <SelectScrollView>
                                                             {validSublocations.map((sublocation, index) => {
                                                                  if (sublocation.id === activeSublocation) {
-                                                                      return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text']} }} />;
+                                                                      return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }} />;
                                                                  }
                                                                  return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} sx={{ _text: { color: textColor } }} />;
                                                             })}

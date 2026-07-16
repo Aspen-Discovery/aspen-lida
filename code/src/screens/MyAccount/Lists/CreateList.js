@@ -52,6 +52,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { createList } from '../../../util/api/list';
 import { Platform } from 'react-native';
 import _ from 'lodash';
+import {logErrorMessage} from "../../../util/logging";
 
 const CreateList = (props) => {
      const { setLoading } = props;
@@ -95,8 +96,8 @@ const CreateList = (props) => {
      return (
           <Center>
                <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color="$textLight200" as={MaterialIcons} name="add" mr="$1" />
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="add" mr="$1" />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
@@ -168,9 +169,9 @@ const CreateList = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} bgColor={addToGroup === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} bgColor={addToGroup === 'new' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'new' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
-                                                       {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} bgColor={addToGroup === 'existing' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: addToGroup === 'existing' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />}
+                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} bgColor={addToGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} bgColor={addToGroup === 'new' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'new' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} bgColor={addToGroup === 'existing' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'existing' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />}
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
@@ -211,9 +212,9 @@ const CreateList = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroup === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                                      <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                                       {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                           return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroup === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                           return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                                       })}
                                                                  </SelectScrollView>
                                                             </SelectContent>
@@ -256,7 +257,7 @@ const CreateList = (props) => {
                                                         </SelectDragIndicatorWrapper>
                                                         <SelectScrollView>
                                                              {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                  return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: existingGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                  return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: existingGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                              })}
                                                         </SelectScrollView>
                                                    </SelectContent>
@@ -276,20 +277,28 @@ const CreateList = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
                                         onPress={async () => {
                                              setAdding(true);
-                                             await createList(title, description, isPublic, library.baseUrl, addToGroup, nestedGroup, newGroupName, existingGroupId).then(async (res) => {
-                                                  let status = 'success';
-                                                  if (!res.success) {
-                                                       status = 'danger';
-                                                  }
-                                                  queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                  queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                                  queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
-                                                  toggle();
-                                                  setLoading(true);
-                                                  popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
-                                             });
+                                             setLoading(true);
+                                             try {
+                                                  await createList(title, description, isPublic, library.baseUrl, addToGroup, nestedGroup, newGroupName, existingGroupId).then(async (res) => {
+                                                       let status = 'success';
+                                                       if (!res.success) {
+                                                            status = 'danger';
+                                                       }
+                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                       queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
+                                                       queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
+                                                       toggle();
+                                                       popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                  });
+                                             } catch (error) {
+                                                  logErrorMessage("Failed to create list: ", error);
+                                                  popAlert("Error", "Something went wrong while creating the list.", "danger");
+                                             } finally {
+                                                  setAdding(false);
+                                                  setLoading(false);
+                                             }
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_list')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

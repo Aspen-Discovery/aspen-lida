@@ -1,7 +1,6 @@
 import { Badge, BadgeText, Box, Center, FlatList, Pressable, Text, HStack, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 
@@ -20,8 +19,7 @@ export const MySavedSearches = () => {
      const { user, savedSearches, updateSavedSearches } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const [searches, setSearches] = React.useState([]);
+     const { textColor } = React.useContext(ThemeContext);
 
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -32,7 +30,7 @@ export const MySavedSearches = () => {
           });
      }, [navigation]);
 
-     const { status, data, error, isFetching, isPreviousData } = useQuery(['saved_searches', user.id, library.baseUrl, language], () => fetchSavedSearches(library.baseUrl), {
+     const { status, isFetching } = useQuery(['saved_searches', user.id, library.baseUrl, language], () => fetchSavedSearches(library.baseUrl), {
           placeholderData: savedSearches,
           onSuccess: (data) => {
                if(data.ok) {
@@ -70,7 +68,7 @@ export const MySavedSearches = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -80,7 +78,7 @@ export const MySavedSearches = () => {
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
+          <Box style={{ flex: 1 }}>
                <Box>
                     {showSystemMessage()}
                     {status === 'loading' || isFetching ? (
@@ -93,14 +91,14 @@ export const MySavedSearches = () => {
                          </>
                     )}
                </Box>
-          </SafeAreaView>
+          </Box>
      );
 };
 
 const Item = (data) => {
      const { language } = React.useContext(LanguageContext);
      const item = data.data;
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = React.useContext(ThemeContext);
 
      let hasNewResults = 0;
      if (!_.isUndefined(item.hasNewResults)) {

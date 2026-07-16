@@ -146,7 +146,7 @@ export const ForgotBarcode = (props) => {
 
      const FooterButtons = (showResults && !results.success) || hasError ? (
           <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-               <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
           </Button>
      ) : showResults ? (
           <Button variant="link" onPress={closeWindow}>
@@ -162,7 +162,7 @@ export const ForgotBarcode = (props) => {
                     isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
                     bgColor={theme.tokens.colors.primary['500']}
                     onPress={initiateForgotBarcode}>
-                    <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                </Button>
           </>
      );

@@ -27,7 +27,7 @@ export const PermissionsPrompt = (data) => {
                                    <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'permissions_cancel')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor="$danger700"
+                                   bgColor="$error700"
                                    onPress={() => {
                                         onClose();
                                         Linking.openSettings();

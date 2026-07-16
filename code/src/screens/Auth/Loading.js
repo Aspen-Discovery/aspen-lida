@@ -442,7 +442,7 @@ export const LoadingScreen = () => {
 
      });
 
-     const { isSuccess: linkedAccountQuerySuccess, status: linkedAccountQueryStatus, data: linkedAccountQuery } = useQuery(['linked_accounts', user ?? [], cards ?? [], LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
+     const { isSuccess: linkedAccountQuerySuccess, status: linkedAccountQueryStatus, data: linkedAccountQuery } = useQuery(['linked_accounts', user.id, LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
           enabled: hasError === false && selfCheckQuerySuccess,
           onSuccess: (data) => {
                if(data.ok) {

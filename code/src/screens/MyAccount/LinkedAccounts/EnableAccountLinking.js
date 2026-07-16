@@ -44,7 +44,7 @@ const EnableAccountLinking = () => {
      return (
           <Center>
                <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'enable_linked_accounts')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'enable_linked_accounts')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="lg">
                     <ModalBackdrop />
@@ -74,7 +74,7 @@ const EnableAccountLinking = () => {
                                                   toggle();
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'accept')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'accept')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

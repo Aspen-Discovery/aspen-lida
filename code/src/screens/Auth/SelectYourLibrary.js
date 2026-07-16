@@ -93,8 +93,8 @@ export const SelectYourLibrary = (payload) => {
      return (
           <Center>
                <Button onPress={() => setShowModal(true)} m="$5" size="md" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon as={MaterialIcons} name="place" mr="$1" color="$textLight200" />
-                    <ButtonText color="$textLight200">{selectedLibrary?.name ? selectedLibrary.name : getTermFromDictionary('en', 'select_your_library')}</ButtonText>
+                    <ButtonIcon as={MaterialIcons} name="place" mr="$1" color={theme.tokens.colors.primary['500-text']} />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{selectedLibrary?.name ? selectedLibrary.name : getTermFromDictionary('en', 'select_your_library')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} size="lg" avoidKeyboard onClose={() => setShowModal(false)}>
                     <ModalBackdrop />

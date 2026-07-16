@@ -157,7 +157,7 @@ export const MyHold = (props) => {
                                                        backgroundColor: theme['tokens']['colors']['primary']['500'],
                                                   },
                                              }}>
-                                             <CheckboxIcon as={CheckIcon} color="$textLight200" />
+                                             <CheckboxIcon as={CheckIcon} color={theme.tokens.colors.primary['500-text']} />
                                         </CheckboxIndicator>
                                    </Checkbox>
                               </Center>
@@ -329,8 +329,7 @@ export const MyHold = (props) => {
           }
      };
 
-     if (holdSource != 'all' && holdSource != hold.source) {
-          logDebugMessage("Hiding hold that is the wrong source " + holdSource);
+     if (holdSource !== 'all' && holdSource !== hold.source) {
           return null;
      }
 
@@ -520,7 +519,7 @@ export const ManageSelectedHolds = (props) => {
      return (
           <Center>
                <Button bgColor={theme.tokens.colors.primary['500']} onPress={handleClose} size="sm" variant="solid" mr="$1">
-                    <ButtonText color="$textLight200">{numSelectedLabel}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{numSelectedLabel}</ButtonText>
                </Button>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
@@ -640,7 +639,7 @@ export const ManageAllHolds = (props) => {
           return (
                <Center>
                     <Button bgColor={theme.tokens.colors.primary['500']} size="sm" variant="solid" mr={1} onPress={handleClose}>
-                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
                     </Button>
                     <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                          <ActionsheetBackdrop />

@@ -221,7 +221,7 @@ const AccountStackNavigator = () => {
                          options={{
                               header: () => {
                                    const title = getTermFromDictionary(language, 'saved_searches');
-                                   return <TitleWithLogo title={title} hideBack={true} />;
+                                   return <TitleWithLogo title={title} />;
                               },
                               //title: getTermFromDictionary(language, 'saved_searches'),
                          }}
@@ -229,20 +229,14 @@ const AccountStackNavigator = () => {
                     <Stack.Screen
                          name="MySavedSearch"
                          component={MySavedSearch}
-                         options={({ navigation, route }) => ({
-                              title: route.params.title,
-                              headerLeft: () => {
-                                   if (route.params.prevRoute === 'NONE') {
-                                        return null;
-                                   } else {
-                                        return (
-                                             <Pressable mr={3} onPress={() => navigation.goBack()} p="$1">
-                                                  <ChevronLeftIcon size={6} color="primary.baseContrast" />
-                                             </Pressable>
-                                        );
-                                   }
+                         options={({ route }) => ({
+                              header: () => {
+                                   const title = route.params.title;
+                                   return <TitleWithLogo title={title} />;
                               },
+                              //title: getTermFromDictionary(language, 'saved_searches'),
                          })}
+                         initialParams={{ prevRoute: 'MySavedSearches' }}
                     />
                     <Stack.Screen
                          name="SavedSearchItem"
@@ -342,7 +336,7 @@ const AccountStackNavigator = () => {
                          headerLeft: () => null,
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color="$textLight200" />
+                                   <CloseIcon size={5} color={theme.tokens.colors.primary['500-text']} />
                               </Pressable>
                          ),
                     })}
