@@ -90,14 +90,9 @@ export const LoginScreen = () => {
                          if (result.success) {
                               setLibraries(result.libraries);
                               if (!result.shouldShowSelectLibrary) {
-                                   if (result.libraries.length == 1) {
-                                        setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
-                                        logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
-                                        updateSelectedLibrary(result.libraries[0]);
-                                   }else{
-                                        logInfoMessage('Found ' + result.libraries.length + ' libraries, but shouldShowSelectLibrary is false');
-                                        setShowShouldSelectLibrary(true);
-                                   }
+                                   setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
+                                   logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
+                                   updateSelectedLibrary(result.libraries[0]);
                               }else{
                                    logInfoMessage('Found ' + result.libraries.length + ' libraries');
                                    setShowShouldSelectLibrary(true);
