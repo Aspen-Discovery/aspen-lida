@@ -3,11 +3,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import Platform from 'react-native';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
-import { navigate } from '../../helpers/RootNavigator';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
@@ -35,7 +33,7 @@ const BrowseStackNavigator = () => {
           <Stack.Navigator
                id="BrowseStack"
                initialRouteName="HomeScreen"
-               screenOptions={({ navigation, route }) => ({
+               screenOptions={() => ({
                     headerShown: true,
                     gestureEnabled: false,
                     headerBackTitleVisible: false,
@@ -302,6 +300,7 @@ export const EditionsModal = () => {
 const FilterModalStack = createNativeStackNavigator();
 const FilterModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"
