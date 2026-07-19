@@ -843,7 +843,7 @@ export async function thawHolds(data, url = null, language = 'en') {
      }
 
      if (numFailed > 0) {
-          status = 'warning';
+          status = 'error';
           message += ` Unable to thaw ${numFailed} holds.`;
      }
 
@@ -928,7 +928,7 @@ export async function cancelHolds(data, url = null, language = 'en') {
      }
 
      if (numFailed > 0) {
-          status = 'warning';
+          status = 'error';
           message += ` Unable to cancel ${numFailed} holds.`;
      }
 

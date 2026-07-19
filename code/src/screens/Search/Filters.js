@@ -306,7 +306,7 @@ export const FiltersScreen = () => {
                                         variant="outline"
                                    >
                                         <InputSlot pl="$2">
-                                             <InputIcon as={Ionicons} name="search" size="md" color={colorMode === 'light' ? "$muted800" : "$muted50"} />
+                                             <InputIcon as={Ionicons} name="search" size="md" color={textColor} />
                                         </InputSlot>
                                         <InputField
                                              returnKeyType="search"
@@ -320,11 +320,11 @@ export const FiltersScreen = () => {
                                         <InputSlot py="$2">
                                              {searchTerm ? (
                                                   <Pressable onPress={() => clearSearch()}>
-                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
+                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={textColor}  />
                                                   </Pressable>
                                              ) : null}
-                                             <Pressable onPress={() => openScanner()} ml="$2">
-                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
+                                             <Pressable onPress={() => openScanner()} ml="$2" mr={4}>
+                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={textColor}  />
                                              </Pressable>
                                         </InputSlot>
                                    </Input>

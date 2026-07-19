@@ -26,10 +26,10 @@ import { UseColorMode } from '../../themes/theme';
 import { getTermFromDictionary, getTranslationsWithValues, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus } from '../../util/api/system';
-import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, fetchNotificationHistory } from '../../util/api/user';
+import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, fetchNotificationHistory, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatNotificationHistory, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists, fetchSavedSearches } from '../../util/api/list';
-import { getBrowseCategoryListForUser } from '../../util/api/search';
+import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../util/api/search';
 
 import { GLOBALS, PATRON } from '../../util/globals';
 import { stripHTML } from '../../helpers/helpers';

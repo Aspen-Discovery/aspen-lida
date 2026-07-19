@@ -106,7 +106,7 @@ const EditList = (props) => {
                          }}
                          mr={3}
                          p="$1">
-                         <ChevronLeftIcon size={5} color="primary.baseContrast" />
+                         <ChevronLeftIcon size={5} color={textColor} />
                     </Pressable>
                ),
           });

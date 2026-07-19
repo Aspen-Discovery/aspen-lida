@@ -522,7 +522,7 @@ const FilterBar = ({ navigation }) => {
 
 const SearchBox = ({term, navigation}) => {
      const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = React.useContext(ThemeContext);
      const [searchTerm, setSearchTerm] = React.useState(term);
 
      const openScanner = async () => {
