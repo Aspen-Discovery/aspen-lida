@@ -9,7 +9,24 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import _ from 'lodash';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonIcon, Divider, HStack, Icon, Image, Pressable, Text, Spinner, useToken, VStack } from '@gluestack-ui/themed';
+import {
+     Badge,
+     BadgeText,
+     Box,
+     Button,
+     ButtonText,
+     ButtonIcon,
+     Divider,
+     HStack,
+     Icon,
+     Image,
+     Pressable,
+     Text,
+     Spinner,
+     useToken,
+     VStack,
+     useToast
+} from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
@@ -1067,6 +1084,7 @@ const Fines = ({ isUserLoadedSuccessfully }) => {
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const toast = useToast();
 
      let shouldShowFines = true;
      if (typeof library.showFines !== 'undefined') {
@@ -1085,7 +1103,7 @@ const Fines = ({ isUserLoadedSuccessfully }) => {
 
      if (shouldShowFines) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
@@ -1169,6 +1187,7 @@ const YearInReview = () => {
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const toast = useToast();
 
      let shouldShowYearInReview = false;
      if (typeof user.hasYearInReview !== 'undefined') {
@@ -1177,7 +1196,7 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>

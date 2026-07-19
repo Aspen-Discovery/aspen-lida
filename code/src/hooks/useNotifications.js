@@ -232,7 +232,7 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
     };
 };
 
-export const useNotificationPreferences = (library, expoToken) => {
+export const useNotificationPreferences = (toast, library, expoToken) => {
     const [preferences, setPreferences] = React.useState({
         notifySavedSearch: false,
         notifyCustom: false,
@@ -251,9 +251,9 @@ export const useNotificationPreferences = (library, expoToken) => {
     const loadPreferences = async () => {
         try {
             const [savedSearch, custom, account] = await Promise.all([
-                getNotificationPreference(library.baseUrl, expoToken, 'notifySavedSearch'),
-                getNotificationPreference(library.baseUrl, expoToken, 'notifyCustom'),
-                getNotificationPreference(library.baseUrl, expoToken, 'notifyAccount'),
+                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifySavedSearch'),
+                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifyCustom'),
+                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifyAccount'),
             ]);
 
             setPreferences({

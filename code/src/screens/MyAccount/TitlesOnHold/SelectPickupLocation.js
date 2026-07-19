@@ -12,6 +12,7 @@ import {
      FormControl,
      FormControlLabel,
      FormControlLabelText,
+     Heading,
      HStack,
      Icon,
      Pressable,
@@ -25,13 +26,16 @@ import {
      SelectDragIndicatorWrapper,
      SelectDragIndicator,
      SelectItem,
-     VStack,
-     Text,
      ActionsheetIcon,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalCloseButton,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import Modal from 'react-native-modal';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 import { changeHoldPickUpLocation } from '../../../util/api/user';
@@ -78,39 +82,23 @@ export const SelectPickupLocation = (props) => {
                </ActionsheetItem>
                <Modal
 
-                    isVisible={showModal}
+                    isOpen={showModal}
                     avoidKeyboard={true}
                     onBackdropPress={() => {
                          setShowModal(false);
                     }}>
-                    <Box
-                         bgColor={colorMode === 'light' ? '#F6F6F6' : '#262626'}
-                         rounded="$md"
-                         p="$1">
-                         <VStack space="sm">
-                              <HStack
-                                   bgColor={colorMode === 'light' ? '#F6F6F6' : '#262626'}
-                                   p="$4"
-                                   borderBottomWidth="$1"
-                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
-                                   justifyContent="space-between"
-                                   alignItems="flex-start">
-                                   <Box>
-                                        <Text bold color={textColor}>{getTermFromDictionary(language, 'change_hold_location')}</Text>
-                                   </Box>
-                                   <Pressable onPress={() => setShowModal(false)}>
-                                        <CloseIcon
-                                             zIndex={1}
-                                             color={textColor}
-                                             p="$2"
-                                             bg="transparent"
-                                             borderRadius="$sm"
-                                        />
-                                   </Pressable>
-                              </HStack>
+                    <ModalBackdrop />
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalHeader>
+                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'change_hold_location')}</Heading>
+                              <ModalCloseButton p="$3">
+                                   <Icon as={CloseIcon} color={textColor} />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
                               <Box pl="$4" pr="$4" _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
                                    <FormControl>
-                                        <FormControlLabel><FormControlLabelText>{getTermFromDictionary(language, 'select_new_pickup')}</FormControlLabelText></FormControlLabel>
+                                        <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_new_pickup')}</FormControlLabelText></FormControlLabel>
                                         <Select
                                              name="pickupLocations"
                                              selectedValue={location}
@@ -153,14 +141,13 @@ export const SelectPickupLocation = (props) => {
                                    </FormControl>
                               </Box>
                               <SelectExistingHoldSubLocation location={location} sublocations={sublocations} language={language} activeSublocation={activeSublocation} setActiveSublocation={setActiveSublocation}/>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup
-                                   p="$4"
+                                   space="$4"
                                    flexDirection="row"
                                    justifyContent="flex-end"
                                    flexWrap="wrap"
-                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
-                                   borderTopWidth="$1"
-                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
                                    >
                                    <Button
                                         variant="outline"
@@ -186,8 +173,8 @@ export const SelectPickupLocation = (props) => {
                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'change_location')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </VStack>
-                    </Box>
+                         </ModalFooter>
+                    </ModalContent>
                </Modal>
           </>
      );

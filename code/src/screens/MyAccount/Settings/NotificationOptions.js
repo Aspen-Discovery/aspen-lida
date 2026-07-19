@@ -116,7 +116,7 @@ export const Settings_NotificationOptions = () => {
                     logDebugMessage(pref.option);
                     const i = _.findIndex(currentPreferences, ['option', pref.option]);
                     const deviceSettings = _.filter(notificationSettings, { option: pref.option });
-                    const result = await getNotificationPreference(library.baseUrl, expoToken, pref.option);
+                    const result = await getNotificationPreference(toast, library.baseUrl, expoToken, pref.option);
                     if (result && i !== -1) {
                          let prevSettings = notificationSettings[i];
                          logDebugMessage(prevSettings.allow);

@@ -2,7 +2,7 @@ import { createApiClient } from './apiFactory';
 import { GLOBALS, PATRON } from '../globals';
 import { popAlert, popToast } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
-import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging.js';
+import {logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../logging.js';
 import * as WebBrowser from 'expo-web-browser';
 import { problemCodeMap, stripHTML } from '../../helpers/helpers';
 import { addDays, formatLocalDateYYYYMMDD, parseToDate } from '../../helpers/helpers';
@@ -440,6 +440,7 @@ export async function logoutUser(url = null) {
  * Passes the logged-in user to a Discovery page, validating the session and credentials before attempting to open the browser.
  * If the session is not valid, it will attempt to revalidate the user and session before opening the browser.
  * If the session cannot be validated, it will show an error message.
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param redirectTo
  * @param userId
@@ -449,7 +450,7 @@ export async function logoutUser(url = null) {
  * @param additionalParams
  * @returns {Promise<void>}
  */
-export async function passUserToDiscovery(url, redirectTo, userId, backgroundColor, textColor, id = null, additionalParams = null) {
+export async function passUserToDiscovery(toast, url, redirectTo, userId, backgroundColor, textColor, id = null, additionalParams = null) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
@@ -494,30 +495,30 @@ export async function passUserToDiscovery(url, redirectTo, userId, backgroundCol
                                    WebBrowser.coolDownAsync();
                                    await WebBrowser.openBrowserAsync(accessUrl, browserParams)
                                         .then((response) => {
-                                             console.log(response);
+                                             logDebugMessage(response);
                                              if (response.type === 'cancel') {
-                                                  console.log('User closed window.');
+                                                  logDebugMessage('User closed window.');
                                              }
                                         })
                                         .catch(async (error) => {
-                                             console.log('Unable to close previous browser session.');
+                                             logInfoMessage('Unable to close previous browser session.');
                                         });
                               } catch (error) {
-                                   console.log('Really borked.');
+                                   logErrorMessage('Really borked.');
                               }
                          } else {
-                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                              console.log(err);
+                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              logErrorMessage(err);
                          }
                     });
           } else {
                // unable to validate the user
-               popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-               console.log('unable to validate user');
+               popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+               logErrorMessage('unable to validate user');
           }
      } else {
-          popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-          console.log(response);
+          popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+          logErrorMessage(response);
      }
 }
 
@@ -1753,47 +1754,14 @@ export async function markMessageAsUnread(id, url = null, language = 'en') {
 }
 
 /**
- * Fetch the user's notification preferences
- * @param libraryUrl
- * @param pushToken
- * @returns {Promise<*|boolean>}
- */
-export async function getNotificationPreferences(libraryUrl, pushToken) {
-     const client = createApiClient({
-          url: libraryUrl,
-          timeout: GLOBALS.timeoutAverage,
-     });
-
-     logDebugMessage('Loading notification preferences ' + pushToken);
-     const response = await client.post('/UserAPI?method=getNotificationPreferences', {
-          pushToken,
-     });
-
-     if (response.ok) {
-          try {
-               await createChannelsAndCategories();
-          } catch (e) {
-               logErrorMessage('Could not create channels and categories');
-               logErrorMessage(e);
-          }
-          return response.data?.result ?? false;
-     } else {
-          const problem = problemCodeMap(response.problem);
-          popToast(problem.title, problem.message, 'error');
-          logWarnMessage('Could not retrieve notification preferences');
-          logWarnMessage(response);
-          return false;
-     }
-}
-
-/**
  * Fetch the user's notification preference for a specific type of notification
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param pushToken
  * @param type
  * @returns {Promise<*|boolean>}
  */
-export async function getNotificationPreference(url, pushToken, type) {
+export async function getNotificationPreference(toast, url, pushToken, type) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
@@ -1816,12 +1784,12 @@ export async function getNotificationPreference(url, pushToken, type) {
                logDebugMessage(response.data.result);
                return response.data.result;
           } else {
-               popAlert(response.data?.result?.title ?? 'Unknown Error', response.data?.result?.message, 'error');
+               popAlert(toast, response.data?.result?.title ?? 'Unknown Error', response.data?.result?.message, 'error');
                return false;
           }
      } else {
           const problem = problemCodeMap(response.problem);
-          popToast(problem.title, problem.message, 'error');
+          popToast(toast, problem.title, problem.message, 'error');
           return false;
      }
 }
@@ -2239,6 +2207,7 @@ export async function addActivityProgress(activityId, linkedUserId, activityType
 
 /**
  * Access a sample of an OverDrive title
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param formatId
  * @param itemId
@@ -2246,7 +2215,7 @@ export async function addActivityProgress(activityId, linkedUserId, activityType
  * @param language
  * @returns {Promise<void>}
  */
-export async function overDriveSample(url = null, formatId, itemId, sampleNumber, language = 'en') {
+export async function overDriveSample(toast, url = null, formatId, itemId, sampleNumber, language = 'en') {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
@@ -2286,7 +2255,7 @@ export async function overDriveSample(url = null, formatId, itemId, sampleNumber
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      }
@@ -2294,6 +2263,7 @@ export async function overDriveSample(url = null, formatId, itemId, sampleNumber
 
 /**
  * Access an online item
+ * @param {object} toast - The instance returned by useToast()
  * @param userId
  * @param id
  * @param source
@@ -2302,7 +2272,7 @@ export async function overDriveSample(url = null, formatId, itemId, sampleNumber
  * @param language
  * @returns {Promise<void>}
  */
-export async function viewOnlineItem(userId, id, source, accessOnlineUrl, url = null, language = 'en') {
+export async function viewOnlineItem(toast, userId, id, source, accessOnlineUrl, url = null, language = 'en') {
      if (source === 'hoopla' || source === 'cloud_library') {
           const client = createApiClient({
                url,
@@ -2332,13 +2302,13 @@ export async function viewOnlineItem(userId, id, source, accessOnlineUrl, url = 
                                              logDebugMessage(response);
                                         })
                                         .catch(async (error) => {
-                                             popToast(getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
+                                             popToast(toast, getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
                                         });
                               } catch (error) {
                                    logDebugMessage('Really borked.');
                               }
                          } else {
-                              popToast(getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
+                              popToast(toast, getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
                          }
                     });
           }
@@ -2357,14 +2327,14 @@ export async function viewOnlineItem(userId, id, source, accessOnlineUrl, url = 
                                    })
                                    .catch((error) => {
                                         logErrorMessage(error);
-                                        popToast(getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
+                                        popToast(toast, getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
                                    });
                          } catch (error) {
                               logErrorMessage(error);
                               logErrorMessage('Unable to open.');
                          }
                     } else {
-                         popToast(getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
                     }
                });
      }
@@ -2372,6 +2342,7 @@ export async function viewOnlineItem(userId, id, source, accessOnlineUrl, url = 
 
 /**
  * Access an OverDrive item
+ * @param {object} toast - The instance returned by useToast()
  * @param userId
  * @param formatId
  * @param overDriveId
@@ -2379,7 +2350,7 @@ export async function viewOnlineItem(userId, id, source, accessOnlineUrl, url = 
  * @param language
  * @returns {Promise<void>}
  */
-export async function viewOverDriveItem(userId, formatId, overDriveId, url = null, language = 'en') {
+export async function viewOverDriveItem(toast, userId, formatId, overDriveId, url = null, language = 'en') {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutFast,
@@ -2417,7 +2388,7 @@ export async function viewOverDriveItem(userId, formatId, overDriveId, url = nul
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary(language, 'error_no_open_resource'), getTermFromDictionary(language, 'error_device_block_browser'), 'error');
                     }
                });
      }

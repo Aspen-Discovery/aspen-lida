@@ -1,13 +1,16 @@
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
-import { ListItem } from '@rneui/themed';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
 import moment from 'moment';
 import {
+     Accordion,
+     AccordionItem,
+     AccordionHeader,
+     AccordionTrigger,
+     AccordionContent,
      Box,
      Divider,
-     FlatList,
      HStack,
      Icon,
      Pressable,
@@ -21,7 +24,7 @@ import {
      ModalContent,
      ModalHeader,
      ModalFooter,
-     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup
+     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup, useToast
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { popToast } from '../../components/loadError';
@@ -291,6 +294,7 @@ const PrivacyPolicy = () => {
      const { language } = React.useContext(LanguageContext);
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -335,7 +339,7 @@ const PrivacyPolicy = () => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -362,6 +366,7 @@ const MenuLink = (payload) => {
      categoryLabel = categoryLabel.category;
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -434,7 +439,7 @@ const MenuLink = (payload) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -443,48 +448,67 @@ const MenuLink = (payload) => {
      if (hasMultiple) {
           return (
                <>
-                    <ListItem.Accordion
-                         containerStyle={{
-                              backgroundColor: 'transparent',
-                              paddingBottom: 2,
-                              paddingLeft: 0,
-                              paddingTop: 0,
+                    <Accordion
+                         type="single"
+                         isCollapsible={true}
+                         value={expanded ? ["category-panel"] : []}
+                         onValueChange={(values) => {
+                              setExpanded(values.includes("category-panel"));
                          }}
-                         content={
-                              <>
-                                   <HStack space="sm" alignItems="center" px="$2" py="$3">
-                                        <Icon as={expanded ? Entypo : MaterialIcons} name={expanded ? 'chevron-small-down' : 'chevron-right'} size="lg" color={textColor} />
-                                        <VStack width="$full">
-                                             <Text fontWeight="$medium" color={textColor}>{categoryLabel}</Text>
-                                        </VStack>
-                                   </HStack>
-                              </>
-                         }
-                         noIcon={true}
-                         isExpanded={expanded}
-                         onPress={() => {
-                              setExpanded(!expanded);
-                         }}>
-                         {_.map(categories, function (item, index) {
-                              return (
-                                   <ListItem
-                                        key={index}
-                                        containerStyle={{
-                                             backgroundColor: 'transparent',
-                                             paddingTop: 1,
-                                        }}
-                                        borderBottom
-                                        onPress={() => openURL(item.url)}>
-                                        <HStack space="sm" alignItems="center" ml="$4">
-                                             <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                                             <VStack width="$full">
-                                                  <Text fontWeight="$medium" color={textColor}>{item.linkText}</Text>
-                                             </VStack>
-                                        </HStack>
-                                   </ListItem>
-                              );
-                         })}
-                    </ListItem.Accordion>
+                         style={{ backgroundColor: 'transparent' }}
+                    >
+                         <AccordionItem value="category-panel" style={{ borderBottomWidth: 0 }}>
+                              <AccordionHeader>
+                                   <AccordionTrigger px="$2" py="$3">
+                                        {/* gluestack-ui allows passing a function to dynamically check states like isExpanded */}
+                                        {({ isExpanded }) => (
+                                             <HStack space="sm" alignItems="center">
+                                                  <Icon
+                                                       as={isExpanded ? Entypo : MaterialIcons}
+                                                       name={isExpanded ? 'chevron-small-down' : 'chevron-right'}
+                                                       size="lg"
+                                                       color={textColor}
+                                                  />
+                                                  <VStack width="$full">
+                                                       <Text fontWeight="$medium" color={textColor}>
+                                                            {categoryLabel}
+                                                       </Text>
+                                                  </VStack>
+                                             </HStack>
+                                        )}
+                                   </AccordionTrigger>
+                              </AccordionHeader>
+
+                              <AccordionContent p="$0" pt="$1">
+                                   {_.map(categories, function (item, index) {
+                                        return (
+                                             <Pressable
+                                                  key={index}
+                                                  onPress={() => openURL(item.url)}
+                                                  style={{ backgroundColor: 'transparent' }}
+                                                  borderBottomWidth={1}
+                                                  borderBottomColor="$borderLight200" // Adjust to your theme border token if needed
+                                                  py="$2"
+                                             >
+                                                  <HStack space="sm" alignItems="center" ml="$4">
+                                                       <Icon
+                                                            as={MaterialIcons}
+                                                            name="chevron-right"
+                                                            size="lg"
+                                                            color={textColor}
+                                                       />
+                                                       <VStack width="$full">
+                                                            <Text fontWeight="$medium" color={textColor}>
+                                                                 {item.linkText}
+                                                            </Text>
+                                                       </VStack>
+                                                  </HStack>
+                                             </Pressable>
+                                        );
+                                   })}
+                              </AccordionContent>
+                         </AccordionItem>
+                    </Accordion>
                </>
           );
      }

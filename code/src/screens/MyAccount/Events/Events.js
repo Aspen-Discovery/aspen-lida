@@ -5,10 +5,9 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Icon, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack, useToast } from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../../themes/theme';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
@@ -47,7 +46,7 @@ export const MyEvents = () => {
 
      React.useEffect(() => {
           if (_.isArray(systemMessages)) {
-               systemMessages.map((obj, index, collection) => {
+               systemMessages.map((obj) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          systemMessagesForScreen.push(obj);
                     }
@@ -92,7 +91,7 @@ export const MyEvents = () => {
                     getErrorMessage(data.code, data.problem)
                }
           },
-          onSettle: (data) => setLoading(false),
+          onSettle: () => setLoading(false),
           onError: (error) => {
                logDebugMessage("Error fetching saved events");
                logErrorMessage(error);
@@ -194,7 +193,7 @@ export const MyEvents = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -224,6 +223,7 @@ const Item = (data) => {
      const filterBy = data.filterBy;
      const setLoading = data.setLoading;
      const event = data.data;
+     const toast = useToast();
      const queryClient = useQueryClient();
      const { user } = React.useContext(UserContext);
      const { language } = React.useContext(LanguageContext);
@@ -338,7 +338,7 @@ const Item = (data) => {
                               console.log('Really borked.');
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          console.log(err);
                     }
                });

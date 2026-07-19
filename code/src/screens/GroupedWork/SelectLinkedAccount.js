@@ -1,7 +1,6 @@
 import _ from 'lodash';
-import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
+import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon, useToast } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
 import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
@@ -20,6 +19,7 @@ const SelectLinkedAccount = (props) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
+     const toast = useToast();
 
      let shouldDisplayVolumes = false;
      let typeOfHold = 'default';
@@ -161,7 +161,7 @@ const SelectLinkedAccount = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setResponseLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowPrompt(false);
                                                   if (result) {

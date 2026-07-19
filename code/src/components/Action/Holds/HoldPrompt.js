@@ -1,6 +1,47 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { CloseIcon, Modal, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Select, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, SelectScrollView, Input, InputField, InputSlot, InputIcon, Text } from '@gluestack-ui/themed';
+import {
+     CloseIcon,
+     Modal,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckboxLabel,
+     CheckIcon,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalCloseButton,
+     ModalBody,
+     ModalFooter,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Select,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     Icon,
+     ChevronDownIcon,
+     ButtonSpinner,
+     SelectScrollView,
+     Input,
+     InputField,
+     InputSlot,
+     InputIcon,
+     Text,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { EyeOff, Eye } from 'lucide-react-native';
 import { Platform, useWindowDimensions } from 'react-native';
@@ -126,6 +167,7 @@ export const HoldPrompt = (props) => {
      const [sublocation, setSublocation] = React.useState(null);
      const rememberHoldPickupLocation = user.rememberHoldPickupLocation ? 1 : 0;
      const [rememberPickupLocation, setRememberPickupLocation] = React.useState(rememberHoldPickupLocation);
+     const toast = useToast();
 
      // TanStack useQuery Hook
      const { status, data, error, isFetching } = useQuery({
@@ -356,7 +398,7 @@ export const HoldPrompt = (props) => {
                                         onPress={async () => {
                                              setLoading(true);
                                              await updateCard();
-                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                   logDebugMessage("Completed Action - Hold Prompt footer");
 
                                                   setResponse(result);
@@ -583,7 +625,7 @@ export const HoldPrompt = (props) => {
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
-                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, (volumeId ?? volume), holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, (volumeId ?? volume), holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
                                                        logDebugMessage("Completed Action Hold Prompt Alternate Library Card");
 

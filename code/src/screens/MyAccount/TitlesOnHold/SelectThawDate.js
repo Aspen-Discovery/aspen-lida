@@ -38,8 +38,6 @@ export const SelectThawDate = (props) => {
      const [showIndefiniteWarning, setShowIndefiniteWarning] = React.useState(false);
      const [freezeIndefinite, setFreezeIndefinite] = React.useState(false);
 
-     logDebugMessage("ColorMode " + colorMode);
-
      let actionLabel = freezeLabel;
      if (label) {
           actionLabel = label;

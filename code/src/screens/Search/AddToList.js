@@ -4,7 +4,6 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Modal from 'react-native-modal';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
@@ -21,7 +20,6 @@ import {
      Icon,
      Input,
      InputField,
-     Pressable,
      Radio,
      RadioGroup,
      Text,
@@ -50,6 +48,14 @@ import {
      CircleIcon,
      RadioLabel,
      TextareaInput,
+     Heading,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalCloseButton,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
 } from '@gluestack-ui/themed';
 
 const AddToList = (props) => {
@@ -130,76 +136,75 @@ const AddToList = (props) => {
      return (
           <>
                <Modal
-                    isVisible={open}
-                    avoidKeyboard={true}
+                    isOpen={open}
                     onBackdropPress={() => {
                          setOpen(false);
                          setScreen('add-new');
                     }}>
-                    {isLoading ?
-                         <LoadingSpinner/>
+                    <ModalBackdrop />
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         {isLoading ?
+                              <LoadingSpinner/>
                          :
-                         <Box borderRadius="$md" p="$2" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                              <VStack space="md">
-                                   {screen === 'add-new' && !_.isEmpty(lists) ? (
-                                        <>
-                                             <HStack p="$4" justifyContent="space-between" alignItems="flex-start">
-                                                  <Text bold color={textColor}>
-                                                       {getTermFromDictionary(language, 'add_to_list')}
-                                                  </Text>
-                                                  <Pressable onPress={() => setOpen(false)}>
-                                                       <CloseIcon zIndex={1} color={textColor} p="$2" bg="transparent" borderRadius="$sm" />
-                                                  </Pressable>
-                                             </HStack>
-                                             <Box p="$4">
-                                                  <FormControl>
-                                                       <VStack space="md">
-                                                            <FormControl>
-                                                                 <FormControlLabel>
-                                                                      <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'choose_a_list')}</FormControlLabelText>
-                                                                 </FormControlLabel>
-                                                                 <Select
-                                                                      selectedValue={listId}
-                                                                      defaultValue={listId}
-                                                                      onValueChange={(itemValue) => {
-                                                                           setListId(itemValue);
-                                                                      }}>
-                                                                      <SelectTrigger>
-                                                                           <SelectInput color={textColor} placeholder="Select list" />
-                                                                           <SelectIcon mr="$3">
-                                                                                <Icon color={textColor} as={ChevronDownIcon} />
-                                                                           </SelectIcon>
-                                                                      </SelectTrigger>
-                                                                      <SelectPortal>
-                                                                           <SelectBackdrop />
-                                                                           <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
-                                                                                <SelectDragIndicatorWrapper>
-                                                                                     <SelectDragIndicator />
-                                                                                </SelectDragIndicatorWrapper>
-                                                                                <SelectScrollView>
-                                                                                     {_.map(lists, function (item, index) {
-                                                                                          return <SelectItem key={index} value={item.id} label={item.title} bgColor={listId == item.id ? theme.tokens.colors.tertiary['300'] : ''} color={listId == item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } />;
-                                                                                     })}
-                                                                                </SelectScrollView>
-                                                                           </SelectContent>
-                                                                      </SelectPortal>
-                                                                 </Select>
-                                                            </FormControl>
-                                                            <HStack space="sm" alignItems="center">
-                                                                 <Text color={textColor}>{getTermFromDictionary(language, 'or')}</Text>
-                                                                 <Button
-                                                                      bgColor={theme.tokens.colors.primary['500']}
-                                                                      size="sm"
-                                                                      onPress={() => {
-                                                                           setScreen('create-new');
-                                                                      }}>
-                                                                      <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
-                                                                 </Button>
-                                                            </HStack>
-                                                       </VStack>
-                                                  </FormControl>
-                                             </Box>
-
+                             ( screen === 'add-new' && !_.isEmpty(lists)) ? (
+                                   <>
+                                        <ModalHeader>
+                                             <Heading color={textColor}>
+                                                  {getTermFromDictionary(language, 'add_to_list')}
+                                             </Heading>
+                                             <ModalCloseButton p="$3">
+                                                  <Icon as={CloseIcon} color={textColor} />
+                                             </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                             <FormControl>
+                                                  <VStack space="md">
+                                                       <FormControl>
+                                                            <FormControlLabel>
+                                                                 <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'choose_a_list')}</FormControlLabelText>
+                                                            </FormControlLabel>
+                                                            <Select
+                                                                 selectedValue={listId}
+                                                                 defaultValue={listId}
+                                                                 onValueChange={(itemValue) => {
+                                                                      setListId(itemValue);
+                                                                 }}>
+                                                                 <SelectTrigger>
+                                                                      <SelectInput color={textColor} placeholder="Select list" />
+                                                                      <SelectIcon mr="$3">
+                                                                           <Icon color={textColor} as={ChevronDownIcon} />
+                                                                      </SelectIcon>
+                                                                 </SelectTrigger>
+                                                                 <SelectPortal>
+                                                                      <SelectBackdrop />
+                                                                      <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                                           <SelectDragIndicatorWrapper>
+                                                                                <SelectDragIndicator />
+                                                                           </SelectDragIndicatorWrapper>
+                                                                           <SelectScrollView>
+                                                                                {_.map(lists, function (item, index) {
+                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={listId === item.id ? theme.tokens.colors.tertiary['300'] : ''} color={listId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } />;
+                                                                                })}
+                                                                           </SelectScrollView>
+                                                                      </SelectContent>
+                                                                 </SelectPortal>
+                                                            </Select>
+                                                       </FormControl>
+                                                       <HStack space="sm" alignItems="center">
+                                                            <Text color={textColor}>{getTermFromDictionary(language, 'or')}</Text>
+                                                            <Button
+                                                                 bgColor={theme.tokens.colors.primary['500']}
+                                                                 size="sm"
+                                                                 onPress={() => {
+                                                                      setScreen('create-new');
+                                                                 }}>
+                                                                 <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+                                                            </Button>
+                                                       </HStack>
+                                                  </VStack>
+                                             </FormControl>
+                                        </ModalBody>
+                                        <ModalFooter>
                                              <ButtonGroup p="$4" flexDirection="row" justifyContent="flex-end" flexWrap="wrap">
                                                   <Button
                                                        borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}
@@ -231,17 +236,19 @@ const AddToList = (props) => {
                                                        </Button>
                                                   )}
                                              </ButtonGroup>
-                                        </>
-                                   ) : (
-                                        <>
-                                             <HStack justifyContent="space-between" alignItems="flex-start" p="$4">
-                                                  <Text bold color={textColor}>
-                                                       {getTermFromDictionary(language, 'create_new_list_item')}
-                                                  </Text>
-                                                  <Pressable onPress={() => setOpen(false)}>
-                                                       <CloseIcon zIndex={1} p="$2" bg="transparent" borderRadius="$sm" color={textColor} />
-                                                  </Pressable>
-                                             </HStack>
+                                        </ModalFooter>
+                                   </>
+                             ) : (
+                                   <>
+                                        <ModalHeader>
+                                             <Heading size="md" color={textColor}>
+                                                  {getTermFromDictionary(language, 'create_new_list_item')}
+                                             </Heading>
+                                             <ModalCloseButton p="$3">
+                                                  <Icon as={CloseIcon} color={textColor} />
+                                             </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
                                              <Box p="$4">
                                                   <VStack space="md">
                                                        <FormControl>
@@ -390,6 +397,8 @@ const AddToList = (props) => {
                                                        )}
                                                   </VStack>
                                              </Box>
+                                        </ModalBody>
+                                        <ModalFooter>
                                              <ButtonGroup p="$4" flexDirection="row" justifyContent="flex-end" flexWrap="wrap">
                                                   <Button
                                                        variant="outline"
@@ -418,11 +427,11 @@ const AddToList = (props) => {
                                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list')}</ButtonText>
                                                   </Button>
                                              </ButtonGroup>
-                                        </>
-                                   )}
-                              </VStack>
-                         </Box>
-                    }
+                                        </ModalFooter>
+                                   </>
+                             )
+                         }
+                    </ModalContent>
                </Modal>
                {btnStyle === 'lg' ? <RenderLargeButton /> : btnStyle === 'reg' ? <RenderRegularButton /> : <RenderSmallButton />}
           </>

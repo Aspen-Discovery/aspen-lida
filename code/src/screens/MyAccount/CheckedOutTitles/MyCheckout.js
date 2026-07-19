@@ -4,7 +4,7 @@ import {
      Actionsheet,
      ActionsheetContent,
      ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, Box, HStack, Icon, Pressable, Text, VStack, ActionsheetIcon,
+     ActionsheetItemText, ActionsheetBackdrop, Box, HStack, Icon, Pressable, Text, VStack, ActionsheetIcon, useToast,
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
@@ -42,6 +42,8 @@ export const MyCheckout = (props) => {
      const [returning, setReturn] = useState(false);
      const [renewing, setRenew] = useState(false);
      const [isOpen, setIsOpen] = React.useState(false);
+
+     const toast = useToast();
 
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -215,7 +217,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                    onPress={() => {
                                         setAccess(true);
-                                        viewOverDriveItem(checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
+                                        viewOverDriveItem(toast, checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
                                              setAccess(false);
                                              toggle();
                                         });
@@ -242,7 +244,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                         onPress={() => {
                                              setAccess(true);
-                                             viewOnlineItem(checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
+                                             viewOnlineItem(toast, checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
                                                   setAccess(false);
                                                   toggle();
                                              });

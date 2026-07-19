@@ -14,7 +14,7 @@ import {
      Badge,
      BadgeText,
      VStack,
-     Input, InputSlot, InputIcon, InputField, FormControl
+     Input, InputSlot, InputIcon, InputField, FormControl, useToast
 } from '@gluestack-ui/themed';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +40,7 @@ import { getAppliedFilters, getAvailableFacetsKeys, getSortList } from '../../ut
 import { setDefaultFacets } from '../../util/api/searchHelper';
 
 import AddToList from './AddToList';
-import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
@@ -236,6 +236,7 @@ const DisplayResult = (data) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const toast = useToast();
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -310,20 +311,20 @@ const DisplayResult = (data) => {
                               WebBrowser.coolDownAsync();
                               await WebBrowser.openBrowserAsync(url, browserParams)
                                    .then((response) => {
-                                        console.log(response);
+                                        logDebugMessage(response);
                                         if (response.type === 'cancel') {
-                                             console.log('User closed window.');
+                                             logDebugMessage('User closed window.');
                                         }
                                    })
                                    .catch(async (error) => {
-                                        console.log('Unable to close previous browser session.');
+                                        logInfoMessage('Unable to close previous browser session.');
                                    });
                          } catch (error) {
-                              console.log('Really borked.');
+                              logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                         console.log(err);
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         logErrorMessage(err);
                     }
                });
      };
