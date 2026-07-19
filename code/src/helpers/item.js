@@ -10,7 +10,7 @@ export const isOverdue = (overdue) => {
      const { language } = React.useContext(LanguageContext);
      if (overdue) {
           return (
-               <Badge action="error" borderRadius="$sm" mt={-2}>
+               <Badge action="error" borderRadius="$sm" mt={-2} alignSelf="flex-start">
                     <BadgeText>
                          {getTermFromDictionary(language, 'checkout_overdue')}
                     </BadgeText>

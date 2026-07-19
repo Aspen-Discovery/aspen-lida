@@ -36,7 +36,7 @@ import TitleWithLogo from '../../components/TitleWithLogo'
 
 const AccountStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { theme,textColor } = React.useContext(ThemeContext);
      const Stack = createNativeStackNavigator();
      return (
           <Stack.Navigator
@@ -360,7 +360,7 @@ const AccountStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color="primary.baseContrast" />
+                                   <CloseIcon size={5} color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -380,6 +380,7 @@ const AccountStackNavigator = () => {
 const PalaceProjectStack = createStackNavigator();
 export const PalaceProjectInstructionsModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <PalaceProjectStack.Navigator
                id="PalaceProjectStack"
@@ -392,7 +393,7 @@ export const PalaceProjectInstructionsModal = () => {
                     },
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr={3} p="$1">
-                              <CloseIcon size={5} color="primary.baseContrast" />
+                              <CloseIcon size={5} color={textColor} />
                          </Pressable>
                     ),
                })}>

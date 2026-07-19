@@ -4,6 +4,7 @@ import { ButtonSpinner, Button, ButtonText } from '@gluestack-ui/themed';
 // custom components and helper files
 import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { completeAction } from '../../util/api/userHelper';
+import {logDebugMessage} from "../../util/logging";
 
 export const LoadOverDriveSample = (props) => {
      const { user } = React.useContext(UserContext);
@@ -11,7 +12,8 @@ export const LoadOverDriveSample = (props) => {
      const [loading, setLoading] = React.useState(false);
      const { theme } = React.useContext(ThemeContext);
 
-     console.log(props);
+     logDebugMessage("Showing overdrive sample, properties are");
+     logDebugMessage(props);
 
      return (
           <Button

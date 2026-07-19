@@ -68,7 +68,7 @@ export const SelectItemHold = (props) => {
                                         <Icon as={ChevronDownIcon} color={textColor} />
                                    </SelectIcon>
                               </SelectTrigger>
-                              <SelectPortal useRNModal={true}>
+                              <SelectPortal>
                                    <SelectBackdrop />
                                    <SelectContent
                                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}

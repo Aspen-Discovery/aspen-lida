@@ -8,6 +8,7 @@ import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } fr
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getSearchIndexes } from '../../../util/api/search';
 import { SearchGlobal } from '../../../util/globals';
+import {logDebugMessage} from "../../../util/logging";
 
 // custom components and helper files
 
@@ -15,8 +16,8 @@ export const SearchSourceScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
-     const { textColor } = React.useContext(ThemeContext);
-     console.log('currentSource: ' + currentSource);
+     const { textColor, theme } = React.useContext(ThemeContext);
+     logDebugMessage('currentSource: ' + currentSource);
 
      const search = async () => {
           navigateStack('BrowseTab', 'SearchResults', {

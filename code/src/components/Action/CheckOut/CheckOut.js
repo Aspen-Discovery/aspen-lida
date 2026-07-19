@@ -180,9 +180,7 @@ export const CheckOut = (props) => {
                                                   setLoading(true);
                                                   await updateCard();
                                                   await completeAction(record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (response) => {
-                                                       if (__DEV__) {
-                                                            console.log("Completed Action - Checkout with alternate card");
-                                                       }
+                                                       logDebugMessage("Completed Action - Checkout with alternate card");
                                                        setResponse(response);
                                                        if (response.success) {
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });

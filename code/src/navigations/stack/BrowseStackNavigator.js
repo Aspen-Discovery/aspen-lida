@@ -29,6 +29,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 
 const BrowseStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      const Stack = createStackNavigator();
      return (
           <Stack.Navigator
@@ -75,7 +76,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                               </Pressable>
                          ),
                     })}
@@ -91,7 +92,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                               </Pressable>
                          ),
                     })}
@@ -107,7 +108,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -251,6 +252,7 @@ const BrowseStackNavigator = () => {
 const EditionsStack = createStackNavigator();
 export const EditionsModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <EditionsStack.Navigator
                id="EditionsStack"
@@ -271,7 +273,7 @@ export const EditionsModal = () => {
                     },
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" />
+                              <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                          </Pressable>
                     ),
                })}>
@@ -310,7 +312,7 @@ const FilterModal = () => {
                     headerBackTitleVisible: false,
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" />
+                              <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                          </Pressable>
                     ),
                })}>

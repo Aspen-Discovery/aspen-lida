@@ -136,8 +136,7 @@ const DisplayGroupedWork = (payload) => {
      const { format } = React.useContext(GroupedWorkContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const { colorMode } = React.useContext(ThemeContext);
 
      const formats = Object.keys(groupedWork.formats);
 
