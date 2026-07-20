@@ -16,6 +16,7 @@ import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
+import {logDebugMessage} from "../../util/logging";
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -89,7 +90,7 @@ export const MyLibrary = () => {
 
      const key = 'location_' + location.locationId;
 
-     console.log(key + ':' + location.locationImage);
+     logDebugMessage(key + ':' + location.locationImage);
 
      const selectLocations = () => {
           navigate('AllLocations');

@@ -128,7 +128,6 @@ export const MyList = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
           },
@@ -170,9 +169,8 @@ export const MyList = () => {
           };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
-                    console.log(res);
                     if (res.type === 'cancel' || res.type === 'dismiss') {
-                         console.log('User closed or dismissed window.');
+                         logDebugMessage('User closed or dismissed window.');
                          WebBrowser.dismissBrowser();
                          WebBrowser.coolDownAsync();
                     }
@@ -360,7 +358,7 @@ export const MyList = () => {
                                    bgColor={theme.tokens.colors.primary['500']}
                                    onPress={() => {
                                         if (!isPreviousData && data?.hasMore) {
-                                             console.log('Adding to page');
+                                             logDebugMessage('Adding to page');
                                              setPage(page + 1);
                                         }
                                    }}

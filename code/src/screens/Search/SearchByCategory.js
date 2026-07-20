@@ -37,7 +37,6 @@ export const SearchResultsForBrowseCategory = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
           },
@@ -72,7 +71,6 @@ export const SearchResultsForBrowseCategory = () => {
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}

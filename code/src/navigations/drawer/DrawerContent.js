@@ -1247,7 +1247,7 @@ async function getStoredNotifications() {
           const notifications = await AsyncStorage.getItem('@notifications');
           return notifications != null ? JSON.parse(notifications) : null;
      } catch (e) {
-          console.log(e);
+          logErrorMessage(e);
      }
 }
 
@@ -1258,7 +1258,7 @@ async function createNotificationStorage(message) {
           const notification = JSON.stringify(array);
           await AsyncStorage.setItem('@notifications', notification);
      } catch (e) {
-          console.log(e);
+          logErrorMessage(e);
      }
 }
 
@@ -1269,7 +1269,7 @@ async function addStoredNotification(message) {
                try {
                     await AsyncStorage.setItem('@notifications', JSON.stringify(response));
                } catch (e) {
-                    console.log(e);
+                    logErrorMessage(e);
                }
           } else {
                await createNotificationStorage(message);

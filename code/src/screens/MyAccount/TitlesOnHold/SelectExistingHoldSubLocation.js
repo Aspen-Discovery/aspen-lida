@@ -10,10 +10,7 @@ export const SelectExistingHoldSubLocation = (props) => {
      const { locations, sublocations, language, location, activeSublocation, setActiveSublocation} = props;
 
 
-     //console.log("Sublocations in Select Pickup Location");
-     //console.log(sublocations);
      const [locationId, locationCode] = location.split("_");
-     //console.log("Active location is " + location + " locationCode is " + locationCode);
      if (sublocations !== undefined) {
           if (_.isObject(sublocations)) {
                const objectSize = Object.keys(sublocations).length;
@@ -22,11 +19,8 @@ export const SelectExistingHoldSubLocation = (props) => {
                const sublocationValues = Object.values(sublocations);
                let activeSublocationNeedsToChange = true;
                for (index in sublocationValues) {
-                    //console.log("Checking sublocation index " + index);
                     let sublocation = sublocationValues[index];
-                    //console.log(sublocation);
                     if (sublocation.locationCode == locationCode) {
-                         //console.log("Sublocation " + index + " is valid");
                          validSublocations.push(sublocation);
                          if (activeSublocation == sublocation.id) {
                               activeSublocationNeedsToChange = false;

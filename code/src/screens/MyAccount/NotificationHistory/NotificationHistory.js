@@ -109,7 +109,7 @@ export const MyNotificationHistory = () => {
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
+                                                  logDebugMessage('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}

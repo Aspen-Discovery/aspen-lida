@@ -100,8 +100,6 @@ const SelectVolumeHold = (props) => {
           }
      }
 
-     //console.log(pickupLocation);
-
      const [location, setLocation] = React.useState(pickupLocation);
      const [sublocation, setSublocation] = React.useState(null);
 

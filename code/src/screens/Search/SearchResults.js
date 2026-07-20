@@ -77,7 +77,7 @@ export const SearchResults = () => {
      const systemMessagesForScreen = [];
 
      if (term && term !== storedTerm) {
-          console.log('Search term changed. Clearing previous search options...');
+          logDebugMessage('Search term changed. Clearing previous search options...');
           setStoredTerm(term);
           setPage(1);
           SearchGlobal.pendingFilters = [];
@@ -111,7 +111,6 @@ export const SearchResults = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
                if ((data.totalResults === 1 || data.totalResults === '1') && isScannerSearch) {
@@ -164,7 +163,6 @@ export const SearchResults = () => {
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}
@@ -297,9 +295,9 @@ const DisplayResult = (data) => {
           };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
-                    console.log(res);
+                    logDebugMessage(res);
                     if (res.type === 'cancel' || res.type === 'dismiss') {
-                         console.log('User closed or dismissed window.');
+                         logDebugMessage('User closed or dismissed window.');
                          WebBrowser.dismissBrowser();
                          WebBrowser.coolDownAsync();
                     }

@@ -142,7 +142,6 @@ export const Facet = ({ route, navigation }) => {
 
      const updateSearch = (resetFacetGroup = false, toFilters = false) => {
           const params = buildParamsForUrl();
-          //console.log(params);
           SearchGlobal.hasPendingChanges = false;
           if (toFilters) {
                navigation.navigate('Filters', {
@@ -286,8 +285,6 @@ export const Facet = ({ route, navigation }) => {
                </VStack>
           );
      } else if (multiSelect) {
-          //console.log("Showing Multi-Select facet");
-          //console.log(facets);
           return (
                <VStack flex={1}>
                     {searchBar}

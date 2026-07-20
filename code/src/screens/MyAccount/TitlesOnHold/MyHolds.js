@@ -250,12 +250,13 @@ export const MyHolds = () => {
 
      const refreshHolds = async () => {
           setLoading(true);
+          updateHolds([]);
           queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'] });
           queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
           setLoading(false);
      };
 
-     if (isFetchingHolds || isLoading) {
+     if (isLoading || (_.isEmpty(holds) && isFetchingHolds)) {
           return loadingSpinner();
      }
 
@@ -560,7 +561,6 @@ export const MyHolds = () => {
      };
 
      const displaySectionHeader = (title) => {
-          logDebugMessage("Display Holds section " + title);
           if (title === 'Pending') {
                return (
                     <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">

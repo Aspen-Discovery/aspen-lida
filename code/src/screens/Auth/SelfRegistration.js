@@ -88,7 +88,6 @@ export const SelfRegistration = () => {
 										                   returnKeyType="next"
 										                   color={textColor}
 										                   onChangeText={(value) => {
-											                   console.log(property, value);
 											                   handleInputChange(property, value);
 										                   }}/></Input>
 										{!_.isEmpty(description) ? (
