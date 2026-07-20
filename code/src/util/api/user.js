@@ -1776,27 +1776,22 @@ export async function markMessageAsUnread(id, url = null, language = 'en') {
  * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param pushToken
- * @param type
  * @returns {Promise<*|boolean>}
  */
-export async function getNotificationPreference(toast, url, pushToken, type) {
+export async function getNotificationPreferences(toast, url, pushToken) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
      });
 
-     logDebugMessage('Getting notification preference for type ' + type);
+     logDebugMessage('Getting notification preferences');
      const response = await client.post(
-          '/UserAPI?method=getNotificationPreference',
+          '/UserAPI?method=getNotificationPreferences',
           {
                pushToken,
-               type,
           },
-          {
-               params: { type },
-          }
      );
-
+     logDebugMessage(response);
      if (response.ok) {
           if (response.data?.result?.success === true) {
                logDebugMessage(response.data.result);
@@ -1814,6 +1809,7 @@ export async function getNotificationPreference(toast, url, pushToken, type) {
 
 /**
  * Update the user's notification preferences for a specific type of notification
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param pushToken
  * @param type
@@ -1821,12 +1817,13 @@ export async function getNotificationPreference(toast, url, pushToken, type) {
  * @param showToast
  * @returns {Promise<boolean>}
  */
-export async function setNotificationPreference(url, pushToken, type, value, showToast = true) {
+export async function setNotificationPreference(toast, url, pushToken, type, value, showToast = true) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
      });
 
+     logDebugMessage("Setting Notification Preference for " + type + " to " + value + " (push token is " + pushToken + ")");
      const response = await client.post(
           '/UserAPI?method=setNotificationPreference',
           {
@@ -1838,6 +1835,21 @@ export async function setNotificationPreference(url, pushToken, type, value, sho
                params: { type, value },
           }
      );
+     logDebugMessage(response);
+     if (response.ok) {
+          if (response.data.result.success) {
+               return true;
+          }else{
+               if (showToast) {
+                    popAlert(toast, response.data.result.title, response.data.result.message, 'error');
+               }
+          }
+     }else{
+          if (showToast) {
+               popAlert(toast, 'Error', 'Could not save notification preference', 'error');
+          }
+          return false;
+     }
 
      return response.ok;
 }
