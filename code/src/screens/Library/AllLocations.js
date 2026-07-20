@@ -11,7 +11,7 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
@@ -41,10 +41,12 @@ export const AllLocations = () => {
                     updateLocations(data.data.result.locations);
                     if (sort === 'distance') {
                          const tmpSortedLocations = _.sortBy(data, ['distance', 'displayName']);
-                         setSortedLocations(tmpSortedLocations);
+                         const mapped = _.map(tmpSortedLocations, (val, key) => ({ ...val, originalKey: key }));
+                         setSortedLocations(mapped);
                     } else {
                          const tmpSortedLocations = _.sortBy(data, ['displayName']);
-                         setSortedLocations(tmpSortedLocations);
+                         const mapped = _.map(tmpSortedLocations, (val, key) => ({ ...val, originalKey: key }));
+                         setSortedLocations(mapped);
                     }
                } else {
                     logDebugMessage("Error fetching locations");
@@ -132,20 +134,20 @@ export const AllLocations = () => {
           return (
                <Box
                     alignItems="center"
-                    safeArea={2}
-                    bgColor="coolGray.100"
+                    p="$2"
+                    bgColor="$coolGray100"
                     borderBottomWidth="$1"
                     _dark={{
-                         borderColor: 'gray.600',
-                         bg: 'coolGray.700',
+                         borderColor: '$coolGray600',
+                         bgColor: '$coolGray700',
                     }}
-                    borderColor="coolGray.200">
-                    <ButtonGroup alignItems="center" isAttached colorScheme="secondary">
-                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} onPress={() => updateSort('alphabetical')}>
-                              {getTermFromDictionary(language, 'a_to_z')}
+                    borderColor="$coolGray200">
+                    <ButtonGroup alignItems="center" isAttached>
+                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => updateSort('alphabetical')}>
+                              <ButtonText>{getTermFromDictionary(language, 'a_to_z')}</ButtonText>
                          </Button>
-                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} onPress={() => updateSort('distance')}>
-                              {getTermFromDictionary(language, 'distance')}
+                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} action="secondary" onPress={() => updateSort('distance')}>
+                              <ButtonText>{getTermFromDictionary(language, 'distance')}</ButtonText>
                          </Button>
                     </ButtonGroup>
                </Box>
@@ -166,7 +168,7 @@ export const AllLocations = () => {
                     <FlatList
                          ListHeaderComponent={
                               <>
-                                   {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+                                   {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                                    {getActionButtons()}
                               </>
                          }
@@ -185,6 +187,7 @@ export const AllLocations = () => {
 const DisplayLocation = (data) => {
      const location = data.data;
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      const key = 'location_' + location.locationId;
 
      let units = false;
@@ -255,34 +258,34 @@ const DisplayLocation = (data) => {
      return (
           <>
                <Pressable onPress={goToLocation}>
-                    <HStack justifyContent="space-between" alignItems="center">
+                    <HStack justifyContent="space-between" alignItems="center" p="$4">
                          {location.locationImage ? (
-                              <Box width="30%" mr={2}>
-                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90, borderRadius: "$sm" }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                              <Box width="30%" mr="$2">
+                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
                               </Box>
                          ) : null}
                          <VStack width={location.locationImage ? '60%' : '85%'}>
-                              <Text bold>{location.displayName}</Text>
-                              <Text fontSize="$xs" mb={2}>
+                              <Text size="md" bold color={textColor}>{location.displayName}</Text>
+                              <Text size="xs" mb="$2" color={textColor}>
                                    {location.address}
                               </Text>
                               {hasHours ? (
-                                   <HStack alignItems="center" space={1}>
-                                        <Icon as={MaterialIcons} name="access-time" size="4" />
-                                        <Text fontSize="$xs">{hoursLabel}</Text>
+                                   <HStack alignItems="center" space="xs">
+                                        <Icon as={MaterialIcons} name="access-time" size="sm"  color={textColor}/>
+                                        <Text size="xs" color={textColor}>{hoursLabel}</Text>
                                    </HStack>
                               ) : null}
                               {distanceText ? (
-                                   <HStack alignItems="center" space={1}>
-                                        <Icon as={MaterialIcons} name="pin-drop" size="4" />
-                                        <Text fontSize="$xs">{distanceText}</Text>
+                                   <HStack alignItems="center" space="xs">
+                                        <Icon as={MaterialIcons} name="pin-drop" size="sm" color={textColor} />
+                                        <Text size="xs" color={textColor}>{distanceText}</Text>
                                    </HStack>
                               ) : null}
                          </VStack>
-                         <Icon as={MaterialIcons} name="chevron-right" size="xl" />
+                         <Icon as={MaterialIcons} name="chevron-right" size="xl" color={textColor} />
                     </HStack>
                </Pressable>
-               <Divider mt={3} mb={3} />
+               <Divider mt="$3" mb="$3" />
           </>
      );
 };

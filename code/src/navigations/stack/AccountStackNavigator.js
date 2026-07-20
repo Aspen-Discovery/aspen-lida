@@ -332,11 +332,11 @@ const AccountStackNavigator = () => {
                          headerStyle: {
                               backgroundColor: theme['tokens']['colors']['primary']['500'],
                          },
-                         headerTintColor: theme['tokens']['colors']['primary']['500-text'],
+                         headerTintColor: theme['tokens']['colors']['primary']['baseContrast'],
                          headerLeft: () => null,
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color={theme.tokens.colors.primary['500-text']} />
+                                   <CloseIcon color={theme.tokens.colors.primary.baseContrast} />
                               </Pressable>
                          ),
                     })}
