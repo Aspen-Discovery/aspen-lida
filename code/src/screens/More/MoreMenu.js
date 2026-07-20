@@ -92,19 +92,17 @@ export const MoreMenu = () => {
                                    ))
                               ) : null}
                               <VStack space="md">
-                                   <VStack>
-                                        <ViewAllLocations />
-                                        <Settings />
-                                        <PrivacyPolicy />
-                                        {library.catalogRegistrationCapabilities?.enableSelfRegistration === '1' && library.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1' ? (
-                                        <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
-                                             <HStack space="sm" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)}/>
-                                                  <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
-                                             </HStack>
-                                        </Pressable>
-                                        ) : null}
-                                   </VStack>
+                                   <ViewAllLocations />
+                                   <Settings />
+                                   <PrivacyPolicy />
+                                   {library.catalogRegistrationCapabilities?.enableSelfRegistration === '1' && library.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1' ? (
+                                   <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
+                                        <HStack space="sm" alignItems="center">
+                                             <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)}/>
+                                             <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
+                                        </HStack>
+                                   </Pressable>
+                                   ) : null}
                               </VStack>
                          </VStack>
                     </VStack>
@@ -245,12 +243,12 @@ const MyLibrary = () => {
 
 const ViewAllLocations = () => {
      const { language } = React.useContext(LanguageContext);
-     const { locations } = React.useContext(LibraryBranchContext);
+     const { location } = React.useContext(LibraryBranchContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
-     if (_.size(locations) > 1) {
+     if (_.size(location) > 1) {
           return (
-               <Pressable px="2$" py="$3" onPress={() => navigate('AllLocations')}>
+               <Pressable px="$2" py="$3" onPress={() => navigate('AllLocations')}>
                     <HStack space="sm" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
                          <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'view_all_locations')}</Text>

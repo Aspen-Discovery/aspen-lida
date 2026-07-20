@@ -59,7 +59,7 @@ export const Settings_BrowseCategories = () => {
           });
      }, [navigation, theme]);
 
-     const { status, data, error, isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
+     const { isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
           initialData: list,
           onSuccess: (data) => {
                if(data.ok){
@@ -75,7 +75,7 @@ export const Settings_BrowseCategories = () => {
                logDebugMessage("Error fetching browse category list for user");
                logErrorMessage(error);
           },
-          onSettle: (data) => {
+          onSettle: () => {
                setLoading(false);
           },
           placeholderData: [],
@@ -91,7 +91,6 @@ export const Settings_BrowseCategories = () => {
 const DisplayCategory = (data) => {
      const queryClient = useQueryClient();
      const category = data.data;
-     const setLoading = data.setLoading;
      const [toggled, setToggle] = React.useState(!category.isHidden);
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');

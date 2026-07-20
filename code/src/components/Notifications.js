@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, Text, VStack } from '@gluestack-ui/themed';
+import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';

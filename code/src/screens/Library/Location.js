@@ -23,14 +23,13 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const Location = () => {
      const route = useRoute();
      const location = route.params?.data ?? false;
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { locations } = React.useContext(LibraryBranchContext);
      const [openToday, setOpenToday] = React.useState(false);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { colorMode } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = React.useContext(ThemeContext);
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -126,21 +125,19 @@ export const Location = () => {
                ) : null}
                <Box safeArea={5} mt={location.locationImage ? 40 : 0}>
                     {showSystemMessage()}
-                    {library.displayName !== location.displayName ? <Heading mb={2}>{location.displayName}</Heading> : <Heading mb={1}>{library.displayName}</Heading>}
-                    {location.address ? <Text>{location.address}</Text> : null}
+                    {library.displayName !== location.displayName ? <Heading mb={2} color={textColor}>{location.displayName}</Heading> : <Heading mb={1} color={textColor}>{library.displayName}</Heading>}
+                    {location.address ? <Text color={textColor}>{location.address}</Text> : null}
                     {location.phone ? (
-                         <Text>
+                         <Text color={textColor}>
                               {getTermFromDictionary(language, 'phone')}: {location.phone}
                          </Text>
                     ) : null}
                     {hasHours ? (
-                         <Text mt={4} mb={2}>
-                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
-                                   <BadgeText>
-                                        {hoursLabel}
-                                   </BadgeText>
-                              </Badge>
-                         </Text>
+                         <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
+                              <BadgeText color={textColor}>
+                                   {hoursLabel}
+                              </BadgeText>
+                         </Badge>
                     ) : null}
                     <DisplayMap data={location} />
                     <ContactButtons data={location} />
@@ -150,7 +147,7 @@ export const Location = () => {
                          <>
                               <Divider mt={5} mb={2} />
                               <Button variant="ghost" size="sm" onPress={selectLocations}>
-                                   {getTermFromDictionary(language, 'view_all_locations')}
+                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                               </Button>
                          </>
                     ) : null}
