@@ -42,6 +42,7 @@ import {
      SelectItem,
      SelectScrollView,
      Select,
+     useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,7 +73,7 @@ const CreateList = (props) => {
      const [newGroupName, setNewGroupName] = React.useState('');
      const [nestedGroup, setNestedGroup] = React.useState('');
      const [existingGroupId, setExistingGroupId] = React.useState(user.lastListGroupAdded ? user.lastListGroupAdded : (listGroups?.groups[0] ? listGroups.groups[0].id : 0));
-
+     const toast = useToast();
      const insets = useSafeAreaInsets();
 
      let hasListGroups = false;
@@ -249,7 +250,7 @@ const CreateList = (props) => {
                                                   )}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                                         <SelectDragIndicatorWrapper>
@@ -288,11 +289,11 @@ const CreateList = (props) => {
                                                        queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                        queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                        toggle();
-                                                       popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                       popAlert(toast, getTermFromDictionary(language, 'list_created'), res.message, status);
                                                   });
                                              } catch (error) {
                                                   logErrorMessage("Failed to create list: ", error);
-                                                  popAlert("Error", "Something went wrong while creating the list.", "danger");
+                                                  popAlert(toast, "Error", "Something went wrong while creating the list.", "danger");
                                              } finally {
                                                   setAdding(false);
                                                   setLoading(false);

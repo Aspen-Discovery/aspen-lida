@@ -1,13 +1,11 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
-import { AuthContext } from '../context/AuthContext';
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { logDebugMessage } from '../util/logging.js';
 
 /**
  * Catch an error and display it to the user
@@ -20,7 +18,7 @@ import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from
  **/
 export const LoadError = (props) => {
      const { error, reloadAction } = props;
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
 
      return (
           <Center flex={1}>
@@ -67,17 +65,26 @@ export function loadError(error, reloadAction = '') {
  * <li>Info</li>
  * <li>Warning</li>
  * </ul>
+ * @param {object} toast - The instance returned by useToast()
  * @param {string} title
  * @param {string} description
  * @param {string} status
  **/
-export function popToast(title, description, status) {
+export function popToast(toast, title, description, status) {
      logDebugMessage("Popping a toast");
-     Toast.show({
-          position: 'bottom',
-          type: status,
-          text1: title,
-          text2: description,
+     const actionType = status?.toLowerCase();
+     toast.show({
+          placement: 'bottom',
+          duration: 3000,
+          render: ({ id }) => {
+               const uniqueToastId = 'toast-' + id;
+               return (
+                    <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                         <ToastTitle>{title}</ToastTitle>
+                         {description && <ToastDescription>{description}</ToastDescription>}
+                    </Toast>
+               );
+          },
      });
 }
 
@@ -97,17 +104,27 @@ export function popToast(title, description, status) {
  * <li>Error</li>
  * <li>Info</li>
  * </ul>
+ * @param {object} toast - The instance returned by useToast()
  * @param {string} title
  * @param {string} description
  * @param {string} status
  **/
-export function popAlert(title, description, status) {
+export function popAlert(toast, title, description, status) {
      logDebugMessage("Popping an alert");
-     Toast.show({
-          position: 'bottom',
-          type: status,
-          text1: title,
-          text2: description,
+     const actionType = status?.toLowerCase();
+     toast.show({
+          placement: 'bottom',
+          // Medium priority alerts typically persist longer or require closing
+          duration: 5000,
+          render: ({ id }) => {
+               const uniqueToastId = 'alert-' + id;
+               return (
+                    <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                         <ToastTitle>{title}</ToastTitle>
+                         {description && <ToastDescription>{description}</ToastDescription>}
+                    </Toast>
+               );
+          },
      });
 }
 

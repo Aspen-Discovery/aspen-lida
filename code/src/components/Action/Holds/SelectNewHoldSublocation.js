@@ -42,8 +42,6 @@ export const SelectNewHoldSublocation = (props) => {
 
                     //sublocations need to convert from an object to an array!
                     if (validSublocationSize > 1) {
-                         //console.log("Displaying sublocations, got " + validSublocationSize);
-
                          const bottomPadding = Platform.OS === 'android' ? (insets ? insets.bottom : 0) + 16 : '$4';
                          return (
                               <>
@@ -62,7 +60,7 @@ export const SelectNewHoldSublocation = (props) => {
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
                                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}

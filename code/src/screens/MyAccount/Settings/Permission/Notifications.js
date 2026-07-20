@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, Switch, ScrollView, AlertDialog, AlertDialogBackdrop, HStack, VStack, Pressable, Icon, Text, Center, Button, ButtonText, ButtonIcon, ButtonGroup, Heading, Box, Accordion, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AccordionItem, AccordionContent, AccordionContentText, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon } from '@gluestack-ui/themed';
+import { ChevronLeftIcon, Switch, ScrollView, AlertDialog, AlertDialogBackdrop, HStack, VStack, Pressable, Icon, Text, Center, Button, ButtonText, ButtonIcon, ButtonGroup, Heading, Box, Accordion, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AccordionItem, AccordionContent, AccordionContentText, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
@@ -71,6 +71,7 @@ export const NotificationPermissionDescription = () => {
     const { language } = React.useContext(LanguageContext);
     const { library } = React.useContext(LibrarySystemContext);
     const { user, updateNotificationSettings, updateExpoToken, aspenToken, updateAspenToken, notificationSettings, expoToken, userDebugMessage, updateUserDebugMessage } = React.useContext(UserContext);
+    const toast = useToast();
 
     const {
         permissionStatus,
@@ -83,7 +84,7 @@ export const NotificationPermissionDescription = () => {
         preferences,
         updatePreference,
         loadPreferences
-    } = useNotificationPreferences(library, expoToken);
+    } = useNotificationPreferences(toast, library, expoToken);
 
     React.useLayoutEffect(() => {
         if (prevRoute === 'notifications_onboard') {

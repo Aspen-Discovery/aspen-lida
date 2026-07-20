@@ -14,12 +14,9 @@ import {
      ButtonGroup,
      ButtonIcon,
      ButtonText,
-     CheckIcon,
      ChevronDownIcon,
      FlatList,
      FormControl,
-     FormControlLabel,
-     FormControlLabelText,
      HStack,
      Icon,
      Pressable,
@@ -33,7 +30,7 @@ import {
      SelectPortal,
      SelectScrollView,
      SelectTrigger,
-     Text,
+     Text, useToast,
      VStack,
 } from '@gluestack-ui/themed';
 import React from 'react';
@@ -52,10 +49,10 @@ import {
 } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
+import { getTermFromDictionary, } from '../../../translations/TranslationService';
 import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
 import EditList from './EditList';
-import { logDebugMessage, logErrorMessage } from '../../../util/logging';
+import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -80,6 +77,7 @@ export const MyList = () => {
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const systemMessagesForScreen = [];
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
+     const toast = useToast();
 
      React.useEffect(() => {
           if (_.isArray(systemMessages)) {
@@ -186,20 +184,20 @@ export const MyList = () => {
                               WebBrowser.coolDownAsync();
                               await WebBrowser.openBrowserAsync(url, browserParams)
                                    .then((response) => {
-                                        console.log(response);
+                                        logDebugMessage(response);
                                         if (response.type === 'cancel') {
-                                             console.log('User closed window.');
+                                             logDebugMessage('User closed window.');
                                         }
                                    })
                                    .catch(async (error) => {
-                                        console.log('Unable to close previous browser session.');
+                                        logInfoMessage('Unable to close previous browser session.');
                                    });
                          } catch (error) {
-                              console.log('Really borked.');
+                              logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                         console.log(err);
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         logErrorMessage(err);
                     }
                });
      };

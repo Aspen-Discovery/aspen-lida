@@ -1,9 +1,40 @@
 import React from 'react';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
-import { Center, Button, ButtonIcon, ButtonText, Modal, ModalBackdrop, ModalContent, ModalHeader, Heading, ModalCloseButton, Icon, CloseIcon, ModalBody, ModalFooter, ButtonGroup, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, FormControl } from '@gluestack-ui/themed';
+import {
+     Center,
+     Button,
+     ButtonIcon,
+     ButtonText,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     Heading,
+     ModalCloseButton,
+     Icon,
+     CloseIcon,
+     ModalBody,
+     ModalFooter,
+     ButtonGroup,
+     FormControlLabel,
+     FormControlLabelText,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     ChevronDownIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     FormControl,
+     useToast
+} from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroupParent } from '../../../util/api/list';
@@ -25,6 +56,8 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
      const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
 
      const insets = useSafeAreaInsets();
+
+     const toast = useToast();
 
      React.useEffect(() => {
           if (listGroups && listGroups.groups && parentId != null) {
@@ -128,9 +161,9 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                      handleUpdate(id);
                                                      if (res.data.result.success === false) {
                                                           status = 'error';
-                                                          popAlert(res.data.result.title, res.data.result.message, status);
+                                                          popAlert(toast, res.data.result.title, res.data.result.message, status);
                                                      } else {
-                                                          popAlert(res.data.result.title, res.data.result.message, status);
+                                                          popAlert(toast, res.data.result.title, res.data.result.message, status);
                                                           navigateStack('AccountScreenTab', 'MyLists', {
                                                                libraryUrl: library.baseUrl,
                                                                hasPendingChanges: true,

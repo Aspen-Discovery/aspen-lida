@@ -51,7 +51,7 @@ export const UnsavedChangesExit = (props) => {
      return (
           <Center>
                <Pressable onPress={() => getStatus()} p="$1" ml="$3">
-                    <CloseIcon size="md" color="primary.baseContrast" />
+                    <CloseIcon size="md" color={textColor} />
                </Pressable>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                     <AlertDialog.Backdrop/>

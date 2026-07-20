@@ -36,7 +36,7 @@ import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
 import { loadError, popAlert, popToast } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import {
      LanguageContext,
@@ -137,6 +137,7 @@ const DisplayEvent = (payload) => {
      const source = route.params.source;
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
@@ -175,7 +176,7 @@ const DisplayEvent = (payload) => {
                               logDebugMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      };
@@ -566,6 +567,7 @@ const AddToYourEvents = ({ id, source }) => {
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
      const [isLoading, setIsLoading] = React.useState(false);
+     const toast = useToast();
 
      const addToEvents = async () => {
           setIsLoading(true);
@@ -577,9 +579,9 @@ const AddToYourEvents = ({ id, source }) => {
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                queryClient.invalidateQueries({ queryKey: ['event', id, source, language, library.baseUrl] });
                if (result.success || result.success === 'true') {
-                    popAlert(getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
+                    popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {
-                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };

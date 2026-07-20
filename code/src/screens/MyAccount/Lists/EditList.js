@@ -65,7 +65,7 @@ import {
      SelectDragIndicator,
      SelectItem,
      SelectScrollView,
-     Select,
+     Select, useToast,
 } from '@gluestack-ui/themed';
 import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -106,7 +106,7 @@ const EditList = (props) => {
                          }}
                          mr={3}
                          p="$1">
-                         <ChevronLeftIcon size={5} color="primary.baseContrast" />
+                         <ChevronLeftIcon size={5} color={textColor} />
                     </Pressable>
                ),
           });
@@ -241,8 +241,7 @@ const EditList = (props) => {
 const DeleteList = (props) => {
      const queryClient = useQueryClient();
      const { listId } = props;
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const navigation = useNavigation();
+     const {textColor, colorMode } = React.useContext(ThemeContext);
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -251,6 +250,7 @@ const DeleteList = (props) => {
      const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);
+     const toast = useToast();
 
      return (
           <Center>
@@ -309,9 +309,9 @@ const DeleteList = (props) => {
                                                   setIsOpen(!isOpen);
                                                   if (res.success === false) {
                                                        status = 'error';
-                                                       popAlert(res.title, res.message, status);
+                                                       popAlert(toast, res.title, res.message, status);
                                                   } else {
-                                                       popAlert(res.title, res.message, status);
+                                                       popAlert(toast, res.title, res.message, status);
                                                        navigateStack('AccountScreenTab', 'MyLists', {
                                                             libraryUrl: library.baseUrl,
                                                             hasPendingChanges: true,

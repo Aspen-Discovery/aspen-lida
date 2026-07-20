@@ -11,12 +11,13 @@ import {
      Input,
      InputField,
      Modal,
+     ModalBackdrop,
      ModalContent,
      ModalHeader,
      ModalBody,
      ModalFooter,
      Text,
-     ModalBackdrop, Icon, CloseIcon, ModalCloseButton,
+     Icon, CloseIcon, ModalCloseButton,
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';

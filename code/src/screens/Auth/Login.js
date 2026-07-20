@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading } from '@gluestack-ui/themed';
+import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
@@ -60,6 +60,7 @@ export const LoginScreen = () => {
      const logoTapTimerRef = React.useRef(null);
      const { updateLibrary } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      let isCommunity = true;
      if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
@@ -84,7 +85,7 @@ export const LoginScreen = () => {
                          }
                     });
 
-                    await fetchNearbyLibrariesFromGreenhouse().then((result) => {
+                    await fetchNearbyLibrariesFromGreenhouse(toast).then((result) => {
                          if (result.success) {
                               setLibraries(result.libraries);
                               if (!result.shouldShowSelectLibrary) {
@@ -112,7 +113,7 @@ export const LoginScreen = () => {
                          }
                     });
 
-                    await createGlueTheme(Constants.expoConfig.extra.apiUrl).then((result) => {
+                    await createGlueTheme(toast, Constants.expoConfig.extra.apiUrl).then((result) => {
                          updateTheme(result);
                     });
 

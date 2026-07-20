@@ -671,11 +671,11 @@ export const MyHolds = () => {
                                    contentContainerStyle={{ paddingBottom: 30 }}
                                    keyExtractor={(item, index) => {
                                         const source = item.source ?? '';
-                                        const cancelId = item.cancelId ?? '';
+                                        const itemId = item.cancelId ?? item.id;
 
                                         // If we have at least one valid identifier, combine them
-                                        if (source || cancelId) {
-                                             return `${source}-${cancelId}`;
+                                        if (source || itemId) {
+                                             return `${source}-${itemId}`;
                                         }
 
                                         // Fallback to index if the unique identifiers are totally missing

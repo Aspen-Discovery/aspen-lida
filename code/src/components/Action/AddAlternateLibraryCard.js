@@ -1,6 +1,29 @@
 import React from 'react';
 import _ from 'lodash';
-import { CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
+import {
+     CloseIcon,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalCloseButton,
+     ModalBody,
+     ModalFooter,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     Icon,
+     ButtonSpinner,
+     Input,
+     InputField,
+     InputSlot,
+     InputIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
@@ -61,6 +84,7 @@ export const AddAlternateLibraryCard = (props) => {
 
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
+     const toast = useToast();
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
      let passwordLabel = getTermFromDictionary(language, 'password');
@@ -169,7 +193,7 @@ export const AddAlternateLibraryCard = (props) => {
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);
-                                        await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                        await completeAction(toast, id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              logDebugMessage("Completed Action after add alternate library card");
                                              if (result) {

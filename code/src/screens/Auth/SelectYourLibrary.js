@@ -22,7 +22,7 @@ import {
      VStack, ModalBackdrop, CloseIcon, ModalBody, InputIcon, InputSlot,
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform, Dimensions } from 'react-native';
+import { Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionsPrompt } from '../../components/PermissionsPrompt';
 

@@ -39,7 +39,8 @@ export const MyAlternateLibraryCard = () => {
      const toggleShowPassword = () => setShowPassword(!showPassword);
 
      const handleGoBack = () => {
-          console.log(route?.params);
+          logDebugMessage("Handling go back");
+          logDebugMessage(route?.params);
           if (route?.params?.prevRoute === 'AccountDrawer') {
                navigation.dispatch(CommonActions.setParams({ prevRoute: null }));
                navigation.dispatch(StackActions.replace('LibraryCard'));

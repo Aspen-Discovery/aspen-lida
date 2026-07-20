@@ -2,7 +2,44 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogCloseButton, AlertDialogBody, AlertDialogFooter, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, CheckIcon, FlatList, FormControl, HStack, Icon, ScrollView, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Text, VStack, CloseIcon, Heading, ChevronDownIcon } from '@gluestack-ui/themed';
+import {
+     AlertDialog,
+     AlertDialogBackdrop,
+     AlertDialogContent,
+     AlertDialogHeader,
+     AlertDialogCloseButton,
+     AlertDialogBody,
+     AlertDialogFooter,
+     Box,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     ButtonIcon,
+     Center,
+     CheckIcon,
+     FlatList,
+     FormControl,
+     HStack,
+     Icon,
+     ScrollView,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     Text,
+     VStack,
+     CloseIcon,
+     Heading,
+     ChevronDownIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +76,8 @@ export const MyCheckouts = () => {
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+
+     const toast = useToast();
 
      const [checkoutsBy, setCheckoutBy] = React.useState({
           ils: 'Checked Out Titles for Physical Materials',
@@ -368,7 +407,7 @@ export const MyCheckouts = () => {
                                    onPress={() => {
                                         if (renewAll) return;
                                         setRenewAll(true);
-                                        renewAllCheckouts(library.baseUrl, language).then((result) => {
+                                        renewAllCheckouts(toast, library.baseUrl, language).then((result) => {
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
                                                   setRenewConfirmationResponse({
                                                        message: result.api.message,
@@ -542,7 +581,7 @@ export const MyCheckouts = () => {
                                                   setConfirmingRenewal(true);
 
                                                   if (renewConfirmationResponse.renewType === 'all') {
-                                                       await confirmRenewAllCheckouts(library.baseUrl, language).then(async (result) => {
+                                                       await confirmRenewAllCheckouts(toast, library.baseUrl, language).then(async (result) => {
                                                             queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
 
@@ -550,7 +589,7 @@ export const MyCheckouts = () => {
                                                             setConfirmingRenewal(false);
                                                        });
                                                   } else {
-                                                       await confirmRenewCheckout(renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
+                                                       await confirmRenewCheckout(toast, renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
                                                             queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
 

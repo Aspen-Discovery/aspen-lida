@@ -4,8 +4,6 @@ import {navigate} from '../../../helpers/RootNavigator';
 import { ThemeContext } from '../../../context/initialContext';
 
 export const StartLocalIllRequest = (props) => {
-     //console.log("Props for StartLocalIllRequest");
-     //console.log(props);
      const openLocalIllRequest = () => {
           navigate('CreateLocalIllRequest', {
                id: props.record,

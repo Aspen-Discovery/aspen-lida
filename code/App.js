@@ -1,12 +1,11 @@
 import 'expo-dev-client';
 import { config } from '@gluestack-ui/config';
-import { GluestackUIProvider } from '@gluestack-ui/themed';
+import { GluestackUIProvider, useToast } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
-import Toast from 'react-native-toast-message';
 
 import { LogBox } from 'react-native';
 
@@ -62,6 +61,7 @@ export default function AppContainer() {
      const [aspenTheme, setAspenTheme] = React.useState([]);
      const { colorMode, updateColorMode, updateTheme } = React.useContext(ThemeContext);
      const [statusBarColor, setStatusBarColor] = React.useState('light-content');
+     const toast = useToast();
 
      const [dbReady, setDbReady] = React.useState(false);
      React.useEffect(() => {
@@ -105,7 +105,7 @@ export default function AppContainer() {
 
                if (colorMode) {
                     logDebugMessage("5 Creating Default Theme " + colorMode);
-                    await createTheme(colorMode).then(async (result) => {
+                    await createTheme(toast, colorMode).then(async (result) => {
                          logDebugMessage("5a retrieved data from createTheme");
                          setAspenTheme(result);
                          updateTheme(result);
@@ -165,7 +165,6 @@ export default function AppContainer() {
                                    </ThemeProvider>
                               </GluestackUIProvider>
                          </Sentry.TouchEventBoundary>
-                         <Toast />
                     </QueryClientProvider>
                </SafeAreaProvider>
           );

@@ -3,19 +3,15 @@ import {
      Button,
      ButtonGroup,
      ButtonText,
-     Checkbox,
-     CheckIcon,
      FormControl,
      FormControlLabel,
      FormControlLabelText,
      Input,
      InputField,
-     Select,
-     Text,
      Textarea,
      TextareaInput,
      ScrollView,
-     VStack,
+     VStack, useToast,
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
@@ -40,6 +36,7 @@ const Request = (payload) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+     const toast = useToast();
 
      const [userVolumeName, setUserVolumeName] = React.useState(volumeName);
      const [userNote, setUserNote] = React.useState('');
@@ -56,14 +53,14 @@ const Request = (payload) => {
           };
           //logDebugMessage("Submitting local ill request email");
           //logDebugMessage(request);
-          await submitLocalIllRequestEmail(library.baseUrl, request).then(async (result) => {
+          await submitLocalIllRequestEmail(toast, library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                //logDebugMessage("Result from submitting local ill request email");
                //logDebugMessage(result);
                if (result.success) {
                     navigation.goBack();
                } else {
-                    popAlert(result.api.title, result.api.message, 'error');
+                    popAlert(toast, result.api.title, result.api.message, 'error');
                }
           });
      };

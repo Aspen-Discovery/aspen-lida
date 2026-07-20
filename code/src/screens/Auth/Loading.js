@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import _, {isEmpty, isUndefined} from 'lodash';
-import { Box, Center, Heading, Progress, VStack } from '@gluestack-ui/themed';
+import {Box, Center, Heading, Progress, useToast, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import { checkVersion } from 'react-native-check-version';
 import { BrowseCategoryContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
@@ -62,6 +62,8 @@ export const LoadingScreen = () => {
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
 
+     const toast = useToast();
+
      const insets = useSafeAreaInsets();
 
      const numSteps = 14;
@@ -87,7 +89,7 @@ export const LoadingScreen = () => {
                     updateColorMode('light');
                }
 
-               await createGlueTheme(LIBRARY.url).then((result) => {
+               await createGlueTheme(toast, LIBRARY.url).then((result) => {
                     logDebugMessage("Creating glue theme");
                     updateTheme(result);
                     setLoadingTheme(false);
