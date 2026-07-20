@@ -13,9 +13,7 @@ import {
      FormControlLabel,
      FormControlLabelText,
      Heading,
-     HStack,
      Icon,
-     Pressable,
      Select,
      SelectTrigger,
      SelectInput,
@@ -115,7 +113,7 @@ export const SelectPickupLocation = (props) => {
                                                        const code = item.code;
                                                        const id = locationId.concat('_', code);
                                                        if (id === location) {
-                                                            return <SelectInput value={item.name} color={textColor} />;
+                                                            return <SelectInput py={0} value={item.name} color={textColor} />;
                                                        }
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />

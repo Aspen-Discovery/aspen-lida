@@ -171,7 +171,7 @@ const AddToList = (props) => {
                                                                       setListId(itemValue);
                                                                  }}>
                                                                  <SelectTrigger>
-                                                                      <SelectInput color={textColor} placeholder="Select list" />
+                                                                      <SelectInput py={0} color={textColor} placeholder="Select list" />
                                                                       <SelectIcon mr="$3">
                                                                            <Icon color={textColor} as={ChevronDownIcon} />
                                                                       </SelectIcon>
@@ -299,7 +299,7 @@ const AddToList = (props) => {
                                                             </FormControlLabel>
                                                             <Select variant="outline" size="md" selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} mt="$1" mb="$2" onValueChange={(itemValue) => setAddToGroup(itemValue)}>
                                                                  <SelectTrigger>
-                                                                      {addToGroup !== '' ? <SelectInput color={textColor} value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} color={textColor} />}
+                                                                      {addToGroup !== '' ? <SelectInput py={0} color={textColor} value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} color={textColor} />}
                                                                       <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                                                  </SelectTrigger>
                                                                  <SelectPortal>
@@ -334,7 +334,7 @@ const AddToList = (props) => {
                                                                            </FormControlLabel>
                                                                            <Select variant="outline" size="md" name="should_nest_list_group" selectedValue={nestedGroup} accessibilityLabel={getTermFromDictionary(language, 'should_nest_list_group')} mt="$1" mb="$2" onValueChange={(itemValue) => setNestedGroup(itemValue)}>
                                                                                 <SelectTrigger>
-                                                                                     {nestedGroup !== 'no' && nestedGroup !== '' ? <SelectInput color={textColor} value={nestedGroup} /> : <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />}
+                                                                                     {nestedGroup !== 'no' && nestedGroup !== '' ? <SelectInput py={0} color={textColor} value={nestedGroup} /> : <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />}
                                                                                      <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                                                                 </SelectTrigger>
                                                                                 <SelectPortal>
@@ -372,11 +372,11 @@ const AddToList = (props) => {
                                                                            {existingGroupId && existingGroupId !== -1 ? (
                                                                                 _.map(Object.values(groups), function (group) {
                                                                                      if (group.id === existingGroupId) {
-                                                                                          return <SelectInput placeholder={group.title} value={group.id} color={textColor} />;
+                                                                                          return <SelectInput py={0} placeholder={group.title} value={group.id} color={textColor} />;
                                                                                      }
                                                                                 })
                                                                            ) : (
-                                                                                <SelectInput value={groups[0].id} color={textColor} />
+                                                                                <SelectInput py={0} value={groups[0].id} color={textColor} />
                                                                            )}
                                                                            <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                                                       </SelectTrigger>

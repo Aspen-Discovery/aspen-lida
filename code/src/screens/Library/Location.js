@@ -4,11 +4,10 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
-import { useColorModeValue } from '../../themes/theme';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -26,15 +25,14 @@ export const Location = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { locations } = React.useContext(LibraryBranchContext);
-     const [openToday, setOpenToday] = React.useState(false);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor, theme } = React.useContext(ThemeContext);
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -102,55 +100,70 @@ export const Location = () => {
 
      return (
           <ScrollView>
-               {location.locationImage ? (
-                    <>
-                         <LinearGradient height={200} width="100%" locations={[0.45, 1]} colors={['transparent', bgColor]} zIndex={0} position="absolute" left={0} top={0} />
-                         <Image
-                              alt={location.displayName}
-                              source={location.locationImage}
-                              style={{
-                                   width: '100%',
-                                   height: 200,
-                                   borderRadius: "$sm",
-                                   zIndex: -1,
-                                   position: 'absolute',
-                                   left: 0,
-                                   top: 0,
-                              }}
-                              placeholder={blurhash}
-                              transition={1000}
-                              contentFit="cover"
-                         />
-                    </>
-               ) : null}
-               <Box safeArea={5} mt={location.locationImage ? 40 : 0}>
-                    {showSystemMessage()}
-                    {library.displayName !== location.displayName ? <Heading mb={2} color={textColor}>{location.displayName}</Heading> : <Heading mb={1} color={textColor}>{library.displayName}</Heading>}
-                    {location.address ? <Text color={textColor}>{location.address}</Text> : null}
-                    {location.phone ? (
-                         <Text color={textColor}>
-                              {getTermFromDictionary(language, 'phone')}: {location.phone}
-                         </Text>
-                    ) : null}
-                    {hasHours ? (
-                         <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
-                              <BadgeText color={textColor}>
-                                   {hoursLabel}
-                              </BadgeText>
-                         </Badge>
-                    ) : null}
-                    <DisplayMap data={location} />
-                    <ContactButtons data={location} />
-                    {hasHours ? <Hours data={location} /> : null}
-                    <AdditionalInformation data={location} />
-                    {_.size(locations) > 1 ? (
-                         <>
-                              <Divider mt={5} mb={2} />
-                              <Button variant="ghost" size="sm" onPress={selectLocations}>
-                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
-                              </Button>
-                         </>
-                    ) : null}
+               <Box>
+                    <VStack space="md">
+                         {location.locationImage ? (
+                              <>
+                                   <Image
+                                        alt={location.displayName}
+                                        source={location.locationImage}
+                                        style={{
+                                             width: '100%',
+                                             height: 200,
+                                             borderRadius: "$sm",
+                                             zIndex: -1,
+                                             position: 'absolute',
+                                             left: 0,
+                                             top: 0,
+                                        }}
+                                        placeholder={blurhash}
+                                        transition={1000}
+                                        contentFit="cover"
+                                   />
+                                   <Box
+                                        h={200}
+                                        w="100%"
+                                        position="absolute"
+                                        left={0}
+                                        top={0}
+                                        zIndex={100}
+                                        bgColor="$backgroundLight50"
+                                        opacity={.4}
+                                   />
+                              </>
+                         ) : null}
+                         <Box safeArea={5} mx="$4" zIndex={200}>
+                              {showSystemMessage()}
+                              {library.displayName !== location.displayName ? <Heading mb={2} color={textColor}>{location.displayName}</Heading> : <Heading mb={1} color={textColor}>{library.displayName}</Heading>}
+                              {location.address ? <Text color={textColor}>{location.address}</Text> : null}
+                              {location.phone ? (
+                                   <Text color={textColor}>
+                                        {getTermFromDictionary(language, 'phone')}: {location.phone}
+                                   </Text>
+                              ) : null}
+                              {hasHours ? (
+                                   <Badge colorScheme={isClosedToday ? 'error' : 'success'} alignSelf="flex-start">
+                                        <BadgeText color={textColor}>
+                                             {hoursLabel}
+                                        </BadgeText>
+                                   </Badge>
+                              ) : null}
+                         </Box>
+                         <DisplayMap data={location} />
+                         <Box safeArea={5} mx={4} >
+                              <ContactButtons data={location} />
+                              {hasHours ? <Hours data={location} /> : null}
+                              <AdditionalInformation data={location} />
+                              {_.size(locations) > 1 ? (
+                                   <>
+                                        <Divider mt={5} mb={2} />
+                                        <Button variant="ghost" size="sm" onPress={selectLocations} bgColor={theme.tokens.colors.primary['500']}>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
+                                        </Button>
+                                   </>
+                              ) : null}
+                         </Box>
+                    </VStack>
                </Box>
           </ScrollView>
      );

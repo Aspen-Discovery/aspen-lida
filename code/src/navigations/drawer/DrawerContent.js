@@ -40,7 +40,7 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
 import { UseColorMode } from '../../themes/theme';
-import { getTermFromDictionary, getTranslationsWithValues, LanguageSwitcher } from '../../translations/TranslationService';
+import { getTermFromDictionary, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus } from '../../util/api/system';
 import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, fetchNotificationHistory, getLinkedAccounts } from '../../util/api/user';
@@ -729,20 +729,6 @@ const Checkouts = ({ isUserLoadedSuccessfully }) => {
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
-     const [checkoutSummary, setCheckoutSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('checkouts_overdue_summary', user.numOverdue ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setCheckoutSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
-
      return (
           <Pressable
                px="$2"
@@ -769,7 +755,7 @@ const Checkouts = ({ isUserLoadedSuccessfully }) => {
                          </HStack>
                          {isUserLoadedSuccessfully && user.numOverdue > 0 ? (
                               <Badge action="error" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{checkoutSummary}</BadgeText>
+                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'checkouts_overdue_summary').replace("%1%", user.numOverdue)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -785,18 +771,6 @@ const Holds = ({ isUserLoadedSuccessfully }) => {
      const { language } = React.useContext(LanguageContext);
 
      const [holdSummary, setHoldSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_holds_ready_for_pickup', user.numHoldsAvailable ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setHoldSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
 
      return (
           <Pressable
@@ -824,7 +798,7 @@ const Holds = ({ isUserLoadedSuccessfully }) => {
                          </HStack>
                          {isUserLoadedSuccessfully && user.numHoldsAvailable > 0 ? (
                               <Badge action="success" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{holdSummary}</BadgeText>
+                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_holds_ready_for_pickup', false).replace('%1%', user.numHoldsAvailable)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -875,20 +849,6 @@ const SavedSearches = ({ isUserLoadedSuccessfully }) => {
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
-     const [savedSearchSummary, setSavedSearchSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_saved_searches_with_updates', user.numSavedSearchesNew ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setSavedSearchSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
-
      return (
           <Pressable
                px="$2"
@@ -914,7 +874,7 @@ const SavedSearches = ({ isUserLoadedSuccessfully }) => {
                          {isUserLoadedSuccessfully ?
                               (user.numSavedSearchesNew > 0 ? (
                                    <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                        <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
+                                        <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_searches_with_updates', user.numSavedSearchesNew)}</BadgeText>
                                    </Badge>
                               ) : null)
                          :
@@ -1130,20 +1090,6 @@ const Events = ({ isUserLoadedSuccessfully }) => {
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
-     const [savedEventsSummary, setSavedEventsSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_saved_events_upcoming', user.numSavedEventsUpcoming ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%1%')) {
-                         setSavedEventsSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
-
      if (library.hasEventSettings) {
           return (
                <Pressable
@@ -1165,7 +1111,7 @@ const Events = ({ isUserLoadedSuccessfully }) => {
                               { isUserLoadedSuccessfully ?
                                    (user.numSavedEventsUpcoming > 0 ? (
                                         <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                             <BadgeText fontSize="$xs">{savedEventsSummary}</BadgeText>
+                                             <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_events_upcoming').replace('%1%', user.numSavedEventsUpcoming)}</BadgeText>
                                         </Badge>
                                    ) : null)
                               :

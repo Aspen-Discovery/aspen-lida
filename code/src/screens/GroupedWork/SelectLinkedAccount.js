@@ -99,7 +99,7 @@ const SelectLinkedAccount = (props) => {
                                              selectedValue={location}
                                              onValueChange={(itemValue) => setLocation(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
-                                                  <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
                                                   <Icon as={ChevronDownIcon} mr="$3" />
                                              </SelectTrigger>
                                              <SelectPortal>
@@ -126,7 +126,7 @@ const SelectLinkedAccount = (props) => {
                                         selectedValue={activeAccount}
                                         onValueChange={(itemValue) => setActiveAccount(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                             <SelectInput py={0} placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
                                              <Icon as={ChevronDownIcon} mr="$3" />
                                         </SelectTrigger>
                                         <SelectPortal>

@@ -127,6 +127,7 @@ export const StartCheckOutSession = () => {
                                         onValueChange={(itemValue) => setActiveAccount(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
                                              <SelectInput
+                                                  py={0}
                                                   value={
                                                        // Find the displayName of the selected account or use placeholder
                                                        (() => {

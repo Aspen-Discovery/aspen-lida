@@ -443,7 +443,7 @@ export const MyCheckouts = () => {
                                         accessibilityLabel={getTermFromDictionary(language, 'filter_by_source_label')}
                                         onValueChange={(itemValue) => toggleCheckoutSource(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput pt="$2" color={textColor} value={checkoutSourceSelectLabel()} />
+                                             <SelectInput py={0} color={textColor} value={checkoutSourceSelectLabel()} />
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>
@@ -480,7 +480,7 @@ export const MyCheckouts = () => {
                                         accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                         onValueChange={(itemValue) => toggleSort(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput pt="$2" color={textColor} value={checkoutSortLabel()} />
+                                             <SelectInput py={0} color={textColor} value={checkoutSortLabel()} />
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>

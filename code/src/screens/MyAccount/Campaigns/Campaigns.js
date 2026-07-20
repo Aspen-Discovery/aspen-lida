@@ -594,6 +594,7 @@ export const MyCampaigns = () => {
 				>
 					<SelectTrigger variant="outline" size="md" w="$64">
 						<SelectInput
+                            py={0}
 							placeholder="Select Filter"
 							value={getFilterLabel(filterBy)}
 						/>

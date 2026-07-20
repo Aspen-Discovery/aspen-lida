@@ -321,7 +321,7 @@ export const MyHolds = () => {
                                                   accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                                   onValueChange={(itemValue) => togglePendingSort(itemValue)}>
                                                   <SelectTrigger variant="outline" size="sm">
-                                                       <SelectInput fontSize="$sm" color={textColor} value={pendingSortLabel()}/>
+                                                       <SelectInput py={0} color={textColor} value={pendingSortLabel()} />
                                                        <SelectIcon mr="$0">
                                                             <Icon color={textColor} as={ChevronDownIcon} />
                                                        </SelectIcon>
@@ -371,7 +371,7 @@ export const MyHolds = () => {
                                              accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                              onValueChange={(itemValue) => togglePendingSort(itemValue)}>
                                              <SelectTrigger variant="outline" size="sm">
-                                                  <SelectInput pt="$2" fontSize="$sm" color={textColor} value={pendingSortLabel()} />
+                                                  <SelectInput  py={0}color={textColor} value={pendingSortLabel()} />
                                                   <SelectIcon mr="$3">
                                                        <Icon color={textColor} as={ChevronDownIcon} />
                                                   </SelectIcon>
@@ -465,7 +465,7 @@ export const MyHolds = () => {
                                              accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                              onValueChange={(itemValue) => toggleReadySort(itemValue)}>
                                              <SelectTrigger variant="outline" size="sm">
-                                                  <SelectInput pt="$2" fontSize="$sm" color={textColor} value={readySortLabel()} />
+                                                  <SelectInput py={0} color={textColor} value={readySortLabel()} />
                                                   <SelectIcon mr="$3">
                                                        <Icon color={textColor} as={ChevronDownIcon} />
                                                   </SelectIcon>
@@ -532,7 +532,7 @@ export const MyHolds = () => {
                               <FormControl w={245}>
                                    <Select name="holdSource" selectedValue={holdSource} defaultValue={holdSource} initialLabel="Test" accessibilityLabel="Filter By Source" onValueChange={(itemValue) => toggleHoldSource(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput pt="$2" fontSize="$sm" color={textColor} value={holdSourceLabel()} />
+                                             <SelectInput py={0} color={textColor} value={holdSourceLabel()}/>
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>

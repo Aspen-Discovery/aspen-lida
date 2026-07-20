@@ -216,7 +216,7 @@ export const Variations = (props) => {
                                              {holdSelectItemResponse?.items ? (
                                                   <Select name="itemForHold" minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} mt="$1" mb="$2" onValueChange={(itemValue) => setSelectedItem(itemValue)}>
                                                        <SelectTrigger>
-                                                            <SelectInput placeholder="Select option" color={textColor} />
+                                                            <SelectInput py={0} placeholder="Select option" color={textColor} />
                                                             <SelectIcon mr="$3">
                                                                  <Icon as={ChevronDownIcon} color={textColor} />
                                                             </SelectIcon>

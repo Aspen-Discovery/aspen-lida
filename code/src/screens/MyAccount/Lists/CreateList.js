@@ -160,7 +160,7 @@ const CreateList = (props) => {
                                    </FormControlLabel>
                                    <Select name="should_add_to_list_group" selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} onValueChange={(itemValue) => setAddToGroup(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             {addToGroup !== '' ? <SelectInput color={textColor} value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} color={textColor} />}
+                                             {addToGroup !== '' ? <SelectInput py={0} color={textColor} value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} color={textColor} />}
                                              <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                         </SelectTrigger>
                                         <SelectPortal>
@@ -198,11 +198,11 @@ const CreateList = (props) => {
                                                             {nestedGroup !== 'no' && nestedGroup !== '' ? (
                                                                  _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                                       if (group.id === nestedGroup) {
-                                                                           return <SelectInput value={group.title} color={textColor} />;
+                                                                           return <SelectInput py={0} value={group.title} color={textColor} />;
                                                                       }
                                                                  })
                                                             ) : (
-                                                                 <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
+                                                                 <SelectInput py={0} value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
                                                             )}
                                                             <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                                        </SelectTrigger>
@@ -242,11 +242,11 @@ const CreateList = (props) => {
                                                   {existingGroupId && existingGroupId !== -1 ? (
                                                        _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                             if (group.id === existingGroupId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
                                                             }
                                                        })
                                                   ) : (
-                                                       <SelectInput value={listGroups.groups[0].id} color={textColor} />
+                                                       <SelectInput py={0} value={listGroups.groups[0].id} color={textColor} />
                                                   )}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
