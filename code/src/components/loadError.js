@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription, VStack } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 
 // custom components and helper files

@@ -328,13 +328,13 @@ export const DrawerContent = (props) => {
                          updateLibraryCards(linkedAccounts.cards);
                     }
                } else {
-                    logDebugMessage("Error fetching linked accounts");
+                    logDebugMessage("Error fetching linked accounts (response was not ok)");
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
           },
           onError: (error) => {
-               logDebugMessage("Error fetching linked accounts");
+               logErrorMessage("Error fetching linked accounts");
                logErrorMessage(error);
           }
      });

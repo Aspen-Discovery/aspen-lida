@@ -44,21 +44,25 @@ export const MyLibraryCard = () => {
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
-     useQuery(['linked_accounts', user, library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
+     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
           initialData: accounts,
           onSuccess: (data) => {
                if(data.ok) {
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                    updateLinkedAccounts(linkedAccounts.accounts);
-                    updateLibraryCards(linkedAccounts.cards);
+                    if (accounts !== linkedAccounts.accounts) {
+                         updateLinkedAccounts(linkedAccounts.accounts);
+                    }
+                    if (cards !== linkedAccounts.cards) {
+                         updateLibraryCards(linkedAccounts.cards);
+                    }
                } else {
-                    logDebugMessage("Error fetching linked accounts");
+                    logDebugMessage("Error fetching linked accounts in MyLibraryCard (response was not ok)");
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
           },
           onError: (error) => {
-               logDebugMessage("Error fetching linked accounts");
+               logErrorMessage("Error fetching linked accounts");
                logErrorMessage(error);
           },
           placeholderData: [],

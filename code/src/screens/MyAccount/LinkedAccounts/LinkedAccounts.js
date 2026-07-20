@@ -59,39 +59,39 @@ export const MyLinkedAccounts = () => {
           });
      }, [navigation]);
 
-     const { data: linkedData, isSuccess: isLinkedSuccess } = useQuery(
-          ['linked_accounts', user.id, library.baseUrl, language],
-          () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language),
-          {
-               placeholderData: [],
-               enabled: !!library.baseUrl && !!user.id,
-          }
-     );
-
-     useEffect(() => {
-          if (isLinkedSuccess && linkedData) {
-               if (linkedData.ok) {
-                    const formatted = formatLinkedAccounts(
-                         user,
-                         cards ?? [],
-                         library.barcodeStyle,
-                         linkedData.data.result.linkedAccounts
-                    );
-                    updateLinkedAccounts(formatted.accounts);
-                    updateLibraryCards(formatted.cards);
-               } else {
-                    logDebugMessage("Error fetching linked accounts");
-                    logDebugMessage(linkedData);
-                    getErrorMessage(linkedData.code ?? 0, linkedData.problem);
-               }
-          }
-     }, [linkedData, isLinkedSuccess]);
+     //These are not needed because they are loaded in Drawer Content
+     // const { data: linkedData, isSuccess: isLinkedSuccess } = useQuery(
+     //      ['linked_accounts', user.id, library.baseUrl, language],
+     //      () => getLinkedAccounts(library.baseUrl, language),
+     //      {
+     //           placeholderData: [],
+     //           enabled: !!library.baseUrl && !!user.id,
+     //      }
+     // );
+     //
+     // useEffect(() => {
+     //      if (isLinkedSuccess && linkedData) {
+     //           if (linkedData.ok) {
+     //                const formatted = formatLinkedAccounts(
+     //                     user,
+     //                     cards ?? [],
+     //                     library.barcodeStyle,
+     //                     linkedData.data.result.linkedAccounts
+     //                );
+     //                updateLinkedAccounts(formatted.accounts);
+     //                updateLibraryCards(formatted.cards);
+     //           } else {
+     //                logDebugMessage("Error fetching linked accounts on LinkedAccounts page, response was not ok");
+     //                logDebugMessage(linkedData);
+     //                getErrorMessage(linkedData.code ?? 0, linkedData.problem);
+     //           }
+     //      }
+     // }, [linkedData, isLinkedSuccess]);
 
      const { data: viewerData, isSuccess: isViewerSuccess } = useQuery(
           ['viewer_accounts', user.id, library.baseUrl, language],
           () => getViewerAccounts(library.baseUrl, language),
           {
-               placeholderData: [],
                enabled: !!library.baseUrl && !!user.id,
           }
      );
@@ -192,7 +192,7 @@ export const MyLinkedAccounts = () => {
                          <FlatList
                               data={viewers}
                               renderItem={({ item }) => <Account account={item} type="viewer" />}
-                              ListEmptyComponent={isViewerSuccess ? <LoadingSpinner /> : <Empty />}
+                              ListEmptyComponent={isViewerSuccess ? <Empty /> : <LoadingSpinner />}
                               keyExtractor={(item, index) => index.toString()}
                          />
                     </Box>
