@@ -2,13 +2,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import * as Device from 'expo-device';
 import _ from 'lodash';
-import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
+import {Box, FlatList, HStack, Switch, Text, useToast} from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories, registerForPushNotificationsAsync } from '../../../components/Notifications';
-import { deletePushToken, getNotificationPreference, setNotificationPreference } from '../../../util/api/user';
+import { deletePushToken, getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
 
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
 import { LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
@@ -26,9 +26,8 @@ export const Settings_NotificationOptions = () => {
      const [notifySavedSearch, setNotifySavedSearch] = React.useState(false);
      const [notifyCustom, setNotifyCustom] = React.useState(false);
      const [notifyAccount, setNotifyAccount] = React.useState(false);
-     const { user, updateUser, notificationSettings, updateNotificationSettings, expoToken, aspenToken, userDebugMessage, updateUserDebugMessage} = React.useContext(UserContext);
+     const { updateUser, notificationSettings, expoToken, updateUserDebugMessage} = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
-     const [toggled, setToggle] = React.useState(aspenToken);
      const toggleSwitch = () => setToggle((previousState) => !previousState);
      const { language } = React.useContext(LanguageContext);
 
@@ -36,14 +35,11 @@ export const Settings_NotificationOptions = () => {
           React.useCallback(() => {
                const update = async () => {
                     setLoading(true);
-                    logDebugMessage("Creating Channels and Categories as part of Notification Options");
+                    logDebugMessage("Creating Channels and Categories as part of Notification Options " + expoToken);
 
                     await createChannelsAndCategories();
-                    if (expoToken && aspenToken) {
-                         setToggle(true);
+                    if (expoToken) {
                          await getPreferences();
-                    } else {
-                         setToggle(false);
                     }
                     setLoading(false);
                };
@@ -51,94 +47,35 @@ export const Settings_NotificationOptions = () => {
           }, [expoToken, aspenToken])
      );
 
-     const updateAspenToken = async () => {
-          setLoading(true);
-          if (!toggled) {
-               logWarnMessage('Toggled is false in updateAspenToken');
-               await registerForPushNotificationsAsync(library.baseUrl).then(async (result) => {
-                    if (!result) {
-                         setToggle(false);
-                         logWarnMessage('unable to update preference');
-                         setLoading(false);
-                         if (Platform.OS === 'android') {
-                              if (Device.osVersion < 13) {
-                                   updateUserDebugMessage("Showing permissions prompt because platform is android prior to version 13");
-                                   setShouldRequestPermissions(true);
-                              }else{
-                                   updateUserDebugMessage("Not showing permissions prompt because platform is android");
-                                   setShouldRequestPermissions(false);
-                              }
-                         }else if (Platform.OS === 'ios') {
-                              updateUserDebugMessage("Showing permissions prompt because platform is ios");
-                              setShouldRequestPermissions(true);
-                         } else {
-                              updateUserDebugMessage("Not showing permissions prompt because platform is not android or ios");
-                         }
-                         return false;
-                    } else {
-                         updateUserDebugMessage("Got a result from registerForPushNotificationsAsync, showing preferences");
-                         try {
-                              await refreshProfile(library.baseUrl).then(async (result) => {
-                                   updateUser(result);
-                                   await getPreferences();
-                              });
-                         } catch (error) {
-                              updateUserDebugMessage("Error refreshing profile");
-                              updateUserDebugMessage(error);
-                         }
-                         setLoading(false);
-                         return true;
-                    }
-               });
-          } else {
-               logWarnMessage('Toggled is true in updateAspenToken');
-               await deletePushToken(library.baseUrl, expoToken, true);
-               await refreshProfile(library.baseUrl).then(async (result) => {
-                    updateUser(result);
-                    await getPreferences();
-               });
-               setToggle(false);
-               setLoading(false);
-               return true;
-          }
-          setLoading(false);
-          return false;
-     };
-
      const getPreferences = async () => {
           updateUserDebugMessage("Getting Preferences");
           setLoading(true);
           if (_.isObject(notificationSettings)) {
                updateUserDebugMessage("Notification Settings are an object");
-               const currentPreferences = Object.values(notificationSettings);
-               updateUserDebugMessage("There are " + currentPreferences.length + " preferences");
-               for await (const pref of currentPreferences) {
-                    logDebugMessage(pref.option);
-                    const i = _.findIndex(currentPreferences, ['option', pref.option]);
-                    const deviceSettings = _.filter(notificationSettings, { option: pref.option });
-                    const result = await getNotificationPreference(toast, library.baseUrl, expoToken, pref.option);
-                    if (result && i !== -1) {
-                         let prevSettings = notificationSettings[i];
-                         logDebugMessage(prevSettings.allow);
-                         if (result.success) {
-                              if (pref.option === 'notifySavedSearch') {
-                                   setNotifySavedSearch(result.allow);
-                                   _.set(prevSettings, prevSettings.allow, result.allow);
-                                   //setPreferences(newSettings);
-                              }
-                              if (pref.option === 'notifyCustom') {
-                                   _.set(prevSettings, prevSettings.allow, result.allow);
-                                   //setPreferences(newSettings);
-                                   setNotifyCustom(result.allow);
-                              }
-                              if (pref.option === 'notifyAccount') {
-                                   _.set(prevSettings, prevSettings.allow, result.allow);
-                                   //setPreferences(newSettings);
-                                   setNotifyAccount(result.allow);
-                              }
-                              logDebugMessage(prevSettings.allow);
+               const result = await getNotificationPreferences(toast, library.baseUrl, expoToken);
+               if (result !== false) {
+                    if (result?.success) {
+                         if (pref.option === 'notifySavedSearch') {
+                              setNotifySavedSearch(result.allow);
+                              _.set(prevSettings, prevSettings.allow, result.allow);
+                              //setPreferences(newSettings);
                          }
+                         if (pref.option === 'notifyCustom') {
+                              _.set(prevSettings, prevSettings.allow, result.allow);
+                              //setPreferences(newSettings);
+                              setNotifyCustom(result.allow);
+                         }
+                         if (pref.option === 'notifyAccount') {
+                              _.set(prevSettings, prevSettings.allow, result.allow);
+                              //setPreferences(newSettings);
+                              setNotifyAccount(result.allow);
+                         }
+                         logDebugMessage(prevSettings.allow);
+                    }else{
+                         logDebugMessage("Loading preferences for expoToken failed");
                     }
+               }else{
+                    logDebugMessage("Did not get preferences for expoToken");
                }
           }else{
                updateUserDebugMessage("Notification Settings were not an object");
@@ -172,7 +109,6 @@ export const Settings_NotificationOptions = () => {
                          <Switch
                               onToggle={() => {
                                    toggleSwitch();
-                                   updateAspenToken().then((r) => logDebugMessage(r));
                               }}
                               defaultValue={toggled}
                               isDisabled={allowNotifications}
@@ -195,6 +131,7 @@ const EnableAllNotifications = (data) => {
      const { user, updateUser, notificationSettings, updateNotificationSettings, expoToken } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount, setLoading } = data;
+     const toast = useToast();
 
      let defaultToggleState = notifyCustom && notifyAccount && notifySavedSearch;
      const [toggled, setToggle] = React.useState(defaultToggleState);
@@ -209,19 +146,22 @@ const EnableAllNotifications = (data) => {
                allowAllNotifications = false;
           }
           if (expoToken) {
-               await setNotificationPreference(library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
-               await setNotificationPreference(library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
-               await setNotificationPreference(library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
+               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
+               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
+               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
                setNotifySavedSearch(allowAllNotifications);
                setNotifyCustom(allowAllNotifications);
                setNotifyAccount(allowAllNotifications);
                logDebugMessage("Reloading profile as part of enableAllNotifications");
+               //TODO: Update this to not do a full reload of the profile
                await reloadProfile(library.baseUrl).then((data) => {
                     updateUser(data);
                     updateNotificationSettings(data.notification_preferences, language);
                     setLoading(false);
                });
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          }else{
+               logDebugMessage("No expoToken in enableAllNotifications");
           }
      };
 
@@ -289,6 +229,8 @@ const DisplayPreference = (data) => {
                await reloadProfile(library.baseUrl).then((result) => {
                     updateUser(result);
                });
+          }else{
+               logDebugMessage("No expo token in NotificationOptions->updatePreference");
           }
      };
 

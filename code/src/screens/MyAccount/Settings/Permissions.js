@@ -8,10 +8,6 @@ import { GeolocationPermissionStatus } from './Permission/Geolocation';
 import { NotificationPermissionStatus } from './Permission/Notifications';
 import { ScreenBrightnessPermissionStatus } from './Permission/ScreenBrightness';
 export const PermissionsDashboard = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { catalogStatus, catalogStatusMessage } = React.useContext(LibrarySystemContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-
      return (
           <ScrollView p="$5">
                <CameraPermissionStatus />

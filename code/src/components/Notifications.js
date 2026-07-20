@@ -15,17 +15,7 @@ import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 export async function registerForPushNotificationsAsync(url, updateUserDebugMessage) {
      try {
           updateUserDebugMessage("Registering for push notifications async");
-          // For simulator
-          if (!Device.isDevice) {
-               updateUserDebugMessage("Running on simulator - using development notification setup");
-               const { status } = await Notifications.getPermissionsAsync();
-               if (status === 'granted') {
-                    return 'ExponentPushToken[testToken' + Device.modelName + ']';
-               }
-               return false;
-          }
 
-          // For real devices
           const { status: existingStatus } = await Notifications.getPermissionsAsync();
           let finalStatus = existingStatus;
 
@@ -48,12 +38,20 @@ export async function registerForPushNotificationsAsync(url, updateUserDebugMess
           }
 
           // Get the token
-          const response = await Notifications.getExpoPushTokenAsync({
-               projectId: Constants.expoConfig.extra.eas.projectId,
-          });
+          if (!Device.isDevice) {
+               // For simulator
+               updateUserDebugMessage("Running on simulator - using development notification setup");
+               logDebugMessage("created simulator push token");
+               return 'ExponentPushToken[testToken' + Device.modelName + ']';
+          }else{
+               //Real devices
+               const response = await Notifications.getExpoPushTokenAsync({
+                    projectId: Constants.expoConfig.extra.eas.projectId,
+               });
 
-          logDebugMessage('Got push token:', response.data);
-          return response.data;
+               logDebugMessage('Got push token:' + response.data);
+               return response.data;
+          }
      } catch (error) {
           logErrorMessage("Error in registerForPushNotificationsAsync:", error);
           updateUserDebugMessage("Error in registerForPushNotificationsAsync");

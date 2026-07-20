@@ -4,8 +4,9 @@ import { AppState, Platform, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { createChannelsAndCategories, registerForPushNotificationsAsync } from '../components/Notifications';
-import { deletePushToken, getNotificationPreference, savePushToken, setNotificationPreference } from '../util/api/user';
-import { logSentryMessage } from '../util/logging';
+import { deletePushToken, getNotificationPreferences, savePushToken, setNotificationPreference } from '../util/api/user';
+import {logSentryMessage, logDebugMessage, logWarnMessage} from '../util/logging';
+import {useToast} from "@gluestack-ui/themed";
 
 // Configure default notification behavior
 Notifications.setNotificationHandler({
@@ -16,41 +17,49 @@ Notifications.setNotificationHandler({
     }),
 });
 
-export const useNotificationPermissions = (library, user, updateExpoToken, updateAspenToken, updateUserDebugMessage) => {
-    const [permissionStatus, setPermissionStatus] = React.useState(false);
-    const [isLoading, setLoading] = React.useState(false);
-    const appState = React.useRef(AppState.currentState);
-    const notificationListener = React.useRef();
-    const responseListener = React.useRef();
-    const lastCheckedStatus = React.useRef(false);
+export const useNotificationPermissions = (library, updateExpoToken, updateUserDebugMessage) => {
+     const [permissionStatus, setPermissionStatus] = React.useState(false);
+     const [isLoading, setLoading] = React.useState(false);
+     const appState = React.useRef(AppState.currentState);
+     const lastCheckedStatus = React.useRef(false);
+     const toast = useToast();
 
-    const checkAndUpdatePermissions = async (source, force = false) => {
-        updateUserDebugMessage("Checking and updating permissions from " + source + " force is " + (force ? 'true' : 'false'));
-        try {
-            const { status } = await Notifications.getPermissionsAsync();
-            const isGranted = status === 'granted';
-            updateUserDebugMessage("Got permission async, status is " + status);
+     const pendingPromise = React.useRef(null);
+     const checkAndUpdatePermissions = async (source, force = false) => {
+          if (pendingPromise.current) {
+               return pendingPromise.current;
+          }
+          const runCheck = async () => {
+               updateUserDebugMessage("Checking and updating permissions from " + source + " force is " + (force ? 'true' : 'false'));
+               try {
+                    const { status } = await Notifications.getPermissionsAsync();
+                    const isGranted = status === 'granted';
+                    updateUserDebugMessage("Got permission async, status is " + status);
 
-            // Only update if status has changed or force update is requested
-            if (force || lastCheckedStatus.current !== isGranted) {
-                lastCheckedStatus.current = isGranted;
-                setPermissionStatus(isGranted);
 
-                // Clear tokens if permissions are revoked
-                if (!isGranted) {
-                    updateUserDebugMessage("Clearing tokens because permissions are not granted in checkAndUpdatePermissions");
-                    updateExpoToken(null);
-                    updateAspenToken(false);
-                }else{
-                    await handlePermissionGranted();
-                }
-            }
-            return isGranted;
-        } catch (error) {
-             logSentryMessage('Error checking permissions:', error);
-             return false;
-        }
-    };
+                    // Only update if status has changed or force update is requested
+                    if (force || lastCheckedStatus.current !== isGranted) {
+                         lastCheckedStatus.current = isGranted;
+                         setPermissionStatus(isGranted);
+
+                         // Clear tokens if permissions are revoked
+                         if (!isGranted) {
+                              updateUserDebugMessage("Clearing tokens because permissions are not granted in checkAndUpdatePermissions");
+                              updateExpoToken(null);
+                         }else{
+                              await handlePermissionGranted();
+                         }
+                    }
+                    return isGranted;
+               } catch (error) {
+                  logSentryMessage('Error checking permissions:', error);
+                  return false;
+               }
+          };
+
+          pendingPromise.current = runCheck();
+          return pendingPromise.current;
+     };
 
     React.useEffect(() => {
         const checkPermissions = async () => {
@@ -59,20 +68,10 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
                 // If permissions are not granted, ensure tokens are cleared
                 updateUserDebugMessage("Clearing tokens because permissions are not granted in checkPermissions");
                 updateExpoToken(null);
-                updateAspenToken(false);
             }
         };
 
         checkPermissions();
-
-        // Set up notification listeners
-//        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-//            logDebugMessage('Received notification:', notification);
-//        });
-//
-//        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-//            logDebugMessage('Notification response:', response);
-//        });
 
         const subscription = AppState.addEventListener('change', async (nextAppState) => {
             if (nextAppState === 'active') {
@@ -83,25 +82,21 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
 
         return () => {
             subscription.remove();
-//            if (notificationListener.current) {
-//                notificationListener.current.remove();
-//            }
-//            if (responseListener.current) {
-//                responseListener.current.remove();
-//            }
         };
     }, []);
 
     const handlePermissionGranted = async () => {
         updateUserDebugMessage("Handling Permission Granted Project ID is " + Constants.expoConfig.extra.eas.projectId);
         try {
-           const token = (await Notifications.getExpoPushTokenAsync({
-               projectId: Constants.expoConfig.extra.eas.projectId,
-           })).data;
+           const token = (!Device.isDevice
+                  ? { data: 'ExponentPushToken[testToken' + Device.modelName + ']' }
+                  : await Notifications.getExpoPushTokenAsync({
+                       projectId: Constants.expoConfig.extra.eas.projectId,
+                  })).data;
 
+           logDebugMessage("Fetched expo push token " + token);
            updateUserDebugMessage("Fetched expo push token " + token.slice(-5));
            if (token) {
-               updateAspenToken(true);
                updateUserDebugMessage("Saving Expo Token " + token.slice(-5));
                updateExpoToken(token);
            }else{
@@ -114,34 +109,34 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
 
     };
 
-    const addNotificationPermissions = async () => {
-        updateUserDebugMessage("Adding Notification Permissions");
-        try {
-            setLoading(true);
-            logDebugMessage("Creating Channels and Categories");
-            await createChannelsAndCategories();
-            updateUserDebugMessage("Calling Register for push notifications async");
-            const result = await registerForPushNotificationsAsync(library.baseUrl, updateUserDebugMessage);
+     const addNotificationPermissions = async () => {
+          updateUserDebugMessage("Adding Notification Permissions");
 
-            if (result) {
-                updateUserDebugMessage("registerForPushNotificationsAsync succeeded, saving push token");
-                await savePushToken(library.baseUrl, result, updateUserDebugMessage);
-                updateUserDebugMessage("finished saving push token");
-                updateExpoToken(result);
-                updateAspenToken(true);
-                await checkAndUpdatePermissions('Add Notification Permissions'); // Update permission status after successful registration
-                return true;
-            }else{
-                updateUserDebugMessage("registerForPushNotificationsAsync failed");
-            }
-            return false;
-        } catch (error) {
-             logSentryMessage('Error adding notification permissions:', error);
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
+          try {
+               setLoading(true);
+               logDebugMessage("Creating Channels and Categories");
+               await createChannelsAndCategories();
+               updateUserDebugMessage("Calling Register for push notifications async");
+               const result = await registerForPushNotificationsAsync(library.baseUrl, updateUserDebugMessage);
+
+               if (result) {
+                    updateUserDebugMessage("registerForPushNotificationsAsync succeeded, saving push token");
+                    await savePushToken(library.baseUrl, result, updateUserDebugMessage);
+                    updateUserDebugMessage("finished saving push token");
+                    updateExpoToken(result);
+                    await checkAndUpdatePermissions('Add Notification Permissions'); // Update permission status after successful registration
+                    return true;
+               }else{
+                    updateUserDebugMessage("registerForPushNotificationsAsync failed");
+               }
+               return false;
+          } catch (error) {
+               logSentryMessage('Error adding notification permissions:', error);
+               return false;
+          } finally {
+               setLoading(false);
+          }
+     };
 
     const revokeNotificationPermissions = async () => {
         updateUserDebugMessage("Revoking Notification Permissions");
@@ -160,14 +155,13 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
                 await deletePushToken(library.baseUrl, tokenData.data);
 
                 // Clear preferences
-                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifySavedSearch', false, false);
-                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifyCustom', false, false);
-                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifyAccount', false, false);
+                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifySavedSearch', false, false);
+                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifyCustom', false, false);
+                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifyAccount', false, false);
             }
 
             // Update local state
             updateExpoToken(null);
-            updateAspenToken(false);
             lastCheckedStatus.current = false;
             setPermissionStatus(false);
 
@@ -233,42 +227,54 @@ export const useNotificationPermissions = (library, user, updateExpoToken, updat
 };
 
 export const useNotificationPreferences = (toast, library, expoToken) => {
-    const [preferences, setPreferences] = React.useState({
-        notifySavedSearch: false,
-        notifyCustom: false,
-        notifyAccount: false,
-    });
+     const [preferences, setPreferences] = React.useState({
+          notifySavedSearch: false,
+          notifyCustom: false,
+          notifyAccount: false,
+     });
 
-    const updatePreference = async (option, value) => {
-        try {
-            await setNotificationPreference(library.baseUrl, expoToken, option, value);
-            setPreferences(prev => ({ ...prev, [option]: value }));
-        } catch (error) {
-             logSentryMessage(`Error updating ${option} preference:`, error);
-        }
-    };
+     const updatePreference = async (option, value) => {
+          try {
+               let optionChanged = false;
+               if (option === 'notifySavedSearch') {
+                    optionChanged = value !==preferences.notifySavedSearch;
+               }else if (option === 'notifyCustom') {
+                    optionChanged = value !==preferences.notifyCustom;
+               }else{
+                    optionChanged = value !==preferences.notifyAccount
+               }
+               if (optionChanged) {
+                    logDebugMessage("Changing notification preference for " + option);
+                    await setNotificationPreference(toast, library.baseUrl, expoToken, option, value);
+                    setPreferences(prev => ({...prev, [option]: value}));
+               }
+          } catch (error) {
+               logSentryMessage(`Error updating ${option} preference:`, error);
+          }
+     };
 
-    const loadPreferences = async () => {
-        try {
-            const [savedSearch, custom, account] = await Promise.all([
-                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifySavedSearch'),
-                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifyCustom'),
-                getNotificationPreference(toast, library.baseUrl, expoToken, 'notifyAccount'),
-            ]);
+     const loadPreferences = async () => {
+          try {
+               logDebugMessage("Loading preferences for expoToken " + expoToken);
+               const preferences = await getNotificationPreferences(toast, library.baseUrl, expoToken);
+               if (preferences !== false) {
+                    logDebugMessage(preferences);
+                    setPreferences({
+                         notifySavedSearch: preferences.savedPreferences?.notifySavedSearch ?? false,
+                         notifyCustom: preferences.savedPreferences?.notifyCustom ?? false,
+                         notifyAccount: preferences.savedPreferences?.notifyAccount ?? false,
+                    });
+               }else{
+                    logWarnMessage("Did not get preferences for the expoToken");
+               }
+          } catch (error) {
+               logSentryMessage('Error loading notification preferences:', error);
+          }
+     };
 
-            setPreferences({
-                notifySavedSearch: savedSearch?.allow ?? false,
-                notifyCustom: custom?.allow ?? false,
-                notifyAccount: account?.allow ?? false,
-            });
-        } catch (error) {
-             logSentryMessage('Error loading notification preferences:', error);
-        }
-    };
-
-    return {
-        preferences,
-        updatePreference,
-        loadPreferences,
-    };
+     return {
+          preferences,
+          updatePreference,
+          loadPreferences,
+     };
 };
