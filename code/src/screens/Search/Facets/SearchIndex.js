@@ -8,6 +8,7 @@ import { ScrollView } from 'react-native';
 import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { SearchGlobal } from '../../../util/globals';
+import {logDebugMessage} from "../../../util/logging";
 
 // custom components and helper files
 
@@ -15,7 +16,7 @@ export const SearchIndexScreen = () => {
      const {theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentIndex, indexes, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
 
-     console.log('currentIndex: ' + currentIndex);
+     logDebugMessage('currentIndex: ' + currentIndex);
 
      const search = async () => {
           navigateStack('BrowseTab', 'SearchResults', {

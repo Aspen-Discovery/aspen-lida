@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Badge, BadgeText, Box, HStack, Text } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, HStack, Text, ActionsheetItemText } from '@gluestack-ui/themed';
 import React from 'react';
 import _ from 'lodash';
 

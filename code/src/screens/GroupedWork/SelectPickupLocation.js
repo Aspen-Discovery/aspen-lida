@@ -89,8 +89,6 @@ const SelectPickupLocation = (props) => {
           }
      }
 
-     //console.log(pickupLocation);
-
      const [location, setLocation] = React.useState(pickupLocation);
 
      const [activeAccount, setActiveAccount] = React.useState(user.id);

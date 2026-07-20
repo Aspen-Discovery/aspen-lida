@@ -238,9 +238,7 @@ export const CheckOut = (props) => {
                               setLoading(true);
                               await completeAction(toast, record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
                                    setResponse(eContentResponse);
-                                   if (__DEV__) {
-                                        console.log("Completed Action - Checkout");
-                                   }
+                                   logDebugMessage("Completed Action - Checkout");
                                    if (eContentResponse.success) {
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
                                         queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });

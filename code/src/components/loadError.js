@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription, VStack } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 
 // custom components and helper files
@@ -80,8 +80,10 @@ export function popToast(toast, title, description, status) {
                const uniqueToastId = 'toast-' + id;
                return (
                     <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                         <ToastTitle>{title}</ToastTitle>
-                         {description && <ToastDescription>{description}</ToastDescription>}
+                         <VStack space="xs">
+                              <ToastTitle>{title}</ToastTitle>
+                              {description && <ToastDescription>{description}</ToastDescription>}
+                         </VStack>
                     </Toast>
                );
           },
@@ -120,8 +122,10 @@ export function popAlert(toast, title, description, status) {
                const uniqueToastId = 'alert-' + id;
                return (
                     <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                         <ToastTitle>{title}</ToastTitle>
-                         {description && <ToastDescription>{description}</ToastDescription>}
+                         <VStack space="xs">
+                              <ToastTitle>{title}</ToastTitle>
+                              {description && <ToastDescription>{description}</ToastDescription>}
+                         </VStack>
                     </Toast>
                );
           },

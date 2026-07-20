@@ -135,7 +135,6 @@ export const MyCheckouts = () => {
      const toggleCheckoutSource = async (value) => {
           setCheckoutSource(value);
           //setLoading(true);
-          //console.log('changing checkouts from ' + originalCheckoutSource + ' to ' + value);
           if (!_.isNull(value)) {
                if (value === 'ils') {
                     navigation.setOptions({ title: checkoutsBy.ils });
@@ -152,15 +151,7 @@ export const MyCheckouts = () => {
                } else {
                     navigation.setOptions({ title: checkoutsBy.all });
                }
-
-               //console.log("Clearing previous checkouts queries for " + originalCheckoutSource);
-               //await queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, originalCheckoutSource] });
-               //console.log("Re-fetching checkout queries for " + value);
-               //await queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, value] });
-               //await queryClient.refetchQueries({ queryKey: ['checkouts', user.id, library.baseUrl, value] });
-
           }
-          //setLoading(false);
      };
 
      useFocusEffect(
@@ -292,6 +283,7 @@ export const MyCheckouts = () => {
 
      const reloadCheckouts = async () => {
           setLoading(true);
+          updateCheckouts([]);
           queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
           queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
           setLoading(false);
@@ -315,7 +307,7 @@ export const MyCheckouts = () => {
           return checkouts.filter(checkout => checkout.source === targetSource);
      }, [checkouts, checkoutSource]);
 
-     if (isFetchingCheckouts || isLoading) {
+     if (isLoading || (_.isEmpty(checkouts) && isFetchingCheckouts)) {
           return loadingSpinner();
      }
 

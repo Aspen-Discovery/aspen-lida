@@ -481,9 +481,9 @@ export async function passUserToDiscovery(toast, url, redirectTo, userId, backgr
                }
                await WebBrowser.openBrowserAsync(accessUrl, browserParams)
                     .then((res) => {
-                         console.log(res);
+                         logDebugMessage(res);
                          if (res.type === 'cancel' || res.type === 'dismiss') {
-                              console.log('User closed or dismissed window.');
+                              logDebugMessage('User closed or dismissed window.');
                               WebBrowser.dismissBrowser();
                               WebBrowser.coolDownAsync();
                          }

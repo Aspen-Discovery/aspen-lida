@@ -9,6 +9,7 @@ import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContex
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
+import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 
 export const SupportScreen = () => {
      const navigation = useNavigation();
@@ -43,7 +44,7 @@ export const SupportScreen = () => {
           if (supported) {
                Linking.openURL(status.url);
           } else {
-               console.log(supported);
+               logDebugMessage("Opening app store is not supported " + supported);
           }
      };
 
@@ -186,7 +187,7 @@ async function checkStoreVersion() {
                };
           }
      } catch (e) {
-          console.log(e);
+          logErrorMessage(e);
      }
 
      return {

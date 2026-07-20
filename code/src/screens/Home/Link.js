@@ -72,7 +72,8 @@ const Link = ({link}) => {
           if (!link?.deepLinkPath) return;
           const segments = link.deepLinkPath.split('/');
 
-          console.log(link);
+          logDebugMessage("Navigating to");
+          logDebugMessage(link);
 
           try {
                // Map deep link paths to actual navigation structure
@@ -120,7 +121,7 @@ const Link = ({link}) => {
 
                               if (searchScreenMap[segments[1]]) {
                                    if(segments[1] === 'browse_category' || segments[1] === 'list' || segments[1] === 'grouped_work') {
-                                        console.log(searchScreenMap[segments[1]]);
+                                        logDebugMessage(searchScreenMap[segments[1]]);
                                         navigation.navigate('BrowseTab', {
                                              screen: searchScreenMap[segments[1]],
                                              params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {},

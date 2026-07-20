@@ -53,7 +53,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { createList } from '../../../util/api/list';
 import { Platform } from 'react-native';
 import _ from 'lodash';
-import {logErrorMessage} from "../../../util/logging";
+import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 
 const CreateList = (props) => {
      const { setLoading } = props;
@@ -236,7 +236,7 @@ const CreateList = (props) => {
                                              onValueChange={(itemValue) => {
                                                   setExistingGroupId(itemValue);
                                                   setNestedGroup(itemValue);
-                                                  console.log(itemValue);
+                                                  logDebugMessage(itemValue);
                                              }}>
                                              <SelectTrigger variant="outline" size="md">
                                                   {existingGroupId && existingGroupId !== -1 ? (

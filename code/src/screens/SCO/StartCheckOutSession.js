@@ -38,6 +38,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import _ from 'lodash';
+import {logDebugMessage} from "../../util/logging";
 
 export const StartCheckOutSession = () => {
      const navigation = useNavigation();
@@ -99,8 +100,8 @@ export const StartCheckOutSession = () => {
      );
      */
 
-     console.log(activeAccount);
-     console.log(user.displayName);
+     logDebugMessage("Active account is " + activeAccount);
+     logDebugMessage("User dispaly name is " + user.displayName);
 
      const activeItem = availableAccounts.find(
           item => activeAccount == item.ils_barcode || item.cat_username
