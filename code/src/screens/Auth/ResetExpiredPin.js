@@ -29,7 +29,7 @@ import {
      FormControlErrorText,
      CloseIcon,
      AlertCircleIcon,
-     Spinner
+     Spinner, useToast
 } from '@gluestack-ui/themed';
 
 import React from 'react';
@@ -72,6 +72,7 @@ export const ResetExpiredPin = (props) => {
      const [pinConfirmed, setPinConfirmed] = React.useState('');
      const [errors, setErrors] = React.useState({});
      const [hasError, setHasError] = React.useState(false);
+     const toast = useToast();
 
      // show:hide data from password fields
      const [showPin, setShowPin] = React.useState(false);
@@ -134,14 +135,14 @@ export const ResetExpiredPin = (props) => {
                               setIsOpen(false);
                               setHasError(false);
                          } else {
-                              popAlert(getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
+                              popAlert(toast, getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
                          }
                     } else {
                          logDebugMessage("Error resetting expired pin");
                          logDebugMessage(result);
                          const error = getErrorMessage(result.code ?? 0, result.problem);
                          setHasError(true);
-                         popAlert(error.title, error.message, 'error');
+                         popAlert(toast, error.title, error.message, 'error');
                     }
                });
           } else {

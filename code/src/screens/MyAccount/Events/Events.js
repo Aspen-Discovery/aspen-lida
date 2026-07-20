@@ -352,9 +352,9 @@ const Item = (data) => {
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                queryClient.invalidateQueries({ queryKey: ['event', event.sourceId, source, language, library.baseUrl] });
                if (result.success || result.success === 'true') {
-                    popAlert(getTermFromDictionary(language, 'removed_successfully'), result.message, 'success');
+                    popAlert(toast, getTermFromDictionary(language, 'removed_successfully'), result.message, 'success');
                } else {
-                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };

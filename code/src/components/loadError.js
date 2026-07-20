@@ -1,12 +1,11 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Toast, ToastTitle, ToastDescription } from '@/components/ui/toast';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { logDebugMessage } from '../util/logging.js';
 
 /**
  * Catch an error and display it to the user
@@ -19,7 +18,7 @@ import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from
  **/
 export const LoadError = (props) => {
      const { error, reloadAction } = props;
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
 
      return (
           <Center flex={1}>
@@ -73,6 +72,7 @@ export function loadError(error, reloadAction = '') {
  **/
 export function popToast(toast, title, description, status) {
      logDebugMessage("Popping a toast");
+     const actionType = status?.toLowerCase();
      toast.show({
           placement: 'bottom',
           duration: 3000,
@@ -111,6 +111,7 @@ export function popToast(toast, title, description, status) {
  **/
 export function popAlert(toast, title, description, status) {
      logDebugMessage("Popping an alert");
+     const actionType = status?.toLowerCase();
      toast.show({
           placement: 'bottom',
           // Medium priority alerts typically persist longer or require closing

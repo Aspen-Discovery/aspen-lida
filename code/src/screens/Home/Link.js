@@ -1,4 +1,4 @@
-import { Box, Pressable, VStack, Text } from '@gluestack-ui/themed';
+import { Box, Pressable, VStack, Text, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
@@ -49,6 +49,7 @@ const Link = ({link}) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { updateCurrentIndex } = React.useContext(SearchContext);
+     const toast = useToast();
 
      const navigation = useNavigation();
 
@@ -62,7 +63,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Error opening link: ' + e);
-               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 
@@ -144,7 +145,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Navigation error: ' + e.message);
-               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 

@@ -33,7 +33,7 @@ import {
      ModalCloseButton,
      ModalHeader,
      ModalBody,
-     ModalFooter,
+     ModalFooter, useToast,
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -68,6 +68,7 @@ export const SelectPickupLocation = (props) => {
      const [showModal, setShowModal] = React.useState(false);
      let [location, setLocation] = React.useState(pickupLocation);
      let [activeSublocation, setActiveSublocation] = React.useState(null);
+     const toast = useToast();
 
      return (
           <>
@@ -163,7 +164,7 @@ export const SelectPickupLocation = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);
-                                             changeHoldPickUpLocation(holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
+                                             changeHoldPickUpLocation(toast, holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
                                                   setShowModal(false);
                                                   resetGroup();
                                                   onClose(onClose);

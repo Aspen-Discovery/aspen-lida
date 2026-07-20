@@ -5,31 +5,31 @@ import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import _ from "lodash";
 import {
-	Box,
-	ButtonGroup,
-	Button,
-	ButtonText,
-	FormControl,
-	FormControlLabel,
-	FormControlLabelText,
-	Select,
-	SelectTrigger,
-	SelectInput,
-	SelectIcon,
-	SelectPortal,
-	SelectBackdrop,
-	SelectContent,
-	SelectDragIndicatorWrapper,
-	SelectDragIndicator,
-	SelectItem,
-	SelectScrollView,
-	ChevronDownIcon,
-	Checkbox,
-	CheckboxLabel,
-	CheckIcon,
-	CheckboxIndicator,
-	CheckboxIcon,
-	ButtonSpinner
+     Box,
+     ButtonGroup,
+     Button,
+     ButtonText,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     ChevronDownIcon,
+     Checkbox,
+     CheckboxLabel,
+     CheckIcon,
+     CheckboxIndicator,
+     CheckboxIcon,
+     ButtonSpinner, useToast
 } from '@gluestack-ui/themed';
 import {refreshProfile, updateHoldPickupPreferences} from "../../../util/api/user";
 import {PATRON} from "../../../util/globals";
@@ -44,6 +44,7 @@ export const Settings_PickupLocations = () => {
 	const { user, updateUser, locations } = React.useContext(UserContext);
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 	const insets = useSafeAreaInsets();
+     const toast = useToast();
 
 	let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
 	let userPickupLocation1Id = user.myLocation1Id ?? "";
@@ -278,7 +279,7 @@ export const Settings_PickupLocations = () => {
 				<Button bgColor={theme.tokens.colors.primary['500']}
                          onPress={async () => {
                               setLoading(true);
-                              await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
+                              await updateHoldPickupPreferences(toast, location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
                                    setLoading(false);
                                    await refreshProfile(library.baseUrl).then(async (result) => {
                                       updateUser(result);

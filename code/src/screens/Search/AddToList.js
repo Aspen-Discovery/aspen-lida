@@ -55,7 +55,7 @@ import {
      ModalCloseButton,
      ModalHeader,
      ModalBody,
-     ModalFooter,
+     ModalFooter, useToast,
 } from '@gluestack-ui/themed';
 
 const AddToList = (props) => {
@@ -83,6 +83,7 @@ const AddToList = (props) => {
      const [newGroupName, setNewGroupName] = React.useState('');
      const [nestedGroup, setNestedGroup] = React.useState('');
      const [existingGroupId, setExistingGroupId] = React.useState(user.lastListGroupAdded ? user.lastListGroupAdded : (listGroups?.groups[0] ? listGroups.groups[0].id : 0));
+     const toast = useToast();
 
      const { data, isLoading } = useQuery(
           ['list_groups', user.id, library.baseUrl, language],
@@ -221,7 +222,7 @@ const AddToList = (props) => {
                                                             isLoading={loading}
                                                             onPress={() => {
                                                                  setLoading(true);
-                                                                 addTitlesToList(listId, item, library.baseUrl, source, language).then(() => {
+                                                                 addTitlesToList(toast, listId, item, library.baseUrl, source, language).then(() => {
                                                                       updateLastListUsed(listId);
                                                                       queryClient.invalidateQueries({ queryKey: ['list', listId] });
                                                                       setLoading(false);
@@ -415,7 +416,7 @@ const AddToList = (props) => {
                                                        isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                                        onPress={() => {
                                                             setLoading(true);
-                                                            createListFromTitle(title, description, isPublic, item, library.baseUrl, source, addToGroup, nestedGroup, newGroupName).then((res) => {
+                                                            createListFromTitle(toast, title, description, isPublic, item, library.baseUrl, source, addToGroup, nestedGroup, newGroupName).then((res) => {
                                                                  updateLastListUsed(res.listId);
                                                                  queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                                  queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });

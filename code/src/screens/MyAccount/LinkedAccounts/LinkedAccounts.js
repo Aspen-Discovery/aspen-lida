@@ -1,7 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Box, Button, ButtonText, Divider, FlatList, Heading, HStack, ScrollView, Text } from '@gluestack-ui/themed';
+import {
+     Box,
+     Button,
+     ButtonText,
+     Divider,
+     FlatList,
+     Heading,
+     HStack,
+     ScrollView,
+     Text,
+     useToast
+} from '@gluestack-ui/themed';
 import React, { useContext, useLayoutEffect, useEffect, useState } from 'react';
 
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
@@ -204,6 +215,7 @@ const Account = ({ account, type }) => {
      const { library } = useContext(LibrarySystemContext);
      const { language } = useContext(LanguageContext);
      const { textColor } = useContext(ThemeContext);
+     const toast = useToast();
 
      const refreshLinkedAccounts = async () => {
           await queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
@@ -215,9 +227,9 @@ const Account = ({ account, type }) => {
           setIsRemoving(true);
           try {
                if (type === 'viewer') {
-                    await removeViewerAccount(account.id, library.baseUrl, language);
+                    await removeViewerAccount(toast, account.id, library.baseUrl, language);
                } else {
-                    await removeLinkedAccount(account.id, library.baseUrl, language);
+                    await removeLinkedAccount(toast, account.id, library.baseUrl, language);
                }
                await refreshLinkedAccounts();
           } catch (error) {

@@ -36,7 +36,7 @@ import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
 import { loadError, popAlert, popToast } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import {
      LanguageContext,

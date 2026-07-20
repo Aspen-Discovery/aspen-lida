@@ -35,7 +35,7 @@ export const MyCheckout = (props) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
 
      const [access, setAccess] = useState(false);
@@ -48,7 +48,6 @@ export const MyCheckout = (props) => {
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
      const checkout = props.data;
-     const checkoutSource = props.checkoutSource
      const setRenewConfirmationIsOpen = props.setRenewConfirmationIsOpen;
      const setRenewConfirmationResponse = props.setRenewConfirmationResponse;
      const reloadCheckouts = props.reloadCheckouts;
@@ -177,7 +176,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'renewing', true)}
                                    onPress={() => {
                                         setRenew(true);
-                                        renewCheckout(checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
+                                        renewCheckout(toast, checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
                                              setRenew(false);
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -260,7 +259,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();
@@ -282,7 +281,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();
