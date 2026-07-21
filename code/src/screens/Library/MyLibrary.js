@@ -16,18 +16,17 @@ import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
+import {logDebugMessage} from "../../util/logging";
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { location, locations } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const [openToday, setOpenToday] = React.useState(false);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor, theme } = React.useContext(ThemeContext);
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -89,7 +88,7 @@ export const MyLibrary = () => {
 
      const key = 'location_' + location.locationId;
 
-     console.log(key + ':' + location.locationImage);
+     logDebugMessage(key + ':' + location.locationImage);
 
      const selectLocations = () => {
           navigate('AllLocations');
@@ -99,7 +98,6 @@ export const MyLibrary = () => {
           <ScrollView>
                {location.locationImage ? (
                     <>
-                         <LinearGradient height={200} width="100%" locations={[0.45, 1]} colors={['transparent', bgColor]} zIndex={0} position="absolute" left={0} top={0} />
                          <Image
                               alt={location.displayName}
                               source={location.locationImage}
@@ -108,17 +106,15 @@ export const MyLibrary = () => {
                                    height: 200,
                                    borderRadius: "$sm",
                                    zIndex: -1,
-                                   position: 'absolute',
-                                   left: 0,
-                                   top: 0,
                               }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"
                          />
+
                     </>
                ) : null}
-               <Box safeArea={5} mt={location.locationImage ? 40 : 0} mx="$2">
+               <Box safeArea={5} mt={5} mx="$2" zIndex={200}>
                     {showSystemMessage()}
                     {library.displayName !== location.displayName ? <Heading color={textColor} mb={2}>{location.displayName}</Heading> : <Heading color={textColor} mb={1}>{library.displayName}</Heading>}
                     {location.address ? <Text color={textColor}>{location.address}</Text> : null}
@@ -130,7 +126,7 @@ export const MyLibrary = () => {
                     ) : null}
                     {hasHours ? (
                          <Text color={textColor} mt={4} mb={2}>
-                              <Badge colorScheme={isClosedToday ? 'error' : 'success'}>
+                              <Badge colorScheme={isClosedToday ? 'error' : 'success'} alignSelf="flex-start">
                                    <BadgeText>
                                         {hoursLabel}
                                    </BadgeText>
@@ -138,14 +134,16 @@ export const MyLibrary = () => {
                          </Text>
                     ) : null}
                     <DisplayMap data={location} />
-                    <ContactButtons data={location} />
-                    {hasHours ? <Hours data={location} /> : null}
-                    <AdditionalInformation data={location} />
+                    <Box mt={4}>
+                         <ContactButtons data={location} />
+                         {hasHours ? <Hours data={location} /> : null}
+                         <AdditionalInformation data={location} />
+                    </Box>
                     {_.size(locations) > 1 ? (
                          <>
                               <Divider mt={5} mb={2} />
-                              <Button variant="ghost" size="sm" onPress={selectLocations}>
-                                   <ButtonText color={textColor}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
+                              <Button variant="ghost" size="sm" onPress={selectLocations} bgColor={theme.tokens.colors.primary['500']}>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                               </Button>
                          </>
                     ) : null}

@@ -13,7 +13,7 @@ export const WhereIsIt = () => {
      const { id, format, prevRoute, type, recordId, source } = route.params;
      const { language } = React.useContext(LanguageContext);
      const { library } = React.useContext(LibrarySystemContext);
-    const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
      const [isLoading, setLoading] = React.useState(false);
 
      const { status, data, error, isFetching } = useQuery({
@@ -60,10 +60,9 @@ export const WhereIsIt = () => {
 };
 
 const Details = (data) => {
-     //console.log(data.manifestation);
-    const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
      const manifestation = data.manifestation;
-	 const source = data.source;
+     const source = data.source;
      return (
           <HStack space="md" justifyContent="space-between">
                <Text w="30%" size="xs" color={textColor}>

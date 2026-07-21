@@ -154,7 +154,18 @@ export class ApiClient {
       */
      validateAspenResponse(data, url) {
           if (!data || typeof data !== 'object') {
+               logErrorMessage('No response from ' + url );
+               return {
+                    valid: false,
+                    error: ERROR_TYPES.BAD_DATA,
+                    message: 'Response is not a valid object',
+                    code: 'INVALID_RESPONSE_TYPE',
+               };
+          }
+
+          if (typeof data !== 'object') {
                logErrorMessage('Response from ' + url + ' is not a valid object');
+               logErrorMessage(data);
                return {
                     valid: false,
                     error: ERROR_TYPES.BAD_DATA,

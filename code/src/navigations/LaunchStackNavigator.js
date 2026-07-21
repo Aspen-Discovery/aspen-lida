@@ -9,7 +9,6 @@ const LaunchStackNavigator = () => {
      const Stack = createNativeStackNavigator();
      const route = useRoute();
      const refreshUserData = route.params?.refreshUserData ?? false;
-     //console.log('refreshUserData: ' + route.params?.refreshUserData);
      return (
           <ThemeContext.Consumer>
                {(mode, updateColorMode, textColor, updateTextColor) => (

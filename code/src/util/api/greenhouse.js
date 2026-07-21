@@ -64,9 +64,10 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 
 /**
  * Fetches nearby libraries from Greenhouse based on patron's location and release channel, and determines if the select library screen should be shown
+ * @param {object} toast - The instance returned by useToast()
  * @returns {Promise<{success: boolean, libraries, shouldShowSelectLibrary: boolean}|{success: boolean, shouldShowSelectLibrary: boolean, libraries: *[]}>}
  */
-export async function fetchNearbyLibrariesFromGreenhouse() {
+export async function fetchNearbyLibrariesFromGreenhouse(toast) {
      logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
 
@@ -102,7 +103,7 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
 
           if (isBranded) {
                logDebugMessage("Getting branded app settings");
-               await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
+               await getAppSettings(toast, GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
                logDebugMessage(LIBRARY.appSettings);
 
                const autoPickUserHomeLocation = LIBRARY.appSettings?.autoPickUserHomeLocation ?? false;

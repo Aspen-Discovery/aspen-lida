@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/react-native';
  */
 export function logDebugMessage(message) {
      if (__DEV__) {
-          if (GLOBALS.logLevel == 1) {
+          if (GLOBALS.logLevel === 1) {
                logMessage("DEBUG", message);
           }
      }
@@ -20,7 +20,7 @@ export function logDebugMessage(message) {
 
 export function logInfoMessage(message) {
      if (__DEV__) {
-          if (GLOBALS.logLevel == 1 || GLOBALS.logLevel == 2) {
+          if (GLOBALS.logLevel === 1 || GLOBALS.logLevel === 2) {
                logMessage("INFO", message);
           }
      }
@@ -254,7 +254,7 @@ export function getErrorMessage({ statusCode = null, problem, sendToSentry = fal
           }
      }
 
-     // Always send to Sentry unless in DEV environment
+     // Always send the error to Sentry unless in DEV environment
      if (!__DEV__ || (__DEV__ && sendToSentry)) {
           Sentry.captureMessage(`[${errorDetails.title}] ${errorDetails.message}`, {
                level: 'error',

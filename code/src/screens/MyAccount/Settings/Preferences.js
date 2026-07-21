@@ -12,36 +12,34 @@ import { navigate } from '../../../helpers/RootNavigator';
 import { UseColorMode } from '../../../themes/theme';
 import { getTermFromDictionary, LanguageSwitcher } from '../../../translations/TranslationService';
 import { logErrorMessage } from '../../../util/logging';
+import * as Device from "expo-device";
 
 export const PreferencesScreen = () => {
      const navigation = useNavigation();
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const { user, expoToken, updateExpoToken, updateAspenToken } = React.useContext(UserContext);
+     const { user, expoToken, updateExpoToken } = React.useContext(UserContext);
      const { textColor } = React.useContext(ThemeContext);
 
      React.useEffect(() => {
           const updateTokens = navigation.addListener('focus', async () => {
-               if (Constants.isDevice) {
-                    try {
-                         const token = (
-                              await Notifications.getExpoPushTokenAsync({
-                                   projectId: Constants.expoConfig.extra.eas.projectId,
-                              })
-                         ).data;
-                         if (token) {
-                              if (!_.isEmpty(user.notification_preferences)) {
-                                   const tokenStorage = user.notification_preferences;
-                                   if (_.find(tokenStorage, _.matchesProperty('token', token))) {
-                                        updateAspenToken(true);
-                                        updateExpoToken(token);
-                                   }
+               try {
+                    const token = (!Device.isDevice
+                         ? { data: 'ExponentPushToken[testToken' + Device.modelName + ']' }
+                         : await Notifications.getExpoPushTokenAsync({
+                              projectId: Constants.expoConfig.extra.eas.projectId,
+                         })).data;
+                    if (token) {
+                         if (!_.isEmpty(user.notification_preferences)) {
+                              const tokenStorage = user.notification_preferences;
+                              if (_.find(tokenStorage, _.matchesProperty('token', token))) {
+                                   updateExpoToken(token);
                               }
                          }
-                    } catch (error) {
-                         logErrorMessage('Error fetching Expo push token:', error);
                     }
+               } catch (error) {
+                    logErrorMessage('Error fetching Expo push token:', error);
                }
           });
           return updateTokens;

@@ -12,7 +12,7 @@ import {
      Text,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton
+     ModalBackdrop, CloseIcon, ModalCloseButton, useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
@@ -29,6 +29,7 @@ const EnableAccountLinking = () => {
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
+     const toast = useToast();
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -44,14 +45,14 @@ const EnableAccountLinking = () => {
      return (
           <Center>
                <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'enable_linked_accounts')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'enable_linked_accounts')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="lg">
                     <ModalBackdrop />
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'enable_linked_accounts_title')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -69,12 +70,12 @@ const EnableAccountLinking = () => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await enableAccountLinking(language, library.baseUrl).then(async (r) => {
+                                             await enableAccountLinking(toast, language, library.baseUrl).then(async (r) => {
                                                   await refreshLinkedAccounts();
                                                   toggle();
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'accept')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'accept')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

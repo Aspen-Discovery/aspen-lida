@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken } from '@gluestack-ui/themed';
+import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken, useToast} from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
@@ -18,6 +18,7 @@ const ContactButtons = (data) => {
      const location = data.data;
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -76,7 +77,7 @@ const ContactButtons = (data) => {
                                    logError(error);
                               }
                          } else {
-                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });
@@ -110,7 +111,7 @@ const ContactButtons = (data) => {
                                    logErrorMessage(error);
                               }
                          } else {
-                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });

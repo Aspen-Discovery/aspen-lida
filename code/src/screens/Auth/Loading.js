@@ -4,7 +4,7 @@ import {useQuery, useQueryClient} from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import _, {isEmpty, isUndefined} from 'lodash';
-import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
+import {Box, Center, Heading, Progress, useToast, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import {
      BrowseCategoryContext,
@@ -82,6 +82,8 @@ export const LoadingScreen = () => {
 
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
+
+     const toast = useToast();
 
      const insets = useSafeAreaInsets();
 

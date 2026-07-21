@@ -51,7 +51,7 @@ export const UnsavedChangesExit = (props) => {
      return (
           <Center>
                <Pressable onPress={() => getStatus()} p="$1" ml="$3">
-                    <CloseIcon size="md" color="primary.baseContrast" />
+                    <CloseIcon size="md" color={textColor} />
                </Pressable>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                     <AlertDialog.Backdrop/>
@@ -65,10 +65,10 @@ export const UnsavedChangesExit = (props) => {
                          <AlertDialog.Footer>
                               <ButtonGroup space="sm">
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={updateClose} ref={cancelRef}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={forceClose}>
-                                        <ButtonText color="$danger500">{getTermFromDictionary(language, 'discard')}</ButtonText>
+                                        <ButtonText color="$error500">{getTermFromDictionary(language, 'discard')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialog.Footer>

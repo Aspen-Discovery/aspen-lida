@@ -1,5 +1,40 @@
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Box, Button, ButtonText, ButtonSpinner, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Text, Textarea, TextareaInput, ScrollView, HStack, ChevronDownIcon, Alert, AlertText } from '@gluestack-ui/themed';
+import {
+     Box,
+     Button,
+     ButtonText,
+     ButtonSpinner,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckboxLabel,
+     CheckIcon,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Input,
+     InputField,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     Text,
+     Textarea,
+     TextareaInput,
+     ScrollView,
+     HStack,
+     ChevronDownIcon,
+     Alert,
+     AlertText,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -83,6 +118,7 @@ const Request = (payload) => {
      const navigation = useNavigation();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
+     const toast = useToast();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
 
@@ -102,7 +138,7 @@ const Request = (payload) => {
                pickupLocation: pickupLocation ?? null,
                volumeId: volumeId,
           };
-          await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
+          await submitLocalIllRequest(toast, library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {
                     setErrorMessage('');
@@ -235,11 +271,11 @@ const Request = (payload) => {
                                    {pickupLocation ? (
                                         locations.map((location, index) => {
                                              if (location.code === pickupLocation) {
-                                                  return <SelectInput key={index} value={location.displayName} color={textColor} />;
+                                                  return <SelectInput py={0} key={index} value={location.displayName} color={textColor} />;
                                              }
                                         })
                                    ) : (
-                                        <SelectInput placeholder="Select a pickup location" color={textColor} />
+                                        <SelectInput py={0} placeholder="Select a pickup location" color={textColor} />
                                    )}
                                    <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>
@@ -251,7 +287,7 @@ const Request = (payload) => {
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {locations.map((location, index) => {
-                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>
@@ -319,7 +355,7 @@ const Request = (payload) => {
                          </ButtonText>
                     </Button>
                     <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>Cancel</ButtonText>
+                         <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );

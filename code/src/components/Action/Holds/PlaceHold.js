@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Button, Box, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
+import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
@@ -51,6 +51,7 @@ export const PlaceHold = (props) => {
      const [loading, setLoading] = React.useState(false);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
      if (_.isNumber(user.pickupLocationId)) {
@@ -195,7 +196,7 @@ export const PlaceHold = (props) => {
                          maxWidth="100%"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(record, type, user.id, '', '', pickupLocation, sublocation, user.rememberHoldPickupLocation, library.baseUrl, volumeId, holdType).then(async (ilsResponse) => {
+                              await completeAction(toast, record, type, user.id, '', '', pickupLocation, sublocation, user.rememberHoldPickupLocation, library.baseUrl, volumeId, holdType).then(async (ilsResponse) => {
                                    setResponse(ilsResponse);
 
                                    if (ilsResponse?.confirmationNeeded && ilsResponse.confirmationNeeded) {
@@ -241,9 +242,9 @@ export const PlaceHold = (props) => {
                               });
                          }}>
                          {loading ? (
-                              <ButtonSpinner color="$textLight200" />
+                              <ButtonSpinner color={theme.tokens.colors.primary['500-text']} />
                          ) : (
-                              <ButtonText color="$textLight200" textAlign="center">
+                              <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
                                    {title}
                               </ButtonText>
                          )}

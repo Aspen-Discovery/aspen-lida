@@ -12,11 +12,11 @@ import {
      Text,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton
+     ModalBackdrop, CloseIcon, ModalCloseButton, useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import {LanguageContext, LibrarySystemContext, ThemeContext, UserContext} from '../../../context/initialContext';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { disableAccountLinking } from '../../../util/api/user';
 
@@ -27,8 +27,10 @@ const DisableAccountLinking = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const {user} = React.useContext(UserContext);
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
+     const toast = useToast();
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -36,22 +38,22 @@ const DisableAccountLinking = () => {
      };
 
      const refreshLinkedAccounts = async () => {
-          queryClient.invalidateQueries({ queryKey: ['linked_accounts', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['viewer_accounts', library.baseUrl, language] });
+          queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
+          queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
           queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
      };
 
      return (
           <Center>
                <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="lg">
                     <ModalBackdrop />
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'disable_linked_accounts_title')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -69,12 +71,12 @@ const DisableAccountLinking = () => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await disableAccountLinking(language, library.baseUrl).then(async (r) => {
+                                             await disableAccountLinking(toast, language, library.baseUrl).then(async (r) => {
                                                   await refreshLinkedAccounts();
                                                   toggle();
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'accept')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'accept')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

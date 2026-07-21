@@ -59,7 +59,7 @@ export const Settings_BrowseCategories = () => {
           });
      }, [navigation, theme]);
 
-     const { status, data, error, isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
+     const { isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
           initialData: list,
           onSuccess: (data) => {
                if(data.ok){
@@ -75,7 +75,7 @@ export const Settings_BrowseCategories = () => {
                logDebugMessage("Error fetching browse category list for user");
                logErrorMessage(error);
           },
-          onSettle: (data) => {
+          onSettle: () => {
                setLoading(false);
           },
           placeholderData: [],
@@ -91,7 +91,6 @@ export const Settings_BrowseCategories = () => {
 const DisplayCategory = (data) => {
      const queryClient = useQueryClient();
      const category = data.data;
-     const setLoading = data.setLoading;
      const [toggled, setToggle] = React.useState(!category.isHidden);
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');
@@ -100,7 +99,7 @@ const DisplayCategory = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
-     const {textColor} = React.useContext(ThemeContext);
+     const { colorMode, textColor, theme} = React.useContext(ThemeContext);
 
      React.useEffect(() => {
           setToggle(!category.isHidden);
@@ -128,9 +127,9 @@ const DisplayCategory = (data) => {
                <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                     <Text
                          flexWrap="wrap"
+                         flex={1}
                          color={textColor}
                          bold
-                         maxW="80%"
                          fontSize="$lg">
                          {category.title}
                     </Text>
@@ -142,6 +141,11 @@ const DisplayCategory = (data) => {
                               updateToggle(category);
                          }}
                          value={toggled}
+                         trackColor={{
+                              true: theme.tokens.colors.primary['500'],
+                              false: colorMode === 'light' ? '$backgroundLight300' : '$backgroundLight700'
+                         }}
+
                     />
                </HStack>
                {showErrorDialog && (

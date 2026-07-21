@@ -1,11 +1,45 @@
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Button, ButtonText, ButtonGroup, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
+import {
+     Button,
+     ButtonText,
+     ButtonGroup,
+     CheckIcon,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
+     ModalCloseButton,
+     Radio,
+     RadioGroup,
+     RadioIndicator,
+     RadioIcon,
+     RadioLabel,
+     CircleIcon,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     Icon,
+     ChevronDownIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
-import { Platform } from 'react-native';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getVolumes } from '../../util/api/item';
 import { refreshProfile } from '../../util/api/user';
@@ -20,8 +54,8 @@ const SelectVolumeHold = (props) => {
 
      const { user, updateUser, accounts, locations } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
-     const { updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
+     const toast = useToast();
 
      const isPlacingHold = action.includes('hold');
 
@@ -66,8 +100,6 @@ const SelectVolumeHold = (props) => {
           }
      }
 
-     //console.log(pickupLocation);
-
      const [location, setLocation] = React.useState(pickupLocation);
      const [sublocation, setSublocation] = React.useState(null);
 
@@ -82,9 +114,9 @@ const SelectVolumeHold = (props) => {
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="lg">
                     <ModalBackdrop />
                     <ModalContent maxWidth="90%">
-                         <ModalCloseButton />
                          <ModalHeader borderBottomWidth="$0">
                               <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                              <ModalCloseButton />
                          </ModalHeader>
                          <ModalBody>
                               {status === 'loading' || isFetching ? (
@@ -124,7 +156,7 @@ const SelectVolumeHold = (props) => {
                                                        selectedValue={volume}
                                                        onValueChange={(itemValue) => setVolume(itemValue)}>
                                                        <SelectTrigger variant="outline" size="md">
-                                                            <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
+                                                            <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_volume')} />
                                                             <Icon as={ChevronDownIcon} mr="$3" />
                                                        </SelectTrigger>
                                                        <SelectPortal>
@@ -152,7 +184,7 @@ const SelectVolumeHold = (props) => {
                                                        selectedValue={location}
                                                        onValueChange={(itemValue) => setLocation(itemValue)}>
                                                        <SelectTrigger variant="outline" size="md">
-                                                            <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                                            <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
                                                             <Icon as={ChevronDownIcon} mr="$3" />
                                                        </SelectTrigger>
                                                        <SelectPortal>
@@ -180,7 +212,7 @@ const SelectVolumeHold = (props) => {
                                                        selectedValue={activeAccount}
                                                        onValueChange={(itemValue) => setActiveAccount(itemValue)}>
                                                        <SelectTrigger variant="outline" size="md">
-                                                            <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                                            <SelectInput py={0} placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
                                                             <Icon as={ChevronDownIcon} mr="$3" />
                                                        </SelectTrigger>
                                                        <SelectPortal>
@@ -218,7 +250,7 @@ const SelectVolumeHold = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {

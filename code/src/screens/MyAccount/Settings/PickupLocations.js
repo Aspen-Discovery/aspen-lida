@@ -5,31 +5,31 @@ import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import _ from "lodash";
 import {
-	Box,
-	ButtonGroup,
-	Button,
-	ButtonText,
-	FormControl,
-	FormControlLabel,
-	FormControlLabelText,
-	Select,
-	SelectTrigger,
-	SelectInput,
-	SelectIcon,
-	SelectPortal,
-	SelectBackdrop,
-	SelectContent,
-	SelectDragIndicatorWrapper,
-	SelectDragIndicator,
-	SelectItem,
-	SelectScrollView,
-	ChevronDownIcon,
-	Checkbox,
-	CheckboxLabel,
-	CheckIcon,
-	CheckboxIndicator,
-	CheckboxIcon,
-	ButtonSpinner
+     Box,
+     ButtonGroup,
+     Button,
+     ButtonText,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     ChevronDownIcon,
+     Checkbox,
+     CheckboxLabel,
+     CheckIcon,
+     CheckboxIndicator,
+     CheckboxIcon,
+     ButtonSpinner, useToast
 } from '@gluestack-ui/themed';
 import {refreshProfile, updateHoldPickupPreferences} from "../../../util/api/user";
 import {PATRON} from "../../../util/globals";
@@ -44,6 +44,7 @@ export const Settings_PickupLocations = () => {
 	const { user, updateUser, locations } = React.useContext(UserContext);
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 	const insets = useSafeAreaInsets();
+     const toast = useToast();
 
 	let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
 	let userPickupLocation1Id = user.myLocation1Id ?? "";
@@ -140,9 +141,9 @@ export const Settings_PickupLocations = () => {
 					onValueChange={(itemValue) => setLocation(itemValue)}>
 					<SelectTrigger variant="outline" size="md">
 						{selectedLocationObj ? (
-							<SelectInput value={selectedLocationObj.displayName} color={textColor} />
+							<SelectInput py={0} value={selectedLocationObj.displayName} color={textColor} />
 						) : (
-							<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+							<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 						)}
 						<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 					</SelectTrigger>
@@ -158,7 +159,7 @@ export const Settings_PickupLocations = () => {
 							<SelectScrollView>
 								{locations.map((availableLocations, index) => {
 									if (availableLocations.code === location) {
-										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 									}
 									return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 										_text: { color: textColor }
@@ -184,13 +185,13 @@ export const Settings_PickupLocations = () => {
 						onValueChange={(itemValue) => setLocation1Id(itemValue)}>
 						<SelectTrigger variant="outline" size="md">
 							{selectedLocation1Obj ? (
-								<SelectInput value={selectedLocation1Obj.displayName} color={textColor} />
+								<SelectInput py={0} value={selectedLocation1Obj.displayName} color={textColor} />
 							) : (
-								<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 							)}
 							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 						</SelectTrigger>
-						<SelectPortal useRNModal={true}>
+						<SelectPortal>
 							<SelectBackdrop />
 							<SelectContent
 								bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -202,7 +203,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location1Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -226,9 +227,9 @@ export const Settings_PickupLocations = () => {
 						onValueChange={(itemValue) => setLocation2Id(itemValue)}>
 						<SelectTrigger variant="outline" size="md">
 							{selectedLocation2Obj ? (
-								<SelectInput value={selectedLocation2Obj.displayName} color={textColor} />
+								<SelectInput py={0} value={selectedLocation2Obj.displayName} color={textColor} />
 							) : (
-								<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 							)}
 							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 						</SelectTrigger>
@@ -244,7 +245,7 @@ export const Settings_PickupLocations = () => {
 								<SelectScrollView>
 									{locations.map((availableLocations, index) => {
 										if (availableLocations.code === location2Id) {
-											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+											return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
 										}
 										return <SelectItem label={availableLocations.displayName} value={availableLocations.code} key={index} sx={{
 											_text: { color: textColor }
@@ -278,7 +279,7 @@ export const Settings_PickupLocations = () => {
 				<Button bgColor={theme.tokens.colors.primary['500']}
                          onPress={async () => {
                               setLoading(true);
-                              await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
+                              await updateHoldPickupPreferences(toast, location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
                                    setLoading(false);
                                    await refreshProfile(library.baseUrl).then(async (result) => {
                                       updateUser(result);
@@ -286,7 +287,7 @@ export const Settings_PickupLocations = () => {
                               })
                          }}
                          isDisabled={loading}>
-					{loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>}
+					{loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>}
 				</Button>
 			</ButtonGroup>
 		</Box>

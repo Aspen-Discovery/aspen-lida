@@ -1,4 +1,27 @@
-import { Button, ButtonText, ButtonGroup, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, VStack, CheckIcon } from '@gluestack-ui/themed';
+import {
+     Button,
+     ButtonText,
+     ButtonGroup,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckboxLabel,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Input,
+     InputField,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
+     ModalCloseButton,
+     VStack,
+     CheckIcon,
+     Icon, CloseIcon, Heading
+} from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
@@ -12,8 +35,10 @@ export const GetOverDriveSettings = (props) => {
           <Modal isOpen={showOverDriveSettings} onClose={() => handleOverDriveSettings(false)}>
                <ModalBackdrop />
                <ModalContent>
-                    <ModalCloseButton />
-                    <ModalHeader borderBottomWidth="$0">{promptTitle}</ModalHeader>
+                    <ModalHeader borderBottomWidth="$0">
+                         <Heading>{promptTitle}</Heading>
+                         <ModalCloseButton />
+                    </ModalHeader>
                     <ModalBody mt="$4">
                          <FormControl>
                               <VStack space="md">

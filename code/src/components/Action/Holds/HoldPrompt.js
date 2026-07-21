@@ -1,12 +1,53 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { CloseIcon, Modal, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Select, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, SelectScrollView, Input, InputField, InputSlot, InputIcon, Text } from '@gluestack-ui/themed';
+import {
+     CloseIcon,
+     Modal,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckboxLabel,
+     CheckIcon,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalCloseButton,
+     ModalBody,
+     ModalFooter,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Select,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     Icon,
+     ChevronDownIcon,
+     ButtonSpinner,
+     SelectScrollView,
+     Input,
+     InputField,
+     InputSlot,
+     InputIcon,
+     Text,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { EyeOff, Eye } from 'lucide-react-native';
 import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RenderHtml from 'react-native-render-html';
-import { HoldsContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { decodeHTML } from '../../../helpers/helpers';
 import { completeAction } from '../../../util/api/userHelper';
@@ -21,7 +62,16 @@ import { PATRON } from '../../../util/globals';
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../../util/logging.js';
 
 export const HoldPrompt = (props) => {
+     // 1. ALL HOOK DECLARATIONS FIRST (Unconditional & Predictable Order)
      const queryClient = useQueryClient();
+     const insets = useSafeAreaInsets();
+     const { width } = useWindowDimensions();
+
+     // Contexts
+     const { user, updateUser, accounts, locations, preferredPickupLocationIsValid, preferredPickupLocationWarning } = React.useContext(UserContext);
+     const { library } = React.useContext(LibrarySystemContext);
+     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+
      const {
           language,
           id,
@@ -57,51 +107,90 @@ export const HoldPrompt = (props) => {
           alreadyOnHold
      } = props;
 
-     const insets = useSafeAreaInsets();
+     // Basic State Hooks
      const [userHasAlternateLibraryCard, setUserHasAlternateLibraryCard] = React.useState(props.userHasAlternateLibraryCard ?? false);
      const [promptAlternateLibraryCard, setPromptAlternateLibraryCard] = React.useState(props.shouldPromptAlternateLibraryCard ?? false);
      const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = React.useState(false);
      const [showAddAlternateLibraryCardModal, setShowAddAlternateLibraryCardModal] = React.useState(false);
+     const [activeAccount, setActiveAccount] = React.useState(user.id ?? '');
+     const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
+     const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
+     const [showPassword, setShowPassword] = React.useState(false);
 
-     const { user, updateUser, accounts, locations, preferredPickupLocationIsValid, preferredPickupLocationWarning} = React.useContext(UserContext);
+     // Hold Notification Info Setup (Safe fallbacks for initial state instantiation)
+     const promptForHoldNotifications = user.promptForHoldNotifications ?? false;
+     const holdNotificationInfo = user.holdNotificationInfo ?? [];
+     const preferences = holdNotificationInfo?.preferences?.opac_hold_notify?.value;
 
-     logDebugMessage("In Hold Prompt, preferredPickupLocationIsValid = " + preferredPickupLocationIsValid);
-     logDebugMessage("In Hold Prompt, preferredPickupLocationWarning = " + preferredPickupLocationWarning);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { updateHolds } = React.useContext(HoldsContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const defaultEmailNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'email') : false;
+     const defaultPhoneNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'phone') : false;
+     const defaultSMSNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'sms') : false;
 
-     const { status, data, error, isFetching } = useQuery({
-          queryKey: ['copies', id, variationId, language, library.baseUrl],
-          queryFn: () => getCopies(id, language, variationId, library.baseUrl),
-          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId) ,
-     });
-
-     let isPlacingHold = false;
-     if (typeof action === 'string') {
-          isPlacingHold = action.includes('hold');
-     }
-
-     let promptForHoldNotifications = user.promptForHoldNotifications ?? false;
-     let holdNotificationInfo = user.holdNotificationInfo ?? [];
-
-     let defaultEmailNotification = false;
-     let defaultPhoneNotification = false;
-     let defaultSMSNotification = false;
-     if (promptForHoldNotifications && holdNotificationInfo?.preferences?.opac_hold_notify?.value) {
-          const preferences = holdNotificationInfo.preferences.opac_hold_notify.value;
-          defaultEmailNotification = _.includes(preferences, 'email');
-          defaultPhoneNotification = _.includes(preferences, 'phone');
-          defaultSMSNotification = _.includes(preferences, 'sms');
-     }
-
+     // Notification State Hooks
      const [emailNotification, setEmailNotification] = React.useState(defaultEmailNotification);
      const [phoneNotification, setPhoneNotification] = React.useState(defaultPhoneNotification);
      const [smsNotification, setSMSNotification] = React.useState(defaultSMSNotification);
      const [smsCarrier, setSMSCarrier] = React.useState(holdNotificationInfo.preferences?.opac_default_sms_carrier?.value ?? -1);
      const [smsNumber, setSMSNumber] = React.useState(holdNotificationInfo.preferences?.opac_default_sms_notify?.value ?? null);
      const [phoneNumber, setPhoneNumber] = React.useState(holdNotificationInfo.preferences?.opac_default_phone?.value ?? null);
+
+     // Hold Types State Hooks
+     const typeOfHold = holdTypeForFormat || 'default';
+     const [volume, setVolume] = React.useState('');
+     const [holdType, setHoldType] = React.useState(typeOfHold);
+     const [item, setItem] = React.useState('');
+
+     // Location Setup & Location State Hooks
+     let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
+     if (_.isNumber(userPickupLocationId)) {
+          userPickupLocationId = _.toString(userPickupLocationId);
+     }
+
+     let defaultPickupLocation = '';
+     if (_.size(locations) > 1 || !preferredPickupLocationIsValid) {
+          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
+          if (!_.isUndefined(userPickupLocation) && !_.isEmpty(userPickupLocation)) {
+               defaultPickupLocation = userPickupLocation[0];
+               if (_.isObject(defaultPickupLocation)) {
+                    defaultPickupLocation = defaultPickupLocation.code;
+               }
+          }
+     } else {
+          defaultPickupLocation = locations[0];
+          if (_.isObject(defaultPickupLocation)) {
+               defaultPickupLocation = defaultPickupLocation.code;
+          }
+     }
+
+     const [location, setLocation] = React.useState(defaultPickupLocation);
+     const [sublocation, setSublocation] = React.useState(null);
+     const rememberHoldPickupLocation = user.rememberHoldPickupLocation ? 1 : 0;
+     const [rememberPickupLocation, setRememberPickupLocation] = React.useState(rememberHoldPickupLocation);
+     const toast = useToast();
+
+     // TanStack useQuery Hook
+     const { status, data, error, isFetching } = useQuery({
+          queryKey: ['copies', id, variationId, language, library.baseUrl],
+          queryFn: () => getCopies(id, language, variationId, library.baseUrl),
+          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId),
+     });
+
+     // Effect Hooks
+     React.useEffect(() => {
+          setHoldType(derivedTypeOfHold);
+     }, [derivedTypeOfHold]);
+
+
+     // 2. BUSINESS LOGIC & DERIVED VARIABLES (Happens AFTER all hooks are safely locked in place)
+     logDebugMessage("In Hold Prompt, preferredPickupLocationIsValid = " + preferredPickupLocationIsValid);
+     logDebugMessage("In Hold Prompt, preferredPickupLocationWarning = " + preferredPickupLocationWarning);
+
+     let isPlacingHold = false;
+     if (typeof action === 'string') {
+          isPlacingHold = action.includes('hold');
+     }
+
      const holdNotificationPreferences = {
           emailNotification: emailNotification,
           phoneNotification: phoneNotification,
@@ -112,37 +201,29 @@ export const HoldPrompt = (props) => {
      };
 
      let promptForHoldType = false;
-     let typeOfHold = 'default';
-
-     if (holdTypeForFormat) {
-          typeOfHold = holdTypeForFormat;
-     }
-
-     const [volume, setVolume] = React.useState('');
-     const [holdType, setHoldType] = React.useState(typeOfHold);
-     const [item, setItem] = React.useState('');
+     let derivedTypeOfHold = typeOfHold;
 
      if (!_.isEmpty(volumeId)){
           logDebugMessage("Placing a hold on a single volume");
-          typeOfHold = 'volume';
+          derivedTypeOfHold = 'volume';
           promptForHoldType = false;
-     }else if (volumeInfo.numItemsWithVolumes >= 1) {
+     } else if (volumeInfo.numItemsWithVolumes >= 1) {
           logDebugMessage("Placing with numItemsWithVolumes >= 1");
-          typeOfHold = 'item';
+          derivedTypeOfHold = 'item';
           promptForHoldType = true;
           if (volumeInfo.majorityOfItemsHaveVolumes) {
-               typeOfHold = 'volume';
+               derivedTypeOfHold = 'volume';
                promptForHoldType = true;
           }
           if (_.isEmpty(volumeInfo.hasItemsWithoutVolumes)) {
-               typeOfHold = 'volume';
+               derivedTypeOfHold = 'volume';
                promptForHoldType = false;
           }
           if (volumeInfo.hasItemsWithoutVolumes) {
                promptForHoldType = true;
-               typeOfHold = 'item';
+               derivedTypeOfHold = 'item';
           }
-          logDebugMessage("Type of hold is " + typeOfHold);
+          logDebugMessage("Type of hold is " + derivedTypeOfHold);
      }
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
@@ -153,31 +234,38 @@ export const HoldPrompt = (props) => {
      if (library?.alternateLibraryCardConfig?.alternateLibraryCardLabel) {
           cardLabel = library.alternateLibraryCardConfig.alternateLibraryCardLabel;
      }
-
      if (library?.alternateLibraryCardConfig?.alternateLibraryCardPasswordLabel) {
           passwordLabel = library.alternateLibraryCardConfig.alternateLibraryCardPasswordLabel;
      }
-
      if (library?.alternateLibraryCardConfig?.alternateLibraryCardFormMessage) {
           formMessage = decodeHTML(library.alternateLibraryCardConfig.alternateLibraryCardFormMessage);
      }
-
      if (library?.alternateLibraryCardConfig?.showAlternateLibraryCardPassword) {
           if (library.alternateLibraryCardConfig.showAlternateLibraryCardPassword === '1' || library.alternateLibraryCardConfig.showAlternateLibraryCardPassword === 1) {
                showAlternateLibraryCardPassword = true;
           }
      }
 
-     const [activeAccount, setActiveAccount] = React.useState(user.id ?? '');
+     const toggleShowPassword = () => setShowPassword(!showPassword);
 
+     const source = {
+          baseUrl: library.baseUrl,
+          html: formMessage,
+     };
+
+     const tagsStyles = {
+          body: { color: textColor },
+          a: { color: textColor, textDecorationColor: textColor },
+     };
+
+
+     // 3. EVENT HANDLERS & CALLBACKS
      const updateActiveAccount = (newId) => {
           setActiveAccount(newId);
           if (newId !== user.id) {
                let newAccount = _.filter(accounts, ['id', newId]);
                if (newAccount[0]) {
                     newAccount = newAccount[0];
-
-                    // we need to recalculate if the linked account is eligible for using alternate library cards
                     if (newAccount) {
                          if (typeof newAccount.alternateLibraryCard !== 'undefined') {
                               const alternateLibraryCardOptions = newAccount?.alternateLibraryCardOptions ?? [];
@@ -205,15 +293,12 @@ export const HoldPrompt = (props) => {
                                    if (alternateLibraryCardOptions?.alternateLibraryCardLabel) {
                                         cardLabel = alternateLibraryCardOptions.alternateLibraryCardLabel;
                                    }
-
                                    if (alternateLibraryCardOptions?.alternateLibraryCardPasswordLabel) {
                                         passwordLabel = alternateLibraryCardOptions.alternateLibraryCardPasswordLabel;
                                    }
-
                                    if (alternateLibraryCardOptions?.alternateLibraryCardFormMessage) {
                                         formMessage = decodeHTML(alternateLibraryCardOptions.alternateLibraryCardFormMessage);
                                    }
-
                                    if (alternateLibraryCardOptions?.showAlternateLibraryCardPassword) {
                                         if (alternateLibraryCardOptions.showAlternateLibraryCardPassword === '1' || alternateLibraryCardOptions.showAlternateLibraryCardPassword === 1) {
                                              showAlternateLibraryCardPassword = true;
@@ -230,82 +315,10 @@ export const HoldPrompt = (props) => {
                     }
                }
           } else {
-               //revert back to primary user id
                setUserHasAlternateLibraryCard(props.userHasAlternateLibraryCard);
                setPromptAlternateLibraryCard(props.shouldPromptAlternateLibraryCard);
-
-               if (library?.alternateLibraryCardConfig?.alternateLibraryCardLabel) {
-                    cardLabel = library.alternateLibraryCardConfig.alternateLibraryCardLabel;
-               }
-
-               if (library?.alternateLibraryCardConfig?.alternateLibraryCardPasswordLabel) {
-                    passwordLabel = library.alternateLibraryCardConfig.alternateLibraryCardPasswordLabel;
-               }
-
-               if (library?.alternateLibraryCardConfig?.alternateLibraryCardFormMessage) {
-                    formMessage = decodeHTML(library.alternateLibraryCardConfig.alternateLibraryCardFormMessage);
-               }
-
-               if (library?.alternateLibraryCardConfig?.showAlternateLibraryCardPassword) {
-                    if (library.alternateLibraryCardConfig.showAlternateLibraryCardPassword === '1' || library.alternateLibraryCardConfig.showAlternateLibraryCardPassword === 1) {
-                         showAlternateLibraryCardPassword = true;
-                    }
-               }
           }
      };
-
-     let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(user.pickupLocationId)) {
-          userPickupLocationId = _.toString(user.pickupLocationId);
-     }
-
-     let pickupLocation = '';
-     if (_.size(locations) > 1 || !preferredPickupLocationIsValid) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
-               pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
-                    pickupLocation = pickupLocation.code;
-               }
-          }
-     } else {
-          pickupLocation = locations[0];
-          if (_.isObject(pickupLocation)) {
-               pickupLocation = pickupLocation.code;
-          }
-     }
-
-     const [location, setLocation] = React.useState(pickupLocation);
-     const [sublocation, setSublocation] = React.useState(null);
-
-     logDebugMessage("Remember Hold Pickup Location in Hold Prompt is " + user.rememberHoldPickupLocation);
-     const rememberHoldPickupLocation = user.rememberHoldPickupLocation ? 1 : 0;
-     const [rememberPickupLocation, setRememberPickupLocation] = React.useState(rememberHoldPickupLocation);
-
-     const { width } = useWindowDimensions();
-     const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
-     const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
-     const [showPassword, setShowPassword] = React.useState(false);
-     const toggleShowPassword = () => setShowPassword(!showPassword);
-
-     const source = {
-          baseUrl: library.baseUrl,
-          html: formMessage,
-     };
-
-     const tagsStyles = {
-          body: {
-               color: textColor,
-          },
-          a: {
-               color: textColor,
-               textDecorationColor: textColor,
-          },
-     };
-
-     React.useEffect(() => {
-          setHoldType(typeOfHold);
-     }, [typeOfHold]);
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
@@ -322,11 +335,12 @@ export const HoldPrompt = (props) => {
           setPassword('');
      };
 
+     logDebugMessage("Remember Hold Pickup Location in Hold Prompt is " + user.rememberHoldPickupLocation);
 
      return (
           <>
                <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowModal(true)}>
-                    <ButtonText color="$textLight200">{title}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>
                </Button>
                <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
@@ -335,7 +349,7 @@ export const HoldPrompt = (props) => {
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'add_alternate_library_card')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowAddAlternateLibraryCardModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -376,7 +390,7 @@ export const HoldPrompt = (props) => {
                                              setShowAddAlternateLibraryCardModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
@@ -384,7 +398,7 @@ export const HoldPrompt = (props) => {
                                         onPress={async () => {
                                              setLoading(true);
                                              await updateCard();
-                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                   logDebugMessage("Completed Action - Hold Prompt footer");
 
                                                   setResponse(result);
@@ -434,7 +448,7 @@ export const HoldPrompt = (props) => {
                                                   }
                                              });
                                         }}>
-                                        {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                        {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -447,7 +461,7 @@ export const HoldPrompt = (props) => {
                               <Heading size="md" color={textColor}>
                                    {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -478,7 +492,7 @@ export const HoldPrompt = (props) => {
                                         colorMode={colorMode}
                                    />
                               ) : null}
-                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (typeOfHold === 'either' || typeOfHold === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
+                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
                               {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode}  /> : null}
                               {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
                                    <FormControl mt="$1">
@@ -491,12 +505,12 @@ export const HoldPrompt = (props) => {
                                              <SelectTrigger variant="outline" size="md">
                                                   {locations.map((selectedLocation, index) => {
                                                        if (selectedLocation.code === location) {
-                                                            return <SelectInput value={selectedLocation.name} color={textColor} />;
+                                                            return <SelectInput py={0} value={selectedLocation.name} color={textColor} key={index} />;
                                                        }
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
                                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -508,9 +522,9 @@ export const HoldPrompt = (props) => {
                                                        <SelectScrollView>
                                                             {locations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme['tokens']['colors']['tertiary']['300']} sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text'] } }} />;
+                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -520,23 +534,23 @@ export const HoldPrompt = (props) => {
 
                               ) : null}
                               {!user.rememberHoldPickupLocation ? (
-                                  <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
+                                   <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
                               ) : null}
                               {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
-                                  <FormControl mb="$3">
-                                       <Checkbox
-                                           size="sm"
-                                           defaultIsChecked={rememberPickupLocation}
-                                           accessibilityLabel={getTermFromDictionary(language, 'always_use_pickup_location')}
-                                           onChange={(value) => {
-                                                setRememberPickupLocation(value);
-                                           }}>
-                                                <CheckboxIndicator mr="$2">
-                                                     <CheckboxIcon as={CheckIcon} color={textColor} />
-                                                </CheckboxIndicator>
-                                                <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
-                                       </Checkbox>
-                                  </FormControl>
+                                   <FormControl mb="$3">
+                                        <Checkbox
+                                             size="sm"
+                                             defaultIsChecked={rememberPickupLocation}
+                                             accessibilityLabel={getTermFromDictionary(language, 'always_use_pickup_location')}
+                                             onChange={(value) => {
+                                                  setRememberPickupLocation(value);
+                                             }}>
+                                             <CheckboxIndicator mr="$2">
+                                                  <CheckboxIcon as={CheckIcon} color={textColor} />
+                                             </CheckboxIndicator>
+                                             <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
+                                        </Checkbox>
+                                   </FormControl>
                               ) : null}
                               {_.isArray(accounts) && _.size(accounts) > 0 ? (
                                    <FormControl>
@@ -546,8 +560,8 @@ export const HoldPrompt = (props) => {
                                         <Select name="linkedAccount" selectedValue={activeAccount} minWidth={200} mt="$1" mb="$3" onValueChange={(itemValue) => updateActiveAccount(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
                                                   <SelectInput
+                                                       py={0}
                                                        value={
-                                                            // Find the displayName of the selected account or use placeholder
                                                             (() => {
                                                                  if (activeAccount === (user.id)) {
                                                                       return user.displayName;
@@ -565,7 +579,7 @@ export const HoldPrompt = (props) => {
                                                        <Icon as={ChevronDownIcon} color={textColor} />
                                                   </SelectIcon>
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
                                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -575,9 +589,9 @@ export const HoldPrompt = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}  />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}  />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -595,7 +609,7 @@ export const HoldPrompt = (props) => {
                                              setShowModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button
@@ -604,7 +618,7 @@ export const HoldPrompt = (props) => {
                                                   setShowModal(false);
                                                   setShowAddAlternateLibraryCardModal(true);
                                              }}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                         </Button>
                                    ) : (
                                         <Button
@@ -612,7 +626,7 @@ export const HoldPrompt = (props) => {
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
-                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, (volumeId ?? volume), holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, (volumeId ?? volume), holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
                                                        logDebugMessage("Completed Action Hold Prompt Alternate Library Card");
 
@@ -625,12 +639,11 @@ export const HoldPrompt = (props) => {
                                                                  queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
 
                                                                  const timeoutId = setTimeout(() => {
-                                                                      // Also refresh in 45 seconds for Sierra since hold can take a minute to show up on the account
                                                                       queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                                                       queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
                                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                                  }, 45 * 1000);
-                                                                  logDebugMessage("Query invalidation complete");
+                                                                 logDebugMessage("Query invalidation complete");
                                                             }else{
                                                                  logInfoMessage("Placing hold failed");
                                                                  logInfoMessage(result);
@@ -664,7 +677,6 @@ export const HoldPrompt = (props) => {
                                                                  setHoldSelectItemResponse(tmp);
                                                             }
 
-                                                            //Decided to hold off on redirecting to ILL Request for failed holds for now and just show a better message
                                                             if (result?.needsIllRequest && result.needsIllRequest === true) {
                                                                  result.message = result.message + "\n" + "You may be able to request this title from another library using our web based catalog or by visiting the library.";
                                                                  setResponse(result);
@@ -676,7 +688,6 @@ export const HoldPrompt = (props) => {
                                                                  setHoldConfirmationIsOpen(true);
                                                             } else if (result?.shouldBeItemHold && result.shouldBeItemHold) {
                                                                  setHoldItemSelectIsOpen(true);
-                                                            //Decided to hold off on redirecting to ILL Request for failed holds for now and just show a better message
                                                             } else if (result?.needsIllRequest && result.needsIllRequest === true) {
                                                                  logDebugMessage("Need to show local ILL form");
                                                                  logDebugMessage(response);
@@ -688,7 +699,7 @@ export const HoldPrompt = (props) => {
                                                        }
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                             {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                                         </Button>
                                    )}
                               </ButtonGroup>

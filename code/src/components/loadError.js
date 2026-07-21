@@ -1,13 +1,11 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription, VStack } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
-import { AuthContext } from '../context/AuthContext';
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { logDebugMessage } from '../util/logging.js';
 
 /**
  * Catch an error and display it to the user
@@ -20,13 +18,13 @@ import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from
  **/
 export const LoadError = (props) => {
      const { error, reloadAction } = props;
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = React.useContext(ThemeContext);
 
      return (
           <Center flex={1}>
                <HStack>
-                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color={theme['tokens']['colors']['error']['500']} />
-                    <Heading color={theme['tokens']['colors']['error']['500']} mb="$2">
+                    <Icon as={MaterialIcons} name="error" size="md" mr="$1" color="$error500" />
+                    <Heading color="$error500" mb="$2">
                          {getTermFromDictionary('en', 'error')}
                     </Heading>
                </HStack>
@@ -35,11 +33,11 @@ export const LoadError = (props) => {
                </Text>
                {reloadAction ? (
                     <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color="$textLight200" /></ButtonIcon>
-                         <ButtonText color="$textLight200">{getTermFromDictionary('en', 'button_reload')}</ButtonText>
+                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color={theme.tokens.colors.primary['500-text']} /></ButtonIcon>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
                ) : null}
-               <Text size="xs" w="75%" mt="$5" color={theme['tokens']['colors']['muted']['500']} textAlign="center">
+               <Text size="xs" w="75%" mt="$5" color="$muted500" textAlign="center">
                     ERROR: {error}
                </Text>
           </Center>
@@ -67,17 +65,30 @@ export function loadError(error, reloadAction = '') {
  * <li>Info</li>
  * <li>Warning</li>
  * </ul>
+ * @param {object} toast - The instance returned by useToast()
  * @param {string} title
  * @param {string} description
  * @param {string} status
  **/
-export function popToast(title, description, status) {
-     logDebugMessage("Popping a toast");
-     Toast.show({
-          position: 'bottom',
-          type: status,
-          text1: title,
-          text2: description,
+export function popToast(toast, title, description, status) {
+     requestAnimationFrame(() => {
+          logDebugMessage("Popping a toast");
+          const actionType = status?.toLowerCase();
+          toast.show({
+               placement: 'bottom',
+               duration: 3000,
+               render: ({ id }) => {
+                    const uniqueToastId = 'toast-' + id;
+                    return (
+                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                              <VStack space="xs">
+                                   <ToastTitle>{title}</ToastTitle>
+                                   {description && <ToastDescription>{description}</ToastDescription>}
+                              </VStack>
+                         </Toast>
+                    );
+               },
+          });
      });
 }
 
@@ -97,17 +108,31 @@ export function popToast(title, description, status) {
  * <li>Error</li>
  * <li>Info</li>
  * </ul>
+ * @param {object} toast - The instance returned by useToast()
  * @param {string} title
  * @param {string} description
  * @param {string} status
  **/
-export function popAlert(title, description, status) {
-     logDebugMessage("Popping an alert");
-     Toast.show({
-          position: 'bottom',
-          type: status,
-          text1: title,
-          text2: description,
+export function popAlert(toast, title, description, status) {
+     requestAnimationFrame(() => {
+          logDebugMessage("Popping an alert");
+          const actionType = status?.toLowerCase();
+          toast.show({
+               placement: 'bottom',
+               // Medium priority alerts typically persist longer or require closing
+               duration: 5000,
+               render: ({id}) => {
+                    const uniqueToastId = 'alert-' + id;
+                    return (
+                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                              <VStack space="xs">
+                                   <ToastTitle>{title}</ToastTitle>
+                                   {description && <ToastDescription>{description}</ToastDescription>}
+                              </VStack>
+                         </Toast>
+                    );
+               },
+          });
      });
 }
 
@@ -133,7 +158,7 @@ export const DisplayErrorAlertDialog = (props) => {
                     <AlertDialogFooter>
                         <ButtonGroup space="md">
                             <Button onPress={onClose} bgColor={theme.tokens.colors.primary['500']} ref={cancelRef}>
-                                <ButtonText color="$textLight200">{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                             </Button>
                         </ButtonGroup>
                     </AlertDialogFooter>

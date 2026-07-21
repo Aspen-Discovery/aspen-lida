@@ -165,7 +165,6 @@ const renderHeader = () => {
 };
 
 const renderCopyDetails = (item) => {
-     //console.log(item);
      return (
          <HStack space={4} justifyContent="space-between">
               <Text w="30%" fontSize="$xs">

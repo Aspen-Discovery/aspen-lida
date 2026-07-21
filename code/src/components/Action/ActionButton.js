@@ -20,7 +20,7 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text,
+     Text, useToast,
 } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
 import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
@@ -32,6 +32,7 @@ export const ActionButton = (data) => {
      const { library } = useContext(LibrarySystemContext);
      const { user } = useContext(UserContext);
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
+     const toast = useToast();
 
      const action = data.actions;
      const {
@@ -152,10 +153,10 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(toast, library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_material_request_ils') {
@@ -168,10 +169,10 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(toast, library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_external_request') {
@@ -198,7 +199,7 @@ export const ActionButton = (data) => {
                               }
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_email') {
@@ -226,14 +227,14 @@ export const ActionButton = (data) => {
                               maxWidth="100%"
                               onPress={async () => {setShowIllUnavailableModal(true)}}
                          >
-                              <ButtonText color="$textLight200">{action.title}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                          </Button>
                          <Modal isOpen={showIllUnavailableModal} size="lg" avoidKeyboard={true} onClose={() => setShowIllUnavailableModal(false)}>
                               <ModalBackdrop />
                               <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                                    <ModalHeader>
                                         <Heading size="md" color={textColor}>{action.title}</Heading>
-                                        <ModalCloseButton p="$3">
+                                        <ModalCloseButton p="$3" onPress={() => { setShowIllUnavailableModal(false); }}>
                                              <Icon as={CloseIcon} color={textColor} />
                                         </ModalCloseButton>
                                    </ModalHeader>

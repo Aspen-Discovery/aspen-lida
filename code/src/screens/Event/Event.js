@@ -36,7 +36,7 @@ import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
 import { loadError, popAlert, popToast } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import {
      LanguageContext,
@@ -60,7 +60,6 @@ export const EventScreen = () => {
      const queryClient = useQueryClient();
      const id = route.params.id;
      const source = route.params.source;
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -138,6 +137,7 @@ const DisplayEvent = (payload) => {
      const source = route.params.source;
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
@@ -176,7 +176,7 @@ const DisplayEvent = (payload) => {
                               logDebugMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      };
@@ -469,7 +469,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                     <ModalContent maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
                          <ModalHeader>
                               <Heading size="$md">{modalBodyHeading}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -567,6 +567,7 @@ const AddToYourEvents = ({ id, source }) => {
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
      const [isLoading, setIsLoading] = React.useState(false);
+     const toast = useToast();
 
      const addToEvents = async () => {
           setIsLoading(true);
@@ -578,16 +579,16 @@ const AddToYourEvents = ({ id, source }) => {
                queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                queryClient.invalidateQueries({ queryKey: ['event', id, source, language, library.baseUrl] });
                if (result.success || result.success === 'true') {
-                    popAlert(getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
+                    popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {
-                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };
 
      return (
           <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
           </Button>
      );
 };
@@ -597,7 +598,7 @@ const InYourEvents = () => {
      const { theme } = React.useContext(ThemeContext);
      return (
           <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
           </Button>
      );
 };
@@ -628,18 +629,18 @@ const RegistrationModal = ({ event }) => {
      return (
           <>
                <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
-                    <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
                </Button>
                <Modal isOpen={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
                          <ModalHeader>
-                              <Heading size="$md">{getTermFromDictionary(language, 'registration_information')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <Heading size="$md" color={textColor}>{getTermFromDictionary(language, 'registration_information')}</Heading>
+                              <ModalCloseButton p="$3" onPress={() => { setShowRegistrationModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody>{stripHTML(decodeHTML(event.registrationBody))}</ModalBody>
+                         <ModalBody><Text color={textColor}>{stripHTML(decodeHTML(event.registrationBody))}</Text></ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="sm" size="md">
                                    <Button
@@ -650,7 +651,7 @@ const RegistrationModal = ({ event }) => {
                                         }}>
                                         <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

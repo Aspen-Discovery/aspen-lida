@@ -118,12 +118,13 @@ export async function getCatalogStatus(url = null) {
 
 /**
  * Fetch settings for app that are maintained by the library
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param timeout
  * @param slug
  * @returns {Promise<*|*[]>}
  */
-export async function getAppSettings(url, timeout, slug) {
+export async function getAppSettings(toast, url, timeout, slug) {
      if (LIBRARY.appSettings != null && LIBRARY.appSettings.length > 0 && LIBRARY.appSettingsUrl === url && LIBRARY.appSettingsSlug === slug) {
           return LIBRARY.appSettings;
      }
@@ -144,7 +145,7 @@ export async function getAppSettings(url, timeout, slug) {
           logWarnMessage(response);
           return [];
      } catch (err) {
-          popToast(getTermFromDictionary('en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
+          popToast(toast, getTermFromDictionary(toast, 'en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
           logErrorMessage(`Exception in getAppSettings ${err}`);
           return [];
      }
@@ -303,10 +304,11 @@ export async function getLibraryBranch(data) {
 /**
  * Fetch theme information for the library and generate color swatches for the app
  * with fallback to a default theme if there are any issues with the request or response
+ * @param {object} toast - The instance returned by useToast()
  * @param url
  * @returns {Promise<unknown[]>}
  */
-export async function getThemeInfo(url = null) {
+export async function getThemeInfo(toast, url = null) {
      let libraryUrl = LIBRARY.url ?? GLOBALS.url;
      if (url !== null && url !== '') {
           libraryUrl = url;
@@ -318,7 +320,7 @@ export async function getThemeInfo(url = null) {
           return COLOR_SCHEMES.map(generateSwatches);
      }
 
-     await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
+     await getAppSettings(toast, libraryUrl, 10000, GLOBALS.slug);
 
      const client = createApiClient({
           url: GLOBALS.url,

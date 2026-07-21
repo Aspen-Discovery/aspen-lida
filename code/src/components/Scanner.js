@@ -29,8 +29,6 @@ export default function Scanner() {
      }, [permission]);
 
      const handleBarCodeScanned = ({ type, data }) => {
-          console.log(data);
-          console.log(type);
           setLoading(true);
           if (!scanned) {
                data = cleanBarcode(data, type);

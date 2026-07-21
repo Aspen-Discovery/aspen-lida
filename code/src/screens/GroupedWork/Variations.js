@@ -146,7 +146,7 @@ export const Variations = (props) => {
                                              <ButtonGroup space="sm">
                                                   {response?.action ? (
                                                        <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => handleNavigation(response.action)}>
-                                                            <ButtonText color="$textLight200">{response.action}</ButtonText>
+                                                            <ButtonText color={theme.tokens.colors.primary['500-text']}>{response.action}</ButtonText>
                                                        </Button>
                                                   ) : null}
                                                   <Button variant="link" onPress={() => setResponseIsOpen(false)}>
@@ -199,7 +199,7 @@ export const Variations = (props) => {
                                                                  }
                                                             });
                                                        }}>
-                                                       <ButtonText color="$textLight200">{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
                                                   </Button>
                                              </ButtonGroup>
                                         </AlertDialogFooter>
@@ -216,12 +216,12 @@ export const Variations = (props) => {
                                              {holdSelectItemResponse?.items ? (
                                                   <Select name="itemForHold" minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} mt="$1" mb="$2" onValueChange={(itemValue) => setSelectedItem(itemValue)}>
                                                        <SelectTrigger>
-                                                            <SelectInput placeholder="Select option" color={textColor} />
+                                                            <SelectInput py={0} placeholder="Select option" color={textColor} />
                                                             <SelectIcon mr="$3">
                                                                  <Icon as={ChevronDownIcon} color={textColor} />
                                                             </SelectIcon>
                                                        </SelectTrigger>
-                                                       <SelectPortal useRNModal={true}>
+                                                       <SelectPortal>
                                                             <SelectBackdrop />
                                                             <SelectContent
                                                   bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -271,7 +271,7 @@ export const Variations = (props) => {
                                                                  }
                                                             });
                                                        }}>
-                                                       <ButtonText color="$textLight200">{getTermFromDictionary(language, 'place_hold')}</ButtonText>
+                                                       <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'place_hold')}</ButtonText>
                                                   </Button>
                                              </ButtonGroup>
                                         </AlertDialogFooter>

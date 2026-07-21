@@ -14,7 +14,7 @@ import {
      Badge,
      BadgeText,
      VStack,
-     Input, InputSlot, InputIcon, InputField, FormControl
+     Input, InputSlot, InputIcon, InputField, FormControl, useToast
 } from '@gluestack-ui/themed';
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -35,12 +35,12 @@ import { getCleanTitle } from '../../helpers/item';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS, SearchGlobal } from '../../util/globals';
-import { formatDiscoveryVersion, decodeHTML, isValidUrl } from '../../helpers/helpers';
+import { decodeHTML, isValidUrl } from '../../helpers/helpers';
 import { getAppliedFilters, getAvailableFacetsKeys, getSortList } from '../../util/api/search';
 import { setDefaultFacets } from '../../util/api/searchHelper';
 
 import AddToList from './AddToList';
-import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
@@ -77,7 +77,7 @@ export const SearchResults = () => {
      const systemMessagesForScreen = [];
 
      if (term && term !== storedTerm) {
-          console.log('Search term changed. Clearing previous search options...');
+          logDebugMessage('Search term changed. Clearing previous search options...');
           setStoredTerm(term);
           setPage(1);
           SearchGlobal.pendingFilters = [];
@@ -111,7 +111,6 @@ export const SearchResults = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
                if ((data.totalResults === 1 || data.totalResults === '1') && isScannerSearch) {
@@ -158,19 +157,18 @@ export const SearchResults = () => {
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
@@ -236,6 +234,7 @@ const DisplayResult = (data) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const toast = useToast();
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -296,9 +295,9 @@ const DisplayResult = (data) => {
           };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
-                    console.log(res);
+                    logDebugMessage(res);
                     if (res.type === 'cancel' || res.type === 'dismiss') {
-                         console.log('User closed or dismissed window.');
+                         logDebugMessage('User closed or dismissed window.');
                          WebBrowser.dismissBrowser();
                          WebBrowser.coolDownAsync();
                     }
@@ -310,20 +309,20 @@ const DisplayResult = (data) => {
                               WebBrowser.coolDownAsync();
                               await WebBrowser.openBrowserAsync(url, browserParams)
                                    .then((response) => {
-                                        console.log(response);
+                                        logDebugMessage(response);
                                         if (response.type === 'cancel') {
-                                             console.log('User closed window.');
+                                             logDebugMessage('User closed window.');
                                         }
                                    })
                                    .catch(async (error) => {
-                                        console.log('Unable to close previous browser session.');
+                                        logInfoMessage('Unable to close previous browser session.');
                                    });
                          } catch (error) {
-                              console.log('Really borked.');
+                              logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                         console.log(err);
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         logErrorMessage(err);
                     }
                });
      };
@@ -501,7 +500,7 @@ const FilterBar = ({ navigation }) => {
                               size="sm"
                               variant="solid"
                               mr="$1"
-                              bg="$primary600"
+                              bg={theme.tokens.colors.primary['600']}
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
@@ -510,8 +509,8 @@ const FilterBar = ({ navigation }) => {
                                         },
                                    });
                               }}>
-                              <ButtonIcon color={theme['tokens']['colors']['primary']['600-text']} as={SlidersHorizontalIcon} mr="$1" />
-                              <ButtonText color={theme['tokens']['colors']['primary']['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
+                              <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
+                              <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
                          <CreateFilterButton navigation={navigation}/>
                     </ScrollView>
@@ -522,7 +521,7 @@ const FilterBar = ({ navigation }) => {
 
 const SearchBox = ({term, navigation}) => {
      const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = React.useContext(ThemeContext);
      const [searchTerm, setSearchTerm] = React.useState(term);
 
      const openScanner = async () => {
