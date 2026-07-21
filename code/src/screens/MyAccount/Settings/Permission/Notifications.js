@@ -3,7 +3,7 @@ import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import { useNavigation, useRoute, StackActions } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../../context/initialContext';
 import { navigate } from '../../../../helpers/RootNavigator';
@@ -11,13 +11,13 @@ import { getTermFromDictionary } from '../../../../translations/TranslationServi
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useNotificationPermissions, useNotificationPreferences } from '../../../../hooks/useNotifications';
-import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../../util/logging';
+import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
 
 export const NotificationPermissionStatus = () => {
     const { language } = React.useContext(LanguageContext);
     const { textColor } = React.useContext(ThemeContext);
     const { library } = React.useContext(LibrarySystemContext);
-    const { updateExpoToken, expoToken, aspenToken, updateUserDebugMessage } = React.useContext(UserContext);
+    const { updateExpoToken, expoToken, updateUserDebugMessage } = React.useContext(UserContext);
     const navigation = useNavigation();
 
     const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
@@ -42,7 +42,7 @@ export const NotificationPermissionStatus = () => {
     // Check permissions when tokens change
     React.useEffect(() => {
         checkAndUpdatePermissions('Token change effect');
-    }, [expoToken, aspenToken]);
+    }, [expoToken]);
 
     return (
         <Pressable onPress={() => navigate('PermissionNotificationDescription', { permissionStatus })} pb="$3">
@@ -110,11 +110,13 @@ export const NotificationPermissionDescription = () => {
         }
     }, [navigation, prevRoute, theme]);
 
+
+
      React.useEffect(() => {
           // Refetch preferences when permission status or expoToken changes
           if (permissionStatus && expoToken) {
                logDebugMessage("Fetching Preferences because permission status or expoToken changed")
-               loadPreferences();
+               loadPreferences(expoToken);
           }
      }, [permissionStatus, expoToken]);
 
@@ -127,14 +129,14 @@ export const NotificationPermissionDescription = () => {
      // Use default settings if notificationSettings is not available
      const settings = notificationSettings || defaultSettings;
 
-     React.useEffect(() => {
+     /*React.useEffect(() => {
           const checkCurrentPermissions = async () => {
                const { status } = await Notifications.getPermissionsAsync();
                if (status === 'granted') {
                     // Always try to load preferences when permissions are granted
                     if (expoToken) {
                          logDebugMessage("Loading Preferences as part of checkCurrentPermissions " + expoToken);
-                         await loadPreferences();
+                         await loadPreferences(expoToken);
                     } else {
                          // If we don't have a token but permissions are granted, try to get one
                          logDebugMessage("Do not have a valid expoToken in checkCurrentPermissions, getting a token");
@@ -144,14 +146,15 @@ export const NotificationPermissionDescription = () => {
           };
 
           checkCurrentPermissions();
-     }, []);
+     }, []);*/
 
      const handlePermissionUpdate = async () => {
+          //Will return either false or the expoToken that was added
           const result = await addNotificationPermissions();
           if (result) {
                // Force a preference refresh after permissions are granted
                logDebugMessage("Loading preferences as pert of handlePermissionUpdate");
-               await loadPreferences();
+               await loadPreferences(result);
           }
      };
 
@@ -293,19 +296,14 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                 await revokeNotificationPermissions();
             } else {
                 // First request permissions without any options
-                const { status } = await Notifications.requestPermissionsAsync();
-
-                if (status === 'granted') {
-                    const granted = await addNotificationPermissions();
-                    if (!granted) {
-                        setShowAlertDialog(true);
-                    }
-                } else {
+                const granted = await addNotificationPermissions();
+                if (!granted) {
                     setShowAlertDialog(true);
                 }
             }
         } catch (error) {
-            console.error('Error updating permissions:', error);
+            logErrorMessage('Error updating permissions:');
+            logErrorMessage(error);
             setShowAlertDialog(true);
         } finally {
             setIsUpdating(false);

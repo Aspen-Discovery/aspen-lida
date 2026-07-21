@@ -1793,10 +1793,8 @@ export async function getNotificationPreferences(toast, url, pushToken) {
                pushToken,
           },
      );
-     logDebugMessage(response);
      if (response.ok) {
           if (response.data?.result?.success === true) {
-               logDebugMessage(response.data.result);
                return response.data.result;
           } else {
                popAlert(toast, response.data?.result?.title ?? 'Unknown Error', response.data?.result?.message, 'error');

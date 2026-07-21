@@ -6,7 +6,7 @@ import { getTermFromDictionary } from '../translations/TranslationService';
 
 export const PermissionsPrompt = (data) => {
      const { promptTitle, promptBody, setShouldRequestPermissions, updateStatus } = data;
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {

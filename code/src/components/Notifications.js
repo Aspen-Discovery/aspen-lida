@@ -12,7 +12,7 @@ import { dismissSystemMessage } from '../util/api/system';
 import { stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 
-export async function registerForPushNotificationsAsync(url, updateUserDebugMessage) {
+export async function registerForPushNotificationsAsync(updateUserDebugMessage) {
      try {
           updateUserDebugMessage("Registering for push notifications async");
 
@@ -62,7 +62,7 @@ export async function registerForPushNotificationsAsync(url, updateUserDebugMess
 
 async function createNotificationChannelGroup(id, name, description = null) {
      if (Platform.OS === 'android') {
-          Notifications.setNotificationChannelGroupAsync(`${id}`, {
+          await Notifications.setNotificationChannelGroupAsync(`${id}`, {
                name: `${name}`,
                description: `${description}`,
           });
@@ -78,7 +78,7 @@ async function getNotificationChannelGroup(group) {
 
 async function createNotificationChannel(id, name, groupId) {
      if (Platform.OS === 'android') {
-          Notifications.setNotificationChannelAsync(`${id}`, {
+          await Notifications.setNotificationChannelAsync(`${id}`, {
                name: `${name}`,
                importance: Notifications.AndroidImportance.MAX,
                vibrationPattern: [0, 250, 250, 250],
@@ -96,15 +96,8 @@ async function getNotificationChannel(channel) {
      return false;
 }
 
-async function deleteNotificationChannel(channel) {
-     if (Platform.OS === 'android') {
-          return Notifications.deleteNotificationChannelAsync(`${channel}`);
-     }
-     return false;
-}
-
 async function createNotificationCategory(id, name, button) {
-     Notifications.setNotificationCategoryAsync(`${id}`, [
+     await Notifications.setNotificationCategoryAsync(`${id}`, [
           {
                identifier: `${name}`,
                buttonTitle: `${button}`,
@@ -112,12 +105,8 @@ async function createNotificationCategory(id, name, button) {
      ]);
 }
 
-async function getNotificationCategory(category) {
+async function getNotificationCategories() {
      return Notifications.getNotificationCategoriesAsync();
-}
-
-async function deleteNotificationCategory(category) {
-     return Notifications.deleteNotificationCategoryAsync(`${category}`);
 }
 
 export async function createChannelsAndCategories() {
@@ -142,18 +131,19 @@ export async function createChannelsAndCategories() {
           await createNotificationChannel('accountAlert', 'Account Alert', 'updates');
      }
 
-     const savedSearchCategory = await getNotificationCategory('savedSearch');
-     if (!savedSearchCategory) {
+     const existingCategories = await getNotificationCategories('savedSearch');
+
+     const hasCategory = (identifier) =>
+          existingCategories.some((cat) => cat.identifier === identifier);
+     if (!hasCategory('savedSearch')) {
           await createNotificationCategory('savedSearch', 'Saved Searches', 'View');
      }
 
-     const libraryAlertCategory = await getNotificationCategory('libraryAlert');
-     if (!libraryAlertCategory) {
+     if (!hasCategory('libraryAlert')) {
           await createNotificationCategory('libraryAlert', 'Library Alert', 'Read More');
      }
 
-     const accountAlertCategory = await getNotificationCategory('accountAlert');
-     if (!accountAlertCategory) {
+     if (!hasCategory('accountAlert')) {
           await createNotificationCategory('accountAlert', 'Account Alert', 'View');
      }
 }
@@ -191,7 +181,7 @@ async function hideSystemMessage(allSystemMessages, currentMessageId, isDismissi
 
      if (isDismissible === 1 || isDismissible === '1') {
           // send request to dismiss it with Discovery
-          dismissSystemMessage(currentMessageId, url);
+          await dismissSystemMessage(currentMessageId, url);
      }
 
      return messages;
