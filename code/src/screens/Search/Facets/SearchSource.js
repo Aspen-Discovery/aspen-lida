@@ -8,6 +8,7 @@ import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } fr
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getSearchIndexes } from '../../../util/api/search';
 import { SearchGlobal } from '../../../util/globals';
+import {logDebugMessage} from "../../../util/logging";
 
 // custom components and helper files
 
@@ -15,8 +16,8 @@ export const SearchSourceScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
-     console.log('currentSource: ' + currentSource);
+     const { textColor, theme } = React.useContext(ThemeContext);
+     logDebugMessage('currentSource: ' + currentSource);
 
      const search = async () => {
           navigateStack('BrowseTab', 'SearchResults', {
@@ -57,14 +58,14 @@ export const SearchSourceScreen = () => {
                                         <Pressable p="$0.5" py="$2" onPress={() => updateSource(index)}>
                                              {currentSource === index ? (
                                                   <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                       <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color="$primary600" />
+                                                       <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} />
                                                        <Text color={textColor} ml="$2">
                                                             {source.name}
                                                        </Text>
                                                   </HStack>
                                              ) : (
                                                   <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                       <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400" />
+                                                       <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']} />
                                                        <Text color={textColor} ml="$2">
                                                             {source.name}
                                                        </Text>

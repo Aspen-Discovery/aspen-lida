@@ -1,6 +1,29 @@
 import React from 'react';
 import _ from 'lodash';
-import { CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Heading, Button, ButtonGroup, ButtonText, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, ButtonSpinner, Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
+import {
+     CloseIcon,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalCloseButton,
+     ModalBody,
+     ModalFooter,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     Icon,
+     ButtonSpinner,
+     Input,
+     InputField,
+     InputSlot,
+     InputIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
@@ -61,6 +84,7 @@ export const AddAlternateLibraryCard = (props) => {
 
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
+     const toast = useToast();
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
      let passwordLabel = getTermFromDictionary(language, 'password');
@@ -121,7 +145,7 @@ export const AddAlternateLibraryCard = (props) => {
                          <Heading size="md" color={textColor}>
                               {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                          </Heading>
-                         <ModalCloseButton p="$3">
+                         <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                               <Icon as={CloseIcon} color={textColor} />
                          </ModalCloseButton>
                     </ModalHeader>
@@ -162,14 +186,14 @@ export const AddAlternateLibraryCard = (props) => {
                                         setShowModal(false);
                                         setLoading(false);
                                    }}>
-                                   <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);
-                                        await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                        await completeAction(toast, id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              logDebugMessage("Completed Action after add alternate library card");
                                              if (result) {
@@ -219,7 +243,7 @@ export const AddAlternateLibraryCard = (props) => {
                                              }
                                         });
                                    }}>
-                                   {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                   {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                               </Button>
                          </ButtonGroup>
                     </ModalFooter>

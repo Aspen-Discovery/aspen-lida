@@ -1,4 +1,30 @@
-import { Box, Button, ButtonSpinner, ButtonGroup, ButtonIcon, ButtonText, Text, Heading, Icon, CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
+import {
+     Box,
+     Button,
+     ButtonSpinner,
+     ButtonGroup,
+     ButtonIcon,
+     ButtonText,
+     Text,
+     Heading,
+     Icon,
+     CloseIcon,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalCloseButton,
+     ModalBody,
+     ModalFooter,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Input,
+     InputField,
+     InputSlot,
+     InputIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import _ from 'lodash';
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,6 +114,7 @@ export const CheckOut = (props) => {
           const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
           const [showPassword, setShowPassword] = React.useState(false);
           const toggleShowPassword = () => setShowPassword(!showPassword);
+          const toast = useToast();
 
           const source = {
                baseUrl: library.baseUrl,
@@ -121,7 +148,7 @@ export const CheckOut = (props) => {
           return (
                <>
                     <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowAddAlternateLibraryCardModal(true)}>
-                         <ButtonText color="$textLight200">{title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>
                     </Button>
                     <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
                          <ModalBackdrop />
@@ -130,7 +157,7 @@ export const CheckOut = (props) => {
                                    <Heading size="md" color={textColor}>
                                         {getTermFromDictionary(language, 'add_alternate_library_card')}
                                    </Heading>
-                                   <ModalCloseButton p="$3">
+                                   <ModalCloseButton p="$3" onPress={() => { setShowAddAlternateLibraryCardModal(false); }}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
@@ -171,7 +198,7 @@ export const CheckOut = (props) => {
                                                   setShowAddAlternateLibraryCardModal(false);
                                                   setLoading(false);
                                              }}>
-                                             <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                             <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
                                              bgColor={theme.tokens.colors.primary['500']}
@@ -179,10 +206,8 @@ export const CheckOut = (props) => {
                                              onPress={async () => {
                                                   setLoading(true);
                                                   await updateCard();
-                                                  await completeAction(record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (response) => {
-                                                       if (__DEV__) {
-                                                            console.log("Completed Action - Checkout with alternate card");
-                                                       }
+                                                  await completeAction(toast, record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (response) => {
+                                                       logDebugMessage("Completed Action - Checkout with alternate card");
                                                        setResponse(response);
                                                        if (response.success) {
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
@@ -193,7 +218,7 @@ export const CheckOut = (props) => {
                                                        setShowAddAlternateLibraryCardModal(false);
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color="$textLight200" /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                                             {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                                         </Button>
                                    </ButtonGroup>
                               </ModalFooter>
@@ -211,11 +236,9 @@ export const CheckOut = (props) => {
                          variant="solid"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
+                              await completeAction(toast, record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
                                    setResponse(eContentResponse);
-                                   if (__DEV__) {
-                                        console.log("Completed Action - Checkout");
-                                   }
+                                   logDebugMessage("Completed Action - Checkout");
                                    if (eContentResponse.success) {
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
                                         queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
@@ -224,7 +247,7 @@ export const CheckOut = (props) => {
                                    setResponseIsOpen(true);
                               });
                          }}>
-                         {loading ? <ButtonSpinner color="$textLight200" pr={2} /> : <ButtonText color="$textLight200">{title}</ButtonText>}
+                         {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} pr={2} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
                     </Button>
                </>
           );

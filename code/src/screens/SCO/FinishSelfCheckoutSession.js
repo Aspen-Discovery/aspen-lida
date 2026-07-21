@@ -51,10 +51,10 @@ export const FinishCheckOutSession = () => {
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
                                    <Button size="sm" onPress={() => StartNewSession()} bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                    </Button>
                                    <Button size="sm" bgColor={theme.tokens.colors.primary['500']} onPress={() => GoToCheckouts()}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

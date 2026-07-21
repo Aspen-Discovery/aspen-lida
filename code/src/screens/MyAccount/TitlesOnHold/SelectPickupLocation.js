@@ -12,9 +12,8 @@ import {
      FormControl,
      FormControlLabel,
      FormControlLabelText,
-     HStack,
+     Heading,
      Icon,
-     Pressable,
      Select,
      SelectTrigger,
      SelectInput,
@@ -25,13 +24,16 @@ import {
      SelectDragIndicatorWrapper,
      SelectDragIndicator,
      SelectItem,
-     VStack,
-     Text,
      ActionsheetIcon,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalCloseButton,
+     ModalHeader,
+     ModalBody,
+     ModalFooter, useToast,
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import Modal from 'react-native-modal';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 import { changeHoldPickUpLocation } from '../../../util/api/user';
@@ -64,6 +66,7 @@ export const SelectPickupLocation = (props) => {
      const [showModal, setShowModal] = React.useState(false);
      let [location, setLocation] = React.useState(pickupLocation);
      let [activeSublocation, setActiveSublocation] = React.useState(null);
+     const toast = useToast();
 
      return (
           <>
@@ -78,39 +81,23 @@ export const SelectPickupLocation = (props) => {
                </ActionsheetItem>
                <Modal
 
-                    isVisible={showModal}
+                    isOpen={showModal}
                     avoidKeyboard={true}
                     onBackdropPress={() => {
                          setShowModal(false);
                     }}>
-                    <Box
-                         bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
-                         rounded="$md"
-                         p="$1">
-                         <VStack space="sm">
-                              <HStack
-                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
-                                   p="$4"
-                                   borderBottomWidth="$1"
-                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
-                                   justifyContent="space-between"
-                                   alignItems="flex-start">
-                                   <Box>
-                                        <Text bold color={textColor}>{getTermFromDictionary(language, 'change_hold_location')}</Text>
-                                   </Box>
-                                   <Pressable onPress={() => setShowModal(false)}>
-                                        <CloseIcon
-                                             zIndex={1}
-                                             color={textColor}
-                                             p="$2"
-                                             bg="transparent"
-                                             borderRadius="$sm"
-                                        />
-                                   </Pressable>
-                              </HStack>
+                    <ModalBackdrop />
+                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalHeader>
+                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'change_hold_location')}</Heading>
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
+                                   <Icon as={CloseIcon} color={textColor} />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
                               <Box pl="$4" pr="$4" _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
                                    <FormControl>
-                                        <FormControlLabel><FormControlLabelText>{getTermFromDictionary(language, 'select_new_pickup')}</FormControlLabelText></FormControlLabel>
+                                        <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_new_pickup')}</FormControlLabelText></FormControlLabel>
                                         <Select
                                              name="pickupLocations"
                                              selectedValue={location}
@@ -126,12 +113,12 @@ export const SelectPickupLocation = (props) => {
                                                        const code = item.code;
                                                        const id = locationId.concat('_', code);
                                                        if (id === location) {
-                                                            return <SelectInput value={item.name} color={textColor} />;
+                                                            return <SelectInput py={0} value={item.name} color={textColor} />;
                                                        }
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
                                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -144,7 +131,7 @@ export const SelectPickupLocation = (props) => {
                                                                  const locationId = item.locationId;
                                                                  const code = item.code;
                                                                  const id = locationId.concat('_', code);
-                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: location === (id) ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>;
+                                                                 return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>;
                                                             })}
                                                        </ScrollView>
                                                   </SelectContent>
@@ -153,14 +140,13 @@ export const SelectPickupLocation = (props) => {
                                    </FormControl>
                               </Box>
                               <SelectExistingHoldSubLocation location={location} sublocations={sublocations} language={language} activeSublocation={activeSublocation} setActiveSublocation={setActiveSublocation}/>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup
-                                   p="$4"
+                                   space="$4"
                                    flexDirection="row"
                                    justifyContent="flex-end"
                                    flexWrap="wrap"
-                                   bgColor={colorMode === 'light' ? "$muted50" : "$muted800"}
-                                   borderTopWidth="$1"
-                                   borderColor={colorMode === 'light' ? "$muted300" : "$muted700"}
                                    >
                                    <Button
                                         variant="outline"
@@ -176,18 +162,18 @@ export const SelectPickupLocation = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);
-                                             changeHoldPickUpLocation(holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
+                                             changeHoldPickUpLocation(toast, holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
                                                   setShowModal(false);
                                                   resetGroup();
                                                   onClose(onClose);
                                                   setLoading(false);
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'change_location')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'change_location')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </VStack>
-                    </Box>
+                         </ModalFooter>
+                    </ModalContent>
                </Modal>
           </>
      );

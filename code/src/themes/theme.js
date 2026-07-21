@@ -18,8 +18,8 @@ export const BackIcon = (props) => {
      return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['tokens']['colors']['primary']['baseContrast']} />;
 };
 
-export async function createTheme(colorMode) {
-     const response = await getThemeInfo();
+export async function createTheme(toast, colorMode) {
+     const response = await getThemeInfo(toast);
      const theme = createConfig({
           ...defaultConfig,
           tokens: {
@@ -35,8 +35,8 @@ export async function createTheme(colorMode) {
      return theme;
 }
 
-export async function createGlueTheme(url) {
-     const response = await getThemeInfo(url);
+export async function createGlueTheme(toast, url) {
+     const response = await getThemeInfo(toast, url);
      const theme = createConfig({
           ...defaultConfig,
           tokens: {
@@ -100,7 +100,8 @@ export function UseColorMode(props) {
      const { updateColorMode, updateTextColor, theme } = React.useContext(ThemeContext);
 
      const switchColorMode = async () => {
-          if (colorMode == 'light') {
+          let newColorMode;
+          if (colorMode === 'light') {
                newColorMode = 'dark';
           }else{
                newColorMode = 'light';

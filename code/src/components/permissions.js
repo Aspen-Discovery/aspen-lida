@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as SplashScreen from 'expo-splash-screen';
 import { Component } from 'react';
+import {logDebugMessage, logErrorMessage} from "../util/logging";
 
 // TODO: Compare installed version to latest version and prompt user to update
 export default class Permissions extends Component {
@@ -87,7 +88,7 @@ async function setAppDetails() {
                await SecureStore.setItemAsync('slug', Constants.expoConfig.slug);
                await SecureStore.setItemAsync('apiUrl', Constants.expoConfig.extra.apiUrl);
           } catch (e) {
-               console.log(e);
+               logErrorMessage(e);
           }
 
           if (global.releaseChannel === 'production' || global.releaseChannel === 'beta') {
@@ -96,8 +97,8 @@ async function setAppDetails() {
                await SecureStore.setItemAsync('releaseChannel', 'any');
           }
 
-          console.log('Release channel variable set.');
+          logDebugMessage('Release channel variable set.');
      } catch (e) {
-          console.log('Error setting release channel variable.');
+          logErrorMessage('Error setting release channel variable.');
      }
 }

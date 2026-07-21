@@ -39,12 +39,10 @@ export const UserContext = React.createContext({
      notificationSettings: [],
      updateNotificationSettings: () => {},
      expoToken: false,
-     aspenToken: false,
      userDebugMessage: '',
      updateUserDebugMessage: () => {},
      resetUser: () => {},
      updateExpoToken: () => {},
-     updateAspenToken: () => {},
      notificationOnboard: 0,
      updateNotificationOnboard: () => {},
      notificationOnboardStatus: false,
@@ -395,7 +393,6 @@ export const UserProvider = ({ children }) => {
      const [notificationOnboard, setNotificationOnboard] = useState(0);
      const [appPreferences, setAppPreferences] = useState([]);
      const [expoToken, setExpoToken] = useState(false);
-     const [aspenToken, setAspenToken] = useState(false);
      const [userDebugMessage, setUserDebugMessage] = useState([]);
      const [seenNotificationOnboardPrompt, setSeenNotificationOnboardPrompt] = useState(true);
      const [notificationHistory, setNotificationHistory] = useState([]);
@@ -555,7 +552,6 @@ export const UserProvider = ({ children }) => {
                     );
                     setNotificationSettings(settings);
                     setExpoToken(deviceSettings[0]?.token ?? false);
-                    setAspenToken(true);
 
                     if (deviceSettings && _.isObject(deviceSettings)) {
                          if (_.isObject(deviceSettings[0])) {
@@ -571,7 +567,6 @@ export const UserProvider = ({ children }) => {
                } else {
                     logDebugMessage('No settings found for this device model yet');
                     setExpoToken(false);
-                    setAspenToken(false);
 
                     const deviceSettings = _.filter(data, { device: 'Unknown' });
                     if (deviceSettings && _.isObject(deviceSettings)) {
@@ -613,7 +608,6 @@ export const UserProvider = ({ children }) => {
                          );
                          setNotificationSettings(settings);
                          setExpoToken(false);
-                         setAspenToken(true);
                     }
 
                     if (userOnboardStatus) {
@@ -623,7 +617,6 @@ export const UserProvider = ({ children }) => {
           } else {
                // something went wrong when receiving data from Discovery API
                setExpoToken(false);
-               setAspenToken(false);
                setNotificationOnboard(0);
           }
 
@@ -646,12 +639,8 @@ export const UserProvider = ({ children }) => {
           //logDebugMessage('updated expo token UserContext');
      };
 
-     const updateAspenToken = (data) => {
-          setAspenToken(data);
-          //logDebugMessage('updated aspen token UserContext');
-     };
-
      const updateUserDebugMessage = (data) => {
+          logDebugMessage(data);
           setUserDebugMessage(userDebugMessage => {
                const newArray = [data, ...userDebugMessage];
                if (newArray.length > 50) {
@@ -721,9 +710,7 @@ export const UserProvider = ({ children }) => {
                     notificationSettings,
                     updateNotificationSettings,
                     expoToken,
-                    aspenToken,
                     updateExpoToken,
-                    updateAspenToken,
                     userDebugMessage,
                     updateUserDebugMessage,
                     notificationOnboard,

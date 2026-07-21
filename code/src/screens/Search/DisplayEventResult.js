@@ -1,4 +1,4 @@
-import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, useToast } from '@gluestack-ui/themed';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
@@ -22,6 +22,7 @@ export const DisplayEventResult = (props) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -67,6 +68,10 @@ export const DisplayEventResult = (props) => {
 
           if (item.source === 'assabet') {
                eventSource = 'assabet';
+          }
+
+          if (item.source === 'aspenEvent') {
+               eventSource = 'aspenEvent';
           }
 
           if (item.bypass) {
@@ -119,7 +124,7 @@ export const DisplayEventResult = (props) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

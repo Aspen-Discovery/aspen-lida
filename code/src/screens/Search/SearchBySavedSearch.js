@@ -33,7 +33,6 @@ export const SearchResultsForSavedSearch = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
           },
@@ -62,19 +61,18 @@ export const SearchResultsForSavedSearch = () => {
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>

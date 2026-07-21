@@ -8,13 +8,30 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import _, { values } from 'lodash';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonIcon, Divider, HStack, Icon, Image, Pressable, Text, useToken, VStack } from '@gluestack-ui/themed';
+import _ from 'lodash';
+import {
+     Badge,
+     BadgeText,
+     Box,
+     Button,
+     ButtonText,
+     ButtonIcon,
+     Divider,
+     HStack,
+     Icon,
+     Image,
+     Pressable,
+     Text,
+     Spinner,
+     useToken,
+     VStack,
+     useToast
+} from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { AppState, Platform, View } from 'react-native';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
@@ -23,16 +40,16 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
 import { UseColorMode } from '../../themes/theme';
-import { getTermFromDictionary, getTranslationsWithValues, LanguageSwitcher } from '../../translations/TranslationService';
-import { fetchSavedSearches, getListGroups, getLists } from '../../util/api/list';
+import { getTermFromDictionary, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus } from '../../util/api/system';
-import { getILSMessages, getPickupLocations, fetchNotificationHistory, getLinkedAccounts, getPatronCheckedOutItems, getPatronHolds, getViewerAccounts, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations } from '../../util/api/user';
+import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, fetchNotificationHistory, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatNotificationHistory, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
+import { getListGroups, getLists, fetchSavedSearches } from '../../util/api/list';
+import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../util/api/search';
 
 import { GLOBALS, PATRON } from '../../util/globals';
-import { formatDiscoveryVersion, stripHTML } from '../../helpers/helpers';
-import { getHomeScreenFeed, getBrowseCategoryListForUser } from '../../util/api/search';
+import { stripHTML } from '../../helpers/helpers';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
 
@@ -59,21 +76,22 @@ function onAppStateChange(AppStateStatus) {
 const prefix = Linking.createURL('/');
 
 export const DrawerContent = (props) => {
-     const {colorMode, textColor} = React.useContext(ThemeContext);
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
      const linkTo = useLinkTo();
      const insets = useSafeAreaInsets();
-     const { user, accounts, viewers, cards, lists, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateSavedEvents, updateLibraryCards, updateLinkedViewerAccounts, updateReadingHistory, notificationSettings, expoToken, updateNotificationOnboard, notificationOnboard, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod, updateListGroups, updateSavedSearches } = React.useContext(UserContext);
+     const { user, accounts, cards, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateLibraryCards, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod, updateListGroups, updateSavedSearches } = React.useContext(UserContext);
      const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const [notifications, setNotifications] = React.useState([]);
+     // noinspection JSUnusedLocalSymbols
+     const [ notifications, setNotifications] = React.useState([]);
      const [messages, setILSMessages] = React.useState([]);
      const { category, list, maxNum, updateBrowseCategories, updateBrowseCategoryList } = React.useContext(BrowseCategoryContext);
      const { updateCheckouts } = React.useContext(CheckoutsContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
      const [invalidSession, setInvalidSession] = React.useState(false);
-     const { updateLocations } = React.useContext(LibraryBranchContext);
+     const { updateLocations } = React.useContext(LibraryBranchContext)
+
 
      React.useEffect(() => {
           const subscription = Notifications.addNotificationReceivedListener((notification) => {
@@ -84,9 +102,10 @@ export const DrawerContent = (props) => {
 
      React.useEffect(() => {
           const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+               // noinspection JSIgnoredPromiseFromCall
                handleNewNotificationResponse(response);
           });
-           const stateChangeSubscription = AppState.addEventListener('change', onAppStateChange)
+          const stateChangeSubscription = AppState.addEventListener('change', onAppStateChange)
           return () => {
                subscription.remove();
                stateChangeSubscription.remove();
@@ -119,15 +138,15 @@ export const DrawerContent = (props) => {
           }
      });
 
-     //MDN 25.08 DIS-276 Change to use refresh profile rather than reload profile because it utilizes caching within
-     //Aspen Discovery to return results as quickly as possible.
-     useQuery(['user', library.baseUrl, language], () => refreshProfile(library.baseUrl), {
+     // Destructured isLoading from user query to pass down to child items for visual loaders
+     const { isSuccess: isUserLoadedSuccessfully } = useQuery(['user', library.baseUrl, language], () => refreshProfile(library.baseUrl), {
           initialData: user,
           refetchInterval: 60 * 1000 * 5,
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always',
           onSuccess: (data) => {
                if(data.ok) {
+                    logDebugMessage("Refreshed user in Drawer Content");
                     const validProfile = data.data.result.success ?? true;
                     if (validProfile) {
                          setInvalidSession(false);
@@ -143,15 +162,13 @@ export const DrawerContent = (props) => {
                               PATRON.language = data.data.result.profile.interfaceLanguage ?? 'en';
                          }
                     } else {
-                         //MDN 25.08 DIS-276 Change to use refresh profile rather than reload profile because it utilizes caching within
                          let errorFetching = data.errorFetching ?? false;
-                         //If we had an error fetching data, do not force the user out
                          if (errorFetching === false) {
                               logWarnMessage("Session was invalid after reloading profile");
                               logWarnMessage(data);
                               setInvalidSession(true);
                          }
-                         logErrorMessage(data); // go ahead and log the error so it goes to Sentry in hopes to identify issues
+                         logErrorMessage(data);
                     }
                } else {
                     logDebugMessage("Error reloading user profile");
@@ -297,7 +314,7 @@ export const DrawerContent = (props) => {
           }
      });
 
-     useQuery(['linked_accounts', library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
+     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
           initialData: accounts,
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
@@ -313,32 +330,13 @@ export const DrawerContent = (props) => {
                          updateLibraryCards(linkedAccounts.cards);
                     }
                } else {
-                    logDebugMessage("Error fetching linked accounts");
+                    logDebugMessage("Error fetching linked accounts (response was not ok)");
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
           },
           onError: (error) => {
-               logDebugMessage("Error fetching linked accounts");
-               logErrorMessage(error);
-          }
-     });
-
-     useQuery(['viewer_accounts', user.id, library.baseUrl, language], () => getViewerAccounts(library.baseUrl, language), {
-          initialData: viewers,
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    updateLinkedViewerAccounts(values(data.data?.result?.viewers ?? []));
-               } else {
-                    logDebugMessage("Error fetching linked viewer accounts");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching linked viewer accounts");
+               logErrorMessage("Error fetching linked accounts");
                logErrorMessage(error);
           }
      });
@@ -415,6 +413,7 @@ export const DrawerContent = (props) => {
           onSuccess: (data) => {
                if(data.ok){
                     logDebugMessage("Updating locations");
+                    logDebugMessage(data);
                     updateLocations(data.data.result.locations);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -495,30 +494,33 @@ export const DrawerContent = (props) => {
           }
      });
 
-     const isReloadingProfile = React.useRef(false);
+     const [reloadProfileStarted, setReloadProfileStarted] = React.useState(false);
+     const [isReloadingProfile, setReloadingProfile] = React.useState(true);
      useFocusEffect(
           React.useCallback(() => {
                let isMounted = true;
                const update = async () => {
-                    if (isReloadingProfile.current) {
-                         logDebugMessage("Skipping DrawerContent profile reload, already in progress");
+                    if (!isMounted) {
+                         logDebugMessage("Skipping DrawerContent useFocusEffect because component is unmounted");
                          return;
                     }
-                    isReloadingProfile.current = true;
+
+                    if (reloadProfileStarted) {
+                         logDebugMessage("Skipping DrawerContent profile reload, already in progress");
+                         return;
+                    }else{
+                         setReloadProfileStarted(true);
+                    }
 
                     try {
-                         if (!isMounted) {
-                              logDebugMessage("Skipping DrawerContent useFocusEffect because component is unmounted");
-                              return;
-                         }
                          logDebugMessage("Starting DrawerContent useFocusEffect");
 
                          let latitude = await SecureStore.getItemAsync('latitude');
                          let longitude = await SecureStore.getItemAsync('longitude');
-                         if (userLatitude != latitude) {
+                         if (userLatitude !== latitude) {
                               setUserLatitude(latitude);
                          }
-                         if (userLongitude != longitude) {
+                         if (userLongitude !== longitude) {
                               setUserLongitude(longitude);
                          }
 
@@ -559,7 +561,7 @@ export const DrawerContent = (props) => {
                     } catch (error) {
                          logErrorMessage("Error in DrawerContent useFocusEffect: " + error.message);
                     } finally {
-                         isReloadingProfile.current = false;
+                         setReloadingProfile(false);
                     }
                };
                update();
@@ -598,35 +600,6 @@ export const DrawerContent = (props) => {
           }
      };
 
-     const [finesSummary, setFinesSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               logDebugMessage("Getting fines translation");
-               await getTranslationsWithValues('accounts_have_fines', user.fines ?? 0, language, library.baseUrl).then((result) => {
-                    let term = _.toString(result);
-                    if (!term.includes('%')) {
-                         setFinesSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
-
-     const displayFinesAlert = () => {
-          if (user.finesVal) {
-               if (user.finesVal > 0.01) {
-                    let message = 'Your accounts have ' + user.fines + ' in fines.';
-                    if (finesSummary) {
-                         message = finesSummary;
-                    }
-                    return showILSMessage('error', message);
-               }
-          }
-
-          return null;
-     };
-
      const displayILSMessages = () => {
           if (messages) {
                if (_.isArray(messages)) {
@@ -642,11 +615,11 @@ export const DrawerContent = (props) => {
      };
 
      if (catalogStatus > 0) {
-          return <CatalogOffline />;
+          return <CatalogOffline key="catalog-offline-screen" />;
      }
 
      if (invalidSession === true || invalidSession === 'true') {
-          return <InvalidCredentials />;
+          return <InvalidCredentials key="invalid-credentials-screen" />;
      }
 
      return (
@@ -660,38 +633,37 @@ export const DrawerContent = (props) => {
                     }}
                >
                     <VStack space="$md" mx={4} flex={1}>
-                         <UserProfileOverview />
+                         <UserProfileOverview isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
 
                          {displayILSMessages()}
 
                          <Divider my="$3"/>
 
                          <VStack flex={1}>
-                              <Checkouts />
-                              <Holds />
-                              <UserLists />
-                              <SavedSearches />
-                              <ReadingHistory />
-                              <YearInReview />
-                              <Fines />
+                              <Checkouts isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <Holds isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <UserLists isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <SavedSearches isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <ReadingHistory isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <YearInReview  isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
+                              <Fines isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile}/>
                               <NotificationHistory />
-                              <Events />
+                              <Events isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile}/>
                               <Campaigns />
 
                               <Divider my="$2" />
 
                               <UserProfile />
-                              <LinkedAccounts />
+                              <LinkedAccounts  isUserLoadedSuccessfully={isUserLoadedSuccessfully && !isReloadingProfile} />
                               <AlternateLibraryCard />
                          </VStack>
 
-                         {/* logout button, color mode switcher, language switcher */}
                          <VStack space={3} alignItems="center" pt="4">
                               <HStack space={2}>
                                    <LogOutButton />
                               </HStack>
-                              <HStack space={2}>
-                                   <UseColorMode showText={false} />
+                              <HStack space={2} mt={8}>
+                                   <UseColorMode showText={false}/>
                                    <LanguageSwitcher />
                               </HStack>
                          </VStack>
@@ -701,7 +673,7 @@ export const DrawerContent = (props) => {
      );
 };
 
-const UserProfileOverview = () => {
+const UserProfileOverview = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -721,50 +693,46 @@ const UserProfileOverview = () => {
                <HStack space={3} alignItems="center">
                     <Image source={{ uri: icon }} fallbackSource={require('../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} borderRadius="$md" />
                     <Box ml="$3">
-                         {user && user.displayName ? (
-                              <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175" color={textColor}>
-                                   {user.displayName}
-                              </Text>
-                         ) : null}
+                         {isUserLoadedSuccessfully ?
+                              (user && user.displayName ? (
+                                   <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175" color={textColor}>
+                                        {user.displayName}
+                                   </Text>
+                              ) : null)
+                         :
+                              <Spinner />
+                         }
 
                          {library && library.displayName ? (
                               <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
                                    {library.displayName}
                               </Text>
                          ) : null}
-                         <HStack space={1} alignItems="center">
-                              <Icon as={MaterialIcons} name="credit-card" size="xs" color={textColor} />
-                              {user && (user.ils_barcode || user.cat_username) ? (
-                                   <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
-                                        {user.ils_barcode ?? user.cat_username}
-                                   </Text>
-                              ) : null}
-                         </HStack>
+                         {isUserLoadedSuccessfully ?
+                              <HStack space={1} alignItems="center">
+                                   <Icon as={MaterialIcons} name="credit-card" size="xs" color={textColor} />
+                                   {user && (user.ils_barcode || user.cat_username) ? (
+                                        <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
+                                             {user.ils_barcode ?? user.cat_username}
+                                        </Text>
+                                   ) : null}
+                              </HStack>
+                         :
+                              <Spinner />
+                         }
                     </Box>
                </HStack>
           </Box>
      );
 };
 
-const Checkouts = () => {
+const Checkouts = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
-     const [checkoutSummary, setCheckoutSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('checkouts_overdue_summary', user.numOverdue ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setCheckoutSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
+     if (!user || !library) return null;
 
      return (
           <Pressable
@@ -784,13 +752,15 @@ const Checkouts = () => {
                               <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'checked_out_titles')}
                               </Text>
-                              {user ? (
+                              {isUserLoadedSuccessfully ? (
                                    <Text fontWeight="$bold" color={textColor}> ({user.numCheckedOut ?? 0})</Text>
+                              ) : user ? (
+                                   <Spinner size="small" ml="$1" />
                               ): null }
                          </HStack>
-                         {user.numOverdue > 0 ? (
+                         {isUserLoadedSuccessfully && user.numOverdue > 0 ? (
                               <Badge action="error" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{checkoutSummary}</BadgeText>
+                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'checkouts_overdue_summary').replace("%1%", user.numOverdue)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -799,25 +769,13 @@ const Checkouts = () => {
      );
 };
 
-const Holds = () => {
+const Holds = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { textColor } = React.useContext(ThemeContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
 
-     const [holdSummary, setHoldSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_holds_ready_for_pickup', user.numHoldsAvailable ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setHoldSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
+     if (!user || !library) return null;
 
      return (
           <Pressable
@@ -837,13 +795,15 @@ const Holds = () => {
                               <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'titles_on_hold')}
                               </Text>
-                              {user ? (
+                              {isUserLoadedSuccessfully ? (
                                    <Text fontWeight="$bold" color={textColor}> ({user.numHolds ?? 0})</Text>
+                              ) : user ? (
+                                   <Spinner size="small" ml="$1" />
                               ) : null}
                          </HStack>
-                         {user.numHoldsAvailable > 0 ? (
+                         {isUserLoadedSuccessfully && user.numHoldsAvailable > 0 ? (
                               <Badge action="success" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{holdSummary}</BadgeText>
+                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_holds_ready_for_pickup', false).replace('%1%', user.numHoldsAvailable)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -852,41 +812,11 @@ const Holds = () => {
      );
 };
 
-const UserLists = () => {
+const UserLists = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-
-     if (version >= '22.08.00') {
-          return (
-               <Pressable
-                    px="$2"
-                    py="$2"
-                    borderRadius="$md"
-                    onPress={() => {
-                         navigateStack('AccountScreenTab', 'MyLists', {
-                              libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         });
-                    }}>
-                    <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                         <VStack>
-                              <HStack space="xs" alignItems="center">
-                                   <Text fontWeight="$medium" color={textColor}>
-                                        {getTermFromDictionary(language, 'my_lists')}
-                                   </Text>
-                                   {user ? (
-                                        <Text fontWeight="$bold" color={textColor}> ({user.numLists ?? 0})</Text>
-                                   ) : null}
-                              </HStack>
-                         </VStack>
-                    </HStack>
-               </Pressable>
-          );
-     }
 
      return (
           <Pressable
@@ -894,41 +824,35 @@ const UserLists = () => {
                py="$2"
                borderRadius="$md"
                onPress={() => {
-                    navigateStack('MyListsStack', 'MyLists', {
+                    navigateStack('AccountScreenTab', 'MyLists', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false,
                     });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                    <VStack width="$full">
-                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'my_lists')}</Text>
+                    <VStack>
+                         <HStack space="xs" alignItems="center">
+                              <Text fontWeight="$medium" color={textColor}>
+                                   {getTermFromDictionary(language, 'my_lists')}
+                              </Text>
+                              {isUserLoadedSuccessfully ? (
+                                   <Text fontWeight="$bold" color={textColor}> ({user.numLists ?? 0})</Text>
+                              ) : (
+                                   <Spinner />
+                              )}
+                         </HStack>
                     </VStack>
                </HStack>
           </Pressable>
      );
 };
 
-const SavedSearches = () => {
+const SavedSearches = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-
-     const [savedSearchSummary, setSavedSearchSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_saved_searches_with_updates', user.numSavedSearchesNew ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%')) {
-                         setSavedSearchSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
 
      return (
           <Pressable
@@ -952,25 +876,26 @@ const SavedSearches = () => {
                                    <Text fontWeight="$bold" color={textColor}> ({user.numSavedSearches ?? 0})</Text>
                               ): null}
                          </HStack>
-                         {user.numSavedSearchesNew > 0 ? (
-                              <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
-                              </Badge>
-                         ) : null}
+                         {isUserLoadedSuccessfully ?
+                              (user.numSavedSearchesNew > 0 ? (
+                                   <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                        <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_searches_with_updates', user.numSavedSearchesNew)}</BadgeText>
+                                   </Badge>
+                              ) : null)
+                         :
+                              <Spinner/>
+                         }
                     </VStack>
                </HStack>
           </Pressable>
      );
-
-     return null;
 };
 
-const ReadingHistory = () => {
+const ReadingHistory = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
 
      return (
           <Pressable
@@ -990,14 +915,16 @@ const ReadingHistory = () => {
                               <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'reading_history')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numReadingHistory ?? 0})</Text>
+                              { isUserLoadedSuccessfully ?
+                                   <Text fontWeight="$bold" color={textColor}> ({user.numReadingHistory ?? 0})</Text>
+                              :
+                                   <Spinner />
+                              }
                          </HStack>
                     </VStack>
                </HStack>
           </Pressable>
      );
-
-     return null;
 };
 
 const UserProfile = () => {
@@ -1044,15 +971,16 @@ const NotificationHistory = () => {
                     </HStack>
                </Pressable>
           );
+     }else{
+          return null;
      }
 };
 
-const LinkedAccounts = () => {
+const LinkedAccounts = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
 
      if (library.allowLinkedAccounts === '1') {
           return (
@@ -1070,7 +998,11 @@ const LinkedAccounts = () => {
                          <Text fontWeight="$medium" color={textColor}>
                               {getTermFromDictionary(language, 'linked_accounts')}
                          </Text>
-                         <Text fontWeight="$bold" color={textColor}> ({user.numLinkedAccounts ?? 0})</Text>
+                         { isUserLoadedSuccessfully ?
+                              <Text fontWeight="$bold" color={textColor}> ({user.numLinkedAccounts ?? 0})</Text>
+                         :
+                              <Spinner />
+                         }
                     </HStack>
                </Pressable>
           );
@@ -1079,34 +1011,10 @@ const LinkedAccounts = () => {
      return null;
 };
 
-const UserPreferences = () => {
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor } = React.useContext(ThemeContext);
-
-     return (
-          <Pressable
-               px="$2"
-               py="$2"
-               onPress={() => {
-                    navigateStack('AccountScreenTab', 'MyPreferences', {
-                         libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
-               }}>
-               <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'preferences')}</Text>
-               </HStack>
-          </Pressable>
-     );
-};
-
 const AlternateLibraryCard = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
 
      let shouldShowAlternateLibraryCard = false;
      if (typeof library.showAlternateLibraryCard !== 'undefined') {
@@ -1136,14 +1044,16 @@ const AlternateLibraryCard = () => {
      return null;
 };
 
-const Fines = () => {
+const Fines = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
+     const textMode = useColorModeValue('gray.800', 'coolGray.200');
+     const backgroundColor = useToken('colors', bgMode);
+     const textColor = useToken('colors', textMode);
+     const toast = useToast();
 
      let shouldShowFines = true;
      if (typeof library.showFines !== 'undefined') {
@@ -1162,14 +1072,18 @@ const Fines = () => {
 
      if (shouldShowFines) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
                               <Text fontWeight="$medium" color={themeTextColor}>{getTermFromDictionary(language, 'fines')}</Text>
-                              <Badge action={hasFines ? 'error' : 'info'} mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
-                              </Badge>
+                              {isUserLoadedSuccessfully ?
+                                   <Badge action={hasFines ? 'error' : 'info'} mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                        <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
+                                   </Badge>
+                              :
+                                   <Spinner />
+                              }
                          </VStack>
                     </HStack>
                </Pressable>
@@ -1179,26 +1093,11 @@ const Fines = () => {
      return null;
 };
 
-const Events = () => {
+const Events = ({ isUserLoadedSuccessfully }) => {
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-
-     const [savedEventsSummary, setSavedEventsSummary] = React.useState('');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('num_saved_events_upcoming', user.numSavedEventsUpcoming ?? 0, language, library.baseUrl).then((result) => {
-                    let term = result;
-                    if (!term.includes('%1%')) {
-                         setSavedEventsSummary(term);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
 
      if (library.hasEventSettings) {
           return (
@@ -1218,11 +1117,15 @@ const Events = () => {
                               <Text fontWeight="$medium" color={textColor}>
                                    {getTermFromDictionary(language, 'events')}
                               </Text>
-                              {user.numSavedEventsUpcoming > 0 ? (
-                                   <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                        <BadgeText fontSize="$xs">{savedEventsSummary}</BadgeText>
-                                   </Badge>
-                              ) : null}
+                              { isUserLoadedSuccessfully ?
+                                   (user.numSavedEventsUpcoming > 0 ? (
+                                        <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
+                                             <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_events_upcoming').replace('%1%', user.numSavedEventsUpcoming)}</BadgeText>
+                                        </Badge>
+                                   ) : null)
+                              :
+                                   <Spinner />
+                              }
                          </VStack>
                     </HStack>
                </Pressable>
@@ -1237,9 +1140,11 @@ const YearInReview = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
-     const version = formatDiscoveryVersion(library.discoveryVersion);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
+     const textMode = useColorModeValue('gray.800', 'coolGray.200');
+     const backgroundColor = useToken('colors', bgMode);
+     const textColor = useToken('colors', textMode);
+     const toast = useToast();
 
      let shouldShowYearInReview = false;
      if (typeof user.hasYearInReview !== 'undefined') {
@@ -1248,7 +1153,7 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
@@ -1266,9 +1171,8 @@ const YearInReview = () => {
 };
 
 const Campaigns = () => {
-     const { user } = React.useContext(UserContext);
-	const { library } = React.useContext(LibrarySystemContext);
-	const { language } = React.useContext(LanguageContext);
+     const { library } = React.useContext(LibrarySystemContext);
+     const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
      if (library.hasCommunityEngagementEnabled) {
           return(
@@ -1292,6 +1196,8 @@ const Campaigns = () => {
                     </HStack>
                </Pressable>
           );
+     }else{
+          return null;
      }
 }
 
@@ -1300,7 +1206,7 @@ async function getStoredNotifications() {
           const notifications = await AsyncStorage.getItem('@notifications');
           return notifications != null ? JSON.parse(notifications) : null;
      } catch (e) {
-          console.log(e);
+          logErrorMessage(e);
      }
 }
 
@@ -1311,7 +1217,7 @@ async function createNotificationStorage(message) {
           const notification = JSON.stringify(array);
           await AsyncStorage.setItem('@notifications', notification);
      } catch (e) {
-          console.log(e);
+          logErrorMessage(e);
      }
 }
 
@@ -1322,7 +1228,7 @@ async function addStoredNotification(message) {
                try {
                     await AsyncStorage.setItem('@notifications', JSON.stringify(response));
                } catch (e) {
-                    console.log(e);
+                    logErrorMessage(e);
                }
           } else {
                await createNotificationStorage(message);
@@ -1333,7 +1239,7 @@ async function addStoredNotification(message) {
 function LogOutButton() {
      const { language } = React.useContext(LanguageContext);
      const { signOut } = React.useContext(AuthContext);
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme } = React.useContext(ThemeContext);
 
      return (
           <Button size="md" action="secondary" onPress={signOut} bgColor={theme.tokens.colors.primary['500']}>

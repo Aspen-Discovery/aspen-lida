@@ -36,7 +36,7 @@ import TitleWithLogo from '../../components/TitleWithLogo'
 
 const AccountStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { theme,textColor } = React.useContext(ThemeContext);
      const Stack = createNativeStackNavigator();
      return (
           <Stack.Navigator
@@ -221,7 +221,7 @@ const AccountStackNavigator = () => {
                          options={{
                               header: () => {
                                    const title = getTermFromDictionary(language, 'saved_searches');
-                                   return <TitleWithLogo title={title} hideBack={true} />;
+                                   return <TitleWithLogo title={title} />;
                               },
                               //title: getTermFromDictionary(language, 'saved_searches'),
                          }}
@@ -229,20 +229,14 @@ const AccountStackNavigator = () => {
                     <Stack.Screen
                          name="MySavedSearch"
                          component={MySavedSearch}
-                         options={({ navigation, route }) => ({
-                              title: route.params.title,
-                              headerLeft: () => {
-                                   if (route.params.prevRoute === 'NONE') {
-                                        return null;
-                                   } else {
-                                        return (
-                                             <Pressable mr={3} onPress={() => navigation.goBack()} p="$1">
-                                                  <ChevronLeftIcon size={6} color="primary.baseContrast" />
-                                             </Pressable>
-                                        );
-                                   }
+                         options={({ route }) => ({
+                              header: () => {
+                                   const title = route.params.title;
+                                   return <TitleWithLogo title={title} />;
                               },
+                              //title: getTermFromDictionary(language, 'saved_searches'),
                          })}
+                         initialParams={{ prevRoute: 'MySavedSearches' }}
                     />
                     <Stack.Screen
                          name="SavedSearchItem"
@@ -338,11 +332,12 @@ const AccountStackNavigator = () => {
                          headerStyle: {
                               backgroundColor: theme['tokens']['colors']['primary']['500'],
                          },
-                         headerTintColor: theme['tokens']['colors']['primary']['500-text'],
+                         headerTintColor: theme['tokens']['colors']['primary']['baseContrast'],
+                         headerBackVisible: false,
                          headerLeft: () => null,
                          headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color="$textLight200" />
+                              <Pressable onPress={() => navigation.goBack()} p="$1">
+                                   <CloseIcon color={theme['tokens']['colors']['primary']['baseContrast']} />
                               </Pressable>
                          ),
                     })}
@@ -366,7 +361,7 @@ const AccountStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color="primary.baseContrast" />
+                                   <CloseIcon size={5} color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -386,6 +381,7 @@ const AccountStackNavigator = () => {
 const PalaceProjectStack = createStackNavigator();
 export const PalaceProjectInstructionsModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <PalaceProjectStack.Navigator
                id="PalaceProjectStack"
@@ -398,7 +394,7 @@ export const PalaceProjectInstructionsModal = () => {
                     },
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr={3} p="$1">
-                              <CloseIcon size={5} color="primary.baseContrast" />
+                              <CloseIcon size={5} color={textColor} />
                          </Pressable>
                     ),
                })}>

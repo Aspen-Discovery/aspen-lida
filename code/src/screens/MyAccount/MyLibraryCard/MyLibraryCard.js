@@ -44,21 +44,25 @@ export const MyLibraryCard = () => {
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
-     useQuery(['linked_accounts', user, cards, library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
+     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
           initialData: accounts,
           onSuccess: (data) => {
                if(data.ok) {
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                    updateLinkedAccounts(linkedAccounts.accounts);
-                    updateLibraryCards(linkedAccounts.cards);
+                    if (accounts !== linkedAccounts.accounts) {
+                         updateLinkedAccounts(linkedAccounts.accounts);
+                    }
+                    if (cards !== linkedAccounts.cards) {
+                         updateLibraryCards(linkedAccounts.cards);
+                    }
                } else {
-                    logDebugMessage("Error fetching linked accounts");
+                    logDebugMessage("Error fetching linked accounts in MyLibraryCard (response was not ok)");
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
           },
           onError: (error) => {
-               logDebugMessage("Error fetching linked accounts");
+               logErrorMessage("Error fetching linked accounts");
                logErrorMessage(error);
           },
           placeholderData: [],
@@ -71,7 +75,7 @@ export const MyLibraryCard = () => {
 
      React.useEffect(() => {
           const updateAccounts = navigation.addListener('focus', async () => {
-               queryClient.invalidateQueries({ queryKey: ['linked_accounts', library.baseUrl, language] });
+               queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
           });
           const brightenScreen = navigation.addListener('focus', async () => {
                const { status } = await Brightness.getPermissionsAsync();
@@ -82,14 +86,14 @@ export const MyLibraryCard = () => {
                } else {
                     if (status === 'granted') {
                          await Brightness.getBrightnessAsync().then((level) => {
-                              console.log('Storing previous screen brightness for later: ' + level);
+                              logDebugMessage('Storing previous screen brightness for later: ' + level);
                               setPreviousBrightness(level);
                          });
                          await Brightness.getSystemBrightnessModeAsync().then((mode) => {
-                              console.log('Storing system brightness mode for later: ' + mode);
+                              logDebugMessage('Storing system brightness mode for later: ' + mode);
                               setBrightnessMode(mode);
                          });
-                         console.log('Updating screen brightness');
+                         logDebugMessage('Updating screen brightness');
                          Brightness.setSystemBrightnessAsync(1);
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
@@ -97,7 +101,7 @@ export const MyLibraryCard = () => {
                          // we were denied permissions
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
-                         console.log('Unable to update screen brightness');
+                         logDebugMessage('Unable to update screen brightness');
                     }
                }
           });
@@ -118,11 +122,11 @@ export const MyLibraryCard = () => {
                     case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
                     case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
                     case ScreenOrientation.Orientation.LANDSCAPE:
-                         console.log('Screen orientation changed to landscape');
+                         logDebugMessage('Screen orientation changed to landscape');
                          setIsLandscape(true);
                          break;
                     default:
-                         console.log('Screen orientation changed to portrait');
+                         logDebugMessage('Screen orientation changed to portrait');
                          setIsLandscape(false);
                          break;
                }
@@ -140,14 +144,14 @@ export const MyLibraryCard = () => {
                (async () => {
                     const { status } = await Brightness.getPermissionsAsync();
                     if (status === 'granted' && previousBrightness) {
-                         console.log('Restoring previous screen brightness');
+                         logDebugMessage('Restoring previous screen brightness');
                          Brightness.setSystemBrightnessAsync(previousBrightness);
-                         console.log('Restoring system brightness');
+                         logDebugMessage('Restoring system brightness');
                          Brightness.restoreSystemBrightnessAsync();
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
                     }
                     if (status === 'granted' && brightnessMode) {
-                         console.log('Restoring brightness mode');
+                         logDebugMessage('Restoring brightness mode');
                          let mode = 'BrightnessMode.MANUAL';
                          if (brightnessMode === 1) {
                               mode = 'BrightnessMode.AUTOMATIC';
@@ -270,7 +274,7 @@ export const MyLibraryCard = () => {
                                                             setCurrentCardIndex(index);
                                                             setShowDrawer(false);
                                                        }}>
-                                                       <ButtonText color={index === currentCardIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>
+                                                       <ButtonText color={index === currentCardIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>
                                                             {card.displayName}
                                                        </ButtonText>
                                                   </Button>
@@ -340,7 +344,6 @@ const CreateLibraryCard = (data) => {
 
           React.useEffect(() => {
                async function fetchTranslations() {
-                    console.log(card.expires);
                     await getTranslationsWithValues('library_card_expires_on', card.expires, language, library.baseUrl).then((result) => {
                          setExpirationText(result);
                     });
@@ -529,7 +532,7 @@ const CardCarousel = (data) => {
                               animated: false,
                          });
                     }}>
-                    <ButtonText color={index === currentIndex ? theme['tokens']['colors']['tertiary']['500-text'] : textColor}>{card.displayName}</ButtonText>
+                    <ButtonText color={index === currentIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>{card.displayName}</ButtonText>
                </Button>
           );
      };
@@ -709,7 +712,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                              onPress={rotateToLandscape}
                                              mt="$2">
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-landscape" size="sm" mr="$2" />
-                                             <ButtonText color="$textLight200">
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                                   {getTermFromDictionary(language, 'rotate_to_landscape') || 'Rotate to Landscape'}
                                              </ButtonText>
                                         </Button>
@@ -723,7 +726,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                                              bgColor={theme.tokens.colors.primary['500']}
                                              onPress={rotateToPortrait}>
                                              <ButtonIcon as={MaterialCommunityIcons} name="phone-rotate-portrait" size="sm" mr="$2" />
-                                             <ButtonText color="$textLight200">
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>
                                                   {getTermFromDictionary(language, 'rotate_to_portrait') || 'Rotate to Portrait'}
                                              </ButtonText>
                                         </Button>

@@ -137,12 +137,24 @@ export async function getFirstRecord(itemId, format, language, url = null) {
  * @returns {Promise<array>}
  **/
 export async function getVolumes(id, url = null) {
+     if (!id || !url) return [];
+
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
 
      const response = await client.get('/ItemAPI?method=getVolumes', { id });
+     logDebugMessage("GetVolumes");
+     logDebugMessage(response);
 
      if (response.ok && response.data?.result.volumes) {
-          return [...response.data.result.volumes].sort((a, b) => (a.key ?? '').toString().localeCompare((b.key ?? '').toString()));
+          const volumesList = response.data?.result?.volumes;
+
+          const volumesArray = Array.isArray(volumesList)
+               ? volumesRaw
+               : Object.values(volumesList);
+
+          return volumesArray.sort((a, b) =>
+               (a.key ?? '').toString().localeCompare((b.key ?? '').toString())
+          );
      }
 
      return [];

@@ -1,8 +1,19 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _, { values } from 'lodash';
-import { Box, Button, ButtonText, Divider, FlatList, Heading, HStack, ScrollView, Text } from '@gluestack-ui/themed';
-import React from 'react';
+import _ from 'lodash';
+import {
+     Box,
+     Button,
+     ButtonText,
+     Divider,
+     FlatList,
+     Heading,
+     HStack,
+     ScrollView,
+     Text,
+     useToast
+} from '@gluestack-ui/themed';
+import React, { useContext, useLayoutEffect, useEffect, useState } from 'react';
 
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
 import {
@@ -20,15 +31,16 @@ import AddLinkedAccount from './AddLinkedAccount';
 import DisableAccountLinking from './DisableAccountLinking';
 import EnableAccountLinking from './EnableAccountLinking';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { LoadingSpinner } from '../../../components/loadingSpinner';
 
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();
-     const { user, accounts, viewers, cards, updateLinkedAccounts, updateLinkedViewerAccounts, updateLibraryCards } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const { user, accounts, viewers, cards, updateLinkedAccounts, updateLinkedViewerAccounts, updateLibraryCards } = useContext(UserContext);
+     const { library } = useContext(LibrarySystemContext);
+     const { language } = useContext(LanguageContext);
+     const { textColor } = useContext(ThemeContext);
      const queryClient = useQueryClient();
-     const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const { systemMessages, updateSystemMessages } = useContext(SystemMessagesContext);
 
      let canUserLinkAccounts = true;
      let ptypeDisabledLinking = false;
@@ -41,49 +53,61 @@ export const MyLinkedAccounts = () => {
           }
      }
 
-     React.useLayoutEffect(() => {
+     useLayoutEffect(() => {
           navigation.setOptions({
                headerLeft: () => <Box />,
           });
      }, [navigation]);
 
-     useQuery(['linked_accounts', user.id, cards ?? [], library.baseUrl, language], () => getLinkedAccounts(user, cards, library.barcodeStyle, library.baseUrl, language), {
-          initialData: accounts,
-          placeholderData: [],
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                    updateLinkedAccounts(linkedAccounts.accounts);
-                    updateLibraryCards(linkedAccounts.cards);
-               } else {
-                    logDebugMessage("Error fetching linked accounts");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching linked accounts");
-               logErrorMessage(error);
-          }
-     });
+     //These are not needed because they are loaded in Drawer Content
+     // const { data: linkedData, isSuccess: isLinkedSuccess } = useQuery(
+     //      ['linked_accounts', user.id, library.baseUrl, language],
+     //      () => getLinkedAccounts(library.baseUrl, language),
+     //      {
+     //           placeholderData: [],
+     //           enabled: !!library.baseUrl && !!user.id,
+     //      }
+     // );
+     //
+     // useEffect(() => {
+     //      if (isLinkedSuccess && linkedData) {
+     //           if (linkedData.ok) {
+     //                const formatted = formatLinkedAccounts(
+     //                     user,
+     //                     cards ?? [],
+     //                     library.barcodeStyle,
+     //                     linkedData.data.result.linkedAccounts
+     //                );
+     //                updateLinkedAccounts(formatted.accounts);
+     //                updateLibraryCards(formatted.cards);
+     //           } else {
+     //                logDebugMessage("Error fetching linked accounts on LinkedAccounts page, response was not ok");
+     //                logDebugMessage(linkedData);
+     //                getErrorMessage(linkedData.code ?? 0, linkedData.problem);
+     //           }
+     //      }
+     // }, [linkedData, isLinkedSuccess]);
 
-     useQuery(['viewer_accounts', user.id, library.baseUrl, language], () => getViewerAccounts(library.baseUrl, language), {
-          initialData: viewers,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    updateLinkedViewerAccounts(values(data.data?.result?.viewers ?? []));
+     const { data: viewerData, isSuccess: isViewerSuccess } = useQuery(
+          ['viewer_accounts', user.id, library.baseUrl, language],
+          () => getViewerAccounts(library.baseUrl, language),
+          {
+               enabled: !!library.baseUrl && !!user.id,
+          }
+     );
+
+     useEffect(() => {
+          if (isViewerSuccess && viewerData) {
+               if (viewerData.ok) {
+                    const viewerList = _.values(viewerData.data?.result?.viewers ?? []);
+                    updateLinkedViewerAccounts(viewerList);
                } else {
                     logDebugMessage("Error fetching linked viewer accounts");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
+                    logDebugMessage(viewerData);
+                    getErrorMessage(viewerData.code ?? 0, viewerData.problem);
                }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching linked viewer accounts");
-               logErrorMessage(error);
-          },
-          placeholderData: [],
-     });
+          }
+     }, [viewerData, isViewerSuccess]);
 
      const Empty = () => {
           return (
@@ -95,10 +119,23 @@ export const MyLinkedAccounts = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return (
+                              <DisplaySystemMessage
+                                   key={obj.id || index}
+                                   style={obj.style}
+                                   message={obj.message}
+                                   dismissable={obj.dismissable}
+                                   id={obj.id}
+                                   all={systemMessages}
+                                   url={library.baseUrl}
+                                   updateSystemMessages={updateSystemMessages}
+                                   queryClient={queryClient}
+                              />
+                         );
                     }
+                    return null;
                });
           }
           return null;
@@ -124,13 +161,21 @@ export const MyLinkedAccounts = () => {
           <ScrollView p="$2" flex={1}>
                {showSystemMessage()}
                <DisplayMessage type="info" message={getTermFromDictionary(language, 'linked_info_message')} />
+
                {user.addLinkedAccountRule !== 1 ? (
                     <Box>
                          <Heading size="lg" pb="$2" color={textColor}>
                               {getTermFromDictionary(language, 'linked_additional_accounts')}
                          </Heading>
-                         <Text fontSize="$sm" color={textColor}>{getTermFromDictionary(language, 'linked_following_accounts_can_manage')}</Text>
-                         <FlatList data={accounts} renderItem={({ item }) => <Account account={item} type="linked" />} ListEmptyComponent={Empty} keyExtractor={(item, index) => index.toString()} />
+                         <Text fontSize="$sm" color={textColor}>
+                              {getTermFromDictionary(language, 'linked_following_accounts_can_manage')}
+                         </Text>
+                         <FlatList
+                              data={accounts}
+                              renderItem={({ item }) => <Account account={item} type="linked" />}
+                              ListEmptyComponent={Empty}
+                              keyExtractor={(item, index) => index.toString()}
+                         />
                          <AddLinkedAccount />
                          <Divider my="$4" />
                     </Box>
@@ -141,8 +186,15 @@ export const MyLinkedAccounts = () => {
                          <Heading size="lg" pb="$2" color={textColor}>
                               {getTermFromDictionary(language, 'linked_other_accounts')}
                          </Heading>
-                         <Text fontSize="$sm" color={textColor}>{getTermFromDictionary(language, 'linked_following_accounts_can_view')}</Text>
-                         <FlatList data={viewers} renderItem={({ item }) => <Account account={item} type="viewer" />} ListEmptyComponent={Empty} keyExtractor={(item, index) => index.toString()} />
+                         <Text fontSize="$sm" color={textColor}>
+                              {getTermFromDictionary(language, 'linked_following_accounts_can_view')}
+                         </Text>
+                         <FlatList
+                              data={viewers}
+                              renderItem={({ item }) => <Account account={item} type="viewer" />}
+                              ListEmptyComponent={isViewerSuccess ? <Empty /> : <LoadingSpinner />}
+                              keyExtractor={(item, index) => index.toString()}
+                         />
                     </Box>
                ) : null}
 
@@ -156,52 +208,55 @@ export const MyLinkedAccounts = () => {
      );
 };
 
-const Account = (data) => {
+const Account = ({ account, type }) => {
      const queryClient = useQueryClient();
-     const account = data.account;
-     const type = data.type;
-     const [isRemoving, setIsRemoving] = React.useState(false);
-     const { user, accounts, cards, viewers, updateLinkedAccounts, updateLibraryCards, updateLinkedViewerAccounts } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const [isRemoving, setIsRemoving] = useState(false);
+     const { user } = useContext(UserContext);
+     const { library } = useContext(LibrarySystemContext);
+     const { language } = useContext(LanguageContext);
+     const { textColor } = useContext(ThemeContext);
+     const toast = useToast();
 
      const refreshLinkedAccounts = async () => {
-          queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, accounts, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          await queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
+          await queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
+          await queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
      };
 
      const removeAccount = async () => {
-          if (type === 'viewer') {
-               setIsRemoving(true);
-               removeViewerAccount(account.id, library.baseUrl, language).then(async (res) => {
-                    await refreshLinkedAccounts();
-                    setIsRemoving(false);
-               });
-          } else {
-               setIsRemoving(true);
-               removeLinkedAccount(account.id, library.baseUrl, language).then(async (res) => {
-                    await refreshLinkedAccounts();
-                    setIsRemoving(false);
-               });
+          setIsRemoving(true);
+          try {
+               if (type === 'viewer') {
+                    await removeViewerAccount(toast, account.id, library.baseUrl, language);
+               } else {
+                    await removeLinkedAccount(toast, account.id, library.baseUrl, language);
+               }
+               await refreshLinkedAccounts();
+          } catch (error) {
+               logErrorMessage(error);
+          } finally {
+               setIsRemoving(false);
           }
      };
 
-     if (account) {
-          return (
-               <HStack justifyContent="space-around" pt="$2" pb="$2" alignItems="center" alignContent="flex-start">
-                    <Text bold isTruncated w="60%" maxW="60%" color={textColor}>
-                         {account.displayName ? account.displayName : account.ils_barcode} - {account.homeLocation}
-                    </Text>
-                    {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
-                         <Button bgColor="$warning500" isLoading={isRemoving} isLoadingText={getTermFromDictionary(language, 'removing', true)} size="sm" onPress={() => removeAccount()}>
-                              <ButtonText color="$white">{getTermFromDictionary(language, 'remove')}</ButtonText>
-                         </Button>
-                    )}
-               </HStack>
-          );
-     }
+     if (!account) return null;
 
-     return null;
+     return (
+          <HStack justifyContent="space-around" pt="$2" pb="$2" alignItems="center" alignContent="flex-start">
+               <Text bold isTruncated w="60%" maxW="60%" color={textColor}>
+                    {account.displayName ? account.displayName : account.ils_barcode} - {account.homeLocation}
+               </Text>
+               {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
+                    <Button
+                         bgColor="$warning500"
+                         isLoading={isRemoving}
+                         isLoadingText={getTermFromDictionary(language, 'removing', true)}
+                         size="sm"
+                         onPress={removeAccount}
+                    >
+                         <ButtonText color="$white">{getTermFromDictionary(language, 'remove')}</ButtonText>
+                    </Button>
+               )}
+          </HStack>
+     );
 };

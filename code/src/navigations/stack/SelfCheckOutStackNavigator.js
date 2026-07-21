@@ -3,7 +3,7 @@ import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 
-import { LanguageContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, UserContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { StartCheckOutSession } from '../../screens/SCO/StartCheckOutSession';
 import { SelfCheckOut } from '../../screens/SCO/SelfCheckOut';
@@ -16,6 +16,7 @@ import TitleWithLogo from '../../components/TitleWithLogo'
 const SelfCheckOutStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
      const { accounts } = React.useContext(UserContext);
+     const {textColor} = React.useContext(ThemeContext);
 
      let defaultRoute = 'SelfCheckOut';
      if (_.size(accounts) >= 1) {
@@ -66,7 +67,7 @@ const SelfCheckOutStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
                          ),
                     })}

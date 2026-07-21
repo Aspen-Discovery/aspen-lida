@@ -88,7 +88,6 @@ export const SelfRegistration = () => {
 										                   returnKeyType="next"
 										                   color={textColor}
 										                   onChangeText={(value) => {
-											                   console.log(property, value);
 											                   handleInputChange(property, value);
 										                   }}/></Input>
 										{!_.isEmpty(description) ? (
@@ -158,7 +157,7 @@ export const SelfRegistration = () => {
 											}}
 										>
 											<SelectTrigger variant="outline" size="md">
-												<SelectInput placeholder="Select option" color={textColor}/>
+												<SelectInput py={0} placeholder="Select option" color={textColor}/>
 												<SelectIcon mr="$3">
 													<Icon as={ChevronDownIcon} color={textColor}/>
 												</SelectIcon>
@@ -174,7 +173,7 @@ export const SelfRegistration = () => {
 													</SelectDragIndicatorWrapper>
 													<SelectScrollView>
 														{_.map(values, function (item, index, array) {
-															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: property === index ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: property === index ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
 														})}
 													</SelectScrollView>
 												</SelectContent>
@@ -230,7 +229,7 @@ export const SelfRegistration = () => {
 					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 					style={{ flex: 1 }}
 				>
-					<ScrollView contentContainerStyle={{ flexGrow: 1 }} bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}>
+					<ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 						<Box p="$3">
 						{!showResults ? (
 							<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_message')}</Text>

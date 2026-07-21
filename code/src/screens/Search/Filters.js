@@ -37,15 +37,13 @@ export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const { currentIndex, currentSource, indexes, sources, updateCurrentIndex, updateCurrentSource, updateIndexes } = React.useContext(SearchContext);
+     const { currentIndex, currentSource } = React.useContext(SearchContext);
      const {theme, textColor, colorMode } = React.useContext(ThemeContext);
      const pendingFiltersFromParams = useNavigationState((state) => state.routes[0]['params']['pendingFilters']);
      const [searchTerm, setSearchTerm] = React.useState(SearchGlobal.term ?? '');
-     const [searchSourceLabel, setSearchSourceLabel] = React.useState('Library Catalog');
 
      let facets = SearchGlobal.availableFacets ? Object.keys(SearchGlobal.availableFacets) : [];
      let pendingFilters = SearchGlobal.pendingFilters ?? [];
@@ -164,7 +162,7 @@ export const FiltersScreen = () => {
 
      const actionButtons = () => {
           return (
-               <Box p="$3" bgColor={colorMode === 'light' ? theme['tokens']['colors']['coolGray']['50'] : "$coolGray700"}  shadowOpacity={0.2} shadowRadius={1}>
+               <Box p="$3" bgColor={colorMode === 'light' ? "$coolGray50" : "$coolGray700"}  shadowOpacity={0.2} shadowRadius={1}>
                     <Center>
                          <ButtonGroup size="lg">
                               <Button variant="link" onPress={() => clearSelections()}>
@@ -177,7 +175,7 @@ export const FiltersScreen = () => {
                                         setLoading(true);
                                         updateSearch();
                                    }}>
-                                   <ButtonText color="$textLight200">{loading ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{loading ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </Center>
@@ -308,7 +306,7 @@ export const FiltersScreen = () => {
                                         variant="outline"
                                    >
                                         <InputSlot pl="$2">
-                                             <InputIcon as={Ionicons} name="search" size="md" color={colorMode === 'light' ? "$muted800" : "$muted50"} />
+                                             <InputIcon as={Ionicons} name="search" size="md" color={textColor} />
                                         </InputSlot>
                                         <InputField
                                              returnKeyType="search"
@@ -322,11 +320,11 @@ export const FiltersScreen = () => {
                                         <InputSlot py="$2">
                                              {searchTerm ? (
                                                   <Pressable onPress={() => clearSearch()}>
-                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
+                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={textColor}  />
                                                   </Pressable>
                                              ) : null}
-                                             <Pressable onPress={() => openScanner()} ml="$2">
-                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={colorMode === 'light' ? "$muted800" : "$muted50"}  />
+                                             <Pressable onPress={() => openScanner()} ml="$2" mr={4}>
+                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={textColor}  />
                                              </Pressable>
                                         </InputSlot>
                                    </Input>

@@ -65,7 +65,7 @@ import {
      SelectDragIndicator,
      SelectItem,
      SelectScrollView,
-     Select,
+     Select, useToast,
 } from '@gluestack-ui/themed';
 import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -106,7 +106,7 @@ const EditList = (props) => {
                          }}
                          mr={3}
                          p="$1">
-                         <ChevronLeftIcon size={5} color="primary.baseContrast" />
+                         <ChevronLeftIcon size={5} color={textColor} />
                     </Pressable>
                ),
           });
@@ -116,8 +116,8 @@ const EditList = (props) => {
           <>
                <ButtonGroup size="sm" justifyContent="center" >
                     <Button onPress={() => setShowModal(true)} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon color="$textLight200" as={MaterialIcons} name="edit" mr="$1" />
-                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'edit')}</ButtonText>
+                         <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="edit" mr="$1" />
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'edit')}</ButtonText>
                     </Button>
                     <DeleteList listId={listId} />
                </ButtonGroup>
@@ -126,7 +126,7 @@ const EditList = (props) => {
                     <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'edit')} {data.title}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -146,9 +146,9 @@ const EditList = (props) => {
                                      <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <RadioGroup
-                                        value={isPublic}
+                                        value={isPublic ? "true" : "false"}
                                         onChange={(nextValue) => {
-                                             setPublic(nextValue);
+                                             setPublic(nextValue === "true");
                                         }}>
                                         <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
                                              <Radio value="false" my="$1">
@@ -179,11 +179,11 @@ const EditList = (props) => {
                                              {listGroupId != -1 ? (
                                                        _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                             if (group.id === listGroupId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
                                                             }
                                                        })
                                                   ) :
-                                                  <SelectInput placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
+                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
                                              }
                                              <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                         </SelectTrigger>
@@ -197,9 +197,9 @@ const EditList = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId == -1 ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId == -1 ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                        {_.map(listGroups.groups, function (item, index, array) {
-                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                        })}
                                                   </SelectScrollView>
                                              </SelectContent>
@@ -228,7 +228,7 @@ const EditList = (props) => {
                                                   queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -241,8 +241,7 @@ const EditList = (props) => {
 const DeleteList = (props) => {
      const queryClient = useQueryClient();
      const { listId } = props;
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const navigation = useNavigation();
+     const {textColor, colorMode } = React.useContext(ThemeContext);
      const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -251,10 +250,11 @@ const DeleteList = (props) => {
      const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);
+     const toast = useToast();
 
      return (
           <Center>
-               <Button bgColor="$danger500" onPress={() => setIsOpen(!isOpen)} size="sm" >
+               <Button bgColor="$error500" onPress={() => setIsOpen(!isOpen)} size="sm" >
                     <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1"/>
                     <ButtonText color="$white">Delete List</ButtonText>
                </Button>
@@ -296,7 +296,7 @@ const DeleteList = (props) => {
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$danger500"
+                                        bgColor="$error500"
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                         onPress={() => {
@@ -309,9 +309,9 @@ const DeleteList = (props) => {
                                                   setIsOpen(!isOpen);
                                                   if (res.success === false) {
                                                        status = 'error';
-                                                       popAlert(res.title, res.message, status);
+                                                       popAlert(toast, res.title, res.message, status);
                                                   } else {
-                                                       popAlert(res.title, res.message, status);
+                                                       popAlert(toast, res.title, res.message, status);
                                                        navigateStack('AccountScreenTab', 'MyLists', {
                                                             libraryUrl: library.baseUrl,
                                                             hasPendingChanges: true,

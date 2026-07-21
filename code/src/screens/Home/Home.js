@@ -31,7 +31,7 @@ export const DiscoverHomeScreen = () => {
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
 
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
      const { notificationOnboard } = React.useContext(UserContext);
@@ -159,64 +159,55 @@ export const DiscoverHomeScreen = () => {
           return loadingSpinner();
      }
 
-     /*
-     // load notification onboarding prompt
-     if (isQueryFetching === 0 && preliminaryLoadingCheck) {
-          if (notificationOnboard !== '0' && notificationOnboard !== 0) {
-               if (isFocused && promptOpen === 'yes') {
-                    return <NotificationsOnboard isFocused={isFocused} promptOpen={promptOpen} setPromptOpen={setPromptOpen} />;
-               }
-          }
-     }*/
-
      const clearSearch = () => {
           setSearchTerm('');
      };
 
      return (
-          <FlatList
-               bgColor={colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900"}
-               ListHeaderComponent={
-                    <Box p="$5">
-                         {androidEndSupportMessage()}
-                         {showSystemMessage()}
-                         <FormControl pb="$5">
-                              <Input>
-                                   <InputSlot>
-                                        <InputIcon as={SearchIcon} ml="$2" color={textColor} />
-                                   </InputSlot>
-                                   <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
-                                   {searchTerm ? (
-                                        <InputSlot onPress={() => clearSearch()}>
-                                             <InputIcon as={XIcon} mr="$2" color={textColor} />
+          <Box>
+               <FlatList
+                    ListHeaderComponent={
+                         <Box p="$5">
+                              {androidEndSupportMessage()}
+                              {showSystemMessage()}
+                              <FormControl pb="$5">
+                                   <Input>
+                                        <InputSlot>
+                                             <InputIcon as={SearchIcon} ml="$2" color={textColor} />
                                         </InputSlot>
-                                   ) : null}
-                                   <InputSlot onPress={() => openScanner()}>
-                                        <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
-                                   </InputSlot>
-                              </Input>
-                         </FormControl>
-                         {homeScreenLinks && homeScreenLinks.length > 0 ? (
-                              <HomeScreenLinkGrid links={homeScreenLinks} />
-                         ) : null}
-                    </Box>
-               }
-               data={category}
-               keyExtractor={(item, index) => item.id || index.toString()}
-               renderItem={({ item }) => (
-                    <Box px="$5">
-                         <DisplayBrowseCategory category={item} />
-                    </Box>
-               )}
-               ListFooterComponent={
-                    <Box p="$5">
-                         <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} maxNum={maxNum} onLoadAllCategories={onLoadAllCategories} />
-                         {showErrorDialog && (
-                              <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
-                         )}
-                    </Box>
-               }
-          />
+                                        <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                                        {searchTerm ? (
+                                             <InputSlot onPress={() => clearSearch()}>
+                                                  <InputIcon as={XIcon} mr="$2" color={textColor} />
+                                             </InputSlot>
+                                        ) : null}
+                                        <InputSlot onPress={() => openScanner()}>
+                                             <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                                        </InputSlot>
+                                   </Input>
+                              </FormControl>
+                              {homeScreenLinks && homeScreenLinks.length > 0 ? (
+                                   <HomeScreenLinkGrid links={homeScreenLinks} />
+                              ) : null}
+                         </Box>
+                    }
+                    data={category}
+                    keyExtractor={(item, index) => item.id || index.toString()}
+                    renderItem={({ item }) => (
+                         <Box px="$5">
+                              <DisplayBrowseCategory category={item} />
+                         </Box>
+                    )}
+                    ListFooterComponent={
+                         <Box p="$5">
+                              <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} maxNum={maxNum} onLoadAllCategories={onLoadAllCategories} />
+                              {showErrorDialog && (
+                                   <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
+                              )}
+                         </Box>
+                    }
+               />
+          </Box>
      );
 };
 
@@ -249,7 +240,7 @@ const ButtonOptions = (props) => {
                               }, 2500);
                          }}>
                          {loading ? (
-                           <ButtonSpinner key="spinner" color="$textLight200" mr="$1" />
+                           <ButtonSpinner key="spinner" color={theme.tokens.colors.primary['500-text']} mr="$1" />
                          ) : (
                               <ButtonIcon
                                    key="icon"

@@ -3,11 +3,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import Platform from 'react-native';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
-import { navigate } from '../../helpers/RootNavigator';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
@@ -29,12 +27,13 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 
 const BrowseStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      const Stack = createStackNavigator();
      return (
           <Stack.Navigator
                id="BrowseStack"
                initialRouteName="HomeScreen"
-               screenOptions={({ navigation, route }) => ({
+               screenOptions={() => ({
                     headerShown: true,
                     gestureEnabled: false,
                     headerBackTitleVisible: false,
@@ -75,7 +74,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                               </Pressable>
                          ),
                     })}
@@ -91,7 +90,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                               </Pressable>
                          ),
                     })}
@@ -107,7 +106,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" />
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -251,6 +250,7 @@ const BrowseStackNavigator = () => {
 const EditionsStack = createStackNavigator();
 export const EditionsModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <EditionsStack.Navigator
                id="EditionsStack"
@@ -271,7 +271,7 @@ export const EditionsModal = () => {
                     },
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" />
+                              <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
                          </Pressable>
                     ),
                })}>
@@ -300,6 +300,7 @@ export const EditionsModal = () => {
 const FilterModalStack = createNativeStackNavigator();
 const FilterModal = () => {
      const { language } = React.useContext(LanguageContext);
+     const {textColor} = React.useContext(ThemeContext);
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"
@@ -310,7 +311,7 @@ const FilterModal = () => {
                     headerBackTitleVisible: false,
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" />
+                              <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                          </Pressable>
                     ),
                })}>

@@ -1,9 +1,9 @@
 import _ from 'lodash';
-import { Box, Button, ButtonGroup, ButtonText, Center, Checkbox, CheckboxGroup, ChevronLeftIcon, Input, InputField, Pressable, VStack } from '@gluestack-ui/themed';
+import { Box, Button, ButtonGroup, ButtonText, Center, CheckboxGroup, ChevronLeftIcon, Input, InputField, Pressable, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -27,9 +27,9 @@ export const Facet = ({ route, navigation }) => {
      const [facets, setFacets] = React.useState(route.params?.facets ?? []);
      const [numFacets, setNumFacets] = React.useState(0);
      const [category] = React.useState(route.params?.extra['field'] ?? '');
-     const [multiSelect] = React.useState(Boolean(route.params?.extra['multiSelect']));
+     const [multiSelect] = React.useState(Boolean(route.params?.extra?.multiSelect));
      const [filterByQuery, setFilterByQuery] = React.useState('');
-     const [isUpdating, setIsUpdating] = React.useState(false);
+     const [isUpdating] = React.useState(false);
      const [values, setValues] = React.useState([]);
      const [valuesDefault, setValuesDefault] = React.useState([]);
      const [language] = React.useState(route.params?.language ?? 'en');
@@ -38,10 +38,10 @@ export const Facet = ({ route, navigation }) => {
      const preselectValues = () => {
           let newValues = [];
           const cluster = _.filter(SearchGlobal.pendingFilters, ['field', category]);
-          _.map(cluster, function (item, index, collection) {
+          _.map(cluster, function (item) {
                const facets = item['facets'];
                if (_.size(facets) > 0) {
-                    _.forEach(facets, function (value, key) {
+                    _.forEach(facets, function (value) {
                          if (multiSelect) {
                               newValues = _.concat(newValues, value);
                          } else {
@@ -90,7 +90,7 @@ export const Facet = ({ route, navigation }) => {
                                    });
                               }}
                               p="$1">
-                              <ChevronLeftIcon size={5} color="primary.baseContrast" />
+                              <ChevronLeftIcon size={5} color={textColor} />
                          </Pressable>
                     ),
                     headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} updateGlobal={updateGlobal} prevRoute="Filters" language={language} />,
@@ -115,41 +115,33 @@ export const Facet = ({ route, navigation }) => {
           });
      };
 
-     const searchBar = () => {
-          const placeHolder = getTermFromDictionary(language, 'search') + ' ' + title;
-          /* always display the search bar */
-          if (numFacets >= 0) {
-               return (
-                    <Box p="$5">
-                         <Input
-                              size="lg"
-                              borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
-                              color={textColor}
-                              variant="outline"
-                         >
-                              <InputField
-                                   value={filterByQuery}
-                                   onChangeText={(filterByQuery) => setFilterByQuery(filterByQuery)}
-                                   autoCorrect={false}
-                                   returnKeyType="search"
-                                   placeholder={placeHolder}
-                                   color={textColor}
-                                   onSubmitEditing={async () => {
-                                        setIsLoading(true);
-                                        await filterFacets();
-                                   }}
-                              />
-                         </Input>
-                    </Box>
-               );
-          } else {
-               return <Box pb="$5" />;
-          }
-     };
+     const searchBar = numFacets >= 0 ? (
+          <Box p="$5">
+               <Input
+                    size="lg"
+                    borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                    variant="outline"
+               >
+                    <InputField
+                         value={filterByQuery}
+                         onChangeText={(text) => setFilterByQuery(text)}
+                         autoCorrect={false}
+                         returnKeyType="search"
+                         placeholder={getTermFromDictionary(language, 'search') + ' ' + title}
+                         color={textColor}
+                         onSubmitEditing={async () => {
+                              setIsLoading(true);
+                              await filterFacets();
+                         }}
+                    />
+               </Input>
+          </Box>
+     ) : (
+          <Box pb="$5" />
+     );
 
      const updateSearch = (resetFacetGroup = false, toFilters = false) => {
           const params = buildParamsForUrl();
-          //console.log(params);
           SearchGlobal.hasPendingChanges = false;
           if (toFilters) {
                navigation.navigate('Filters', {
@@ -165,7 +157,11 @@ export const Facet = ({ route, navigation }) => {
 
      const updateCheckboxFacet = (group, value, newValue) => {
           logDebugMessage("Updating facet " + group + " with value " + value + " to " + newValue);
-          logDebugMessage("Existing values are " + values);
+          if (values) {
+               logDebugMessage("Existing values are " + values);
+          }else{
+               logDebugMessage("No existing values");
+          }
           let newValues = values;
           if (newValue) {
                newValues = [...values, value];
@@ -187,7 +183,7 @@ export const Facet = ({ route, navigation }) => {
 
      const updateGlobal = (group, newValues) => {
           logDebugMessage("Updating global values for " + group + " with values " + newValues);
-          if (group == 'sort_by') {
+          if (group === 'sort_by') {
                SearchGlobal.sortMethod = newValues;
           }else{
                const prevSelections = values;
@@ -217,29 +213,28 @@ export const Facet = ({ route, navigation }) => {
           updateSearch();
      };
 
-     const actionButtons = () => {
-          return (
-               <Box p="$3" bgColor={colorMode === 'light' ? theme['tokens']['colors']['coolGray']['50'] : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
-                    <Center>
-                         <ButtonGroup size="lg">
-                              <Button variant="link" onPress={() => resetCluster()}>
-                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'reset')}</ButtonText>
-                              </Button>
-                              <Button
-                                   bgColor={theme.tokens.colors.primary['500']}
-                                   isDisabled={isUpdating}
-                                   onPress={() => {
-                                        updateSearch();
-                                   }}>
-                                   <ButtonText color="$textLight200">
-                                        {isUpdating ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}
-                                   </ButtonText>
-                              </Button>
-                         </ButtonGroup>
-                    </Center>
-               </Box>
-          );
-     };
+     const actionButtons = (
+          <Box p="$3" bgColor={colorMode === 'light' ? "$coolGray50" : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
+               <Center>
+                    <ButtonGroup size="lg">
+                         <Button variant="link" onPress={resetCluster}>
+                              <ButtonText color={theme.tokens.colors.primary['500']}>
+                                   {getTermFromDictionary(language, 'reset')}
+                              </ButtonText>
+                         </Button>
+                         <Button
+                              bgColor={theme.tokens.colors.primary['500']}
+                              isDisabled={isUpdating}
+                              onPress={() => updateSearch()}
+                         >
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>
+                                   {isUpdating ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}
+                              </ButtonText>
+                         </Button>
+                    </ButtonGroup>
+               </Center>
+          </Box>
+     );
 
      if (isLoading) {
           return <LoadingSpinner />;
@@ -253,7 +248,7 @@ export const Facet = ({ route, navigation }) => {
                               <Facet_Year category={category} updater={updateLocalValues} data={facets} language={language} />
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      } else if (category === 'start_date') {
@@ -264,7 +259,7 @@ export const Facet = ({ route, navigation }) => {
                               <Facet_Date category={category} updater={updateLocalValues} data={facets} />
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      } else if (category === 'rating_facet') {
@@ -275,7 +270,7 @@ export const Facet = ({ route, navigation }) => {
                               <Facet_Rating category={category} updater={updateLocalValues} data={facets} />
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      } else if (category === 'lexile_score' || category === 'accelerated_reader_point_value' || category === 'accelerated_reader_reading_level') {
@@ -286,15 +281,13 @@ export const Facet = ({ route, navigation }) => {
                               <Facet_Slider category={category} data={facets} updater={updateLocalValues} language={language} />
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      } else if (multiSelect) {
-          //console.log("Showing Multi-Select facet");
-          //console.log(facets);
           return (
                <VStack flex={1}>
-                    {searchBar()}
+                    {searchBar}
                     <ScrollView>
                          <Box px="$5">
                               <CheckboxGroup
@@ -314,19 +307,19 @@ export const Facet = ({ route, navigation }) => {
                               </CheckboxGroup>
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      } else {
           return (
                <VStack flex={1}>
-                    {searchBar()}
+                    {searchBar}
                     <ScrollView>
                          <Box px="$5">
                               <Facet_RadioGroup data={facets} category={category} title={title} applied={values} updater={updateLocalValues} language={language} />
                          </Box>
                     </ScrollView>
-                    {actionButtons()}
+                    {actionButtons}
                </VStack>
           );
      }

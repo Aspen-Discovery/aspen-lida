@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
-import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select } from '@gluestack-ui/themed';
+import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createListGroup } from '../../../util/api/list';
@@ -23,6 +23,8 @@ const CreateListGroup = (props) => {
      const [title, setTitle] = useState('');
      const [nestedGroupId, setNestedGroupId] = useState("no");
 
+     const toast = useToast();
+
      const insets = useSafeAreaInsets();
 
      let hasListGroups = false;
@@ -37,8 +39,8 @@ const CreateListGroup = (props) => {
      return (
           <Center>
                <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color="$textLight200" as={MaterialIcons} name="add" mr="$1" />
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_new_list_group')}</ButtonText>
+                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="add" mr="$1" />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list_group')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
                     <ModalBackdrop />
@@ -47,7 +49,7 @@ const CreateListGroup = (props) => {
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'create_new_list_group')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -70,11 +72,11 @@ const CreateListGroup = (props) => {
                                                   {nestedGroupId !== 'no' && nestedGroupId !== '' ? (
                                                        _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                             if (group.id === nestedGroupId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
                                                             }
                                                        })
                                                   ) : (
-                                                       <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
+                                                       <SelectInput py={0} value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
                                                   )}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
@@ -85,9 +87,9 @@ const CreateListGroup = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />
+                                                            <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                             {_.map(Object.values(listGroups.groups), function (item, index, array) {
-                                                                 return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                                 return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -116,13 +118,13 @@ const CreateListGroup = (props) => {
                                                   queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                   toggle();
                                                   setLoading(true);
-                                                  popAlert(getTermFromDictionary(language, 'list_created'), res.data.result.message, status);
+                                                  popAlert(toast, getTermFromDictionary(language, 'list_created'), res.data.result.message, status);
                                                   if (res.data.result.groupId) {
                                                        updateSelectedListGroup(res.data.result.groupId);
                                                   }
                                              });
                                         }}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'create_list_group')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list_group')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

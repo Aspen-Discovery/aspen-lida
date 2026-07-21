@@ -4,12 +4,11 @@ import { Image } from 'expo-image';
 import _ from 'lodash';
 import { Badge, BadgeText, Box, Center, FlatList, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -26,15 +25,16 @@ export const MySavedSearch = () => {
      const { language } = React.useContext(LanguageContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const {colorMode} = React.useContext(ThemeContext);
 
-     const { status, data, error, isFetching, isPreviousData } = useQuery(['saved_search', id, user.id], () => getSavedSearch(id, language, library.baseUrl), {
+     const { status, data } = useQuery(['saved_search', id, user.id], () => getSavedSearch(id, language, library.baseUrl), {
           staleTime: 1000,
           placeholderData: [],
      });
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -48,7 +48,7 @@ export const MySavedSearch = () => {
                <>
                     {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                     <Center mt={5} mb={5}>
-                         <Text bold fontSize="$lg">
+                         <Text bold fontSize="$lg" color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
                               {getTermFromDictionary(language, 'no_results_found')}
                          </Text>
                     </Center>
@@ -57,10 +57,10 @@ export const MySavedSearch = () => {
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
+          <Box style={{ flex: 1 }}>
                {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                <Box safeArea={2}>{status === 'error' ? loadError('Error', '') : <FlatList data={data} ListEmptyComponent={Empty} renderItem={({ item }) => <SavedSearch data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />}</Box>
-          </SafeAreaView>
+          </Box>
      );
 };
 
@@ -68,9 +68,9 @@ const SavedSearch = (data) => {
      const item = data.data;
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const {colorMode} = React.useContext(ThemeContext);
 
      const imageUrl = library.baseUrl + item.image;
-     const key = 'medium_' + item.id;
 
      let formats = [];
      if (item.format) {
@@ -115,14 +115,11 @@ const SavedSearch = (data) => {
                          />
                          <Badge
                               mt={1}
-                              bgColor="warmGray.200"
-                              _dark={{
-                                   bgColor: 'coolGray.900',
-                              }}>
+                              bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"}
+                              >
                               <BadgeText
                                    fontSize="$sm"
-                                   color="$coolGray600"
-                                   _dark={{ color: "warmGray400" }}>
+                                   color={colorMode === 'light' ? "$coolGray600":  "$warmGray400"}>
                                    {item.language}
                               </BadgeText>
                          </Badge>
@@ -131,23 +128,22 @@ const SavedSearch = (data) => {
 
                     <VStack w="65%" ml="$3">
                          <Text
-                              _dark={{ color: "$warmGray50" }}
-                              color="coolGray.800"
+                              color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}
                               bold
                               fontSize="$xs">
                               {item.title}
                          </Text>
                          {item.author ? (
-                              <Text _dark={{ color: "$warmGray50" }} color="coolGray.800" fontSize="$xs">
+                              <Text color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"} fontSize="$xs">
                                    {getTermFromDictionary(language, 'by')} {item.author}
                               </Text>
                          ) : null}
                          {item.format ? (
                               <HStack mt={1.5} space={1} flexWrap="wrap">
-                                   {formats.map((format, i) => {
+                                   {formats.map((format) => {
                                         return (
-                                             <Badge colorScheme="secondary" mt={1} variant="outline" borderRadius="$sm" ml="$2" mt="$1">
-                                                  <BadgeText fontSize="$sm">
+                                             <Badge colorScheme="secondary" mt={1} variant="outline" borderRadius="$sm" ml="$2">
+                                                  <BadgeText fontSize="$sm" textTransform="none"  color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
                                                        {format}
                                                   </BadgeText>
                                              </Badge>

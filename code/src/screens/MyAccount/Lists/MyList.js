@@ -14,12 +14,9 @@ import {
      ButtonGroup,
      ButtonIcon,
      ButtonText,
-     CheckIcon,
      ChevronDownIcon,
      FlatList,
      FormControl,
-     FormControlLabel,
-     FormControlLabelText,
      HStack,
      Icon,
      Pressable,
@@ -33,7 +30,7 @@ import {
      SelectPortal,
      SelectScrollView,
      SelectTrigger,
-     Text,
+     Text, useToast,
      VStack,
 } from '@gluestack-ui/themed';
 import React from 'react';
@@ -52,10 +49,10 @@ import {
 } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
+import { getTermFromDictionary, } from '../../../translations/TranslationService';
 import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
 import EditList from './EditList';
-import { logDebugMessage, logErrorMessage } from '../../../util/logging';
+import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -80,6 +77,7 @@ export const MyList = () => {
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const systemMessagesForScreen = [];
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
+     const toast = useToast();
 
      React.useEffect(() => {
           if (_.isArray(systemMessages)) {
@@ -130,7 +128,6 @@ export const MyList = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
           },
@@ -172,9 +169,8 @@ export const MyList = () => {
           };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
-                    console.log(res);
                     if (res.type === 'cancel' || res.type === 'dismiss') {
-                         console.log('User closed or dismissed window.');
+                         logDebugMessage('User closed or dismissed window.');
                          WebBrowser.dismissBrowser();
                          WebBrowser.coolDownAsync();
                     }
@@ -186,20 +182,20 @@ export const MyList = () => {
                               WebBrowser.coolDownAsync();
                               await WebBrowser.openBrowserAsync(url, browserParams)
                                    .then((response) => {
-                                        console.log(response);
+                                        logDebugMessage(response);
                                         if (response.type === 'cancel') {
-                                             console.log('User closed window.');
+                                             logDebugMessage('User closed window.');
                                         }
                                    })
                                    .catch(async (error) => {
-                                        console.log('Unable to close previous browser session.');
+                                        logInfoMessage('Unable to close previous browser session.');
                                    });
                          } catch (error) {
-                              console.log('Really borked.');
+                              logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                         console.log(err);
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         logErrorMessage(err);
                     }
                });
      };
@@ -356,18 +352,18 @@ export const MyList = () => {
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
                               <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => setPage(page - 1)} isDisabled={page === 1}>
-                                   <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}
                                    onPress={() => {
                                         if (!isPreviousData && data?.hasMore) {
-                                             console.log('Adding to page');
+                                             logDebugMessage('Adding to page');
                                              setPage(page + 1);
                                         }
                                    }}
                                    isDisabled={isPreviousData || !data?.hasMore}>
-                                   <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
@@ -422,7 +418,7 @@ export const MyList = () => {
                                         accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                         onValueChange={(itemValue) => setSort(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput pt="$2" fontSize="$sm" color={textColor} value={sortLabel()} />
+                                             <SelectInput py={0} color={textColor} value={sortLabel()} />
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>
@@ -437,10 +433,10 @@ export const MyList = () => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "title" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} bgColor={sort == "dateAdded" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "dateAdded" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} bgColor={sort == "recentlyAdded" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "recentlyAdded" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.custom} value="custom" key={3} bgColor={sort == "custom" ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: sort == "custom" ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "title" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} bgColor={sort == "dateAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "dateAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} bgColor={sort == "recentlyAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "recentlyAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.custom} value="custom" key={3} bgColor={sort == "custom" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "custom" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
