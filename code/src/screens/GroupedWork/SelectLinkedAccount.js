@@ -84,9 +84,9 @@ const SelectLinkedAccount = (props) => {
                <Modal isOpen={showPrompt} onClose={() => setShowPrompt(false)} size="lg">
                     <ModalBackdrop />
                     <ModalContent maxWidth="90%">
-                         <ModalCloseButton />
                          <ModalHeader borderBottomWidth="$0">
                               <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                              <ModalCloseButton />
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}

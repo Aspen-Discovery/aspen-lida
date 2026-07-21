@@ -117,15 +117,19 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
                logDebugMessage("Creating Channels and Categories");
                await createChannelsAndCategories();
                updateUserDebugMessage("Calling Register for push notifications async");
-               const result = await registerForPushNotificationsAsync(library.baseUrl, updateUserDebugMessage);
+               const result = await registerForPushNotificationsAsync(updateUserDebugMessage);
 
                if (result) {
                     updateUserDebugMessage("registerForPushNotificationsAsync succeeded, saving push token");
-                    await savePushToken(library.baseUrl, result, updateUserDebugMessage);
-                    updateUserDebugMessage("finished saving push token");
                     updateExpoToken(result);
+                    updateUserDebugMessage("finished saving push token");
+
+                    lastCheckedStatus.current = true;
+                    setPermissionStatus(true);
+
+                    await savePushToken(library.baseUrl, result, updateUserDebugMessage);
                     await checkAndUpdatePermissions('Add Notification Permissions'); // Update permission status after successful registration
-                    return true;
+                    return result;
                }else{
                     updateUserDebugMessage("registerForPushNotificationsAsync failed");
                }
@@ -191,6 +195,7 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
                 if (nextAppState === 'active') {
                     // Small delay to ensure Android has time to update permission state
                     setTimeout(async () => {
+                         logDebugMessage("App was just reactivated, checking permissions again");
                         await checkAndUpdatePermissions('App Activation', true);
                         subscription.remove();
                     }, 1000);
@@ -237,11 +242,11 @@ export const useNotificationPreferences = (toast, library, expoToken) => {
           try {
                let optionChanged = false;
                if (option === 'notifySavedSearch') {
-                    optionChanged = value !==preferences.notifySavedSearch;
+                    optionChanged = value !== preferences.notifySavedSearch;
                }else if (option === 'notifyCustom') {
-                    optionChanged = value !==preferences.notifyCustom;
+                    optionChanged = value !== preferences.notifyCustom;
                }else{
-                    optionChanged = value !==preferences.notifyAccount
+                    optionChanged = value !== preferences.notifyAccount
                }
                if (optionChanged) {
                     logDebugMessage("Changing notification preference for " + option);
@@ -253,16 +258,17 @@ export const useNotificationPreferences = (toast, library, expoToken) => {
           }
      };
 
-     const loadPreferences = async () => {
+     const loadPreferences = async (overrideToken = null) => {
           try {
-               logDebugMessage("Loading preferences for expoToken " + expoToken);
-               const preferences = await getNotificationPreferences(toast, library.baseUrl, expoToken);
+               const tokenToUse = overrideToken || expoToken;
+               logDebugMessage("Loading preferences for expoToken " + tokenToUse);
+               const preferences = await getNotificationPreferences(toast, library.baseUrl, tokenToUse);
                if (preferences !== false) {
                     logDebugMessage(preferences);
                     setPreferences({
-                         notifySavedSearch: preferences.savedPreferences?.notifySavedSearch ?? false,
-                         notifyCustom: preferences.savedPreferences?.notifyCustom ?? false,
-                         notifyAccount: preferences.savedPreferences?.notifyAccount ?? false,
+                         notifySavedSearch: Boolean(preferences.savedPreferences?.notifySavedSearch) ?? false,
+                         notifyCustom: Boolean(preferences.savedPreferences?.notifyCustom) ?? false,
+                         notifyAccount: Boolean(preferences.savedPreferences?.notifyAccount) ?? false,
                     });
                }else{
                     logWarnMessage("Did not get preferences for the expoToken");

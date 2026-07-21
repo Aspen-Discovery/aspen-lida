@@ -110,7 +110,7 @@ export const SelectThawDate = (props) => {
                     >
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{actionLabel}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={hideDatePicker}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

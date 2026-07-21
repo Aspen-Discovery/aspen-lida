@@ -83,7 +83,7 @@ export const Facet_Rating = ({ data, category, updater }) => {
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
                                    {value === star.label ?
                                         <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} /> :
-                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400" />
+                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']} />
                                    }
                                    <Stars
                                         default={star.value}

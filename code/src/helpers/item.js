@@ -73,7 +73,7 @@ export const getCallNumber = (callNumber) => {
      if (callNumber) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'call_number')}:
                     </Text>
                     {' '}{callNumber}
@@ -89,7 +89,7 @@ export const getVolume = (volume) => {
      if (volume) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'volume')}:
                     </Text>
                     {' '}{volume}
@@ -111,7 +111,7 @@ export const getAuthor = (author) => {
 
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'author')}:
                     </Text>
                     {' '}{displayAuthor}
@@ -147,7 +147,7 @@ export const getFormat = (format, source = null) => {
                     }
                     return (
                          <Text fontSize="$xs" color={textColor}>
-                              <Text bold>
+                              <Text bold fontSize="$xs" color={textColor}>
                                    {getTermFromDictionary(language, 'format')}:
                               </Text>
                               {' '}{format !== '' ? format : 'Unknown'} - {source}
@@ -157,7 +157,7 @@ export const getFormat = (format, source = null) => {
           }
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
                     {' '}{format}
@@ -233,7 +233,7 @@ export const getType = (type) => {
 
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_source')}:
                     </Text>
                     {' '}{type}
@@ -250,7 +250,7 @@ export const getOnHoldFor = (user) => {
      if (user) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'on_hold_for')}:
                     </Text>
                     {' '}{user}
@@ -268,7 +268,7 @@ export const getCheckedOutTo = (props) => {
      if (user.id !== checkedOutTo) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checked_out_to')}:
                     </Text>
                     {' '}{props}
@@ -289,7 +289,7 @@ export const getDueDate = (date) => {
           const itemDueOn = moment(dueDate).format('MMM D, YYYY');
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checkout_due')}:
                     </Text>
                     {' '}{itemDueOn}
@@ -311,7 +311,7 @@ export const getDateLastUsed = (date, checkedOut) => {
           }
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'last_used')}:
                     </Text>
                     {' '}{itemLastUsedOn}
@@ -329,7 +329,7 @@ export const willAutoRenew = (props) => {
           return (
                <Box mt={1} p={0.5} bgColor="muted.100">
                     <Text fontSize="$xs" color={textColor}>
-                         <Text bold>
+                         <Text bold fontSize="$xs" color={textColor}>
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:
                          </Text>
                          {' '}{props.renewalDate}
@@ -347,7 +347,7 @@ export const getPickupLocation = (location, source) => {
      if (location && source === 'ils') {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_pickup_at')}:
                     </Text>
                     {' '}{location}
@@ -364,7 +364,7 @@ export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      if (outOfHoldGroupMessage) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'interlibrary_loan')}:
                     </Text>
                     {' '}{outOfHoldGroupMessage}
@@ -382,7 +382,7 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
           if (length && usesHoldPosition) {
                return (
                     <Text fontSize="$xs" color={textColor}>
-                         <Text bold>
+                         <Text bold fontSize="$xs" color={textColor}>
                               {getTermFromDictionary(language, 'hold_position')}:
                          </Text>
                          {' '}{holdPosition}
@@ -391,7 +391,7 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
           }
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_position')}:
                     </Text>
                     {' '}{position}
@@ -410,7 +410,7 @@ export const getExpirationDate = (expiration, available) => {
           let expirationDate = moment(expirationDateUnix).format('MMM D, YYYY');
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_pickup_by')}:
                     </Text>
                     {' '}{expirationDate}
@@ -427,7 +427,7 @@ export const getRenewalCount = (count, available = null) => {
      if (available) {
           return (
                <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checkout_renewed')}:
                     </Text>
                     {' '}{count} of {available} times
@@ -444,7 +444,7 @@ export const getCollectionName = (source, collectionName = null) => {
 	if (source === 'overdrive' && collectionName) {
 		return (
 		     <Text fontSize="$xs" color={textColor}>
-                    <Text bold>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'collection')}:
                     </Text>
                     {' '}{collectionName}

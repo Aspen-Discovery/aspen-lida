@@ -3,16 +3,17 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
 import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack } from '@gluestack-ui/themed';
-import React from 'react';
+import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
+import {ThemeContext} from "../context/initialContext";
 
 // custom components and helper files
 import { stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 
-export async function registerForPushNotificationsAsync(url, updateUserDebugMessage) {
+export async function registerForPushNotificationsAsync(updateUserDebugMessage) {
      try {
           updateUserDebugMessage("Registering for push notifications async");
 
@@ -62,7 +63,7 @@ export async function registerForPushNotificationsAsync(url, updateUserDebugMess
 
 async function createNotificationChannelGroup(id, name, description = null) {
      if (Platform.OS === 'android') {
-          Notifications.setNotificationChannelGroupAsync(`${id}`, {
+          await Notifications.setNotificationChannelGroupAsync(`${id}`, {
                name: `${name}`,
                description: `${description}`,
           });
@@ -78,7 +79,7 @@ async function getNotificationChannelGroup(group) {
 
 async function createNotificationChannel(id, name, groupId) {
      if (Platform.OS === 'android') {
-          Notifications.setNotificationChannelAsync(`${id}`, {
+          await Notifications.setNotificationChannelAsync(`${id}`, {
                name: `${name}`,
                importance: Notifications.AndroidImportance.MAX,
                vibrationPattern: [0, 250, 250, 250],
@@ -96,15 +97,8 @@ async function getNotificationChannel(channel) {
      return false;
 }
 
-async function deleteNotificationChannel(channel) {
-     if (Platform.OS === 'android') {
-          return Notifications.deleteNotificationChannelAsync(`${channel}`);
-     }
-     return false;
-}
-
 async function createNotificationCategory(id, name, button) {
-     Notifications.setNotificationCategoryAsync(`${id}`, [
+     await Notifications.setNotificationCategoryAsync(`${id}`, [
           {
                identifier: `${name}`,
                buttonTitle: `${button}`,
@@ -112,12 +106,8 @@ async function createNotificationCategory(id, name, button) {
      ]);
 }
 
-async function getNotificationCategory(category) {
+async function getNotificationCategories() {
      return Notifications.getNotificationCategoriesAsync();
-}
-
-async function deleteNotificationCategory(category) {
-     return Notifications.deleteNotificationCategoryAsync(`${category}`);
 }
 
 export async function createChannelsAndCategories() {
@@ -142,18 +132,19 @@ export async function createChannelsAndCategories() {
           await createNotificationChannel('accountAlert', 'Account Alert', 'updates');
      }
 
-     const savedSearchCategory = await getNotificationCategory('savedSearch');
-     if (!savedSearchCategory) {
+     const existingCategories = await getNotificationCategories('savedSearch');
+
+     const hasCategory = (identifier) =>
+          existingCategories.some((cat) => cat.identifier === identifier);
+     if (!hasCategory('savedSearch')) {
           await createNotificationCategory('savedSearch', 'Saved Searches', 'View');
      }
 
-     const libraryAlertCategory = await getNotificationCategory('libraryAlert');
-     if (!libraryAlertCategory) {
+     if (!hasCategory('libraryAlert')) {
           await createNotificationCategory('libraryAlert', 'Library Alert', 'Read More');
      }
 
-     const accountAlertCategory = await getNotificationCategory('accountAlert');
-     if (!accountAlertCategory) {
+     if (!hasCategory('accountAlert')) {
           await createNotificationCategory('accountAlert', 'Account Alert', 'View');
      }
 }
@@ -191,7 +182,7 @@ async function hideSystemMessage(allSystemMessages, currentMessageId, isDismissi
 
      if (isDismissible === 1 || isDismissible === '1') {
           // send request to dismiss it with Discovery
-          dismissSystemMessage(currentMessageId, url);
+          await dismissSystemMessage(currentMessageId, url);
      }
 
      return messages;
@@ -221,46 +212,44 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 export const DisplaySystemMessage = (props) => {
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
+     const {theme} = useContext(ThemeContext);
      let style = props.style;
+     if (style === '') {
+          style = 'info';
+     }
+     logDebugMessage("System Message Style is " + style);
+     const getAlertStyle = (style) => {
+          switch (style) {
+               case 'error':
+               case 'danger':
+                    return { action: 'error', variant: 'solid' };
+               case 'warning':
+                    return { action: 'warning', variant: 'accent' };
+               case 'success':
+                    return { action: 'success', variant: 'solid' };
+               default:
+                    return { action: 'info', variant: 'outline' };
+          }
+     };
+     const alertProps = getAlertStyle(style);
 
      // return a custom alert if the system message style is 'none'
-     if (props.style === '') {
-          return (
-               <Alert mb="$2" action="info">
-                    <VStack space="xs" width="$full">
-                         <HStack alignItems="flex-start" justifyContent="space-between">
-                              <AlertText size="sm">
-                                   {props.message}
-                              </AlertText>
-                              <Button
-                                   onPress={async () => {
-                                        await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
-                                             queryClient.setQueryData(['system_messages', props.url], result);
-                                             updateSystemMessages(result);
-                                        });
-                                   }}>
-                                   <ButtonIcon as={CloseIcon} size="md" />
-                              </Button>
-                         </HStack>
-                    </VStack>
-               </Alert>
-          );
-     }
      return (
-          <Alert action={style} mb="$2">
+          <Alert {...alertProps} mb="$2">
                <VStack space="xs" width="$full">
                     <HStack alignItems="flex-start" justifyContent="space-between">
                          <AlertText size="sm">
                               {props.message}
                          </AlertText>
-                         <Button
+                         <Button size="xs"
+                              bgColor = {theme.tokens.colors.primary['500']}
                               onPress={async () => {
                                    await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
                                         queryClient.setQueryData(['system_messages', props.url], result);
                                         updateSystemMessages(result);
                                    });
                               }}>
-                              <ButtonIcon as={CloseIcon} size="md" />
+                              <ButtonIcon as={CloseIcon} size="md" color={theme.tokens.colors.primary['500-text']} />
                          </Button>
                     </HStack>
                </VStack>

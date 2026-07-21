@@ -307,10 +307,6 @@ export const MyCheckouts = () => {
           return checkouts.filter(checkout => checkout.source === targetSource);
      }, [checkouts, checkoutSource]);
 
-     if (isLoading || (_.isEmpty(checkouts) && isFetchingCheckouts)) {
-          return loadingSpinner();
-     }
-
      const actionButtons = () => {
           let checkoutSourceLabel = getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')';
           if (checkoutSource === 'all') {
@@ -543,6 +539,10 @@ export const MyCheckouts = () => {
      const decodeMessage = (string) => {
           return stripHTML(string);
      };
+
+     if (isLoading || (_.isEmpty(checkouts) && isFetchingCheckouts)) {
+          return loadingSpinner();
+     }
 
      return (
           <Box flex={1}>

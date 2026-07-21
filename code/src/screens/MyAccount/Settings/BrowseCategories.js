@@ -99,7 +99,7 @@ const DisplayCategory = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
-     const {textColor, theme} = React.useContext(ThemeContext);
+     const { colorMode, textColor, theme} = React.useContext(ThemeContext);
 
      React.useEffect(() => {
           setToggle(!category.isHidden);
@@ -141,7 +141,11 @@ const DisplayCategory = (data) => {
                               updateToggle(category);
                          }}
                          value={toggled}
-                         trackColor={{ true: theme.tokens.colors.primary['500'] }}
+                         trackColor={{
+                              true: theme.tokens.colors.primary['500'],
+                              false: colorMode === 'light' ? '$backgroundLight300' : '$backgroundLight700'
+                         }}
+
                     />
                </HStack>
                {showErrorDialog && (

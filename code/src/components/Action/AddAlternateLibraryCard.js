@@ -145,7 +145,7 @@ export const AddAlternateLibraryCard = (props) => {
                          <Heading size="md" color={textColor}>
                               {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                          </Heading>
-                         <ModalCloseButton p="$3">
+                         <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                               <Icon as={CloseIcon} color={textColor} />
                          </ModalCloseButton>
                     </ModalHeader>

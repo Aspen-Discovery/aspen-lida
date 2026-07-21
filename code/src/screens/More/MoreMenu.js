@@ -111,7 +111,7 @@ export const MoreMenu = () => {
                          <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <ModalHeader>
                                    <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
-                                   <ModalCloseButton p="$3">
+                                   <ModalCloseButton p="$3" onPress={toggleDeleteConfirmationModal}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
@@ -146,7 +146,7 @@ export const MoreMenu = () => {
                          <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <ModalHeader>
                                    <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
-                                   <ModalCloseButton p="$3">
+                                   <ModalCloseButton p="$3" onPress={signOut}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>

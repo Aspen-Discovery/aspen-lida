@@ -71,22 +71,24 @@ export function loadError(error, reloadAction = '') {
  * @param {string} status
  **/
 export function popToast(toast, title, description, status) {
-     logDebugMessage("Popping a toast");
-     const actionType = status?.toLowerCase();
-     toast.show({
-          placement: 'bottom',
-          duration: 3000,
-          render: ({ id }) => {
-               const uniqueToastId = 'toast-' + id;
-               return (
-                    <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                         <VStack space="xs">
-                              <ToastTitle>{title}</ToastTitle>
-                              {description && <ToastDescription>{description}</ToastDescription>}
-                         </VStack>
-                    </Toast>
-               );
-          },
+     requestAnimationFrame(() => {
+          logDebugMessage("Popping a toast");
+          const actionType = status?.toLowerCase();
+          toast.show({
+               placement: 'bottom',
+               duration: 3000,
+               render: ({ id }) => {
+                    const uniqueToastId = 'toast-' + id;
+                    return (
+                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                              <VStack space="xs">
+                                   <ToastTitle>{title}</ToastTitle>
+                                   {description && <ToastDescription>{description}</ToastDescription>}
+                              </VStack>
+                         </Toast>
+                    );
+               },
+          });
      });
 }
 
@@ -112,23 +114,25 @@ export function popToast(toast, title, description, status) {
  * @param {string} status
  **/
 export function popAlert(toast, title, description, status) {
-     logDebugMessage("Popping an alert");
-     const actionType = status?.toLowerCase();
-     toast.show({
-          placement: 'bottom',
-          // Medium priority alerts typically persist longer or require closing
-          duration: 5000,
-          render: ({ id }) => {
-               const uniqueToastId = 'alert-' + id;
-               return (
-                    <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                         <VStack space="xs">
-                              <ToastTitle>{title}</ToastTitle>
-                              {description && <ToastDescription>{description}</ToastDescription>}
-                         </VStack>
-                    </Toast>
-               );
-          },
+     requestAnimationFrame(() => {
+          logDebugMessage("Popping an alert");
+          const actionType = status?.toLowerCase();
+          toast.show({
+               placement: 'bottom',
+               // Medium priority alerts typically persist longer or require closing
+               duration: 5000,
+               render: ({id}) => {
+                    const uniqueToastId = 'alert-' + id;
+                    return (
+                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
+                              <VStack space="xs">
+                                   <ToastTitle>{title}</ToastTitle>
+                                   {description && <ToastDescription>{description}</ToastDescription>}
+                              </VStack>
+                         </Toast>
+                    );
+               },
+          });
      });
 }
 
