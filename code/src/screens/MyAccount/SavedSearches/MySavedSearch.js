@@ -8,7 +8,7 @@ import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -25,6 +25,7 @@ export const MySavedSearch = () => {
      const { language } = React.useContext(LanguageContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const {colorMode} = React.useContext(ThemeContext);
 
      const { status, data } = useQuery(['saved_search', id, user.id], () => getSavedSearch(id, language, library.baseUrl), {
           staleTime: 1000,
@@ -47,7 +48,7 @@ export const MySavedSearch = () => {
                <>
                     {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                     <Center mt={5} mb={5}>
-                         <Text bold fontSize="$lg">
+                         <Text bold fontSize="$lg" color={colorMode == 'light' ? "$coolGray800" : "$warmGray50"}>
                               {getTermFromDictionary(language, 'no_results_found')}
                          </Text>
                     </Center>
@@ -67,6 +68,7 @@ const SavedSearch = (data) => {
      const item = data.data;
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const {colorMode} = React.useContext(ThemeContext);
 
      const imageUrl = library.baseUrl + item.image;
 
@@ -113,10 +115,8 @@ const SavedSearch = (data) => {
                          />
                          <Badge
                               mt={1}
-                              bgColor="warmGray.200"
-                              _dark={{
-                                   bgColor: 'coolGray.900',
-                              }}>
+                              bgColor={colorMode == 'light' ? "$warmGray200" : "$coolGray900"}
+                              >
                               <BadgeText
                                    fontSize="$sm"
                                    color="$coolGray600"
@@ -129,14 +129,13 @@ const SavedSearch = (data) => {
 
                     <VStack w="65%" ml="$3">
                          <Text
-                              _dark={{ color: "$warmGray50" }}
-                              color="coolGray.800"
+                              color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}
                               bold
                               fontSize="$xs">
                               {item.title}
                          </Text>
                          {item.author ? (
-                              <Text _dark={{ color: "$warmGray50" }} color="coolGray.800" fontSize="$xs">
+                              <Text color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"} fontSize="$xs">
                                    {getTermFromDictionary(language, 'by')} {item.author}
                               </Text>
                          ) : null}

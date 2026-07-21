@@ -57,7 +57,7 @@ export const SelectVolume = (props) => {
                                         selectedValue={volume}
                                         onValueChange={(itemValue) => setVolume(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
+                                             <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_volume')} />
                                              <Icon as={ChevronDownIcon} mr="$3" />
                                         </SelectTrigger>
                                         <SelectPortal>

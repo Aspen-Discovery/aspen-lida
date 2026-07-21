@@ -110,10 +110,10 @@ export default function AppContainer() {
                          setAspenTheme(result);
                          updateTheme(result);
                          logDebugMessage("5b Set Aspen Theme");
-                         if (colorMode == 'dark') {
-                              setStatusBarColor('dark-content');
-                         } else {
+                         if (colorMode === 'dark') {
                               setStatusBarColor('light-content');
+                         } else {
+                              setStatusBarColor('dark-content');
                          }
                          logDebugMessage("5c Saving Theme");
                          await saveTheme(result);

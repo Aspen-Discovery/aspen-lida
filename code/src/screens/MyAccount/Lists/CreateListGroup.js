@@ -72,11 +72,11 @@ const CreateListGroup = (props) => {
                                                   {nestedGroupId !== 'no' && nestedGroupId !== '' ? (
                                                        _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                             if (group.id === nestedGroupId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
                                                             }
                                                        })
                                                   ) : (
-                                                       <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
+                                                       <SelectInput py={0} value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
                                                   )}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>

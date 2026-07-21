@@ -105,11 +105,11 @@ export const HoldNotificationPreferences = (props) => {
                                                   {smsCarrier && smsCarrier !== -1 ? (
                                                        _.map(smsCarriers, function (carrier, selectedIndex, array) {
                                                             if (selectedIndex === smsCarrier) {
-                                                                 return <SelectInput placeholder="Select a Carrier" value={carrier} color={textColor} />;
+                                                                 return <SelectInput py={0} placeholder="Select a Carrier" value={carrier} color={textColor} />;
                                                             }
                                                        })
                                                   ) : (
-                                                       <SelectInput placeholder="Select a Carrier" color={textColor} />
+                                                       <SelectInput py={0} placeholder="Select a Carrier" color={textColor} />
                                                   )}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>

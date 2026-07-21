@@ -99,7 +99,7 @@ const DisplayCategory = (data) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
-     const {textColor} = React.useContext(ThemeContext);
+     const {textColor, theme} = React.useContext(ThemeContext);
 
      React.useEffect(() => {
           setToggle(!category.isHidden);
@@ -127,9 +127,9 @@ const DisplayCategory = (data) => {
                <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
                     <Text
                          flexWrap="wrap"
+                         flex={1}
                          color={textColor}
                          bold
-                         maxW="80%"
                          fontSize="$lg">
                          {category.title}
                     </Text>
@@ -141,6 +141,7 @@ const DisplayCategory = (data) => {
                               updateToggle(category);
                          }}
                          value={toggled}
+                         trackColor={{ true: theme.tokens.colors.primary['500'] }}
                     />
                </HStack>
                {showErrorDialog && (

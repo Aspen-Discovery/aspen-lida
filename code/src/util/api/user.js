@@ -707,6 +707,8 @@ export async function freezeHold(toast, cancelId, recordId, source, url = null, 
           } else {
                popAlert(toast,result.title ?? getTermFromDictionary(language, 'unable_freeze_hold'), result.message, 'error');
           }
+     }else{
+          popAlert(toast,'Error', 'Unknown error freezing hold', 'error');
      }
 }
 

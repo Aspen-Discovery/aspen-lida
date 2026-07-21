@@ -418,7 +418,7 @@ export const MyList = () => {
                                         accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
                                         onValueChange={(itemValue) => setSort(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput pt="$2" fontSize="$sm" color={textColor} value={sortLabel()} />
+                                             <SelectInput py={0} color={textColor} value={sortLabel()} />
                                              <SelectIcon mr="$3">
                                                   <Icon color={textColor} as={ChevronDownIcon} />
                                              </SelectIcon>

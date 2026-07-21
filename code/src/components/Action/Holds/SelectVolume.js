@@ -75,7 +75,7 @@ export const SelectVolume = (props) => {
                                         <SelectTrigger variant="outline" size="md">
                                              {_.map(data, function (item, index, array) {
                                                   if (item.volumeId === volume) {
-                                                       return <SelectInput value={item.label} color={textColor} />;
+                                                       return <SelectInput py={0} value={item.label} color={textColor} />;
                                                   }
                                              })}
                                              <SelectIcon mr="$3">

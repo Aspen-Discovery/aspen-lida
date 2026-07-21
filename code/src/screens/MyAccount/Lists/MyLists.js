@@ -392,13 +392,13 @@ export const MyLists = () => {
                                    {currentListGroup && currentListGroup !== '-1' && currentListGroup !== -1 ? (
                                         _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                              if (group.id === currentListGroup) {
-                                                  return <SelectInput value={group.title} color={textColor} />;
+                                                  return <SelectInput py={0} value={group.title} color={textColor} />;
                                              }
                                         })
                                    ) : currentListGroup == '-1' ? (
-                                        <SelectInput value={getTermFromDictionary(language, 'unassigned_lists')} color={textColor} />
+                                        <SelectInput py={0} value={getTermFromDictionary(language, 'unassigned_lists')} color={textColor} />
                                    ) : defaultListGroup ? (
-                                        <SelectInput value={defaultListGroup} color={textColor} />
+                                        <SelectInput py={0} value={defaultListGroup} color={textColor} />
                                    ) : null}
                                    <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>

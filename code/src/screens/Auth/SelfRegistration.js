@@ -157,7 +157,7 @@ export const SelfRegistration = () => {
 											}}
 										>
 											<SelectTrigger variant="outline" size="md">
-												<SelectInput placeholder="Select option" color={textColor}/>
+												<SelectInput py={0} placeholder="Select option" color={textColor}/>
 												<SelectIcon mr="$3">
 													<Icon as={ChevronDownIcon} color={textColor}/>
 												</SelectIcon>

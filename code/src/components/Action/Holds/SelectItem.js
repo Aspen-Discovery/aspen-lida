@@ -61,7 +61,7 @@ export const SelectItemHold = (props) => {
                                         let copy = copies[item];
                                         if (copy.id === defaultItem) {
                                              setItem(defaultItem);
-                                             return <SelectInput value={copy.location} color={textColor} />;
+                                             return <SelectInput py={0} value={copy.location} color={textColor} />;
                                         }
                                    })}
                                    <SelectIcon mr="$3">

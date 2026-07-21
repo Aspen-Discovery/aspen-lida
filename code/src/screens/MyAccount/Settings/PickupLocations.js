@@ -141,9 +141,9 @@ export const Settings_PickupLocations = () => {
 					onValueChange={(itemValue) => setLocation(itemValue)}>
 					<SelectTrigger variant="outline" size="md">
 						{selectedLocationObj ? (
-							<SelectInput value={selectedLocationObj.displayName} color={textColor} />
+							<SelectInput py={0} value={selectedLocationObj.displayName} color={textColor} />
 						) : (
-							<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+							<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 						)}
 						<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 					</SelectTrigger>
@@ -185,9 +185,9 @@ export const Settings_PickupLocations = () => {
 						onValueChange={(itemValue) => setLocation1Id(itemValue)}>
 						<SelectTrigger variant="outline" size="md">
 							{selectedLocation1Obj ? (
-								<SelectInput value={selectedLocation1Obj.displayName} color={textColor} />
+								<SelectInput py={0} value={selectedLocation1Obj.displayName} color={textColor} />
 							) : (
-								<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 							)}
 							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 						</SelectTrigger>
@@ -227,9 +227,9 @@ export const Settings_PickupLocations = () => {
 						onValueChange={(itemValue) => setLocation2Id(itemValue)}>
 						<SelectTrigger variant="outline" size="md">
 							{selectedLocation2Obj ? (
-								<SelectInput value={selectedLocation2Obj.displayName} color={textColor} />
+								<SelectInput py={0} value={selectedLocation2Obj.displayName} color={textColor} />
 							) : (
-								<SelectInput value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
+								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
 							)}
 							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
 						</SelectTrigger>

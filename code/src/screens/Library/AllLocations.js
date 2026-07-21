@@ -22,19 +22,20 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const AllLocations = () => {
      const [isLoading, setLoading] = React.useState(false);
-     const { user } = React.useContext(UserContext);
      const { library } = React.useContext(LibrarySystemContext);
-     const { location, locations, updateLocations } = React.useContext(LibraryBranchContext);
+     const { locations, updateLocations } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
      const [sort, setSort] = React.useState('alphabetical');
+     const [isCoordinatesLoaded, setIsCoordinatesLoaded] = React.useState(false);
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
      const [sortedLocations, setSortedLocations] = React.useState(_.sortBy(locations, ['displayName']));
 
-     const { status, data, error, isFetching } = useQuery(['locations', user.id, library.baseUrl, language, userLatitude, userLongitude, sort], () => getLocations(library.baseUrl, language, userLatitude, userLongitude), {
+     const { status, isFetching } = useQuery(['locations', library.baseUrl, language, userLatitude, userLongitude, sort], () => getLocations(library.baseUrl, language, userLatitude, userLongitude), {
           initialData: locations,
+          enabled: isCoordinatesLoaded,
           onSuccess: (data) => {
                if(data.ok) {
                     logDebugMessage("Got location data");
@@ -106,6 +107,7 @@ export const AllLocations = () => {
                          const tmpSortedLocations = _.sortBy(locations, ['displayName']);
                          setSortedLocations(tmpSortedLocations);
                     }
+                    setIsCoordinatesLoaded(true);
                     setLoading(false);
                };
                update().then(() => {
@@ -116,7 +118,7 @@ export const AllLocations = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -154,13 +156,9 @@ export const AllLocations = () => {
           );
      };
 
-     if (isLoading) {
-          return loadingSpinner();
-     }
-
      return (
           <>
-               {status === 'loading' || isFetching ? (
+               {isLoading || status === 'loading' || isFetching ? (
                     loadingSpinner()
                ) : status === 'error' ? (
                     loadError('Error', '')
@@ -185,10 +183,9 @@ export const AllLocations = () => {
 };
 
 const DisplayLocation = (data) => {
-     const location = data.data;
      const { language } = React.useContext(LanguageContext);
      const {textColor} = React.useContext(ThemeContext);
-     const key = 'location_' + location.locationId;
+     const location = data.data;
 
      let units = false;
      if (location.unit === 'Mi') {
@@ -202,7 +199,6 @@ const DisplayLocation = (data) => {
           distanceText = location.distance + ' ' + units + ' away';
      }
 
-     let isClosedToday = false;
      let hoursLabel = '';
      let hasHours = false;
      if (location.hours) {
@@ -215,7 +211,6 @@ const DisplayLocation = (data) => {
                if (todaysHours[0]) {
                     todaysHours = todaysHours[0];
                     if (todaysHours.isClosed) {
-                         isClosedToday = true;
                          hoursLabel = getTermFromDictionary(language, 'location_closed');
                     } else {
                          const closingText = todaysHours.close;
@@ -228,22 +223,18 @@ const DisplayLocation = (data) => {
                          const stillOpen = moment(nowTime).isBefore(closeTime);
                          const stillClosed = moment(openTime).isBefore(nowTime);
                          if (!stillOpen) {
-                              isClosedToday = true;
                               hoursLabel = getTermFromDictionary(language, 'location_closed');
                          }
                          if (!stillClosed) {
-                              isClosedToday = true;
                               let openingTime = moment(openTime).format('h:mm A');
                               hoursLabel = 'Closed until ' + openingTime;
                          } else {
-                              isClosedToday = false;
                               let closingTime = moment(closeTime).format('h:mm A');
                               hoursLabel = 'Open until ' + closingTime;
                          }
                     }
                }
           } else {
-               isClosedToday = true;
                hoursLabel = getTermFromDictionary(language, 'location_closed');
           }
      }

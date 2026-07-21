@@ -179,11 +179,11 @@ const EditList = (props) => {
                                              {listGroupId != -1 ? (
                                                        _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
                                                             if (group.id === listGroupId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
+                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
                                                             }
                                                        })
                                                   ) :
-                                                  <SelectInput placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
+                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
                                              }
                                              <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                         </SelectTrigger>

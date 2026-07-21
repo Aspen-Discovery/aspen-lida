@@ -47,7 +47,7 @@ export const SelectExistingHoldSubLocation = (props) => {
                                         <Select
                                              onValueChange={(itemValue) => setActiveSublocation(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
-                                                  <SelectInput placeholder={getTermFromDictionary(language, 'select_new_pickup_area')} />
+                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_new_pickup_area')} />
                                                   <Icon as={ChevronDownIcon} mr="$3" />
                                              </SelectTrigger>
                                              <SelectPortal>

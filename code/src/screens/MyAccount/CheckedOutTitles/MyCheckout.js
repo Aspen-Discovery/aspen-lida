@@ -4,7 +4,7 @@ import {
      Actionsheet,
      ActionsheetContent,
      ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, Box, HStack, Icon, Pressable, Text, VStack, ActionsheetIcon, useToast,
+     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast,
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
@@ -120,7 +120,7 @@ export const MyCheckout = (props) => {
 
      return (
           <Pressable onPress={toggle} borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$coolGray200" : "$coolGray500"} pl="$4" pr="$5" py="$2">
-               <HStack space="sm" maxW="75%">
+               <HStack space="sm" w="75%">
                     <Image
                          alt={checkout.title}
                          source={url}
@@ -225,7 +225,7 @@ export const MyCheckout = (props) => {
                                    <ActionsheetIcon>
                                         <Icon as={MaterialIcons} name="book" mr="$1" size="md" color={textColor} />
                                    </ActionsheetIcon>
-                                   <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
+                                   <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                               </ActionsheetItem>
                          ) : null}
                          {checkout.source === 'palace_project' ? (
@@ -252,7 +252,7 @@ export const MyCheckout = (props) => {
                                         <ActionsheetIcon>
                                              <Icon as={MaterialIcons} name="book" mr="$1" size="md"  color={textColor}/>
                                         </ActionsheetIcon>
-                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
+                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                                    </ActionsheetItem>
                                    <ActionsheetItem
                                         isLoading={returning}
@@ -269,7 +269,7 @@ export const MyCheckout = (props) => {
                                         <ActionsheetIcon>
                                              <Icon as={MaterialIcons} name="logout" mr="$1" size="md"  color={textColor} />
                                         </ActionsheetIcon>
-                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language}></CheckoutAccessLabel>
+                                        <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                                         <ActionsheetItemText  color={textColor}>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
                                    </ActionsheetItem>
                               </>

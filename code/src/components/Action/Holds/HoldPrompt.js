@@ -390,7 +390,7 @@ export const HoldPrompt = (props) => {
                                              setShowAddAlternateLibraryCardModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
@@ -505,7 +505,7 @@ export const HoldPrompt = (props) => {
                                              <SelectTrigger variant="outline" size="md">
                                                   {locations.map((selectedLocation, index) => {
                                                        if (selectedLocation.code === location) {
-                                                            return <SelectInput value={selectedLocation.name} color={textColor} key={index} />;
+                                                            return <SelectInput py={0} value={selectedLocation.name} color={textColor} key={index} />;
                                                        }
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
@@ -560,6 +560,7 @@ export const HoldPrompt = (props) => {
                                         <Select name="linkedAccount" selectedValue={activeAccount} minWidth={200} mt="$1" mb="$3" onValueChange={(itemValue) => updateActiveAccount(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
                                                   <SelectInput
+                                                       py={0}
                                                        value={
                                                             (() => {
                                                                  if (activeAccount === (user.id)) {
@@ -608,7 +609,7 @@ export const HoldPrompt = (props) => {
                                              setShowModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button

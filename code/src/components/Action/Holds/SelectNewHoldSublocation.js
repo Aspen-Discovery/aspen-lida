@@ -55,7 +55,7 @@ export const SelectNewHoldSublocation = (props) => {
                                              <SelectTrigger variant="outline" size="md">
                                                   {validSublocations.map((sublocation, index) => {
                                                        if (sublocation.id === activeSublocation) {
-                                                            return <SelectInput value={sublocation.displayName} color={textColor} />;
+                                                            return <SelectInput py={0} value={sublocation.displayName} color={textColor} />;
                                                        }
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />

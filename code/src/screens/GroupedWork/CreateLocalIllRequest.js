@@ -271,11 +271,11 @@ const Request = (payload) => {
                                    {pickupLocation ? (
                                         locations.map((location, index) => {
                                              if (location.code === pickupLocation) {
-                                                  return <SelectInput key={index} value={location.displayName} color={textColor} />;
+                                                  return <SelectInput py={0} key={index} value={location.displayName} color={textColor} />;
                                              }
                                         })
                                    ) : (
-                                        <SelectInput placeholder="Select a pickup location" color={textColor} />
+                                        <SelectInput py={0} placeholder="Select a pickup location" color={textColor} />
                                    )}
                                    <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>
@@ -355,7 +355,7 @@ const Request = (payload) => {
                          </ButtonText>
                     </Button>
                     <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>Cancel</ButtonText>
+                         <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );
