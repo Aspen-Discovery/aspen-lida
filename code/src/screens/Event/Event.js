@@ -635,12 +635,12 @@ const RegistrationModal = ({ event }) => {
                     <ModalBackdrop />
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
                          <ModalHeader>
-                              <Heading size="$md">{getTermFromDictionary(language, 'registration_information')}</Heading>
+                              <Heading size="$md" color={textColor}>{getTermFromDictionary(language, 'registration_information')}</Heading>
                               <ModalCloseButton p="$3" onPress={() => { setShowRegistrationModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody>{stripHTML(decodeHTML(event.registrationBody))}</ModalBody>
+                         <ModalBody><Text color={textColor}>{stripHTML(decodeHTML(event.registrationBody))}</Text></ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="sm" size="md">
                                    <Button

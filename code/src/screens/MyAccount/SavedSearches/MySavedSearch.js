@@ -48,7 +48,7 @@ export const MySavedSearch = () => {
                <>
                     {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                     <Center mt={5} mb={5}>
-                         <Text bold fontSize="$lg" color={colorMode == 'light' ? "$coolGray800" : "$warmGray50"}>
+                         <Text bold fontSize="$lg" color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
                               {getTermFromDictionary(language, 'no_results_found')}
                          </Text>
                     </Center>
@@ -115,12 +115,11 @@ const SavedSearch = (data) => {
                          />
                          <Badge
                               mt={1}
-                              bgColor={colorMode == 'light' ? "$warmGray200" : "$coolGray900"}
+                              bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"}
                               >
                               <BadgeText
                                    fontSize="$sm"
-                                   color="$coolGray600"
-                                   _dark={{ color: "warmGray400" }}>
+                                   color={colorMode === 'light' ? "$coolGray600":  "$warmGray400"}>
                                    {item.language}
                               </BadgeText>
                          </Badge>
@@ -144,7 +143,7 @@ const SavedSearch = (data) => {
                                    {formats.map((format) => {
                                         return (
                                              <Badge colorScheme="secondary" mt={1} variant="outline" borderRadius="$sm" ml="$2">
-                                                  <BadgeText fontSize="$sm" textTransform="none">
+                                                  <BadgeText fontSize="$sm" textTransform="none"  color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
                                                        {format}
                                                   </BadgeText>
                                              </Badge>

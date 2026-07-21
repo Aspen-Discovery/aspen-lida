@@ -1,6 +1,18 @@
 import { SearchIcon } from 'lucide-react-native';
 
-import { Button, ButtonGroup, ButtonIcon, ButtonText, Box, Center, HStack, Text, SafeAreaView, ScrollView } from '@gluestack-ui/themed';
+import {
+     Button,
+     ButtonGroup,
+     ButtonIcon,
+     ButtonText,
+     Box,
+     Center,
+     HStack,
+     Text,
+     SafeAreaView,
+     ScrollView,
+     useToast
+} from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -289,6 +301,7 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { library } = React.useContext(LibrarySystemContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";
+     const toast = useToast();
 
      let showMoreInfoBtn = false;
      if(library?.showMoreInfoBtn) {
@@ -297,7 +310,7 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
 
      if (groupedWorkId && showMoreInfoBtn) {
           return (
-          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
+          <Button onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
                <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                     {getTermFromDictionary(language, 'more_information')}
                </ButtonText>

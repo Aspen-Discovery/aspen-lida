@@ -48,7 +48,7 @@ export const SearchIndexScreen = () => {
                                              </HStack>
                                         ) : (
                                              <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color="$muted400"  />
+                                                  <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']}  />
                                                   <Text color={textColor} ml="$2">
                                                        {obj}
                                                   </Text>

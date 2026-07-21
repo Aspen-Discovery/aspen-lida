@@ -30,7 +30,7 @@ export const MyEvents = () => {
      const { language } = React.useContext(LanguageContext);
      const { user, savedEvents, updateSavedEvents } = React.useContext(UserContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, colorMode} = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor} = React.useContext(ThemeContext);
      const pageSize = 25;
      const systemMessagesForScreen = [];
 
@@ -103,18 +103,15 @@ export const MyEvents = () => {
                <Box
                     alignItems="center"
                     p="$2"
-                    backgroundColor="$coolGray100"
                     borderBottomWidth="$1"
-                    _dark={{
-                         borderColor: '$coolGray600',
-                         backgroundColor: '$coolGray700',
-                    }}
-                    borderColor="$coolGray200">
+                    bgColor={colorMode==='light'?"$coolGray100" : '$coolGray700'}
+                    borderColor={colorMode==='light'?"$coolGray200" : '$coolGray600'}
+               >
                     <ButtonGroup alignItems="center" space="md" isAttached size="sm" pb="$1">
                          <Button
                               variant={filterBy === 'all' ? 'solid' : 'outline'}
                               onPress={() => setFilterBy('all')}
-                              bgColor={filterBy === 'all' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              bgColor={filterBy === 'all' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
                               borderColor={theme.tokens.colors.primary['500']}
                               action="primary">
                               <ButtonText color={filterBy === 'all' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'all_events')}</ButtonText>
@@ -122,7 +119,7 @@ export const MyEvents = () => {
                          <Button
                               variant={filterBy === 'upcoming' ? 'solid' : 'outline'}
                               action="primary"
-                              bgColor={filterBy === 'upcoming' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              bgColor={filterBy === 'upcoming' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
                               borderColor={theme.tokens.colors.primary['500']}
                               onPress={() => setFilterBy('upcoming')}>
                               <ButtonText color={filterBy === 'upcoming' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
@@ -130,7 +127,7 @@ export const MyEvents = () => {
                          <Button
                               action="primary"
                               variant={filterBy === 'past' ? 'solid' : 'outline'}
-                              bgColor={filterBy === 'past' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$backgroundLight50" : "$backgroundDark900")}
+                              bgColor={filterBy === 'past' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
                               borderColor={theme.tokens.colors.primary['500']}
                               onPress={() => setFilterBy('past')}>
                               <ButtonText color={filterBy === 'past' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'past_events')}</ButtonText>
@@ -143,7 +140,7 @@ export const MyEvents = () => {
      const Empty = () => {
           return (
                <Center mt={5} mb={5}>
-                    <Text bold fontSize="$lg">
+                    <Text bold fontSize="$lg" color={textColor}>
                          {filterBy === 'upcoming' ? getTermFromDictionary(language, 'no_events_upcoming') : filterBy === 'past' ? getTermFromDictionary(language, 'no_events_past') : getTermFromDictionary(language, 'no_events_all')}
                     </Text>
                </Center>
@@ -182,7 +179,7 @@ export const MyEvents = () => {
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
-                         <Text mt="$2" fontSize="$sm">
+                         <Text mt="$2" fontSize="$sm" color={textColor}>
                               {paginationLabel}
                          </Text>
                     </Box>
@@ -228,6 +225,8 @@ const Item = (data) => {
      const { user } = React.useContext(UserContext);
      const { language } = React.useContext(LanguageContext);
      const { library } = React.useContext(LibrarySystemContext);
+     const {colorMode} = React.useContext(ThemeContext);
+
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
 
@@ -395,27 +394,26 @@ const Item = (data) => {
 
                     <VStack w={event.cover ? '65%' : '100%'}>
                          <Text
-                              _dark={{ color: "$warmGray50" }}
-                              color="$coolGray800"
+                              color={colorMode==='light'?"$coolGray800" : "$warmGray50"}
                               fontWeight="$bold"
                               fontSize="$md">
                               {event.title}
                          </Text>
                          {event.startDate && event.endDate ? (
                               <>
-                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
+                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
                                         {displayDay}
                                    </Text>
-                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
+                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
                                         {displayStartTime} - {displayEndTime}
                                    </Text>
                               </>
                          ) : event.startDate && !event.endDate ? (
                               <>
-                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
+                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
                                         {displayDay}
                                    </Text>
-                                   <Text _dark={{ color: "$warmGray50" }} color="$coolGray800">
+                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
                                         {displayStartTime}
                                    </Text>
                               </>

@@ -3,10 +3,11 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
 import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack } from '@gluestack-ui/themed';
-import React from 'react';
+import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
+import {ThemeContext} from "../context/initialContext";
 
 // custom components and helper files
 import { stripHTML } from '../helpers/helpers';
@@ -211,46 +212,44 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 export const DisplaySystemMessage = (props) => {
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
+     const {theme} = useContext(ThemeContext);
      let style = props.style;
+     if (style === '') {
+          style = 'info';
+     }
+     logDebugMessage("System Message Style is " + style);
+     const getAlertStyle = (style) => {
+          switch (style) {
+               case 'error':
+               case 'danger':
+                    return { action: 'error', variant: 'solid' };
+               case 'warning':
+                    return { action: 'warning', variant: 'accent' };
+               case 'success':
+                    return { action: 'success', variant: 'solid' };
+               default:
+                    return { action: 'info', variant: 'outline' };
+          }
+     };
+     const alertProps = getAlertStyle(style);
 
      // return a custom alert if the system message style is 'none'
-     if (props.style === '') {
-          return (
-               <Alert mb="$2" action="info">
-                    <VStack space="xs" width="$full">
-                         <HStack alignItems="flex-start" justifyContent="space-between">
-                              <AlertText size="sm">
-                                   {props.message}
-                              </AlertText>
-                              <Button
-                                   onPress={async () => {
-                                        await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
-                                             queryClient.setQueryData(['system_messages', props.url], result);
-                                             updateSystemMessages(result);
-                                        });
-                                   }}>
-                                   <ButtonIcon as={CloseIcon} size="md" />
-                              </Button>
-                         </HStack>
-                    </VStack>
-               </Alert>
-          );
-     }
      return (
-          <Alert action={style} mb="$2">
+          <Alert {...alertProps} mb="$2">
                <VStack space="xs" width="$full">
                     <HStack alignItems="flex-start" justifyContent="space-between">
                          <AlertText size="sm">
                               {props.message}
                          </AlertText>
-                         <Button
+                         <Button size="xs"
+                              bgColor = {theme.tokens.colors.primary['500']}
                               onPress={async () => {
                                    await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
                                         queryClient.setQueryData(['system_messages', props.url], result);
                                         updateSystemMessages(result);
                                    });
                               }}>
-                              <ButtonIcon as={CloseIcon} size="md" />
+                              <ButtonIcon as={CloseIcon} size="md" color={theme.tokens.colors.primary['500-text']} />
                          </Button>
                     </HStack>
                </VStack>
