@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Badge, BadgeText, Box, HStack, Text, ActionsheetItemText } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/themed';
 import React from 'react';
 import _ from 'lodash';
 
@@ -72,14 +72,12 @@ export const getCallNumber = (callNumber) => {
      const { language } = React.useContext(LanguageContext);
      if (callNumber) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'call_number')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {callNumber}
-                    </Text>
-               </HStack>
+                    {' '}{callNumber}
+               </Text>
           );
      }
      return null;
@@ -90,14 +88,12 @@ export const getVolume = (volume) => {
      const { language } = React.useContext(LanguageContext);
      if (volume) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'volume')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {volume}
-                    </Text>
-               </HStack>
+                    {' '}{volume}
+               </Text>
           );
      }
      return null;
@@ -114,14 +110,12 @@ export const getAuthor = (author) => {
           }
 
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'author')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {displayAuthor}
-                    </Text>
-               </HStack>
+                    {' '}{displayAuthor}
+               </Text>
           );
      }
      return null;
@@ -152,29 +146,22 @@ export const getFormat = (format, source = null) => {
                          source = getTermFromDictionary(language, 'palace_project');
                     }
                     return (
-                         <HStack
-                              space="xs"
-                              maxW="$full"
-                              flexWrap="wrap">
-                              <Text bold fontSize="$xs" color={textColor}>
+                         <Text fontSize="$xs" color={textColor}>
+                              <Text bold>
                                    {getTermFromDictionary(language, 'format')}:
                               </Text>
-                              <Text fontSize="$xs" color={textColor}>
-                                   {format !== '' ? format : 'Unknown'} - {source}
-                              </Text>
-                         </HStack>
+                              {' '}{format !== '' ? format : 'Unknown'} - {source}
+                         </Text>
                     );
                }
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {format}
-                    </Text>
-               </HStack>
+                    {' '}{format}
+               </Text>
           );
      } else {
           return null;
@@ -245,14 +232,12 @@ export const getType = (type) => {
           }
 
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap" color={textColor}>
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'hold_source')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {type}
-                    </Text>
-               </HStack>
+                    {' '}{type}
+               </Text>
           );
      } else {
           return null;
@@ -264,14 +249,12 @@ export const getOnHoldFor = (user) => {
      const {textColor} = React.useContext(ThemeContext);
      if (user) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'on_hold_for')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {user}
-                    </Text>
-               </HStack>
+                    {' '}{user}
+               </Text>
           );
      }
      return null;
@@ -284,14 +267,12 @@ export const getCheckedOutTo = (props) => {
      const {textColor} = React.useContext(ThemeContext);
      if (user.id !== checkedOutTo) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'checked_out_to')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {props}
-                    </Text>
-               </HStack>
+                    {' '}{props}
+               </Text>
           );
      } else {
           return null;
@@ -307,14 +288,12 @@ export const getDueDate = (date) => {
           const dueDate = moment.unix(date - timezoneOffset);
           const itemDueOn = moment(dueDate).format('MMM D, YYYY');
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'checkout_due')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {itemDueOn}
-                    </Text>
-               </HStack>
+                    {' '}{itemDueOn}
+               </Text>
           );
      }
 
@@ -331,14 +310,12 @@ export const getDateLastUsed = (date, checkedOut) => {
                itemLastUsedOn = getTermFromDictionary(language, 'in_use');
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'last_used')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {itemLastUsedOn}
-                    </Text>
-               </HStack>
+                    {' '}{itemLastUsedOn}
+               </Text>
           );
      }
 
@@ -351,19 +328,12 @@ export const willAutoRenew = (props) => {
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
                <Box mt={1} p={0.5} bgColor="muted.100">
-                    <HStack space="xs" maxW="$full" flexWrap="wrap">
-                         <Text
-                              bold
-                              fontSize="$xs"
-                              color={textColor}>
+                    <Text fontSize="$xs" color={textColor}>
+                         <Text bold>
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:
                          </Text>
-                         <Text
-                              fontSize="$xs"
-                              color={textColor}>
-                              {props.renewalDate}
-                         </Text>
-                    </HStack>
+                         {' '}{props.renewalDate}
+                    </Text>
                </Box>
           );
      } else {
@@ -376,14 +346,12 @@ export const getPickupLocation = (location, source) => {
      const {textColor} = React.useContext(ThemeContext);
      if (location && source === 'ils') {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'hold_pickup_at')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {location}
-                    </Text>
-               </HStack>
+                    {' '}{location}
+               </Text>
           );
      } else {
           return null;
@@ -395,14 +363,12 @@ export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      const {textColor} = React.useContext(ThemeContext);
      if (outOfHoldGroupMessage) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'interlibrary_loan')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {outOfHoldGroupMessage}
-                    </Text>
-               </HStack>
+                    {' '}{outOfHoldGroupMessage}
+               </Text>
           );
      } else {
           return null;
@@ -415,28 +381,21 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
      if (!outOfHoldGroupMessage && position && !available && position !== 0 && position !== '0') {
           if (length && usesHoldPosition) {
                return (
-                    <HStack space="xs" maxW="$full" flexWrap="wrap">
-                         <Text
-                              bold
-                              fontSize="$xs" color={textColor}>
+                    <Text fontSize="$xs" color={textColor}>
+                         <Text bold>
                               {getTermFromDictionary(language, 'hold_position')}:
                          </Text>
-                         <Text
-                              fontSize="$xs" color={textColor}>
-                              {holdPosition}
-                         </Text>
-                    </HStack>
+                         {' '}{holdPosition}
+                    </Text>
                );
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'hold_position')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {position}
-                    </Text>
-               </HStack>
+                    {' '}{position}
+               </Text>
           );
      } else {
           return null;
@@ -450,14 +409,12 @@ export const getExpirationDate = (expiration, available) => {
           const expirationDateUnix = moment.unix(expiration);
           let expirationDate = moment(expirationDateUnix).format('MMM D, YYYY');
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'hold_pickup_by')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {expirationDate}
-                    </Text>
-               </HStack>
+                    {' '}{expirationDate}
+               </Text>
           );
      } else {
           return null;
@@ -469,14 +426,12 @@ export const getRenewalCount = (count, available = null) => {
      const {textColor} = React.useContext(ThemeContext);
      if (available) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold color={textColor}>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'checkout_renewed')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {count} of {available} times
-                    </Text>
-               </HStack>
+                    {' '}{count} of {available} times
+               </Text>
           );
      } else {
           return null;
@@ -488,21 +443,19 @@ export const getCollectionName = (source, collectionName = null) => {
      const {textColor} = React.useContext(ThemeContext);
 	if (source === 'overdrive' && collectionName) {
 		return (
-		     <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text bold fontSize="$xs" color={textColor}>
+		     <Text fontSize="$xs" color={textColor}>
+                    <Text bold>
                          {getTermFromDictionary(language, 'collection')}:
                     </Text>
-                    <Text fontSize="$xs" color={textColor}>
-                         {collectionName}
-                    </Text>
-               </HStack>
+                    {' '}{collectionName}
+               </Text>
 		);
 	} else {
 		return null;
 	}
 }
 
-export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderName }) => {
+export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderName, color }) => {
      const [label, setLabel] = React.useState('...'); // Fallback / temporary loading text
 
      React.useEffect(() => {
@@ -511,23 +464,18 @@ export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderNa
           async function fetchLabel() {
                if (!checkout?.checkoutSource) return;
 
-               let formatId = '';
                let translationKey = 'checkout_access_online';
                let dynamicValue = checkout.checkoutSource === 'Axis360' ? 'Boundless' : checkout.checkoutSource;
 
                if (checkout.checkoutSource === 'OverDrive') {
                     dynamicValue = libbyReaderName;
                     if (checkout.overdriveRead === 1) {
-                         formatId = 'ebook-overdrive';
                          translationKey = 'checkout_read_online';
                     } else if (checkout.overdriveListen === 1) {
-                         formatId = 'audiobook-overdrive';
                          translationKey = 'checkout_listen_online';
                     } else if (checkout.overdriveVideo === 1) {
-                         formatId = 'video-streaming';
                          translationKey = 'checkout_watch_online';
                     } else if (checkout.overdriveMagazine === 1) {
-                         formatId = 'magazine-overdrive';
                          translationKey = 'checkout_read_online';
                     }
                }
@@ -550,5 +498,5 @@ export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderNa
           };
      }, [checkout, language, baseUrl, libbyReaderName]);
 
-     return <ActionsheetItemText color="$textColor">{label}</ActionsheetItemText>;
+     return <ActionsheetItemText color={color} >{label}</ActionsheetItemText>;
 };

@@ -186,7 +186,7 @@ export const AddAlternateLibraryCard = (props) => {
                                         setShowModal(false);
                                         setLoading(false);
                                    }}>
-                                   <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}

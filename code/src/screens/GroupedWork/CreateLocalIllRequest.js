@@ -355,7 +355,7 @@ const Request = (payload) => {
                          </ButtonText>
                     </Button>
                     <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>Cancel</ButtonText>
+                         <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );

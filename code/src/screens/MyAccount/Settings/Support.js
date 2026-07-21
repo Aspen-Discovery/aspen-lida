@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import _ from 'lodash';
-import { Alert, AlertIcon, AlertText, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText } from '@gluestack-ui/themed';
+import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
@@ -17,7 +17,7 @@ export const SupportScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const [status, setStatus] = React.useState({
           needsUpdate: false,
           url: null,
@@ -53,73 +53,73 @@ export const SupportScreen = () => {
      return (
           <Box safeArea={5}>
                <VStack space="$1" px="$4" py="$2">
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text bold color={textColor}>
                               {getTermFromDictionary(language, 'app_name')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
-                              {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel}]
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
+                              {' '}{GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel}]
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'aspen_discovery')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {library.discoveryVersion}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'os_information')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {Device.osName} {Device.osVersion}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'device_information')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {Device.brand} {Device.modelName}, {Device.deviceYearClass}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'current_location')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {location.displayName}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'current_library')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {library.displayName}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'connected_to')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {library.baseUrl}
                          </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" py="$1">
-                         <Text fontSize="$xs" bold>
+                    </VStack>
+                    <VStack justifyContent="space-between" py="$1">
+                         <Text fontSize="$xs" bold color={textColor}>
                               {getTermFromDictionary(language, 'num_linked_accounts')}
                          </Text>
-                         <Text fontSize="$xs" color="$coolGray600" _dark={{ color: "warmGray400" }}>
+                         <Text color={colorMode === 'light' ? "$coolGray600" : "$warmGray400" }>
                               {numLinkedAccounts}
                          </Text>
-                    </HStack>
+                    </VStack>
                     {enableDebugPanel ? (
                          <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold>
+                              <Text fontSize="$xs" bold color={textColor}>
                                    Support Log
                               </Text>
                               <ScrollView>
@@ -133,8 +133,8 @@ export const SupportScreen = () => {
                     ) : null}
                </VStack>
                <Center pt={5}>
-                    <Button bgColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => navigation.navigate('MyDevice_APIErrorLog')}>
-                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'open_api_error_log')}</ButtonText>
+                    <Button bg={theme.tokens.colors.secondary['500']} onPress={() => navigation.navigate('MyDevice_APIErrorLog')}>
+                         <ButtonText color={theme.tokens.colors.secondary['500-text']}>{getTermFromDictionary(language, 'open_api_error_log')}</ButtonText>
                     </Button>
                </Center>
                {status.needsUpdate ? (
