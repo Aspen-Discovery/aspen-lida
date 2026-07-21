@@ -52,7 +52,7 @@ const EnableAccountLinking = () => {
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'enable_linked_accounts_title')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

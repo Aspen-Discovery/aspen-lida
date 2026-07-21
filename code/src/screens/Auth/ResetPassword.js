@@ -161,7 +161,7 @@ export const ResetPassword = (props) => {
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{modalTitle}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowForgotPasswordModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

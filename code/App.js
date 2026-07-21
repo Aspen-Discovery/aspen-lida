@@ -1,9 +1,9 @@
 import 'expo-dev-client';
 import { config } from '@gluestack-ui/config';
-import { GluestackUIProvider, useToast } from '@gluestack-ui/themed';
+import { GluestackUIProvider, Box, SafeAreaView, useToast } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
 
@@ -58,9 +58,7 @@ if (__DEV__) {
 
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
-     const [aspenTheme, setAspenTheme] = React.useState([]);
      const { colorMode, updateColorMode, updateTheme } = React.useContext(ThemeContext);
-     const [statusBarColor, setStatusBarColor] = React.useState('light-content');
      const toast = useToast();
 
      const [dbReady, setDbReady] = React.useState(false);
@@ -107,14 +105,8 @@ export default function AppContainer() {
                     logDebugMessage("5 Creating Default Theme " + colorMode);
                     await createTheme(toast, colorMode).then(async (result) => {
                          logDebugMessage("5a retrieved data from createTheme");
-                         setAspenTheme(result);
                          updateTheme(result);
                          logDebugMessage("5b Set Aspen Theme");
-                         if (colorMode === 'dark') {
-                              setStatusBarColor('light-content');
-                         } else {
-                              setStatusBarColor('dark-content');
-                         }
                          logDebugMessage("5c Saving Theme");
                          await saveTheme(result);
                     });
@@ -131,7 +123,7 @@ export default function AppContainer() {
           logDebugMessage("6 Still loading, showing splash screen");
           return <SplashScreenNative />;
      }else{
-          logDebugMessage("7 Loading main page");
+          logDebugMessage("7 Loading main page colorMode " + colorMode);
           return (
                <SafeAreaProvider>
                     <QueryClientProvider client={queryClient}>
@@ -149,7 +141,7 @@ export default function AppContainer() {
                                                                                 <SystemMessagesProvider>
                                                                                      <GroupedWorkProvider>
                                                                                           <AuthProvider>
-                                                                                               <StatusBar barStyle={statusBarColor} />
+                                                                                               <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
                                                                                                <App />
                                                                                           </AuthProvider>
                                                                                      </GroupedWorkProvider>

@@ -126,7 +126,7 @@ const EditList = (props) => {
                     <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'edit')} {data.title}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

@@ -157,7 +157,7 @@ export const CheckOut = (props) => {
                                    <Heading size="md" color={textColor}>
                                         {getTermFromDictionary(language, 'add_alternate_library_card')}
                                    </Heading>
-                                   <ModalCloseButton p="$3">
+                                   <ModalCloseButton p="$3" onPress={() => { setShowAddAlternateLibraryCardModal(false); }}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>

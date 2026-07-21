@@ -21,100 +21,86 @@ import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/lo
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const AllLocations = () => {
-     const [isLoading, setLoading] = React.useState(false);
      const { library } = React.useContext(LibrarySystemContext);
      const { locations, updateLocations } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
+
      const [sort, setSort] = React.useState('alphabetical');
      const [isCoordinatesLoaded, setIsCoordinatesLoaded] = React.useState(false);
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
-     const [sortedLocations, setSortedLocations] = React.useState(_.sortBy(locations, ['displayName']));
 
-     const { status, isFetching } = useQuery(['locations', library.baseUrl, language, userLatitude, userLongitude, sort], () => getLocations(library.baseUrl, language, userLatitude, userLongitude), {
-          initialData: locations,
-          enabled: isCoordinatesLoaded,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    logDebugMessage("Got location data");
-                    updateLocations(data.data.result.locations);
-                    if (sort === 'distance') {
-                         const tmpSortedLocations = _.sortBy(data, ['distance', 'displayName']);
-                         const mapped = _.map(tmpSortedLocations, (val, key) => ({ ...val, originalKey: key }));
-                         setSortedLocations(mapped);
-                    } else {
-                         const tmpSortedLocations = _.sortBy(data, ['displayName']);
-                         const mapped = _.map(tmpSortedLocations, (val, key) => ({ ...val, originalKey: key }));
-                         setSortedLocations(mapped);
-                    }
-               } else {
-                    logDebugMessage("Error fetching locations");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-               setLoading(false);
-          },
-          onSettle: (data) => {
-               logDebugMessage("Running settle after getting locations");
-               if (sort === 'distance') {
-                    const tmpSortedLocations = _.sortBy(data, ['distance', 'displayName']);
-                    setSortedLocations(tmpSortedLocations);
-               } else {
-                    const tmpSortedLocations = _.sortBy(data, ['displayName']);
-                    setSortedLocations(tmpSortedLocations);
-               }
-               setLoading(false);
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching locations");
-               logErrorMessage(error);
-          },
-          placeholderData: [],
-     });
-
+     // Fetch coordinates on focus
      useFocusEffect(
           React.useCallback(() => {
-               const update = async () => {
-                    logDebugMessage("Getting location information as part of focus effect in AllLocations");
+               let isMounted = true;
+
+               const updateCoordinates = async () => {
+                    logDebugMessage("Getting location information in AllLocations");
                     let latitude = await SecureStore.getItemAsync('latitude');
                     let longitude = await SecureStore.getItemAsync('longitude');
-                    setUserLatitude(latitude);
-                    setUserLongitude(longitude);
 
                     if (sort === 'distance') {
                          const { status } = await Location.requestForegroundPermissionsAsync();
                          if (status === 'granted') {
                               let location = await Location.getLastKnownPositionAsync({});
                               if (location != null) {
-                                   const latitude = JSON.stringify(location.coords.latitude);
-                                   const longitude = JSON.stringify(location.coords.longitude);
+                                   latitude = JSON.stringify(location.coords.latitude);
+                                   longitude = JSON.stringify(location.coords.longitude);
                                    await SecureStore.setItemAsync('latitude', latitude);
                                    await SecureStore.setItemAsync('longitude', longitude);
                                    PATRON.coords.lat = latitude;
                                    PATRON.coords.long = longitude;
-                                   setUserLatitude(latitude);
-                                   setUserLongitude(longitude);
                               }
                          }
-
-                         const tmpSortedLocations = _.sortBy(locations, ['distance', 'displayName']);
-                         setSortedLocations(tmpSortedLocations);
                     }
 
-                    if (sort === 'alphabetical') {
-                         const tmpSortedLocations = _.sortBy(locations, ['displayName']);
-                         setSortedLocations(tmpSortedLocations);
+                    if (isMounted) {
+                         setUserLatitude(latitude || 0);
+                         setUserLongitude(longitude || 0);
+                         setIsCoordinatesLoaded(true);
                     }
-                    setIsCoordinatesLoaded(true);
-                    setLoading(false);
                };
-               update().then(() => {
-                    return () => update();
-               });
+
+               updateCoordinates();
+
+               return () => {
+                    isMounted = false;
+               };
           }, [sort])
      );
+
+     // Query location data
+     const { status, isFetching, data: queryData } = useQuery(
+          ['locations', library.baseUrl, language, userLatitude, userLongitude],
+          () => getLocations(library.baseUrl, language, userLatitude, userLongitude),
+          {
+               enabled: isCoordinatesLoaded,
+               onError: (error) => {
+                    logDebugMessage("Error fetching locations");
+                    logErrorMessage(error);
+               },
+          }
+     );
+
+     // Sync API query response to global Context
+     React.useEffect(() => {
+          if (queryData?.ok && queryData?.data?.result?.locations) {
+               updateLocations(queryData.data.result.locations);
+          } else if (queryData && !queryData.ok) {
+               getErrorMessage(queryData.code, queryData.problem);
+          }
+     }, [queryData]);
+
+     // Derive sorted locations automatically from context state
+     const sortedLocations = React.useMemo(() => {
+          if (!locations) return [];
+          return sort === 'distance'
+               ? _.sortBy(locations, ['distance', 'displayName'])
+               : _.sortBy(locations, ['displayName']);
+     }, [locations, sort]);
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
@@ -125,11 +111,6 @@ export const AllLocations = () => {
                });
           }
           return null;
-     };
-
-     const updateSort = (sort) => {
-          setLoading(true);
-          setSort(sort);
      };
 
      const getActionButtons = () => {
@@ -145,10 +126,10 @@ export const AllLocations = () => {
                     }}
                     borderColor="$coolGray200">
                     <ButtonGroup alignItems="center" isAttached>
-                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => updateSort('alphabetical')}>
+                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('alphabetical')}>
                               <ButtonText>{getTermFromDictionary(language, 'a_to_z')}</ButtonText>
                          </Button>
-                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} action="secondary" onPress={() => updateSort('distance')}>
+                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('distance')}>
                               <ButtonText>{getTermFromDictionary(language, 'distance')}</ButtonText>
                          </Button>
                     </ButtonGroup>
@@ -156,9 +137,11 @@ export const AllLocations = () => {
           );
      };
 
+     const isLoadingState = status === 'loading' || isFetching || !isCoordinatesLoaded;
+
      return (
           <>
-               {isLoading || status === 'loading' || isFetching ? (
+               {isLoadingState ? (
                     loadingSpinner()
                ) : status === 'error' ? (
                     loadError('Error', '')
@@ -170,11 +153,11 @@ export const AllLocations = () => {
                                    {getActionButtons()}
                               </>
                          }
-                         data={Object.keys(sortedLocations)}
+                         data={sortedLocations}
                          renderItem={({ item }) => (
-                              <DisplayLocation data={sortedLocations[item]} />
+                              <DisplayLocation data={item} />
                          )}
-                         keyExtractor={(item, index) => index.toString()}
+                         keyExtractor={(item, index) => item.id?.toString() || index.toString()}
                          contentContainerStyle={{ paddingBottom: 30 }}
                     />
                )}

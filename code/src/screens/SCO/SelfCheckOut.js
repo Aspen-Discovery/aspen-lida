@@ -292,7 +292,7 @@ export const SelfCheckOut = () => {
                                              <Heading size="md" color={textColor}>
                                                   {getTermFromDictionary(language, 'add_new_item')}
                                              </Heading>
-                                             <ModalCloseButton p="$3">
+                                             <ModalCloseButton p="$3" onPress={toggle}>
                                                   <Icon as={CloseIcon} color={textColor} />
                                              </ModalCloseButton>
                                         </ModalHeader>

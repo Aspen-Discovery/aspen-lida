@@ -469,7 +469,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                     <ModalContent maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
                          <ModalHeader>
                               <Heading size="$md">{modalBodyHeading}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -636,7 +636,7 @@ const RegistrationModal = ({ event }) => {
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
                          <ModalHeader>
                               <Heading size="$md">{getTermFromDictionary(language, 'registration_information')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowRegistrationModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

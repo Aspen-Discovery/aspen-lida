@@ -49,7 +49,7 @@ const CreateListGroup = (props) => {
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'create_new_list_group')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

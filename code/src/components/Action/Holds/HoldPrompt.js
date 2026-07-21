@@ -349,7 +349,7 @@ export const HoldPrompt = (props) => {
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'add_alternate_library_card')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowAddAlternateLibraryCardModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -461,7 +461,7 @@ export const HoldPrompt = (props) => {
                               <Heading size="md" color={textColor}>
                                    {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                               </Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

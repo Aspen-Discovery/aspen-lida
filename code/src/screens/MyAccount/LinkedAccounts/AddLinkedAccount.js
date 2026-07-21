@@ -66,7 +66,7 @@ const AddLinkedAccount = () => {
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
                          <ModalHeader>
                               <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'linked_account_to_manage')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

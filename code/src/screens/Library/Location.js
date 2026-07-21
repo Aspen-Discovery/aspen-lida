@@ -112,23 +112,10 @@ export const Location = () => {
                                              height: 200,
                                              borderRadius: "$sm",
                                              zIndex: -1,
-                                             position: 'absolute',
-                                             left: 0,
-                                             top: 0,
                                         }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
-                                   />
-                                   <Box
-                                        h={200}
-                                        w="100%"
-                                        position="absolute"
-                                        left={0}
-                                        top={0}
-                                        zIndex={100}
-                                        bgColor="$backgroundLight50"
-                                        opacity={.4}
                                    />
                               </>
                          ) : null}

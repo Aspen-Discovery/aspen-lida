@@ -106,27 +106,15 @@ export const MyLibrary = () => {
                                    height: 200,
                                    borderRadius: "$sm",
                                    zIndex: -1,
-                                   position: 'absolute',
-                                   left: 0,
-                                   top: 0,
                               }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"
                          />
-                         <Box
-                              h={200}
-                              w="100%"
-                              position="absolute"
-                              left={0}
-                              top={0}
-                              zIndex={100}
-                              bgColor="$backgroundLight50"
-                              opacity={.4}
-                         />
+
                     </>
                ) : null}
-               <Box safeArea={5} mt={location.locationImage ? 40 : 0} mx="$2" zIndex={200}>
+               <Box safeArea={5} mt={5} mx="$2" zIndex={200}>
                     {showSystemMessage()}
                     {library.displayName !== location.displayName ? <Heading color={textColor} mb={2}>{location.displayName}</Heading> : <Heading color={textColor} mb={1}>{library.displayName}</Heading>}
                     {location.address ? <Text color={textColor}>{location.address}</Text> : null}

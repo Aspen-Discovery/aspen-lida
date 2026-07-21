@@ -89,7 +89,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                     <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'move_list_group')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={toggle}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

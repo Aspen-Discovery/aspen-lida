@@ -107,7 +107,7 @@ export const SelectYourLibrary = (payload) => {
                     >
                          <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <Heading size="md" color={textColor}>{getTermFromDictionary('en', 'find_your_library')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

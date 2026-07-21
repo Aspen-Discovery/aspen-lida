@@ -82,7 +82,8 @@ export const DrawerContent = (props) => {
      const insets = useSafeAreaInsets();
      const { user, accounts, cards, updateUser, updateLanguage, updatePickupLocations, updateLinkedAccounts, updatePreferredPickupLocationIsValid, updatePreferredPickupLocationWarning, updateLists, updateLibraryCards, notificationHistory, updateNotificationHistory, userHoldPendingSortMethod, userHoldReadySortMethod, userCheckoutSortMethod, updateListGroups, updateSavedSearches } = React.useContext(UserContext);
      const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const [ setNotifications] = React.useState([]);
+     // noinspection JSUnusedLocalSymbols
+     const [ notifications, setNotifications] = React.useState([]);
      const [messages, setILSMessages] = React.useState([]);
      const { category, list, maxNum, updateBrowseCategories, updateBrowseCategoryList } = React.useContext(BrowseCategoryContext);
      const { updateCheckouts } = React.useContext(CheckoutsContext);
@@ -101,6 +102,7 @@ export const DrawerContent = (props) => {
 
      React.useEffect(() => {
           const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+               // noinspection JSIgnoredPromiseFromCall
                handleNewNotificationResponse(response);
           });
           const stateChangeSubscription = AppState.addEventListener('change', onAppStateChange)
@@ -411,6 +413,7 @@ export const DrawerContent = (props) => {
           onSuccess: (data) => {
                if(data.ok){
                     logDebugMessage("Updating locations");
+                    logDebugMessage(data);
                     updateLocations(data.data.result.locations);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -612,11 +615,11 @@ export const DrawerContent = (props) => {
      };
 
      if (catalogStatus > 0) {
-          return <CatalogOffline />;
+          return <CatalogOffline key="catalog-offline-screen" />;
      }
 
      if (invalidSession === true || invalidSession === 'true') {
-          return <InvalidCredentials />;
+          return <InvalidCredentials key="invalid-credentials-screen" />;
      }
 
      return (
@@ -729,6 +732,8 @@ const Checkouts = ({ isUserLoadedSuccessfully }) => {
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
+     if (!user || !library) return null;
+
      return (
           <Pressable
                px="$2"
@@ -770,7 +775,7 @@ const Holds = ({ isUserLoadedSuccessfully }) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
 
-     const [holdSummary, setHoldSummary] = React.useState('');
+     if (!user || !library) return null;
 
      return (
           <Pressable
@@ -966,6 +971,8 @@ const NotificationHistory = () => {
                     </HStack>
                </Pressable>
           );
+     }else{
+          return null;
      }
 };
 
@@ -1042,8 +1049,10 @@ const Fines = ({ isUserLoadedSuccessfully }) => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
+     const textMode = useColorModeValue('gray.800', 'coolGray.200');
+     const backgroundColor = useToken('colors', bgMode);
+     const textColor = useToken('colors', textMode);
      const toast = useToast();
 
      let shouldShowFines = true;
@@ -1131,8 +1140,10 @@ const YearInReview = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
+     const textMode = useColorModeValue('gray.800', 'coolGray.200');
+     const backgroundColor = useToken('colors', bgMode);
+     const textColor = useToken('colors', textMode);
      const toast = useToast();
 
      let shouldShowYearInReview = false;
@@ -1185,6 +1196,8 @@ const Campaigns = () => {
                     </HStack>
                </Pressable>
           );
+     }else{
+          return null;
      }
 }
 
