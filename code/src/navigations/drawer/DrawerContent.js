@@ -6,7 +6,6 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import _ from 'lodash';
 import {
      Badge,
      BadgeText,
@@ -24,7 +23,7 @@ import {
      VStack,
      useToast
 } from '@gluestack-ui/themed';
-import { useColorModeValue } from '../../themes/theme';
+import { useColorModeValue, UseColorMode } from '../../themes/theme';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { AppState, Platform, View } from 'react-native';
@@ -37,22 +36,21 @@ import {
      useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups,
-     useUpdateNotificationHistory, useUpdateSavedSearches,
+     useUpdateSavedSearches,
 } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
-import { UseColorMode } from '../../themes/theme';
 import { getTermFromDictionary, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus } from '../../util/api/system';
-import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, fetchNotificationHistory, getLinkedAccounts } from '../../util/api/user';
-import { sortCheckouts, sortHolds, formatNotificationHistory, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
+import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
+import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists, fetchSavedSearches } from '../../util/api/list';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../util/api/search';
 
 import { GLOBALS } from '../../util/globals';
-import { stripHTML } from '../../helpers/helpers';
+import { stripHTML, orderByFields } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
@@ -197,7 +195,6 @@ export const DrawerContent = (props) => {
      const updateCards = useUpdateCards();
      const updateLists = useUpdateLists();
      const updateListGroups = useUpdateListGroups();
-     const updateNotificationHistory = useUpdateNotificationHistory();
      const updateSavedSearches = useUpdateSavedSearches();
      const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
      // noinspection JSUnusedLocalSymbols
@@ -468,28 +465,6 @@ export const DrawerContent = (props) => {
      });
 
      useQueryWithCallbacks({
-          queryKey: ['notification_history', user.id, library.baseUrl, language],
-          queryFn: () => fetchNotificationHistory(1, 20, false, library.baseUrl, language),
-          refetchInterval: 60 * 1000 * 5,
-          refetchIntervalInBackground: true,
-     }, {
-          onSuccess: async (data) => {
-               if(data.ok) {
-                    const history = formatNotificationHistory(data.data.result);
-                    await updateNotificationHistory(history);
-               } else {
-                    logDebugMessage("Error fetching notification history");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching notification history");
-               logErrorMessage(error);
-          }
-     });
-
-     useQueryWithCallbacks({
           queryKey: ['pickup_locations', library.baseUrl, language],
           queryFn: () => getPickupLocations(library.baseUrl),
           refetchInterval: 60 * 1000 * 30,
@@ -598,7 +573,7 @@ export const DrawerContent = (props) => {
           onSuccess: (data) => {
                logDebugMessage("Fetched Browse Categories List");
                if(data.ok){
-                    const categories = _.sortBy(data.data.result, ['title']);
+                    const categories = orderByFields(data.data.result, ['title']);
                     updateBrowseCategoryList(categories);
                } else {
                     logDebugMessage("Error fetching browse category list for user");
@@ -770,7 +745,7 @@ export const DrawerContent = (props) => {
 
      const displayILSMessages = () => {
           if (messages) {
-               if (_.isArray(messages)) {
+               if (Array.isArray(messages)) {
                     return messages.map((obj, index) => {
                          if (obj.message) {
                               return showILSMessage(obj.messageStyle, obj.message, index);
