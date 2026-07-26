@@ -36,7 +36,6 @@ import {
      useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups,
-     useUpdateSavedSearches,
 } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
@@ -46,7 +45,7 @@ import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus } from '../../util/api/system';
 import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
-import { getListGroups, getLists, fetchSavedSearches } from '../../util/api/list';
+import { getListGroups, getLists } from '../../util/api/list';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../util/api/search';
 
 import { GLOBALS } from '../../util/globals';
@@ -195,7 +194,6 @@ export const DrawerContent = (props) => {
      const updateCards = useUpdateCards();
      const updateLists = useUpdateLists();
      const updateListGroups = useUpdateListGroups();
-     const updateSavedSearches = useUpdateSavedSearches();
      const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
      // noinspection JSUnusedLocalSymbols
      const [ notifications, setNotifications] = React.useState([]);
@@ -539,28 +537,6 @@ export const DrawerContent = (props) => {
                logDebugMessage("Error fetching locations");
                logErrorMessage(error);
           },
-     });
-
-     useQueryWithCallbacks({
-          queryKey: ['saved_searches', user?.id ?? 'unknown', library.baseUrl, language],
-          queryFn: () => fetchSavedSearches(library.baseUrl, language),
-          refetchInterval: 60 * 1000 * 5,
-          refetchIntervalInBackground: true,
-          placeholderData: [],
-     }, {
-          onSuccess: async (data) => {
-               if(data.ok) {
-                    await updateSavedSearches(data.data.result?.searches ?? []);
-               } else {
-                    logDebugMessage("Error fetching saved searches for user");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching saved searches for user");
-               logErrorMessage(error);
-          }
      });
 
      useQueryWithCallbacks({
