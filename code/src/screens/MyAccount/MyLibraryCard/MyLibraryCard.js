@@ -1,28 +1,24 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import _ from 'lodash';
-import moment from 'moment';
 import { Box, Button, ButtonText, ButtonIcon, Center, HStack, VStack, Icon, Image, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Text, Heading, ModalBackdrop, CloseIcon, ModalCloseButton, Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@gluestack-ui/themed';
 import React from 'react';
 import { Dimensions } from 'react-native';
 import Barcode from 'react-native-barcode-expo';
-import { Extrapolate, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
-import { useUserState, useAccounts, useCards, useUpdateAccounts, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getLinkedAccounts, refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/user';
-import { formatLinkedAccounts } from '../../../util/api/userHelper';
+import { refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/user';
 
-import { formatDiscoveryVersion } from '../../../helpers/helpers';
-import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { formatDiscoveryVersion, orderByFields, parseToDate } from '../../../helpers/helpers';
+import { logDebugMessage } from '../../../util/logging';
 
 export const MyLibraryCard = () => {
      const navigation = useNavigation();
@@ -39,10 +35,7 @@ export const MyLibraryCard = () => {
      const hasOpenModalRef = React.useRef(false);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { data: accounts } = useAccounts();
      const { data: cards } = useCards();
-     const updateAccounts = useUpdateAccounts();
-     const updateCards = useUpdateCards();
      const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
@@ -50,29 +43,6 @@ export const MyLibraryCard = () => {
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
-     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
-          initialData: accounts,
-          onSuccess: async (data) => {
-               if (data.ok) {
-                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                    if (accounts !== linkedAccounts.accounts) {
-                         await updateAccounts(linkedAccounts.accounts);
-                    }
-                    if (cards !== linkedAccounts.cards) {
-                         await updateCards(linkedAccounts.cards);
-                    }
-               } else {
-                    logDebugMessage("Error fetching linked accounts in MyLibraryCard (response was not ok)");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logErrorMessage("Error fetching linked accounts");
-               logErrorMessage(error);
-          },
-          placeholderData: [],
-     });
 
      const updateStatus = async () => {
           await updateScreenBrightnessStatus(false, library.baseUrl, language);
@@ -83,22 +53,10 @@ export const MyLibraryCard = () => {
      };
 
      React.useEffect(() => {
-          const refreshAccountsListener = navigation.addListener('focus', async () => {
-               const response = await getLinkedAccounts(library.baseUrl, language);
-               if (response?.ok) {
-                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, response.data.result.linkedAccounts);
-                    if (accounts !== linkedAccounts.accounts) {
-                         await updateAccounts(linkedAccounts.accounts);
-                    }
-                    if (cards !== linkedAccounts.cards) {
-                         await updateCards(linkedAccounts.cards);
-                    }
-               }
-          });
           const brightenScreen = navigation.addListener('focus', async () => {
                const { status } = await Brightness.getPermissionsAsync();
                if (status === 'undetermined') {
-                    if (!_.isUndefined(user.shouldAskBrightness) && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
+                    if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
                          setShouldRequestPermissions(true);
                     }
                } else {
@@ -150,12 +108,11 @@ export const MyLibraryCard = () => {
                }
           });
           return () => {
-               refreshAccountsListener();
                brightenScreen();
                updateOrientation();
                changeOrientation.remove();
           };
-     }, [navigation, autoRotate, library.baseUrl, language, user, cards, accounts, updateCards, updateAccounts, library.barcodeStyle]);
+     }, [navigation, autoRotate, library.baseUrl, language, user, library.barcodeStyle]);
 
      React.useEffect(() => {
           navigation.addListener('blur', () => {
@@ -337,27 +294,26 @@ const CreateLibraryCard = (data) => {
      const language = data.language || React.useContext(LanguageContext).language;
 
      let barcodeStyle;
-     if (!_.isUndefined(card.barcodeStyle) && !_.isNull(card.barcodeStyle)) {
-          barcodeStyle = _.toString(card.barcodeStyle);
+     if (card.barcodeStyle != null) {
+          barcodeStyle = String(card.barcodeStyle);
      } else {
-          barcodeStyle = _.toString(library.barcodeStyle);
+          barcodeStyle = String(library.barcodeStyle);
      }
 
      let barcodeValue = 'UNKNOWN';
-     if (!_.isUndefined(card.ils_barcode)) {
+     if (card.ils_barcode !== undefined) {
           barcodeValue = card.ils_barcode;
-     } else if (!_.isUndefined(card.cat_username)) {
+     } else if (card.cat_username !== undefined) {
           barcodeValue = card.cat_username;
      }
 
      let expirationDate = null;
-     if (!_.isUndefined(card.expires)
-          && !_.isNull(card.expires)
-          && (card.expires !== "")
-          && (card.expires !== "Dec 31, 1969")) {
+     if (card.expires != null
+          && card.expires !== ""
+          && card.expires !== "Dec 31, 1969") {
 
-          if (_.isString(card.expires)) {
-               expirationDate = moment(card.expires, 'MMM D, YYYY');
+          if (typeof card.expires === 'string') {
+               expirationDate = parseToDate(card.expires);
           }
 
           React.useEffect(() => {
@@ -372,15 +328,13 @@ const CreateLibraryCard = (data) => {
      }
 
      let cardHasExpired = 0;
-     if (!_.isUndefined(card.expired) && !_.isNull(card.expired) && card.expired !== 0 && card.expired !== '0') {
+     if (card.expired != null && card.expired !== 0 && card.expired !== '0') {
           cardHasExpired = card.expired;
      }
 
      let neverExpires = false;
-     if (cardHasExpired === 0 && !_.isNull(expirationDate)) {
-          const now = moment();
-          const expiration = moment(expirationDate);
-          const hasExpired = moment(expiration).isBefore(now);
+     if (cardHasExpired === 0 && expirationDate !== null) {
+          const hasExpired = expirationDate < new Date();
           if (hasExpired) {
                neverExpires = true;
           }
@@ -400,7 +354,7 @@ const CreateLibraryCard = (data) => {
           barcodeStyle = 'INVALID';
      };
 
-     if (barcodeValue === 'UNKNOWN' || _.isNull(barcodeValue) || _.isNull(barcodeStyle) || _.isEmpty(barcodeValue) || _.isEmpty(barcodeStyle) || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
+     if (barcodeValue === 'UNKNOWN' || barcodeValue === null || barcodeStyle === null || barcodeValue === '' || barcodeStyle === '' || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
           return (
                <VStack maxW="90%" px="$8" py="$5" borderRadius="$lg">
                     <Center>
@@ -485,7 +439,7 @@ const CardCarousel = (data) => {
      const { theme, textColor } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
      const [internalIndex, setInternalIndex] = React.useState(0);
-     const cards = _.sortBy(data.cards, ['key']);
+     const cards = orderByFields(data.cards ?? [], ['key']);
      const isVertical = data.orientation;
      const toggleOrientation = data.toggleOrientation;
      const hasOpenModalRef = data.hasOpenModalRef;
@@ -514,25 +468,6 @@ const CardCarousel = (data) => {
 
      const PaginationItem = (props) => {
           const { animValue, index, length, card, isRotate } = props;
-          const width = 100;
-
-          const animStyle = useAnimatedStyle(() => {
-               let inputRange = [index - 1, index, index + 1];
-               let outputRange = [-width, 0, width];
-
-               if (index === 0 && animValue?.value > length - 1) {
-                    inputRange = [length - 1, length, length + 1];
-                    outputRange = [-width, 0, width];
-               }
-
-               return {
-                    transform: [
-                         {
-                              translateX: interpolate(animValue?.value, inputRange, outputRange, Extrapolate.CLAMP),
-                         },
-                    ],
-               };
-          }, [animValue, index, length]);
 
           return (
                <Button
@@ -555,7 +490,7 @@ const CardCarousel = (data) => {
           );
      };
 
-     if (_.size(cards) === 1) {
+     if (cards.length === 1) {
           const card = cards[0];
           return (
                <Box
@@ -565,7 +500,7 @@ const CardCarousel = (data) => {
                     style={{
                          transform: [{ scale: 0.9 }],
                     }}>
-                    <CreateLibraryCard key={0} card={card} numCards={_.size(cards)} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />
+                    <CreateLibraryCard key={0} card={card} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />
                </Box>
           );
      }
@@ -595,7 +530,7 @@ const CardCarousel = (data) => {
                          parallaxScrollingOffset: 50,
                     }}
                     data={cards}
-                    renderItem={({ item, index }) => <CreateLibraryCard key={index} card={item} numCards={_.size(cards)} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />}
+                    renderItem={({ item, index }) => <CreateLibraryCard key={index} card={item} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />}
                />
                {!!progressValue && (
                     <Box flexDirection="row" flexWrap="wrap" alignContent="center" alignSelf="center" maxWidth="100%" justifyContent="center">
@@ -618,16 +553,16 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
      const barcodeWidthRef = React.useRef(null);
 
      let barcodeStyle;
-     if (!_.isUndefined(card.barcodeStyle) && !_.isNull(card.barcodeStyle)) {
-          barcodeStyle = _.toString(card.barcodeStyle);
+     if (card.barcodeStyle != null) {
+          barcodeStyle = String(card.barcodeStyle);
      } else {
-          barcodeStyle = _.toString(library.barcodeStyle);
+          barcodeStyle = String(library.barcodeStyle);
      }
 
      let barcodeValue = 'UNKNOWN';
-     if (!_.isUndefined(card.ils_barcode)) {
+     if (card.ils_barcode !== undefined) {
           barcodeValue = card.ils_barcode;
-     } else if (!_.isUndefined(card.cat_username)) {
+     } else if (card.cat_username !== undefined) {
           barcodeValue = card.cat_username;
      }
 
