@@ -1,14 +1,12 @@
 import { Badge, BadgeText, Box, Center, FlatList, Pressable, Text, HStack, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
-import { useUserState, useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
-import { fetchSavedSearches, getSavedSearch } from '../../../util/api/list';
+import { useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
+import { fetchSavedSearches } from '../../../util/api/list';
 import { loadError } from '../../../components/loadError';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -17,15 +15,14 @@ import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();
-     const { data: userState } = useUserState();
-     const user = userState?.user ?? {};
+     const [isFetching, setIsFetching] = React.useState(false);
+     const [fetchError, setFetchError] = React.useState(null);
      const { data: savedSearches } = useSavedSearches();
      const updateSavedSearches = useUpdateSavedSearches();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
-     const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 
      React.useLayoutEffect(() => {
@@ -34,31 +31,35 @@ export const MySavedSearches = () => {
           });
      }, [navigation]);
 
-     const { status, isFetching } = useQuery(['saved_searches', user.id, library.baseUrl, language], () => fetchSavedSearches(library.baseUrl), {
-          placeholderData: savedSearches,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    updateSavedSearches(data.data.result?.searches ?? []);
-               } else {
-                    logDebugMessage("Error fetching saved searches for user");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching saved searches for user");
-               logErrorMessage(error);
-          }
-     });
-
-     useQueries({
-          queries: savedSearches?.map((savedSearch) => {
-               return {
-                    queryKey: ['saved_search', savedSearch.id, user.id],
-                    queryFn: () => getSavedSearch(savedSearch.id, language, library.baseUrl),
+     useFocusEffect(
+          React.useCallback(() => {
+               const loadSavedSearchesIfNeeded = async () => {
+                    if (Array.isArray(savedSearches) && savedSearches.length > 0) {
+                         return;
+                    }
+                    setIsFetching(true);
+                    setFetchError(null);
+                    try {
+                         const data = await fetchSavedSearches(library.baseUrl);
+                         if (data.ok) {
+                              await updateSavedSearches(data.data.result?.searches ?? []);
+                         } else {
+                              logDebugMessage('Error fetching saved searches for user');
+                              logDebugMessage(data);
+                              getErrorMessage(data.code, data.problem);
+                         }
+                    } catch (error) {
+                         logDebugMessage('Error fetching saved searches for user');
+                         logErrorMessage(error);
+                         setFetchError(error);
+                    } finally {
+                         setIsFetching(false);
+                    }
                };
-          }),
-     });
+
+               loadSavedSearchesIfNeeded();
+          }, [savedSearches, library.baseUrl, updateSavedSearches])
+     );
 
      const Empty = () => {
           return (
@@ -71,10 +72,10 @@ export const MySavedSearches = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                });
           }
@@ -85,9 +86,9 @@ export const MySavedSearches = () => {
           <Box style={{ flex: 1 }}>
                <Box>
                     {showSystemMessage()}
-                    {status === 'loading' || isFetching ? (
+                    {isFetching && (!savedSearches || savedSearches.length === 0) ? (
                          loadingSpinner()
-                    ) : status === 'error' ? (
+                    ) : fetchError ? (
                          loadError('Error', '')
                     ) : (
                          <>
@@ -105,7 +106,7 @@ const Item = (data) => {
      const { textColor, colorMode } = React.useContext(ThemeContext);
 
      let hasNewResults = 0;
-     if (!_.isUndefined(item.hasNewResults)) {
+     if (item?.hasNewResults !== undefined) {
           hasNewResults = item.hasNewResults;
      }
 
