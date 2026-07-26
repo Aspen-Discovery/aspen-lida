@@ -160,6 +160,20 @@ export function toArray(values) {
 }
 
 /**
+ * Truncate a string to a maximum length, appending an omission suffix if truncated.
+ * Mirrors lodash _.truncate behaviour: the omission counts toward maxLength.
+ * @param {string|null|undefined} str
+ * @param {number} maxLength
+ * @param {string} omission
+ * @returns {string}
+ */
+export function truncate(str, maxLength, omission = '...') {
+     if (str == null) return '';
+     if (str.length <= maxLength) return str;
+     return str.slice(0, maxLength - omission.length) + omission;
+}
+
+/**
  * Remove duplicate values from an array of primitive types (strings or numbers)
  * by converting to a Set and back to an array
  * @param arr
