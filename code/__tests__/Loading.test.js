@@ -21,7 +21,7 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     UserContext, LibrarySystemContext, LibraryBranchContext,
+     LibrarySystemContext, LibraryBranchContext,
      BrowseCategoryContext, LanguageContext, SystemMessagesContext, ThemeContext
 } from '../src/context/initialContext';
 
@@ -39,18 +39,6 @@ const createTestQueryClient = () => new QueryClient({
 });
 
 const mockContextValues = {
-     user: {
-          user: {},
-          updateUser: jest.fn(),
-          accounts: [],
-          updateLinkedAccounts: jest.fn(),
-          cards: [],
-          updateLibraryCards: jest.fn(),
-          updateAppPreferences: jest.fn(),
-          notificationHistory: [],
-          updateNotificationHistory: jest.fn(),
-          updateInbox: jest.fn()
-     },
      library: {
           library: {appSettings: {loadingMessageType: 0}},
           updateLibrary: jest.fn(),
@@ -86,6 +74,22 @@ const mockContextValues = {
      messages: {systemMessages: [], updateSystemMessages: jest.fn()},
      theme: {theme: {}, updateTheme: jest.fn(), colorMode: 'light', updateColorMode: jest.fn(), textColor: '#000'}
 };
+
+const mockUpdateUserProfile = jest.fn(async () => {});
+const mockUpdateAccounts = jest.fn(async () => {});
+const mockUpdateCards = jest.fn(async () => {});
+const mockUpdateAppPreferences = jest.fn(async () => {});
+const mockUpdateNotificationHistory = jest.fn(async () => {});
+const mockUpdateInbox = jest.fn(async () => {});
+
+jest.mock('../src/hooks/useUserData', () => ({
+     useUpdateUserProfile: () => mockUpdateUserProfile,
+     useUpdateAccounts: () => mockUpdateAccounts,
+     useUpdateCards: () => mockUpdateCards,
+     useUpdateAppPreferences: () => mockUpdateAppPreferences,
+     useUpdateNotificationHistory: () => mockUpdateNotificationHistory,
+     useUpdateInbox: () => mockUpdateInbox,
+}));
 
 // Mock the API endpoints called by useQuery
 jest.mock('../src/themes/theme', () => {
@@ -156,6 +160,16 @@ jest.mock('../src/util/api/search', () => {
      }
 });
 
+jest.mock('../src/util/db', () => ({
+     loadAllUserData: jest.fn(() => Promise.resolve({ user: null, updatedAt: null })),
+     saveUserProfile: jest.fn(() => Promise.resolve()),
+     saveAccounts: jest.fn(() => Promise.resolve()),
+     saveCards: jest.fn(() => Promise.resolve()),
+     saveAppPreferences: jest.fn(() => Promise.resolve()),
+     saveNotificationHistory: jest.fn(() => Promise.resolve()),
+     saveInbox: jest.fn(() => Promise.resolve()),
+}));
+
 const mockNavigate = jest.fn();
 let triggerFocusEvent = () => { };
 
@@ -214,19 +228,17 @@ const AllTheProviders = ({children}) => {
           <GluestackUIProvider config={jestGluestackConfig}>
                <QueryClientProvider client={testQueryClient}>
                     <ThemeContext.Provider value={mockContextValues.theme}>
-                         <UserContext.Provider value={mockContextValues.user}>
-                              <LibrarySystemContext.Provider value={mockContextValues.library}>
-                                   <LibraryBranchContext.Provider value={mockContextValues.branch}>
-                                        <BrowseCategoryContext.Provider value={mockContextValues.category}>
-                                             <LanguageContext.Provider value={mockContextValues.language}>
-                                                  <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                                       {children}
-                                                  </SystemMessagesContext.Provider>
-                                             </LanguageContext.Provider>
-                                        </BrowseCategoryContext.Provider>
-                                   </LibraryBranchContext.Provider>
-                              </LibrarySystemContext.Provider>
-                         </UserContext.Provider>
+                         <LibrarySystemContext.Provider value={mockContextValues.library}>
+                              <LibraryBranchContext.Provider value={mockContextValues.branch}>
+                                   <BrowseCategoryContext.Provider value={mockContextValues.category}>
+                                        <LanguageContext.Provider value={mockContextValues.language}>
+                                             <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                                  {children}
+                                             </SystemMessagesContext.Provider>
+                                        </LanguageContext.Provider>
+                                   </BrowseCategoryContext.Provider>
+                              </LibraryBranchContext.Provider>
+                         </LibrarySystemContext.Provider>
                     </ThemeContext.Provider>
                </QueryClientProvider>
           </GluestackUIProvider>
@@ -235,6 +247,12 @@ const AllTheProviders = ({children}) => {
 
 beforeEach(() => {
      mockNavigate.mockClear();
+     mockUpdateUserProfile.mockClear();
+     mockUpdateAccounts.mockClear();
+     mockUpdateCards.mockClear();
+     mockUpdateAppPreferences.mockClear();
+     mockUpdateNotificationHistory.mockClear();
+     mockUpdateInbox.mockClear();
 });
 
 //Finally, import the actual screen to make sure that all the mocks are set up first.
