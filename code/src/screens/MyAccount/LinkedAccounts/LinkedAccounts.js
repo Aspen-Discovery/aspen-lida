@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { useQueryClient } from '@tanstack/react-query';
 import {
      Box,
      Button,
@@ -13,7 +12,7 @@ import {
      Text,
      useToast
 } from '@gluestack-ui/themed';
-import React, { useContext, useLayoutEffect, useEffect, useState } from 'react';
+import React, { useContext, useLayoutEffect, useState } from 'react';
 
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
 import {
@@ -24,14 +23,14 @@ import {
 } from '../../../context/initialContext';
 import { useUserState, useAccounts, useViewers, useCards, useUpdateAccounts, useUpdateViewers, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { toArray } from '../../../helpers/helpers';
 import { getLinkedAccounts, getViewerAccounts, refreshProfile, removeLinkedAccount, removeViewerAccount } from '../../../util/api/user';
 import { formatLinkedAccounts } from '../../../util/api/userHelper';
 
 import AddLinkedAccount from './AddLinkedAccount';
 import DisableAccountLinking from './DisableAccountLinking';
 import EnableAccountLinking from './EnableAccountLinking';
-import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
-import { LoadingSpinner } from '../../../components/loadingSpinner';
+import { logErrorMessage } from '../../../util/logging';
 
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();
@@ -39,10 +38,6 @@ export const MyLinkedAccounts = () => {
      const user = userState?.user ?? {};
      const { data: accounts } = useAccounts();
      const { data: viewers } = useViewers();
-     const { data: cards } = useCards();
-     const updateAccounts = useUpdateAccounts();
-     const updateViewers = useUpdateViewers();
-     const updateCards = useUpdateCards();
      const { library } = useContext(LibrarySystemContext);
      const { language } = useContext(LanguageContext);
      const { textColor } = useContext(ThemeContext);
@@ -66,55 +61,6 @@ export const MyLinkedAccounts = () => {
           });
      }, [navigation]);
 
-     //These are not needed because they are loaded in Drawer Content
-     // const { data: linkedData, isSuccess: isLinkedSuccess } = useQuery(
-     //      ['linked_accounts', user.id, library.baseUrl, language],
-     //      () => getLinkedAccounts(library.baseUrl, language),
-     //      {
-     //           placeholderData: [],
-     //           enabled: !!library.baseUrl && !!user.id,
-     //      }
-     // );
-     //
-     // useEffect(() => {
-     //      if (isLinkedSuccess && linkedData) {
-     //           if (linkedData.ok) {
-     //                const formatted = formatLinkedAccounts(
-     //                     user,
-     //                     cards ?? [],
-     //                     library.barcodeStyle,
-     //                     linkedData.data.result.linkedAccounts
-     //                );
-     //                updateLinkedAccounts(formatted.accounts);
-     //                updateLibraryCards(formatted.cards);
-     //           } else {
-     //                logDebugMessage("Error fetching linked accounts on LinkedAccounts page, response was not ok");
-     //                logDebugMessage(linkedData);
-     //                getErrorMessage(linkedData.code ?? 0, linkedData.problem);
-     //           }
-     //      }
-     // }, [linkedData, isLinkedSuccess]);
-
-     const { data: viewerData, isSuccess: isViewerSuccess } = useQuery(
-          ['viewer_accounts', user.id, library.baseUrl, language],
-          () => getViewerAccounts(library.baseUrl, language),
-          {
-               enabled: !!library.baseUrl && !!user.id,
-          }
-     );
-
-     useEffect(async () => {
-          if (isViewerSuccess && viewerData) {
-               if (viewerData.ok) {
-                    const viewerList = _.values(viewerData.data?.result?.viewers ?? []);
-                    await updateViewers(viewerList);
-               } else {
-                    logDebugMessage("Error fetching linked viewer accounts");
-                    logDebugMessage(viewerData);
-                    getErrorMessage(viewerData.code ?? 0, viewerData.problem);
-               }
-          }
-     }, [viewerData, isViewerSuccess]);
 
      const Empty = () => {
           return (
@@ -125,7 +71,7 @@ export const MyLinkedAccounts = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return (
@@ -199,7 +145,7 @@ export const MyLinkedAccounts = () => {
                          <FlatList
                               data={viewers}
                               renderItem={({ item }) => <Account account={item} type="viewer" />}
-                              ListEmptyComponent={isViewerSuccess ? <Empty /> : <LoadingSpinner />}
+                              ListEmptyComponent={<Empty />}
                               keyExtractor={(item, index) => index.toString()}
                          />
                     </Box>
@@ -216,10 +162,11 @@ export const MyLinkedAccounts = () => {
 };
 
 const Account = ({ account, type }) => {
-     const queryClient = useQueryClient();
      const [isRemoving, setIsRemoving] = useState(false);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
+     const updateAccounts = useUpdateAccounts();
+     const updateViewers = useUpdateViewers();
      const updateUserProfile = useUpdateUserProfile();
      const { library } = useContext(LibrarySystemContext);
      const { language } = useContext(LanguageContext);
@@ -227,8 +174,18 @@ const Account = ({ account, type }) => {
      const toast = useToast();
 
      const refreshLinkedAccounts = async () => {
-          await queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
-          await queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
+          const linkedResponse = await getLinkedAccounts(library.baseUrl, language);
+          if (linkedResponse?.ok) {
+               const formatted = formatLinkedAccounts(user, [], library.barcodeStyle, linkedResponse.data.result.linkedAccounts);
+               await updateAccounts(formatted.accounts);
+          }
+
+          const viewerResponse = await getViewerAccounts(library.baseUrl, language);
+          if (viewerResponse?.ok) {
+               const viewerList = toArray(viewerResponse.data?.result?.viewers ?? []);
+               await updateViewers(viewerList);
+          }
+
           const profileResponse = await refreshProfile(library.baseUrl);
           if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
                await updateUserProfile(profileResponse.data.result.profile);
