@@ -67,8 +67,7 @@ const app_config = {
      owner: owner['expoProjectOwner'],
      platforms: ['ios', 'android'],
      version: version['version'],
-     sdkVersion: '53.0.0',
-     newArchEnabled: false,
+     sdkVersion: '55.0.0',
      userInterfaceStyle: 'automatic',
      orientation: 'default',
      icon: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appIcon&slug=' + app['slug'],
@@ -141,7 +140,6 @@ const app_config = {
                     apiKey: owner['googleApiKeyAndroid'],
                },
           },
-          edgeToEdgeEnabled: true
      },
      notification: {
           icon: app['discoveryUrl'] + 'API/SystemAPI?method=getLogoFile&themeId=' + app['themeId'] + '&type=appNotification&slug=' + app['slug'],
@@ -196,12 +194,23 @@ const app_config = {
                     },
                     ios: {
                          deploymentTarget: '15.1',
+                         buildReactNativeFromSource: true
                     },
                },
           ],
          [
              'expo-web-browser'
-         ]
+         ],
+         'expo-image',
+         'expo-sharing',
+         '@react-native-community/datetimepicker',
+          [
+               "expo-maps",
+               {
+                    "requestLocationPermission": true,
+                    "locationPermission": "Allow this app to use your location to find nearby libraries"
+               }
+          ]
      ],
 };
 
