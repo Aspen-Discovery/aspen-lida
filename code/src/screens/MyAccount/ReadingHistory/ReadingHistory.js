@@ -57,11 +57,12 @@ import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useReadingHistory, useUpdateReadingHistory, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getAuthor, getCleanTitle, getDateLastUsed, getFormat, getTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { deleteAllReadingHistory, deleteSelectedReadingHistory, fetchReadingHistory, optIntoReadingHistory, optOutOfReadingHistory } from '../../../util/api/user';
+import { deleteAllReadingHistory, deleteSelectedReadingHistory, fetchReadingHistory, optIntoReadingHistory, optOutOfReadingHistory, refreshProfile } from '../../../util/api/user';
 import { formatReadingHistory } from '../../../util/api/userHelper';
 
 import AddToList from '../../Search/AddToList';
@@ -81,7 +82,11 @@ export const MyReadingHistory = () => {
      const [filter, setFilter] = React.useState('');
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { user, readingHistory, updateReadingHistory } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: readingHistory } = useReadingHistory();
+     const updateReadingHistory = useUpdateReadingHistory();
      const insets = useSafeAreaInsets();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const pageSize = 20;
@@ -184,10 +189,17 @@ export const MyReadingHistory = () => {
 
      const [optingIn, setOptingIn] = React.useState();
 
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
+
      const optIn = async () => {
           setOptingIn(true);
           await optIntoReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
+          await refreshAndSaveUserProfile();
           queryClient.invalidateQueries({ queryKey: ['reading_history'] });
           setOptingIn(false);
      };
@@ -196,7 +208,7 @@ export const MyReadingHistory = () => {
           setOptingOut(true);
           await optOutOfReadingHistory(library.baseUrl);
           await deleteAllReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
+          await refreshAndSaveUserProfile();
           queryClient.invalidateQueries({ queryKey: ['reading_history'] });
           setIsOpen(false);
           setOptingOut(false);
@@ -205,7 +217,7 @@ export const MyReadingHistory = () => {
      const deleteAll = async () => {
           setDeleting(true);
           await deleteAllReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
+          await refreshAndSaveUserProfile();
           queryClient.invalidateQueries({ queryKey: ['reading_history'] });
           setDeleteAllIsOpen(false);
           setDeleting(false);
@@ -521,7 +533,9 @@ export const MyReadingHistory = () => {
 
 const Item = (data) => {
      const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
+     const { data: userState2 } = useUserState();
+     const user = userState2?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const {textColor, colorMode } = React.useContext(ThemeContext);
@@ -544,10 +558,17 @@ const Item = (data) => {
           });
      };
 
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
+
      const deleteFromHistory = async (item) => {
           await deleteSelectedReadingHistory(item, library.baseUrl).then(async (result) => {
                if (result) {
-                    queryClient.invalidateQueries({ queryKey: ['user'] });
+                    await refreshAndSaveUserProfile();
                     queryClient.invalidateQueries({ queryKey: ['reading_history'] });
                     setLoading(true);
                     await queryClient.refetchQueries({ queryKey: ['reading_history', user.id, library.baseUrl, page, sort, searchTerm] });

@@ -8,7 +8,8 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories } from '../../../components/Notifications';
 import { getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
 
-import { LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext } from '../../../context/initialContext';
+import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings, useUpdateExpoToken } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile } from '../../../util/api/user';
 
@@ -20,7 +21,9 @@ export const Settings_NotificationOptions = () => {
      const [notifyCustom, setNotifyCustom] = React.useState(false);
      const [notifyAccount, setNotifyAccount] = React.useState(false);
 
-     const { notificationSettings, expoToken} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const expoToken = userState?.expoToken ?? false;
+     const { data: notificationSettings } = useNotificationSettings();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const toast = useToast();
@@ -112,7 +115,9 @@ export const Settings_NotificationOptions = () => {
 
 const EnableAllNotifications = (data) => {
      const { language } = React.useContext(LanguageContext);
-     const { updateUser, updateNotificationSettings, expoToken } = React.useContext(UserContext);
+     const updateUserProfile = useUpdateUserProfile();
+     const updateNotificationSettings = useUpdateNotificationSettings();
+     const expoToken = userState?.expoToken ?? false;
      const { library } = React.useContext(LibrarySystemContext);
      const { notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount, setLoading } = data;
      const toast = useToast();
@@ -138,8 +143,8 @@ const EnableAllNotifications = (data) => {
                setNotifyAccount(allowAllNotifications);
                logDebugMessage("Reloading profile as part of enableAllNotifications");
                //TODO: Update this to not do a full reload of the profile
-               await refreshProfile(library.baseUrl).then((data) => {
-                    updateUser(data);
+               await refreshProfile(library.baseUrl).then(async (data) => {
+                    await updateUserProfile(data);
                     updateNotificationSettings(data.notification_preferences, language);
                     setLoading(false);
                });
@@ -167,7 +172,8 @@ const EnableAllNotifications = (data) => {
 };
 
 const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount }) => {
-     const { updateUser, expoToken } = React.useContext(UserContext);
+     const updateUserProfile = useUpdateUserProfile();
+     const expoToken = userState?.expoToken ?? false;
      const { library } = React.useContext(LibrarySystemContext);
      const toast = useToast();
 
@@ -200,7 +206,7 @@ const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, noti
                logDebugMessage("Reloading Profile as part of updatePreference");
                const result = await refreshProfile(library.baseUrl);
                if (result) {
-                    updateUser(result);
+                    await updateUserProfile(result);
                }
           } else {
                logDebugMessage("No expo token in NotificationOptions->updatePreference");

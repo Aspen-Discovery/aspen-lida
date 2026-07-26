@@ -3,7 +3,8 @@ import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/
 import React from 'react';
 import _ from 'lodash';
 
-import { LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
+import { useUserState } from '../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../translations/TranslationService';
 
 export const isOverdue = (overdue) => {
@@ -262,7 +263,8 @@ export const getOnHoldFor = (user) => {
 
 export const getCheckedOutTo = (props) => {
      const { language } = React.useContext(LanguageContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const [checkedOutTo] = React.useState();
      const {textColor} = React.useContext(ThemeContext);
      if (user.id !== checkedOutTo) {

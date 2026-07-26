@@ -24,7 +24,8 @@ import {
 } from '@gluestack-ui/themed';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 

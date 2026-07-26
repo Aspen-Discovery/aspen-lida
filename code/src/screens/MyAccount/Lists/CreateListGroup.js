@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useListGroups, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createListGroup } from '../../../util/api/list';
+import { refreshProfile } from '../../../util/api/user';
 import { popAlert } from '../../../components/loadError';
 import { Platform } from 'react-native';
 import _ from 'lodash';
@@ -13,7 +15,10 @@ import _ from 'lodash';
 const CreateListGroup = (props) => {
      const { setLoading, updateSelectedListGroup } = props;
      const queryClient = useQueryClient();
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: listGroups } = useListGroups();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -115,7 +120,10 @@ const CreateListGroup = (props) => {
                                                        status = 'error';
                                                   }
                                                   queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
-                                                  queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                  const profileResponse = await refreshProfile(library.baseUrl);
+                                                  if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                       await updateUserProfile(profileResponse.data.result.profile);
+                                                  }
                                                   toggle();
                                                   setLoading(true);
                                                   popAlert(toast, getTermFromDictionary(language, 'list_created'), res.data.result.message, status);

@@ -1,5 +1,6 @@
 import { createApiClient } from './apiFactory';
-import { GLOBALS, PATRON } from '../globals';
+import { GLOBALS } from '../globals';
+import { saveSublocations } from '../db';
 import { popAlert, popToast } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import {logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../logging.js';
@@ -560,7 +561,7 @@ export async function getPickupSublocations(url = null) {
           sublocations = typeof data === 'object' && data !== null ? data : [];
      }
 
-     PATRON.sublocations = sublocations;
+     await saveSublocations(sublocations);
      return sublocations;
 }
 
@@ -1528,7 +1529,7 @@ export async function saveLanguage(code, url = null, language = 'en') {
      );
 
      if (response.ok) {
-          PATRON.language = code;
+          GLOBALS.language = code;
           return true;
      }
 

@@ -1,12 +1,6 @@
 import React, {useState} from 'react';
-import {
-     CheckoutsContext,
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { CheckoutsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
 import { Box, Button, ButtonGroup, ButtonIcon, ButtonText, Text, Heading, Center, HStack, VStack, Icon, FlatList, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, CloseIcon, ModalCloseButton, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Alert, AlertText } from '@gluestack-ui/themed';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -14,7 +8,7 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { Ionicons } from '@expo/vector-icons';
 import _ from 'lodash';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { checkoutItem } from '../../util/api/user';
+import { checkoutItem, refreshProfile } from '../../util/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 
@@ -25,7 +19,11 @@ export const SelfCheckOut = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { location, selfCheckSettings } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const { user, cards, accounts } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: cards } = useCards();
+     const { data: accounts } = useAccounts();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
      const {textColor, colorMode, theme} = React.useContext(ThemeContext);
 
@@ -72,6 +70,13 @@ export const SelfCheckOut = () => {
      let checkoutHasError = false;
      let checkoutErrorMessageBody = null;
      let checkoutErrorMessageTitle = null;
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      if (_.find(cards, ['ils_barcode', activeAccount])) {
           activeAccount = _.find(cards, ['ils_barcode', activeAccount]);
@@ -131,7 +136,7 @@ export const SelfCheckOut = () => {
                                         sessionCheckouts = updatedSession;
 
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                        queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                        refreshAndSaveUserProfile();
                                         /*useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, true, language), {
                                              onSuccess: (data) => {
                                                   updateCheckouts(data);

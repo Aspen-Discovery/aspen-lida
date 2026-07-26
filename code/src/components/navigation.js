@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, UserContext, UserProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -269,18 +269,16 @@ export function App() {
                               <LibrarySystemProvider>
                                    <LibraryBranchProvider>
                                         <SearchProvider>
-                                             <UserProvider>
-                                                  <CheckoutsProvider>
-                                                       <HoldsProvider>
-                                                            <BrowseCategoryProvider>
-                                                                 <GroupedWorkProvider>
-                                                                      {/* Pass state safely to the child container */}
-                                                                      <AppContent state={state} />
-                                                                 </GroupedWorkProvider>
-                                                            </BrowseCategoryProvider>
-                                                       </HoldsProvider>
-                                                  </CheckoutsProvider>
-                                             </UserProvider>
+                                             <CheckoutsProvider>
+                                                  <HoldsProvider>
+                                                       <BrowseCategoryProvider>
+                                                            <GroupedWorkProvider>
+                                                                 {/* Pass state safely to the child container */}
+                                                                 <AppContent state={state} />
+                                                            </GroupedWorkProvider>
+                                                       </BrowseCategoryProvider>
+                                                  </HoldsProvider>
+                                             </CheckoutsProvider>
                                         </SearchProvider>
                                    </LibraryBranchProvider>
                               </LibrarySystemProvider>
@@ -292,12 +290,11 @@ export function App() {
 }
 
 function AppContent({state}) {
-     const { updateUser } = React.useContext(UserContext);
      const queryClient = useQueryClient();
 
      React.useEffect(() => {
           if (state.isSignOut) {
-               RemoveData(queryClient, updateUser);
+               RemoveData(queryClient);
           }
      }, [state.isSignOut]);
 

@@ -1,4 +1,3 @@
-import { PATRON } from '../globals';
 import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging';
 import { popToast } from '../../components/loadError';
 import * as WebBrowser from 'expo-web-browser';
@@ -18,7 +17,6 @@ export function formatPickupLocations(data) {
                name: displayName,
           }));
      }
-     PATRON.pickupLocations = locations;
      data.locations = locations;
      return data;
 }
@@ -240,7 +238,6 @@ export function formatLinkedAccounts(primaryUser, cards, barcodeStyle, data) {
      cardStack.push(primaryCard);
      if (data !== undefined) {
           accounts = Object.values(data ?? {});
-          PATRON.linkedAccounts = accounts;
           if (accounts.length >= 1) {
                accounts.forEach((account) => {
                     if (!cards.includes(account.ils_barcode)) {

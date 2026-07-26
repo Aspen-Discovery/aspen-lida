@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { GLOBALS, LIBRARY, PATRON } from '../globals';
+import { GLOBALS, LIBRARY } from '../globals';
 import { createApiClient } from './apiFactory';
 import { Platform } from 'react-native';
 import { getAppSettings } from './system';
@@ -70,21 +70,21 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 export async function fetchNearbyLibrariesFromGreenhouse(toast) {
      logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
+     let latitude = null;
+     let longitude = null;
 
-     if (PATRON.coords?.lat == null && PATRON.coords?.long == null) {
-          try {
-               PATRON.coords.lat = await SecureStore.getItemAsync('latitude');
-               PATRON.coords.long = await SecureStore.getItemAsync('longitude');
-          } catch (e) {
-               logDebugMessage(e);
-          }
+     try {
+          latitude = await SecureStore.getItemAsync('latitude');
+          longitude = await SecureStore.getItemAsync('longitude');
+     } catch (e) {
+          logDebugMessage(e);
      }
 
      const client = createApiClient({ url, timeout: GLOBALS.timeoutSlow });
 
      const response = await client.get(`/GreenhouseAPI?method=${method}`, {
-          latitude: PATRON.coords.lat,
-          longitude: PATRON.coords.long,
+          latitude,
+          longitude,
           release_channel: channel,
      });
 

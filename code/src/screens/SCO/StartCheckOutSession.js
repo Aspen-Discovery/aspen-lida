@@ -1,11 +1,8 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-     LanguageContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useAccounts } from '../../hooks/useUserData';
 import {
      AlertDialog,
      AlertDialogBackdrop,
@@ -43,7 +40,9 @@ import {logDebugMessage} from "../../util/logging";
 export const StartCheckOutSession = () => {
      const navigation = useNavigation();
      const { language } = React.useContext(LanguageContext);
-     const { user, accounts } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
 

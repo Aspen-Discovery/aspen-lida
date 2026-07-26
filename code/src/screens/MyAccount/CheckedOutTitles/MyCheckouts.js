@@ -47,9 +47,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, setSortPreferences } from '../../../util/api/user';
+import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
 import { sortCheckouts } from '../../../util/api/userHelper';
 import { stripHTML } from '../../../helpers/helpers';
 import { MyCheckout } from './MyCheckout';
@@ -59,7 +60,12 @@ export const MyCheckouts = () => {
      const isFetchingCheckouts = useIsFetching({ queryKey: ['checkouts'] });
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { user, userCheckoutSortMethod, updateUserCheckoutSortMethod } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const userCheckoutSortMethod = userState?.userCheckoutSortMethod ?? 'dueAsc';
+     const updateSortSettings = useUpdateSortSettings();
+     const updateUserProfile = useUpdateUserProfile();
+     const updateUserCheckoutSortMethod = (v) => updateSortSettings({ userCheckoutSortMethod: v });
      const { library } = React.useContext(LibrarySystemContext);
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
      const { language } = React.useContext(LanguageContext);
@@ -281,11 +287,31 @@ export const MyCheckouts = () => {
           );
      };
 
+     const refreshUserAndCheckouts = React.useCallback(async () => {
+          const [profileResponse, checkoutsResponse] = await Promise.all([
+               refreshProfile(library.baseUrl),
+               getPatronCheckedOutItems('all', library.baseUrl, false, language),
+          ]);
+
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+
+          if (checkoutsResponse?.ok) {
+               let latestCheckouts = checkoutsResponse.data?.result?.checkedOutItems ?? [];
+               latestCheckouts = sortCheckouts(latestCheckouts, userCheckoutSortMethod);
+               updateCheckouts(latestCheckouts);
+          } else {
+               logDebugMessage('Error refreshing checkouts after checkout mutation');
+               logDebugMessage(checkoutsResponse);
+               getErrorMessage(checkoutsResponse?.code ?? 0, checkoutsResponse?.problem);
+          }
+     }, [library.baseUrl, language, updateUserProfile, userCheckoutSortMethod, updateCheckouts]);
+
      const reloadCheckouts = async () => {
           setLoading(true);
           updateCheckouts([]);
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+          await refreshUserAndCheckouts();
           setLoading(false);
      };
 
@@ -574,16 +600,14 @@ export const MyCheckouts = () => {
 
                                                   if (renewConfirmationResponse.renewType === 'all') {
                                                        await confirmRenewAllCheckouts(toast, library.baseUrl, language).then(async (result) => {
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                            await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
                                                             setConfirmingRenewal(false);
                                                        });
                                                   } else {
                                                        await confirmRenewCheckout(toast, renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                            await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
                                                             setConfirmingRenewal(false);

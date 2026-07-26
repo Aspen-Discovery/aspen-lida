@@ -23,14 +23,16 @@ import {
      Text, useToast,
 } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
-import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState } from '../../hooks/useUserData';
 import { passUserToDiscovery } from '../../util/api/user';
 import * as WebBrowser from 'expo-web-browser';
 
 export const ActionButton = (data) => {
      const {theme, textColor, backgroundColor, colorMode} = useContext(ThemeContext);
      const { library } = useContext(LibrarySystemContext);
-     const { user } = useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
      const toast = useToast();
 

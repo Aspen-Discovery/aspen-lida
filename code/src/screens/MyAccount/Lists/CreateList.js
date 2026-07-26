@@ -48,9 +48,11 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useListGroups, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createList } from '../../../util/api/list';
+import { refreshProfile } from '../../../util/api/user';
 import { Platform } from 'react-native';
 import _ from 'lodash';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
@@ -58,7 +60,10 @@ import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 const CreateList = (props) => {
      const { setLoading } = props;
      const queryClient = useQueryClient();
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: listGroups } = useListGroups();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -285,7 +290,10 @@ const CreateList = (props) => {
                                                        if (!res.success) {
                                                             status = 'danger';
                                                        }
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                       const profileResponse = await refreshProfile(library.baseUrl);
+                                                       if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                            await updateUserProfile(profileResponse.data.result.profile);
+                                                       }
                                                        queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                        queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                        toggle();

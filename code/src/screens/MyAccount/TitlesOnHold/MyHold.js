@@ -29,7 +29,8 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -39,7 +40,6 @@ import { formatDiscoveryVersion } from '../../../helpers/helpers';
 import { checkoutItem, getPickupLocations } from '../../../util/api/user';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
-import { PATRON } from '../../../util/globals';
 
 import { logDebugMessage } from '../../../util/logging.js';
 import { useQueryClient } from '@tanstack/react-query';
@@ -51,9 +51,10 @@ export const MyHold = (props) => {
      const holdSource = props.holdSource
      const resetGroup = props.resetGroup;
      const [pickupLocations, setPickupLocations] = React.useState([]);
-     const sublocations = PATRON.sublocations;
+     const { data: sublocations } = useSublocations();
      const section = props.section;
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
@@ -401,7 +402,8 @@ export const ManageSelectedHolds = (props) => {
      const { selectedValues, onAllDateChange, selectedReactivationDate, resetGroup, context } = props;
      const navigation = useNavigation();
      const { language } = React.useContext(LanguageContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
@@ -571,7 +573,8 @@ export const ManageAllHolds = (props) => {
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)

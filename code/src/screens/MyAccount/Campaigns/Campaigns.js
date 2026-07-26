@@ -36,7 +36,8 @@ import {
 } from '@gluestack-ui/themed';
 import { fetchCampaigns, unenrollCampaign, enrollCampaign, optIntoCampaignEmails, optUserOutOfCampaignLeaderboard, optUserInToCampaignLeaderboard, addActivityProgress } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState } from '../../../hooks/useUserData';
 import { Image } from 'expo-image';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
@@ -67,7 +68,6 @@ const EMPTY_MESSAGES = {
 export const MyCampaigns = () => {
 	const navigation = useNavigation();
 	const queryClient = useQueryClient();
-	const { user} = React.useContext(UserContext);
 	const { library } = React.useContext(LibrarySystemContext);
 	const { language } = React.useContext(LanguageContext);
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);

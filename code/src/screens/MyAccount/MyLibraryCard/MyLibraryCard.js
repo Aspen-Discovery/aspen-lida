@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import _ from 'lodash';
@@ -14,17 +14,17 @@ import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useAccounts, useCards, useUpdateAccounts, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getLinkedAccounts, updateScreenBrightnessStatus } from '../../../util/api/user';
+import { getLinkedAccounts, refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/user';
 import { formatLinkedAccounts } from '../../../util/api/userHelper';
 
 import { formatDiscoveryVersion } from '../../../helpers/helpers';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 
 export const MyLibraryCard = () => {
-     const queryClient = useQueryClient();
      const navigation = useNavigation();
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [previousBrightness, setPreviousBrightness] = React.useState();
@@ -37,7 +37,13 @@ export const MyLibraryCard = () => {
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
-     const { user, accounts, updateLinkedAccounts, cards, updateLibraryCards} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: cards } = useCards();
+     const updateAccounts = useUpdateAccounts();
+     const updateCards = useUpdateCards();
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
@@ -46,14 +52,14 @@ export const MyLibraryCard = () => {
 
      useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
           initialData: accounts,
-          onSuccess: (data) => {
-               if(data.ok) {
+          onSuccess: async (data) => {
+               if (data.ok) {
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
                     if (accounts !== linkedAccounts.accounts) {
-                         updateLinkedAccounts(linkedAccounts.accounts);
+                         await updateAccounts(linkedAccounts.accounts);
                     }
                     if (cards !== linkedAccounts.cards) {
-                         updateLibraryCards(linkedAccounts.cards);
+                         await updateCards(linkedAccounts.cards);
                     }
                } else {
                     logDebugMessage("Error fetching linked accounts in MyLibraryCard (response was not ok)");
@@ -70,12 +76,24 @@ export const MyLibraryCard = () => {
 
      const updateStatus = async () => {
           await updateScreenBrightnessStatus(false, library.baseUrl, language);
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      React.useEffect(() => {
-          const updateAccounts = navigation.addListener('focus', async () => {
-               queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
+          const refreshAccountsListener = navigation.addListener('focus', async () => {
+               const response = await getLinkedAccounts(library.baseUrl, language);
+               if (response?.ok) {
+                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, response.data.result.linkedAccounts);
+                    if (accounts !== linkedAccounts.accounts) {
+                         await updateAccounts(linkedAccounts.accounts);
+                    }
+                    if (cards !== linkedAccounts.cards) {
+                         await updateCards(linkedAccounts.cards);
+                    }
+               }
           });
           const brightenScreen = navigation.addListener('focus', async () => {
                const { status } = await Brightness.getPermissionsAsync();
@@ -132,12 +150,12 @@ export const MyLibraryCard = () => {
                }
           });
           return () => {
-               updateAccounts();
+               refreshAccountsListener();
                brightenScreen();
                updateOrientation();
                changeOrientation.remove();
           };
-     }, [navigation, autoRotate]);
+     }, [navigation, autoRotate, library.baseUrl, language, user, cards, accounts, updateCards, updateAccounts, library.barcodeStyle]);
 
      React.useEffect(() => {
           navigation.addListener('blur', () => {

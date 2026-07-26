@@ -1,5 +1,5 @@
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../util/logging';
-import { LIBRARY, LOGIN_DATA, PATRON, GLOBALS } from '../util/globals';
+import { LIBRARY, LOGIN_DATA, GLOBALS } from '../util/globals';
 import { decode } from 'html-entities';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,7 +38,7 @@ export function formatDiscoveryVersion(payload) {
 /**
  * Logout the user and clean up data
  **/
-export async function RemoveData(queryClient, updateUser) {
+export async function RemoveData(queryClient) {
      try {
           logDebugMessage('Removing Data in secure storage');
           SecureStore.deleteItemAsync('patronName');
@@ -72,31 +72,6 @@ export async function RemoveData(queryClient, updateUser) {
      LIBRARY.version = GLOBALS.appVersion;
      LIBRARY.languages = [];
      LIBRARY.localIll = [];
-     PATRON.userToken = null;
-     PATRON.scope = null;
-     PATRON.library = null;
-     PATRON.location = null;
-     PATRON.listLastUsed = null;
-     PATRON.fines = 0;
-     PATRON.messages = [];
-     PATRON.num.checkedOut = 0;
-     PATRON.num.holds = 0;
-     PATRON.num.lists = 0;
-     PATRON.num.overdue = 0;
-     PATRON.num.ready = 0;
-     PATRON.num.savedSearches = 0;
-     PATRON.num.updatedSearches = 0;
-     PATRON.promptForOverdriveEmail = 1;
-     PATRON.rememberHoldPickupLocation = 0;
-     PATRON.pickupLocations = [];
-     PATRON.sublocations = [];
-     PATRON.language = 'en';
-     PATRON.hideSoftDeleteListUI = false;
-     PATRON.coords.lat = 0;
-     PATRON.coords.long = 0;
-     PATRON.linkedAccounts = [];
-     PATRON.holds = [];
-     PATRON.checkouts = [];
      LOGIN_DATA.showSelectLibrary = true;
      LOGIN_DATA.runGreenhouse = true;
      LOGIN_DATA.num = 0;
@@ -116,11 +91,10 @@ export async function RemoveData(queryClient, updateUser) {
           logErrorMessage(e);
      }
      try {
-          if (updateUser !== null) {
-               updateUser({});
-          }
+          const { clearAllUserData } = require('../util/db');
+          await clearAllUserData();
      } catch (e) {
-          logErrorMessage('Error clearing user');
+          logErrorMessage('Error clearing user data from SQLite');
           logErrorMessage(e);
      }
 

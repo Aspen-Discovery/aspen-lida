@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
 import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken, useToast} from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
@@ -10,7 +11,6 @@ import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../conte
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
-import { PATRON } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 
 const ContactButtons = (data) => {
@@ -120,12 +120,14 @@ const ContactButtons = (data) => {
 
      const getDirections = async () => {
           /* location.latitude & location.longitude */
-          if (PATRON.coords.lat && PATRON.coords.long && PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
+          const sourceLatitude = await SecureStore.getItemAsync('latitude');
+          const sourceLongitude = await SecureStore.getItemAsync('longitude');
+          if (sourceLatitude && sourceLongitude && sourceLatitude !== '0' && sourceLongitude !== '0') {
                showLocation({
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    sourceLatitude: PATRON.coords.lat,
-                    sourceLongitude: PATRON.coords.long,
+                    sourceLatitude,
+                    sourceLongitude,
                     googleForceLatLon: true,
                });
           } else {

@@ -1,4 +1,4 @@
-import { GLOBALS, LIBRARY, PATRON, SearchGlobal } from '../globals';
+import { GLOBALS, LIBRARY, SearchGlobal } from '../globals';
 import { logErrorMessage } from '../logging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createApiClient } from './apiFactory';
@@ -261,13 +261,24 @@ export async function getDefaultFacets(url = null, limit = 5, language = 'en') {
  */
 export async function getSearchResults(searchTerm, pageSize = 25, page, url = null, language = 'en') {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage, language });
+     let solrScope = '';
+     if (GLOBALS.solrScope !== 'unknown') {
+          solrScope = GLOBALS.solrScope;
+     } else {
+          try {
+               solrScope = await AsyncStorage.getItem('@solrScope');
+          } catch (e) {
+               logErrorMessage('Could not get solr scope');
+               logErrorMessage(e);
+          }
+     }
 
      const response = await client.post(
           `/SearchAPI?method=searchLite${SearchGlobal.appendedParams ?? ''}`,
           {},
           {
                params: {
-                    library: PATRON.scope ?? null,
+                    library: solrScope ?? null,
                     lookfor: searchTerm ?? '',
                     pageSize,
                     page,

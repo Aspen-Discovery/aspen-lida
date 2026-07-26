@@ -23,9 +23,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getPatronHolds, setSortPreferences } from '../../../util/api/user';
+import { getPatronHolds, refreshProfile, setSortPreferences } from '../../../util/api/user';
 import { sortHolds, formatHolds, formatPickupLocations } from '../../../util/api/userHelper';
 import { getPickupLocations } from '../../../util/api/user';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
@@ -36,7 +37,16 @@ export const MyHolds = () => {
      const isFetchingHolds = useIsFetching({ queryKey: ['holds'] });
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { user, userHoldPendingSortMethod, updateUserHoldPendingSortMethod, userHoldReadySortMethod, updateUserHoldReadySortMethod, locations, updatePickupLocations} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const userHoldPendingSortMethod = userState?.userHoldPendingSortMethod ?? 'sortTitle';
+     const userHoldReadySortMethod = userState?.userHoldReadySortMethod ?? 'expire';
+     const updateUserProfile = useUpdateUserProfile();
+     const updateSortSettings = useUpdateSortSettings();
+     const updateUserHoldPendingSortMethod = (v) => updateSortSettings({ userHoldPendingSortMethod: v });
+     const updateUserHoldReadySortMethod = (v) => updateSortSettings({ userHoldReadySortMethod: v });
+     const { data: locations } = useLocations();
+     const updatePickupLocations = useUpdateLocations();
      const { library } = React.useContext(LibrarySystemContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
@@ -63,6 +73,13 @@ export const MyHolds = () => {
 
      const [filterByLibby, setFilterByLibby] = React.useState(false);
      const [filterByLibbyTitle, setFilterByLibbyTitle] = React.useState(false);
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
@@ -244,7 +261,7 @@ export const MyHolds = () => {
           setLoading(true);
           clearGroupValue();
           queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          await refreshAndSaveUserProfile();
           setLoading(false);
      };
 
@@ -252,7 +269,7 @@ export const MyHolds = () => {
           setLoading(true);
           updateHolds([]);
           queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          await refreshAndSaveUserProfile();
           setLoading(false);
      };
 

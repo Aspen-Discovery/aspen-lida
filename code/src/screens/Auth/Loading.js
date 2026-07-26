@@ -3,8 +3,9 @@ import {useLinkTo, useNavigation} from '@react-navigation/native';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import _, {isEmpty, isUndefined} from 'lodash';
-import {Box, Center, Heading, Progress, useToast, VStack} from '@gluestack-ui/themed';
+import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import {
      BrowseCategoryContext,
@@ -13,7 +14,6 @@ import {
      LibrarySystemContext,
      SystemMessagesContext,
      ThemeContext,
-     UserContext
 } from '../../context/initialContext';
 import {createGlueTheme} from '../../themes/theme';
 import {
@@ -40,15 +40,25 @@ import {
 } from '../../util/api/user';
 import {formatLinkedAccounts, formatNotificationHistory} from '../../util/api/userHelper';
 
-import {LIBRARY, PATRON} from '../../util/globals';
+import {LIBRARY} from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {
+     loadAllUserData,
+     saveUserProfile,
+     saveAccounts,
+     saveCards,
+     saveAppPreferences,
+     saveNotificationHistory,
+     saveInbox,
+} from '../../util/db';
 
-import {getErrorMessage, logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../../util/logging.js';
+import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
 import {stripHTML} from '../../helpers/helpers';
 
 const prefix = Linking.createURL('/');
+const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -71,8 +81,14 @@ export const LoadingScreen = () => {
      const [errorTitle, setErrorTitle] = React.useState(null);
      const [incomingUrl, setIncomingUrl] = React.useState('');
      const [hasIncomingUrlChanged, setIncomingUrlChanged] = React.useState(false);
+     const [hasUsableUserCache, setHasUsableUserCache] = React.useState(false);
+     const [shouldBlockUserFetch, setShouldBlockUserFetch] = React.useState(true);
+     const [isInitialUserDataReady, setIsInitialUserDataReady] = React.useState(false);
+     const [hasHydratedUserCacheDecision, setHasHydratedUserCacheDecision] = React.useState(false);
+     const isBlockingUserFetchInFlightRef = React.useRef(false);
+     const userDataFetchInvocationRef = React.useRef(0);
+     const fetchAndPersistUserDataRef = React.useRef(null);
 
-     const { user, updateUser,  updateLinkedAccounts, cards, updateLibraryCards, updateAppPreferences, updateNotificationHistory, updateInbox } = React.useContext(UserContext);
      const { library, updateLibrary, updateMenu, updateCatalogStatus, catalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
      const { location, updateLocation, updateEnableSelfCheck, updateSelfCheckSettings } = React.useContext(LibraryBranchContext);
      const { updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
@@ -82,12 +98,163 @@ export const LoadingScreen = () => {
 
      const [loadingText, setLoadingText] = React.useState('');
      const [loadingTheme, setLoadingTheme] = React.useState(true);
-
-     const toast = useToast();
+     const [loadedUser, setLoadedUser] = React.useState({});
+     const user = loadedUser;
+     const hasResolvedLibraryContext = !!library?.libraryId || !!LIBRARY.id;
 
      const insets = useSafeAreaInsets();
 
      const numSteps = 14;
+
+     const fetchAndPersistUserData = React.useCallback(async ({ runInBackground = false } = {}) => {
+          const invocationId = ++userDataFetchInvocationRef.current;
+          logDebugMessage({
+               event: 'fetchAndPersistUserData:start',
+               invocationId,
+               runInBackground,
+          });
+          try {
+               const profileResp = await refreshProfile(LIBRARY.url);
+               const validProfile = profileResp?.ok && profileResp?.data?.result?.success !== false && profileResp?.data?.result?.success !== 'false';
+               if (!validProfile) {
+                    if (runInBackground) return false;
+                    const error = getErrorMessage(profileResp?.code ?? 0, profileResp?.problem);
+                    setHasError(true);
+                    setErrorTitle('Unable to load patron profile');
+                    setErrorMessage(error.message);
+                    return false;
+               }
+
+               const profile = profileResp.data.result.profile ?? {};
+               await saveUserProfile(profile);
+               setLoadedUser(profile);
+               updateLanguage(profile.interfaceLanguage ?? 'en');
+               updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
+
+               const linkedResp = await getLinkedAccounts(LIBRARY.url, 'en');
+               if (linkedResp?.ok) {
+                    const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
+                    await saveAccounts(linkedAccounts.accounts ?? []);
+                    await saveCards(linkedAccounts.cards ?? []);
+               }
+
+               const appPrefsResp = await getAppPreferencesForUser(LIBRARY.url, 'en');
+               if (appPrefsResp?.ok) {
+                    await saveAppPreferences(appPrefsResp.data?.result ?? {});
+               }
+
+               const notifResp = await fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en');
+               if (notifResp?.ok) {
+                    const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
+                    await saveNotificationHistory(notificationHistory);
+                    await saveInbox(notificationHistory?.inbox ?? []);
+               }
+
+               if (!runInBackground) {
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
+                    setIsInitialUserDataReady(true);
+               }
+
+               logDebugMessage({
+                    event: 'fetchAndPersistUserData:success',
+                    invocationId,
+                    runInBackground,
+               });
+
+               return true;
+          } catch (error) {
+               if (runInBackground) {
+                    logWarnMessage('Background user-data refresh failed. Continuing with cached data.');
+                    logErrorMessage(error);
+                    return false;
+               }
+               logDebugMessage({
+                    event: 'fetchAndPersistUserData:error',
+                    invocationId,
+                    runInBackground,
+               });
+               setHasError(true);
+               setErrorTitle(null);
+               setErrorMessage('Error loading user data. Please try again or contact the library.');
+               logErrorMessage(error);
+               return false;
+          }
+     }, [library?.barcodeStyle, languages, updateLanguage, updateLanguageDisplayName]);
+
+     React.useEffect(() => {
+          fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
+     }, [fetchAndPersistUserData]);
+
+     React.useEffect(() => {
+          if (!hasResolvedLibraryContext || hasError) return;
+          let cancelled = false;
+
+          const hydrateUserCache = async () => {
+               try {
+                    logDebugMessage('hydrateUserCache: starting SQLite hydration');
+                    const cached = await loadAllUserData();
+                    const loginUserKey = (await SecureStore.getItemAsync('userKey')) ?? '';
+                    const cachedUser = cached?.user ?? null;
+                    const normalizedKey = String(loginUserKey).toLowerCase();
+                    const normalizedCat = String(cachedUser?.cat_username ?? '').toLowerCase();
+                    const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
+                    const matchesLoggedInUser = !normalizedKey || normalizedKey === normalizedCat || normalizedKey === normalizedBarcode;
+                    const hasAnyCachedUserData = !!cachedUser && matchesLoggedInUser;
+
+                    logDebugMessage('hydrateUserCache: cache snapshot');
+                    logDebugMessage({
+                         hasCachedUser: !!cachedUser,
+                         hasUpdatedAt: !!cached?.updatedAt,
+                         loginKeyPresent: normalizedKey.length > 0,
+                         matchesCatUsername: !!normalizedKey && normalizedKey === normalizedCat,
+                         matchesBarcode: !!normalizedKey && normalizedKey === normalizedBarcode,
+                         matchesLoggedInUser,
+                         hasAnyCachedUserData,
+                    });
+
+                    if (cancelled) return;
+
+                    if (hasAnyCachedUserData) {
+                         logDebugMessage('hydrateUserCache: using cached user data');
+                         setHasUsableUserCache(true);
+                         setShouldBlockUserFetch(false);
+                         setIsInitialUserDataReady(true);
+                         setLoadedUser(cachedUser);
+
+                         const isStale = !cached?.updatedAt || Date.now() - cached.updatedAt > USER_DATA_STALE_MS;
+                         logDebugMessage({
+                              event: 'hydrateUserCache: stale check',
+                              isStale,
+                              cacheAgeMs: cached?.updatedAt ? Date.now() - cached.updatedAt : null,
+                              staleThresholdMs: USER_DATA_STALE_MS,
+                         });
+                         if (isStale) {
+                              logDebugMessage('hydrateUserCache: cache stale, running background refresh');
+                              fetchAndPersistUserDataRef.current?.({ runInBackground: true });
+                         } else {
+                              logDebugMessage('hydrateUserCache: fresh cache path, skipping user-data API fetch');
+                         }
+                    } else {
+                         logDebugMessage('hydrateUserCache: cache missing or user mismatch, forcing blocking fetch');
+                         setHasUsableUserCache(false);
+                         setShouldBlockUserFetch(true);
+                    }
+                    setHasHydratedUserCacheDecision(true);
+               } catch (error) {
+                    if (cancelled) return;
+                    logWarnMessage('hydrateUserCache: failed, falling back to blocking fetch');
+                    logErrorMessage(error);
+                    setHasUsableUserCache(false);
+                    setShouldBlockUserFetch(true);
+                    setHasHydratedUserCacheDecision(true);
+               }
+          };
+
+          hydrateUserCache();
+          return () => {
+               cancelled = true;
+          };
+     }, [hasResolvedLibraryContext, hasError]);
 
      React.useEffect(() => {
           const unsubscribe = navigation.addListener('focus', async () => {
@@ -142,7 +309,7 @@ export const LoadingScreen = () => {
       */
      const { isSuccess: catalogStatusSuccess} = useQuery(['catalog_status', LIBRARY.url], () => getCatalogStatus(LIBRARY.url), {
           enabled: !!LIBRARY.url && !loadingTheme,
-          onSuccess: (data) => {
+          onSuccess: async (data) => {
                if(data.ok) {
                     let catalogMessage = null;
                     if (data.data.result?.api?.message) {
@@ -181,9 +348,9 @@ export const LoadingScreen = () => {
      /**
       * Preload parameterized translations for use on holds and checkouts pages. This does not halt loading LiDA.
       */
-     useQuery(['active_language', PATRON.language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(PATRON.language ?? 'en', LIBRARY.url), {
+     useQuery(['active_language', language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(language ?? 'en', LIBRARY.url), {
           enabled: !!LIBRARY.url && catalogStatusSuccess,
-          onSuccess: (data) => {
+          onSuccess: async () => {
                logDebugMessage("Loaded Translations");
                setProgress(prevProgress => prevProgress + (100 / numSteps));
                updateDictionary(translationsLibrary);
@@ -204,7 +371,7 @@ export const LoadingScreen = () => {
 
      const { isSuccess: languagesQuerySuccess} = useQuery(['languages', LIBRARY.url], () => getLibraryLanguages(LIBRARY.url), {
           enabled: hasError === false && catalogStatusSuccess,
-          onSuccess: (data) => {
+          onSuccess: async (data) => {
                if(data.ok) {
                     logDebugMessage("Loaded library languages");
                     setProgress(prevProgress => prevProgress + (100 / numSteps));
@@ -282,49 +449,8 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: userQuerySuccess} = useQuery(['user', LIBRARY.url, 'en'], () => refreshProfile(LIBRARY.url), {
-          enabled: hasError === false && librarySystemQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const profile = data.data.result.profile ?? [];
-                    logInfoMessage('User Profile refreshed');
-                    if (isUndefined(profile) || isEmpty(profile)) {
-                         logWarnMessage("Setting Error to true because profile data was undefined or empty");
-                         setHasError(true);
-                    } else {
-                         if (data.data.result.success === false || data.data.result.success === 'false') {
-                              logWarnMessage("Setting Error to true because profile response returned a success of false");
-                              setHasError(true);
-                         } else {
-                              logDebugMessage("Loaded User Profile");
-                              setProgress(prevProgress => prevProgress + (100 / numSteps));
-                              updateUser(profile);
-                              updateLanguage(profile.interfaceLanguage ?? 'en');
-                              updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
-                              PATRON.language = profile.interfaceLanguage ?? 'en';
-                         }
-                    }
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Menu');
-                    }
-               } else {
-                    logDebugMessage("Error reloading user profile");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage("Unable to load patron profile. " + error.message);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error reloading user profile");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorMessage('Error loading user profile. Please try again or contact the library.')
-          }
-     });
-
      const { isSuccess: libraryLinksQuerySuccess} = useQuery(['library_links', LIBRARY.url], () => getLibraryLinks(LIBRARY.url), {
-          enabled: hasError === false && userQuerySuccess,
+          enabled: hasError === false && (isInitialUserDataReady || hasUsableUserCache),
           onSuccess: (data) => {
                if(data.ok) {
                     const links = data.data.result?.items ?? [];
@@ -477,39 +603,37 @@ export const LoadingScreen = () => {
 
      });
 
-     const { isSuccess: linkedAccountQuerySuccess} = useQuery(['linked_accounts', user ?? [], cards ?? [], LIBRARY.url, 'en'], () => getLinkedAccounts(LIBRARY.url, 'en'), {
-          enabled: hasError === false && selfCheckQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    logDebugMessage("Loaded Linked Accounts");
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library?.barcodeStyle ?? 'UNKNOWN', data.data.result.linkedAccounts);
-                    updateLinkedAccounts(linkedAccounts.accounts);
-                    updateLibraryCards(linkedAccounts.cards);
-                    setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Linked Accounts');
-                    }
-               } else {
-                    logDebugMessage("Error loading linked accounts");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load linked accounts");
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading linked accounts failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Unknown error loading linked accounts. Please try again or contact the library.')
-          }
-     });
+     React.useEffect(() => {
+          if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
+          let cancelled = false;
 
-     const { isSuccess: systemMessagesQuerySuccess} = useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
-          enabled: hasError === false && linkedAccountQuerySuccess,
+          const runBlockingUserFetch = async () => {
+               if (isBlockingUserFetchInFlightRef.current) {
+                    logDebugMessage('runBlockingUserFetch: skipped duplicate invocation while fetch already in flight');
+                    return;
+               }
+               isBlockingUserFetchInFlightRef.current = true;
+               logDebugMessage('runBlockingUserFetch: starting blocking user-data fetch');
+               setLoadingText('Loading User Information');
+               try {
+                    const ok = await fetchAndPersistUserData({ runInBackground: false });
+                    if (!cancelled && ok) {
+                         setIsReloading(false);
+                    }
+               } finally {
+                    isBlockingUserFetchInFlightRef.current = false;
+                    logDebugMessage('runBlockingUserFetch: completed blocking user-data fetch');
+               }
+          };
+
+          runBlockingUserFetch();
+          return () => {
+               cancelled = true;
+          };
+     }, [hasHydratedUserCacheDecision, shouldBlockUserFetch, hasResolvedLibraryContext, hasError, isInitialUserDataReady, fetchAndPersistUserData]);
+
+     useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
+          enabled: hasError === false && selfCheckQuerySuccess && (isInitialUserDataReady || hasUsableUserCache),
           onSuccess: (data) => {
                if(data.ok) {
                     logDebugMessage("Loaded System Messages");
@@ -538,84 +662,10 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: appPreferencesQuerySuccess } = useQuery(['app_preferences', LIBRARY.url], () => getAppPreferencesForUser(LIBRARY.url, 'en'), {
-          enabled: hasError === false && systemMessagesQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    logDebugMessage("Loaded App Preferences");
-                    const preferences = data.data.result ?? {
-                         onboardAppNotifications: 0,
-                         shouldAskBrightness: 0,
-                         notification_preferences: [
-                              {
-                                   device: 'Unknown',
-                                   token: false,
-                                   notifySavedSearch: 0,
-                                   notifyCustom: 0,
-                                   notifyAccount: 0,
-                                   onboardStatus: 0,
-                              },
-                         ],
-                    }
-                    updateAppPreferences(preferences);
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Notification History');
-                    }
-               } else {
-                    logDebugMessage("Error loading app preferences");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load patron app preferences");
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading app preferences failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Error loading patron app preferences. Please try again or contact the library.')
-          }
-     });
-
-     const { status: notificationHistoryQueryStatus } = useQuery(['notification_history'], () => fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en'), {
-          enabled: hasError === false && appPreferencesQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    logDebugMessage("Loaded Notification History");
-                    const notificationHistory = formatNotificationHistory(data.data.result)
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    updateNotificationHistory(notificationHistory);
-                    updateInbox(notificationHistory?.inbox ?? []);
-                    setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Finished, loading LiDA');
-                    }
-               } else {
-                    logDebugMessage("Error loading notification history");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load notification history");
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading notification history failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Error loading notification history. Please try again or contact the library.')
-          }
-     });
-
      React.useEffect(() => {
           if (
                !isReloading &&
-               notificationHistoryQueryStatus === 'success' &&
+               (isInitialUserDataReady || hasUsableUserCache) &&
                !hasError &&
                catalogStatus === 0
           ) {
@@ -670,6 +720,7 @@ export const LoadingScreen = () => {
                     }
                }
 
+               setProgress(100);
                navigation.navigate('DrawerStack', {
                     user: user,
                     library: library,
@@ -679,7 +730,8 @@ export const LoadingScreen = () => {
           }
      }, [
           isReloading,
-          notificationHistoryQueryStatus,
+          isInitialUserDataReady,
+          hasUsableUserCache,
           hasError,
           catalogStatus,
           hasIncomingUrlChanged,

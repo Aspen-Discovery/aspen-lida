@@ -1,16 +1,21 @@
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useListGroups, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { deleteListGroup } from '../../../util/api/list';
+import { refreshProfile } from '../../../util/api/user';
 import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 
 export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
      const queryClient = useQueryClient();
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: listGroups } = useListGroups();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -54,7 +59,10 @@ export const DeleteListGroup = ({id, handleUpdate, setCurrentListGroup}) => {
                                                      handleUpdate(listGroups.groups[0]?.id || -1);
                                                      queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
                                                      queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                                     queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                     const profileResponse = await refreshProfile(library.baseUrl);
+                                                     if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                          await updateUserProfile(profileResponse.data.result.profile);
+                                                     }
                                                      setLoading(false);
                                                      let status = 'success';
                                                      setShowModal(false);

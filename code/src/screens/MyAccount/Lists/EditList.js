@@ -4,11 +4,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import React, { useState } from 'react';
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useListGroups, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { deleteList, editList, getListDetails } from '../../../util/api/list';
-import { PATRON } from '../../../util/globals';
+import { refreshProfile } from '../../../util/api/user';
 import {
      AlertDialog,
      AlertDialogContent,
@@ -74,7 +75,10 @@ const EditList = (props) => {
      const queryClient = useQueryClient();
      const { data, listId } = props;
      const navigation = useNavigation();
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: listGroups } = useListGroups();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const [showModal, setShowModal] = React.useState(false);
@@ -242,7 +246,8 @@ const DeleteList = (props) => {
      const queryClient = useQueryClient();
      const { listId } = props;
      const {textColor, colorMode } = React.useContext(ThemeContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState2 } = useUserState();
+     const user = userState2?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const [isOpen, setIsOpen] = React.useState(false);
@@ -269,12 +274,12 @@ const DeleteList = (props) => {
                          </AlertDialogHeader>
                          <AlertDialogBody>
                               <Text color={textColor}>
-                                   {PATRON.hideSoftDeleteListUI
+                                   {user.hideSoftDeleteListUI
                                         ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore')
                                         : getTermFromDictionary(language, 'delete_list_confirmation')
                                    }
                               </Text>
-                              {!PATRON.hideSoftDeleteListUI && (
+                              {!user.hideSoftDeleteListUI && (
                                    <FormControl pt="$3">
                                         <Checkbox
                                              value="optOut"
@@ -303,7 +308,10 @@ const DeleteList = (props) => {
                                              setLoading(true);
                                              deleteList(listId, library.baseUrl, optOutOfSoftDeletion).then(async (res) => {
                                                   queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                                  queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                  const profileResponse = await refreshProfile(library.baseUrl);
+                                                  if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                       await updateUserProfile(profileResponse.data.result.profile);
+                                                  }
                                                   setLoading(false);
                                                   let status = 'success';
                                                   setIsOpen(!isOpen);

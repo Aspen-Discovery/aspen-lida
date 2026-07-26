@@ -1,7 +1,8 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useListGroups } from '../../../hooks/useUserData';
 import {
      Center,
      Button,
@@ -45,7 +46,9 @@ import _ from 'lodash';
 
 export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
      const queryClient = useQueryClient();
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: listGroups } = useListGroups();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);

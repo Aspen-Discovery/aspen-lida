@@ -13,7 +13,7 @@ import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider, UserProvider } from './src/context/initialContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider } from './src/context/initialContext';
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
 import { createTheme, saveTheme } from './src/themes/theme';
@@ -132,9 +132,8 @@ export default function AppContainer() {
                                    <ThemeProvider>
                                         <LanguageProvider>
                                              <LibrarySystemProvider>
-                                                  <LibraryBranchProvider>
-                                                       <UserProvider>
-                                                            <SearchProvider>
+                                                        <LibraryBranchProvider>
+                                                             <SearchProvider>
                                                                  <CheckoutsProvider>
                                                                       <HoldsProvider>
                                                                            <BrowseCategoryProvider>
@@ -149,9 +148,8 @@ export default function AppContainer() {
                                                                            </BrowseCategoryProvider>
                                                                       </HoldsProvider>
                                                                  </CheckoutsProvider>
-                                                            </SearchProvider>
-                                                       </UserProvider>
-                                                  </LibraryBranchProvider>
+                                                             </SearchProvider>
+                                                        </LibraryBranchProvider>
                                              </LibrarySystemProvider>
                                         </LanguageProvider>
                                    </ThemeProvider>

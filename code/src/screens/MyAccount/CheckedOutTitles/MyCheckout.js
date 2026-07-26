@@ -11,7 +11,8 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState } from '../../../hooks/useUserData';
 import {
      getAuthor,
      getCheckedOutTo,
@@ -31,7 +32,8 @@ import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from
 import { stripHTML, formatDiscoveryVersion } from '../../../helpers/helpers';
 
 export const MyCheckout = (props) => {
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const version = formatDiscoveryVersion(library.discoveryVersion);

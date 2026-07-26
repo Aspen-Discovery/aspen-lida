@@ -17,7 +17,6 @@ import { getLibraryInfo } from '../../util/api/system';
 import { GLOBALS } from '../../util/globals';
 import { fetchAllLibrariesFromGreenhouse, fetchNearbyLibrariesFromGreenhouse } from '../../util/api/greenhouse';
 import { LIBRARY } from '../../util/globals';
-import { PATRON } from '../../util/globals';
 import { ForgotBarcode } from './ForgotBarcode';
 import { GetLoginForm } from './LoginForm';
 import { ResetPassword } from './ResetPassword';
@@ -314,8 +313,6 @@ async function getPermissions(kind = 'statusCheck') {
           if (status !== 'granted') {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
                return {
                     success: false,
                     status: status,
@@ -326,8 +323,6 @@ async function getPermissions(kind = 'statusCheck') {
           if (status !== 'granted') {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
                return {
                     success: false,
                     status: status,
@@ -341,13 +336,9 @@ async function getPermissions(kind = 'statusCheck') {
                const longitude = JSON.stringify(location.coords.longitude);
                await SecureStore.setItemAsync('latitude', latitude);
                await SecureStore.setItemAsync('longitude', longitude);
-               PATRON.coords.lat = latitude;
-               PATRON.coords.long = longitude;
           } else {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
           }
           return {
                success: true,

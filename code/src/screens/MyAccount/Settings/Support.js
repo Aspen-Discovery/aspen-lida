@@ -5,7 +5,8 @@ import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useAccounts, useDebugMessages } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
@@ -13,7 +14,8 @@ import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 
 export const SupportScreen = () => {
      const navigation = useNavigation();
-     const { accounts, userDebugMessage } = React.useContext(UserContext);
+     const { data: accounts } = useAccounts();
+     const { data: userDebugMessage } = useDebugMessages();
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);

@@ -24,7 +24,8 @@ import {
      InputIcon,
      useToast
 } from '@gluestack-ui/themed';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
 import { decodeHTML } from '../../helpers/helpers';
@@ -72,7 +73,9 @@ export const AddAlternateLibraryCard = (props) => {
      }
 
      const { library } = React.useContext(LibrarySystemContext);
-     const { user, updateUser } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const queryClient = useQueryClient();
@@ -126,9 +129,9 @@ export const AddAlternateLibraryCard = (props) => {
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then((data) => {
+          await refreshProfile(library.baseUrl).then(async (data) => {
                if(data.ok) {
-                    updateUser(data.data.result.profile);
+                    await updateUserProfile(data.data.result.profile);
                } else {
                     logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                     logDebugMessage(data);
@@ -136,6 +139,13 @@ export const AddAlternateLibraryCard = (props) => {
                }
           });
      };
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      return (
           <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
@@ -199,8 +209,8 @@ export const AddAlternateLibraryCard = (props) => {
                                              if (result) {
                                                   if (result.success === true || result.success === 'true') {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                                                        queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                       await refreshAndSaveUserProfile();
                                                   }
 
                                                   if (result?.confirmationNeeded && result.confirmationNeeded === true) {

@@ -35,14 +35,8 @@ import {
 import React from 'react';
 import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import {
-     BrowseCategoryContext,
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { BrowseCategoryContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryBranch, getLibrarySystem } from '../../util/api/system';
 import { getUserProfile, resetExpiredPin } from '../../util/api/user';
@@ -56,7 +50,7 @@ export const ResetExpiredPin = (props) => {
      const { signIn } = React.useContext(AuthContext);
      const { updateLibrary, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
      const { updateLocation } = React.useContext(LibraryBranchContext);
-     const { updateUser } = React.useContext(UserContext);
+     const updateUserProfile = useUpdateUserProfile();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const { updateBrowseCategories } = React.useContext(BrowseCategoryContext);
      const { language } = React.useContext(LanguageContext);
@@ -156,7 +150,7 @@ export const ResetExpiredPin = (props) => {
           const location = await getLibraryBranch({ patronsLibrary });
           updateLocation(location);
           const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
-          updateUser(user);
+          await updateUserProfile(user);
           const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
           updateBrowseCategories(homeScreenFeed.browseCategories);
           updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);

@@ -2,12 +2,14 @@ import React from 'react';
 import { ButtonSpinner, Button, ButtonText, useToast } from '@gluestack-ui/themed';
 
 // custom components and helper files
-import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState } from '../../hooks/useUserData';
 import { completeAction } from '../../util/api/userHelper';
 import {logDebugMessage} from "../../util/logging";
 
 export const LoadOverDriveSample = (props) => {
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const [loading, setLoading] = React.useState(false);
      const { theme } = React.useContext(ThemeContext);

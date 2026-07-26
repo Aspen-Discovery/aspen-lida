@@ -4,7 +4,9 @@ import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/theme
 import React from 'react';
 
 // custom components and helper files
-import { HoldsContext, LibraryBranchContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { HoldsContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { refreshProfile } from '../../../util/api/user';
 import { completeAction } from '../../../util/api/userHelper';
 import { HoldPrompt } from './HoldPrompt';
 
@@ -45,13 +47,25 @@ export const PlaceHold = (props) => {
           userHasAlternateLibraryCard,
           shouldPromptAlternateLibraryCard
      } = props;
-     const { user, accounts, locations, preferredPickupLocationIsValid} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const [loading, setLoading] = React.useState(false);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme } = React.useContext(ThemeContext);
      const toast = useToast();
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
      if (_.isNumber(user.pickupLocationId)) {
@@ -222,12 +236,12 @@ export const PlaceHold = (props) => {
                                    if (ilsResponse?.success === true || ilsResponse?.success === 'true') {
                                         //Refresh the hold and user if the hold was successful
                                         queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                        queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                        await refreshAndSaveUserProfile();
 
                                         const timeoutId = setTimeout(() => {
                                              // Also refresh in 45 seconds for Sierra since hold can take a minute to show up on the account
                                              queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                             queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                             refreshAndSaveUserProfile();
                                         }, 45 * 1000);
                                    }
 

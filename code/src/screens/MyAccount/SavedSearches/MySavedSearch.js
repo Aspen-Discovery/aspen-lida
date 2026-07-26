@@ -8,7 +8,8 @@ import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -20,7 +21,8 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const MySavedSearch = () => {
      const route = useRoute();
      const id = route.params.id;
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const queryClient = useQueryClient();

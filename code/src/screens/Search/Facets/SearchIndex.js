@@ -5,7 +5,8 @@ import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed
 import React from 'react';
 import { ScrollView } from 'react-native';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";

@@ -29,7 +29,8 @@ import {
      useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
-import { LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { LibrarySystemContext } from '../../context/initialContext';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
@@ -41,7 +42,11 @@ const SelectPickupLocation = (props) => {
      const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = useState(false);
      const [volume, setVolume] = React.useState(null);
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const toast = useToast();
 
@@ -183,9 +188,9 @@ const SelectPickupLocation = (props) => {
                                                   if (result) {
                                                        setResponseIsOpen(true);
                                                        if (result.success) {
-                                                            await refreshProfile(library.baseUrl).then((data) => {
+                                                            await refreshProfile(library.baseUrl).then(async (data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                      await updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold from pickup location selection.');
                                                                       logDebugMessage(data);

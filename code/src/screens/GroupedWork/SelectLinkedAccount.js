@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon, useToast } from '@gluestack-ui/themed';
 import React from 'react';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { HoldsContext, LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
@@ -15,7 +16,11 @@ const SelectLinkedAccount = (props) => {
 
      const isPlacingHold = action.includes('hold');
 
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
@@ -169,7 +174,7 @@ const SelectLinkedAccount = (props) => {
                                                        if (result.success) {
                                                             await refreshProfile(library.baseUrl).then((data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                      await updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold or checkout from linked account');
                                                                       logDebugMessage(data);

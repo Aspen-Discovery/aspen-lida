@@ -15,7 +15,8 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
@@ -25,7 +26,9 @@ export const Editions = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
      const { library } = useContext(LibrarySystemContext);
-     const { user } = useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { language } = useContext(LanguageContext);
      const { colorMode, theme, textColor } = useContext(ThemeContext);
      const insets = useSafeAreaInsets();
@@ -218,7 +221,7 @@ export const Editions = () => {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
                                                        await refreshProfile(library.baseUrl).then((data) => {
                                                             if(data.ok) {
-                                                                 updateUser(data.data.result.profile);
+                                                                 updateUserProfile(data.data.result.profile);
                                                             } else {
                                                                  logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                                                                  logDebugMessage(data);
@@ -297,7 +300,15 @@ export const Editions = () => {
                                                   await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
                                                        setResponse(result);
                                                        queryClient.invalidateQueries({ queryKey: ['holds', holdSelectItemResponse.patronId, library.baseUrl, language] });
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                       await refreshProfile(library.baseUrl).then(async (data) => {
+                                                            if (data.ok) {
+                                                                 await updateUserProfile(data.data.result.profile);
+                                                            } else {
+                                                                 logWarnMessage('Could not refresh profile after placing item hold from edition selection.');
+                                                                 logDebugMessage(data);
+                                                                 getErrorMessage(data.code ?? 0, data.problem);
+                                                            }
+                                                       });
                                                        setHoldItemSelectIsOpen(false);
                                                        setPlacingItemHold(false);
                                                        if (result) {

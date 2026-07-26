@@ -12,11 +12,13 @@ import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigate } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
+import { refreshProfile } from '../../../util/api/user';
 import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
@@ -28,7 +30,10 @@ export const MyEvents = () => {
      const [page, setPage] = React.useState(1);
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { user, savedEvents, updateSavedEvents } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: savedEvents } = useSavedEvents();
+     const updateSavedEvents = useUpdateSavedEvents();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, colorMode, textColor} = React.useContext(ThemeContext);
      const pageSize = 25;
@@ -222,13 +227,22 @@ const Item = (data) => {
      const event = data.data;
      const toast = useToast();
      const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
+     const { data: userState2 } = useUserState();
+     const user = userState2?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { language } = React.useContext(LanguageContext);
      const { library } = React.useContext(LibrarySystemContext);
      const {colorMode} = React.useContext(ThemeContext);
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      let coverUrl = event.cover;
      if (_.isNull(event.cover)) {
@@ -348,7 +362,7 @@ const Item = (data) => {
           await removeSavedEvent(event.sourceId, language, library.baseUrl).then((result) => {
                setLoading(false);
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, filterBy] });
-               queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+               refreshAndSaveUserProfile();
                queryClient.invalidateQueries({ queryKey: ['event', event.sourceId, source, language, library.baseUrl] });
                if (result.success || result.success === 'true') {
                     popAlert(toast, getTermFromDictionary(language, 'removed_successfully'), result.message, 'success');

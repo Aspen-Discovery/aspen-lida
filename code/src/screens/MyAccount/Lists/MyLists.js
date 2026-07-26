@@ -10,7 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useLists, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
+import { useUserState } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { getListDetails, getListGroupDetails, getListGroups, getLists, getListTitles } from '../../../util/api/list';
@@ -27,9 +29,13 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const MyLists = () => {
      const navigation = useNavigation();
      const hasPendingChanges = useRoute().params.hasPendingChanges ?? false;
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
-     const { lists, updateLists, listGroups, updateListGroups } = React.useContext(UserContext);
+     const { data: lists } = useLists();
+     const { data: listGroups } = useListGroups();
+     const updateLists = useUpdateLists();
+     const updateListGroups = useUpdateListGroups();
      const { language } = React.useContext(LanguageContext);
 
      const [page, setPage] = React.useState(1);

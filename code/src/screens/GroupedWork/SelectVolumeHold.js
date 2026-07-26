@@ -39,7 +39,8 @@ import {
 import React, { useState } from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getVolumes } from '../../util/api/item';
 import { refreshProfile } from '../../util/api/user';
@@ -52,7 +53,11 @@ const SelectVolumeHold = (props) => {
      const [showModal, setShowModal] = useState(false);
      const [volume, setVolume] = React.useState('');
 
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const toast = useToast();
@@ -258,7 +263,7 @@ const SelectVolumeHold = (props) => {
                                                        if (result.success) {
                                                             await refreshProfile(library.baseUrl).then((data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                      await updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                                                                       logDebugMessage(data);

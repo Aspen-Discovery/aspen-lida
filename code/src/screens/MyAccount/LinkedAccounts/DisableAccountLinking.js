@@ -16,9 +16,10 @@ import {
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
-import {LanguageContext, LibrarySystemContext, ThemeContext, UserContext} from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { disableAccountLinking } from '../../../util/api/user';
+import { disableAccountLinking, refreshProfile } from '../../../util/api/user';
 
 // custom components and helper files
 
@@ -27,7 +28,9 @@ const DisableAccountLinking = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const {user} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
      const toast = useToast();
@@ -40,7 +43,10 @@ const DisableAccountLinking = () => {
      const refreshLinkedAccounts = async () => {
           queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
           queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      return (

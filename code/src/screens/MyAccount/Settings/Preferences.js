@@ -5,7 +5,8 @@ import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
 import { Box, Divider, HStack, Icon, Pressable, Text, VStack, ChevronRightIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useUpdateExpoToken } from '../../../hooks/useUserData';
 
 // custom components and helper files
 import { navigate } from '../../../helpers/RootNavigator';
@@ -19,7 +20,10 @@ export const PreferencesScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
      const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
-     const { user, expoToken, updateExpoToken } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const expoToken = userState?.expoToken ?? false;
+     const updateExpoToken = useUpdateExpoToken();
      const { textColor } = React.useContext(ThemeContext);
 
      React.useEffect(() => {

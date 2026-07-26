@@ -39,8 +39,9 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { submitLocalIllRequest } from '../../util/api/user';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
@@ -112,7 +113,9 @@ const Request = (payload) => {
      const [isSubmitting, setIsSubmitting] = React.useState(false);
      const [errorMessage, setErrorMessage] = React.useState('');
      const { library } = React.useContext(LibrarySystemContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const navigation = useNavigation();
@@ -121,6 +124,13 @@ const Request = (payload) => {
      const toast = useToast();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      // Make sure we have a valid config object before trying to render the form
      if (!config || !config.fields || typeof config.fields !== 'object') {
@@ -144,7 +154,7 @@ const Request = (payload) => {
                     setErrorMessage('');
                     navigation.goBack();
                     queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                    queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                    await refreshAndSaveUserProfile();
                } else {
                     setErrorMessage(result.message);
                }

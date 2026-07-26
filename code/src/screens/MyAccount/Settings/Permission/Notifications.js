@@ -5,7 +5,8 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../../context/initialContext';
+import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
@@ -17,7 +18,10 @@ export const NotificationPermissionStatus = () => {
     const { language } = React.useContext(LanguageContext);
     const { textColor } = React.useContext(ThemeContext);
     const { library } = React.useContext(LibrarySystemContext);
-    const { updateExpoToken, expoToken, updateUserDebugMessage } = React.useContext(UserContext);
+    const { data: userState } = useUserState();
+    const expoToken = userState?.expoToken ?? false;
+    const updateExpoToken = useUpdateExpoToken();
+    const addDebugMessage = useAddDebugMessage();
     const navigation = useNavigation();
 
     const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
@@ -69,7 +73,10 @@ export const NotificationPermissionDescription = () => {
     const { theme, textColor } = React.useContext(ThemeContext);
     const { language } = React.useContext(LanguageContext);
     const { library } = React.useContext(LibrarySystemContext);
-    const { updateExpoToken, notificationSettings, expoToken, updateUserDebugMessage } = React.useContext(UserContext);
+    const { data: notifSettings } = useNotificationSettings();
+    const notificationSettings = notifSettings;
+    const expoToken2 = userState?.expoToken ?? false;
+    const updateExpoToken2 = useUpdateExpoToken();
     const toast = useToast();
 
     const {

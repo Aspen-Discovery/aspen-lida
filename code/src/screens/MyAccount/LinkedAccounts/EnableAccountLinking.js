@@ -17,8 +17,9 @@ import {
 import React, { useState } from 'react';
 
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { enableAccountLinking } from '../../../util/api/user';
+import { enableAccountLinking, refreshProfile } from '../../../util/api/user';
 
 // custom components and helper files
 
@@ -26,6 +27,7 @@ const EnableAccountLinking = () => {
      const queryClient = useQueryClient();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
+     const updateUserProfile = useUpdateUserProfile();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
@@ -39,7 +41,10 @@ const EnableAccountLinking = () => {
      const refreshLinkedAccounts = async () => {
           queryClient.invalidateQueries({ queryKey: ['linked_accounts', library.baseUrl, language] });
           queryClient.invalidateQueries({ queryKey: ['viewer_accounts', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      return (

@@ -21,8 +21,9 @@ import {
 import React, { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import {LanguageContext, LibrarySystemContext, ThemeContext, UserContext} from '../../../context/initialContext';
-import { addLinkedAccount } from '../../../util/api/user';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { addLinkedAccount, refreshProfile } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import {logErrorMessage} from "../../../util/logging";
 
@@ -32,7 +33,9 @@ const AddLinkedAccount = () => {
      const queryClient = useQueryClient();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const {user} = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
@@ -53,7 +56,10 @@ const AddLinkedAccount = () => {
      const refreshLinkedAccounts = async () => {
           queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
           queryClient.invalidateQueries({ queryKey: ['viewer_accounts', user.id, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      return (

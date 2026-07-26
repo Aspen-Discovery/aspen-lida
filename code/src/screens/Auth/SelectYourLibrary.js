@@ -28,7 +28,6 @@ import { PermissionsPrompt } from '../../components/PermissionsPrompt';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { PATRON } from '../../util/globals';
 import { useKeyboard } from '../../hooks/hooks';
 import { ThemeContext } from '../../context/initialContext';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
@@ -48,12 +47,7 @@ export const SelectYourLibrary = (payload) => {
      };
 
      function FilteredLibraries() {
-          let haystack = [];
-
-          // we were able to get coordinates from the device
-          if (PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
-               haystack = libraries;
-          }
+          let haystack = libraries;
 
           if (!_.isEmpty(query) && query !== ' ') {
                haystack = allLibraries;

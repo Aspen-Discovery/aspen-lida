@@ -25,7 +25,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocationInfo, getCatalogStatus } from '../../util/api/system';
 import { loginToLiDA } from '../../util/api/user';
 import { stripHTML } from '../../helpers/helpers';
-import { GLOBALS, LIBRARY, PATRON } from '../../util/globals';
+import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
 
@@ -128,11 +128,11 @@ export const GetLoginForm = (props) => {
                     if(validatedUser) {
                          logInfoMessage("Successfully logged in");
                          GLOBALS.appSessionId = validatedUser.session ?? '';
-                         PATRON.language = validatedUser.lang ?? 'en';
-                         PATRON.homeLocationId = validatedUser.homeLocationId ?? null;
+                         GLOBALS.language = validatedUser.lang ?? 'en';
+                         const userHomeLocationId = validatedUser.homeLocationId ?? null;
                          updateLanguage(validatedUser.lang ?? 'en');
                          if (validatedUser.success) {
-                              await setAsyncStorage();
+                              await setAsyncStorage(userHomeLocationId);
                               signIn();
                               setLoading(false);
                          } else {
@@ -172,15 +172,15 @@ export const GetLoginForm = (props) => {
           navigate('LibraryCardScanner', { allowCode39 });
      };
 
-     const setAsyncStorage = async () => {
+     const setAsyncStorage = async (userHomeLocationId = null) => {
           await SecureStore.setItemAsync('userKey', username);
           await SecureStore.setItemAsync('secretKey', valueSecret);
           await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
           const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
 
-          if (PATRON.homeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
-               logDebugMessage('User has a home location set (' + PATRON.homeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
-               await getLocationInfo(LIBRARY.url, PATRON.homeLocationId).then(async (response) => {
+          if (userHomeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
+               logDebugMessage('User has a home location set (' + userHomeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
+               await getLocationInfo(LIBRARY.url, userHomeLocationId).then(async (response) => {
                     const patronHomeLocation = response.data.result.location;
                     if (typeof patronHomeLocation.baseUrl !== 'undefined') {
                          logDebugMessage('Successfully retrieved location info for user home location while logging in, setting asyncStorage library and location to: ' + patronHomeLocation.displayName + ' (' + patronHomeLocation.libraryId + ')');

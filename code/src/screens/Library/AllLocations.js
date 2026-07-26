@@ -11,11 +11,10 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
-import { PATRON } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
@@ -51,8 +50,6 @@ export const AllLocations = () => {
                                    longitude = JSON.stringify(location.coords.longitude);
                                    await SecureStore.setItemAsync('latitude', latitude);
                                    await SecureStore.setItemAsync('longitude', longitude);
-                                   PATRON.coords.lat = latitude;
-                                   PATRON.coords.long = longitude;
                               }
                          }
                     }

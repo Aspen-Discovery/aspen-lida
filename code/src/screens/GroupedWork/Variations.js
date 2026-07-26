@@ -10,7 +10,8 @@ import { LoadError, loadError } from '../../components/loadError';
 import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
 
 // custom components and helper files
-import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { placeHold, confirmHold, refreshProfile } from '../../util/api/user';
@@ -27,7 +28,7 @@ export const Variations = (props) => {
      const insets = useSafeAreaInsets();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { updateUser } = React.useContext(UserContext);
+     const updateUserProfile = useUpdateUserProfile();
      const { updateHolds } = React.useContext(HoldsContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
@@ -180,11 +181,11 @@ export const Variations = (props) => {
                                                             await confirmHold(holdConfirmationResponse.recordId, holdConfirmationResponse.confirmationId, language, library.baseUrl).then(async (result) => {
                                                                  setResponse(result);
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
-                                                                 await refreshProfile(library.baseUrl).then((data) => {
-                                                                      if(data.ok) {
-                                                                           updateUser(data.data.result.profile);
-                                                                           queryClient.invalidateQueries({ queryKey: ['records']});
-                                                                           queryClient.invalidateQueries({ queryKey: ['variation']});
+                                                                 await refreshProfile(library.baseUrl).then(async (data) => {
+                                                                      if (data.ok) {
+                                                                           await updateUserProfile(data.data.result.profile);
+                                                                           queryClient.invalidateQueries({ queryKey: ['records'] });
+                                                                           queryClient.invalidateQueries({ queryKey: ['variation'] });
                                                                       } else {
                                                                            logWarnMessage('Could not refresh profile after placing hold or checkout from linked account');
                                                                            logDebugMessage(data);
@@ -263,7 +264,15 @@ export const Variations = (props) => {
                                                             await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
                                                                  setResponse(result);
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', holdSelectItemResponse.patronId, library.baseUrl, language] });
-                                                                 queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                                 await refreshProfile(library.baseUrl).then(async (data) => {
+                                                                      if (data.ok) {
+                                                                           await updateUserProfile(data.data.result.profile);
+                                                                      } else {
+                                                                           logWarnMessage('Could not refresh profile after placing item hold from variation selection');
+                                                                           logDebugMessage(data);
+                                                                           getErrorMessage(data.code ?? 0, data.problem);
+                                                                      }
+                                                                 });
                                                                  setHoldItemSelectIsOpen(false);
                                                                  setPlacingItemHold(false);
                                                                  if (result) {
@@ -286,7 +295,8 @@ export const Variations = (props) => {
 
 const Variation = (props) => {
      // 1. Hooks (Singular Variation)
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);

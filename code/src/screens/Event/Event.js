@@ -3,6 +3,7 @@ import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as Calendar from 'expo-calendar';
+import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
@@ -38,18 +39,13 @@ import { showLocation } from 'react-native-map-link';
 import { loadError, popAlert, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import {
-     LanguageContext,
-     LibrarySystemContext,
-     SystemMessagesContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getEventDetails, saveEvent } from '../../util/api/event';
+import { refreshProfile } from '../../util/api/user';
 import { decodeHTML, stripHTML } from '../../helpers/helpers';
-import { PATRON } from '../../util/globals';
 import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 
@@ -521,12 +517,14 @@ const Directions = ({ location, room }) => {
 
      const handleGetDirections = async () => {
           if (hasCoordinates) {
-               if (PATRON.coords.lat && PATRON.coords.long && PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
+               const sourceLatitude = await SecureStore.getItemAsync('latitude');
+               const sourceLongitude = await SecureStore.getItemAsync('longitude');
+               if (sourceLatitude && sourceLongitude && sourceLatitude !== '0' && sourceLongitude !== '0') {
                     showLocation({
                          latitude: location.coordinates.latitude,
                          longitude: location.coordinates.longitude,
-                         sourceLatitude: PATRON.coords.lat,
-                         sourceLongitude: PATRON.coords.long,
+                         sourceLatitude,
+                         sourceLongitude,
                          googleForceLatLon: true,
                     });
                } else {
@@ -562,7 +560,9 @@ const Directions = ({ location, room }) => {
 
 const AddToYourEvents = ({ id, source }) => {
      const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
@@ -571,13 +571,16 @@ const AddToYourEvents = ({ id, source }) => {
 
      const addToEvents = async () => {
           setIsLoading(true);
-          await saveEvent(id, language, library.baseUrl).then((result) => {
+          await saveEvent(id, language, library.baseUrl).then(async (result) => {
                setIsLoading(false);
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'upcoming'] });
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'all'] });
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'past'] });
-               queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                queryClient.invalidateQueries({ queryKey: ['event', id, source, language, library.baseUrl] });
+               const profileResponse = await refreshProfile(library.baseUrl);
+               if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                    await updateUserProfile(profileResponse.data.result.profile);
+               }
                if (result.success || result.success === 'true') {
                     popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {

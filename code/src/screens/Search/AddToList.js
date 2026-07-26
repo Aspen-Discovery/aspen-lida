@@ -4,13 +4,14 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
+import { saveLastListUsed } from '../../util/db';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getListDetails, getListGroupDetails, getListGroups, getLists, getListTitles } from '../../util/api/list';
 
-import { PATRON } from '../../util/globals';
 import {
      Box,
      Center,
@@ -68,10 +69,13 @@ const AddToList = (props) => {
      const [screen, setScreen] = React.useState('add-new');
      const [loading, setLoading] = React.useState(false);
      const { library } = React.useContext(LibrarySystemContext);
-     const { user, listGroups } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: userLists } = useLists();
+     const { data: listGroups } = useListGroups();
      const { language } = React.useContext(LanguageContext);
      const insets = useSafeAreaInsets();
-     const lists = PATRON.lists;
+     const lists = userLists?.lists ?? userLists ?? [];
      const [listId, setListId] = useState();
      const [description, saveDescription] = useState();
      const [title, saveTitle] = useState();
@@ -104,8 +108,7 @@ const AddToList = (props) => {
      const updateLastListUsed = async (itemId) => {
           queryClient.invalidateQueries({ queryKey: ['list', itemId] });
           queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-          PATRON.listLastUsed = itemId;
+          await saveLastListUsed(itemId);
           setListId(itemId);
      };
 

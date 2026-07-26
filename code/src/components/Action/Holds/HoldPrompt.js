@@ -47,7 +47,8 @@ import { EyeOff, Eye } from 'lucide-react-native';
 import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RenderHtml from 'react-native-render-html';
-import { LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { decodeHTML } from '../../../helpers/helpers';
 import { completeAction } from '../../../util/api/userHelper';
@@ -57,7 +58,6 @@ import { HoldNotificationPreferences } from './HoldNotificationPreferences';
 import { SelectItemHold } from './SelectItem';
 import { SelectVolume } from './SelectVolume';
 import { SelectNewHoldSublocation } from './SelectNewHoldSublocation';
-import { PATRON } from '../../../util/globals';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../../util/logging.js';
 
@@ -68,7 +68,14 @@ export const HoldPrompt = (props) => {
      const { width } = useWindowDimensions();
 
      // Contexts
-     const { user, updateUser, accounts, locations, preferredPickupLocationIsValid, preferredPickupLocationWarning } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
+     const preferredPickupLocationWarning = userState?.preferredPickupLocationWarning ?? '';
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const { data: sublocations } = useSublocations();
+     const updateUserProfile = useUpdateUserProfile();
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
 
@@ -322,9 +329,9 @@ export const HoldPrompt = (props) => {
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then((data) => {
+          await refreshProfile(library.baseUrl).then(async (data) => {
                if(data.ok) {
-                    updateUser(data.data.result.profile);
+                    await updateUserProfile(data.data.result.profile);
                } else {
                     logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                     logDebugMessage(data);
@@ -334,6 +341,13 @@ export const HoldPrompt = (props) => {
           setCard('');
           setPassword('');
      };
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      logDebugMessage("Remember Hold Pickup Location in Hold Prompt is " + user.rememberHoldPickupLocation);
 
@@ -405,7 +419,7 @@ export const HoldPrompt = (props) => {
                                                   if (result) {
                                                        if (result.success === true || result.success === 'true') {
                                                             queryClient.invalidateQueries({ queryKey: ['holds', activeAccount, library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                            await refreshAndSaveUserProfile();
                                                        }
 
                                                        if (result?.confirmationNeeded && result.confirmationNeeded === true) {
@@ -534,7 +548,7 @@ export const HoldPrompt = (props) => {
 
                               ) : null}
                               {!user.rememberHoldPickupLocation ? (
-                                   <SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
+                                   <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
                               ) : null}
                               {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
                                    <FormControl mb="$3">
@@ -636,12 +650,12 @@ export const HoldPrompt = (props) => {
                                                                  logDebugMessage(result);
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                                                  queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                                                 queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                                 await refreshAndSaveUserProfile();
 
                                                                  const timeoutId = setTimeout(() => {
                                                                       queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                                                       queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                                                      queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                                      refreshAndSaveUserProfile();
                                                                  }, 45 * 1000);
                                                                  logDebugMessage("Query invalidation complete");
                                                             }else{

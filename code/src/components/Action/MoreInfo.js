@@ -1,6 +1,7 @@
 import {Button, ButtonText, useToast, useToken} from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
-import { LibrarySystemContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useUserState } from '../../hooks/useUserData';
 import React from 'react';
 
 // custom components and helper files
@@ -8,7 +9,8 @@ import {passUserToDiscovery} from '../../util/api/user';
 
 export const MoreInfo = (props) => {
     const { theme } = React.useContext(ThemeContext);
-    const { user } = React.useContext(UserContext);
+    const { data: userState } = useUserState();
+    const user = userState?.user ?? {};
     const { library } = React.useContext(LibrarySystemContext);
     const toast = useToast();
 

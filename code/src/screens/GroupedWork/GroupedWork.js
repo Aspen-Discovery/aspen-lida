@@ -23,7 +23,8 @@ import React from 'react';
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { GroupedWorkContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { GroupedWorkContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getFirstRecord, getVariations } from '../../util/api/item';
@@ -44,7 +45,19 @@ export const GroupedWorkScreen = () => {
      const route = useRoute();
      const queryClient = useQueryClient();
      const id = route.params.id;
-     const { user, locations, sublocations, accounts, cards, updatePickupLocations, updateSublocations, updateLinkedAccounts, updateLibraryCards, updatePreferredPickupLocationIsValid, preferredPickupLocationIsValid, updatePreferredPickupLocationWarning, preferredPickupLocationWarning } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
+     const preferredPickupLocationWarning = userState?.preferredPickupLocationWarning ?? '';
+     const { data: locations } = useLocations();
+     const { data: sublocations } = useSublocations();
+     const { data: accounts } = useAccounts();
+     const { data: cards } = useCards();
+     const updateLocations = useUpdateLocations();
+     const updateSublocations = useUpdateSublocations();
+     const updateAccounts = useUpdateAccounts();
+     const updateCards = useUpdateCards();
+     const updatePickupLocationPrefs = useUpdatePickupLocationPrefs();
      const { language, updateGroupedWork, updateFormat } = React.useContext(GroupedWorkContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { language: userLanguage } = React.useContext(LanguageContext);
@@ -60,49 +73,32 @@ export const GroupedWorkScreen = () => {
                     if (isSubscribed) {
                          updateGroupedWork(data);
                          updateFormat(data.format);
-                         await getLinkedAccounts(library.baseUrl, language).then((data) => {
+                         await getLinkedAccounts(library.baseUrl, language).then(async (data) => {
                               if(data.ok) {
                                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                                   if (accounts !== linkedAccounts.accounts) {
-                                        updateLinkedAccounts(linkedAccounts.accounts);
-                                   }
-                                   if (cards !== linkedAccounts.cards) {
-                                        updateLibraryCards(linkedAccounts.cards);
-                                   }
+                                   await updateAccounts(linkedAccounts.accounts);
+                                   await updateCards(linkedAccounts.cards);
                               } else {
                                    logDebugMessage("Error fetching linked accounts in GroupedWork");
                                    logDebugMessage(data);
                                    getErrorMessage(data.code ?? 0, data.problem);
                               }
                          });
-                         await getPickupLocations(library.baseUrl, id).then((result) => {
+                         await getPickupLocations(library.baseUrl, id).then(async (result) => {
                               logDebugMessage('Updating pickup locations after getPickupLocations call');
                               if(result.ok) {
                                    const pickupLocations = formatPickupLocations(result.data.result);
-                                   if (locations !== pickupLocations.locations) {
-                                        updatePickupLocations(pickupLocations.locations);
-                                   }
+                                   await updateLocations(pickupLocations.locations);
                                    logDebugMessage("Preferred pickup location is valid? " + pickupLocations.preferredPickupLocationIsValid);
-                                   if (preferredPickupLocationIsValid !== pickupLocations.preferredPickupLocationIsValid) {
-                                        updatePreferredPickupLocationIsValid(pickupLocations.preferredPickupLocationIsValid);
-                                   }
-                                   if (preferredPickupLocationWarning !== pickupLocations.preferredPickupLocationWarning) {
-                                        logDebugMessage("Preferred pickup location warning is " + pickupLocations.preferredPickupLocationWarning);
-                                        updatePreferredPickupLocationWarning(pickupLocations.preferredPickupLocationWarning);
-                                   }else{
-                                        logDebugMessage("Preferred pickup location warning did not change");
-                                        logDebugMessage("  preferredPickupLocationWarning = " + preferredPickupLocationWarning);
-                                        logDebugMessage("  result.preferredPickupLocationWarning = " + pickupLocations.preferredPickupLocationWarning);
-                                   }
-                              } else {
+                                   await updatePickupLocationPrefs(pickupLocations.preferredPickupLocationIsValid, pickupLocations.preferredPickupLocationWarning);
                                    logDebugMessage("Error fetching pickup locations in GroupedWork");
                                    logDebugMessage(data);
                                    getErrorMessage(data.code ?? 0, data.problem);
                               }
                          });
-                         await getPickupSublocations(library.baseUrl).then((result) => {
+                         await getPickupSublocations(library.baseUrl).then(async (result) => {
                               if (sublocations !== result) {
-                                   updateSublocations(result);
+                                   await updateSublocations(result);
                               }
                          });
                     }
@@ -297,7 +293,8 @@ const Formats = ({ formats }) => {
 const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
-     const { user } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";

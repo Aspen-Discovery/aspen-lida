@@ -1,5 +1,6 @@
 import React from 'react';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import {getTermFromDictionary} from "../../../translations/TranslationService";
 import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +33,6 @@ import {
      ButtonSpinner, useToast
 } from '@gluestack-ui/themed';
 import {refreshProfile, updateHoldPickupPreferences} from "../../../util/api/user";
-import {PATRON} from "../../../util/globals";
 import {SelectNewHoldSublocation} from "../../../components/Action/Holds/SelectNewHoldSublocation";
 
 import { logDebugMessage } from '../../../util/logging.js';
@@ -41,7 +41,11 @@ export const Settings_PickupLocations = () => {
 	const [loading, setLoading] = React.useState(false);
 	const { library } = React.useContext(LibrarySystemContext);
 	const { language } = React.useContext(LanguageContext);
-	const { user, updateUser, locations } = React.useContext(UserContext);
+	const { data: userState } = useUserState();
+    const user = userState?.user ?? {};
+    const { data: locations } = useLocations();
+	const { data: sublocations } = useSublocations();
+    const updateUserProfile = useUpdateUserProfile();
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 	const insets = useSafeAreaInsets();
      const toast = useToast();
@@ -258,7 +262,7 @@ export const Settings_PickupLocations = () => {
 				</FormControl>
 			</>
 			) : null}
-			<SelectNewHoldSublocation sublocations={PATRON.sublocations} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
+			<SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
 			{library.allowRememberPickupLocation ? (
 				<FormControl mb="$3">
 					<Checkbox
@@ -282,7 +286,7 @@ export const Settings_PickupLocations = () => {
                               await updateHoldPickupPreferences(toast, location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl).then(async () => {
                                    setLoading(false);
                                    await refreshProfile(library.baseUrl).then(async (result) => {
-                                      updateUser(result);
+                                      updateUserProfile(result);
                                    });
                               })
                          }}

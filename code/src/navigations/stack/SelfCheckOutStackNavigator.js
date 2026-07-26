@@ -3,7 +3,8 @@ import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 
-import { LanguageContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useAccounts } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { StartCheckOutSession } from '../../screens/SCO/StartCheckOutSession';
 import { SelfCheckOut } from '../../screens/SCO/SelfCheckOut';
@@ -15,7 +16,7 @@ import TitleWithLogo from '../../components/TitleWithLogo'
 
 const SelfCheckOutStackNavigator = () => {
      const { language } = React.useContext(LanguageContext);
-     const { accounts } = React.useContext(UserContext);
+     const { data: accounts } = useAccounts();
      const {textColor} = React.useContext(ThemeContext);
 
      let defaultRoute = 'SelfCheckOut';

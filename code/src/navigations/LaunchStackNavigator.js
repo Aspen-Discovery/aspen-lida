@@ -22,65 +22,60 @@ const LaunchStackNavigator = () => {
                                                        {(location, locations) => (
                                                             <SearchContext.Consumer>
                                                                  {(currentIndex, updateCurrentIndex, currentSource, updateCurrentSource, indexes, updateIndexes, sources, updateSources, facets, updateFacets, query, updateQuery, sort, updateSort, resetSearch) => (
-                                                                      <UserContext.Consumer>
-                                                                           {(user, updateUser) => (
-                                                                                <CheckoutsContext.Consumer>
-                                                                                     {(checkouts) => (
-                                                                                          <HoldsContext.Consumer>
-                                                                                               {(holds) => (
-                                                                                                    <BrowseCategoryContext.Consumer>
-                                                                                                         {(category, list, maxNum, updateMaxCategories) => (
-                                                                                                              <Stack.Navigator
-                                                                                                                   initialRouteName="LoadingScreen"
-                                                                                                                   screenOptions={{
-                                                                                                                        headerShown: false,
-                                                                                                                        headerBackTitleVisible: false,
-                                                                                                                        gestureEnabled: false,
-                                                                                                                   }}>
-                                                                                                                   {refreshUserData ? (
-                                                                                                                        <Stack.Screen
-                                                                                                                             name="LoadingScreen"
-                                                                                                                             component={LoadingScreen}
-                                                                                                                             options={{
-                                                                                                                                  animationEnabled: false,
-                                                                                                                                  header: () => null,
-                                                                                                                             }}
-                                                                                                                        />
-                                                                                                                   ) : null}
-                                                                                                                   <Stack.Screen
-                                                                                                                        name="DrawerStack"
-                                                                                                                        component={AccountDrawer}
-                                                                                                                        options={{
-                                                                                                                             libraryContext: {
-                                                                                                                                  library,
-                                                                                                                                  version,
-                                                                                                                                  url,
-                                                                                                                                  menu,
-                                                                                                                             },
-                                                                                                                             locationContext: location,
-                                                                                                                             userContext: { user, updateUser },
-                                                                                                                             browseCategoriesContext: {
-                                                                                                                                  category,
-                                                                                                                                  list,
-                                                                                                                                  maxNum,
-                                                                                                                                  updateMaxCategories,
-                                                                                                                             },
-                                                                                                                             checkoutsContext: { checkouts },
-                                                                                                                             holdsContext: { holds },
-                                                                                                                             languageContext: { language, updateLanguage, languages, updateLanguages, dictionary, updateDictionary, languageDisplayName, updateLanguageDisplayName },
-                                                                                                                             systemMessagesContext: { systemMessages, updateSystemMessages },
-                                                                                                                             themeContext: { mode, updateColorMode },
-                                                                                                                        }}
-                                                                                                                   />
-                                                                                                              </Stack.Navigator>
-                                                                                                         )}
-                                                                                                    </BrowseCategoryContext.Consumer>
+                                                                      <CheckoutsContext.Consumer>
+                                                                           {(checkouts) => (
+                                                                                <HoldsContext.Consumer>
+                                                                                     {(holds) => (
+                                                                                          <BrowseCategoryContext.Consumer>
+                                                                                               {(category, list, maxNum, updateMaxCategories) => (
+                                                                                                    <Stack.Navigator
+                                                                                                         initialRouteName="LoadingScreen"
+                                                                                                         screenOptions={{
+                                                                                                              headerShown: false,
+                                                                                                              headerBackTitleVisible: false,
+                                                                                                              gestureEnabled: false,
+                                                                                                         }}>
+                                                                                                         {refreshUserData ? (
+                                                                                                              <Stack.Screen
+                                                                                                                   name="LoadingScreen"
+                                                                                                                   component={LoadingScreen}
+                                                                                                                   options={{
+                                                                                                                        animationEnabled: false,
+                                                                                                                        header: () => null,
+                                                                                                                   }}
+                                                                                                              />
+                                                                                                         ) : null}
+                                                                                                         <Stack.Screen
+                                                                                                              name="DrawerStack"
+                                                                                                              component={AccountDrawer}
+                                                                                                              options={{
+                                                                                                                   libraryContext: {
+                                                                                                                        library,
+                                                                                                                        version,
+                                                                                                                        url,
+                                                                                                                        menu,
+                                                                                                                   },
+                                                                                                                   locationContext: location,
+                                                                                                                   browseCategoriesContext: {
+                                                                                                                        category,
+                                                                                                                        list,
+                                                                                                                        maxNum,
+                                                                                                                        updateMaxCategories,
+                                                                                                                   },
+                                                                                                                   checkoutsContext: { checkouts },
+                                                                                                                   holdsContext: { holds },
+                                                                                                                   languageContext: { language, updateLanguage, languages, updateLanguages, dictionary, updateDictionary, languageDisplayName, updateLanguageDisplayName },
+                                                                                                                   systemMessagesContext: { systemMessages, updateSystemMessages },
+                                                                                                                   themeContext: { mode, updateColorMode },
+                                                                                                              }}
+                                                                                                         />
+                                                                                                    </Stack.Navigator>
                                                                                                )}
-                                                                                          </HoldsContext.Consumer>
+                                                                                          </BrowseCategoryContext.Consumer>
                                                                                      )}
-                                                                                </CheckoutsContext.Consumer>
+                                                                                </HoldsContext.Consumer>
                                                                            )}
-                                                                      </UserContext.Consumer>
+                                                                      </CheckoutsContext.Consumer>
                                                                  )}
                                                             </SearchContext.Consumer>
                                                        )}

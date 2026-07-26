@@ -6,7 +6,8 @@ import _ from 'lodash';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { useUserState, useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
 import { fetchSavedSearches, getSavedSearch } from '../../../util/api/list';
 import { loadError } from '../../../components/loadError';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -16,7 +17,10 @@ import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();
-     const { user, savedSearches, updateSavedSearches } = React.useContext(UserContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: savedSearches } = useSavedSearches();
+     const updateSavedSearches = useUpdateSavedSearches();
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
