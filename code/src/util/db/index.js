@@ -5,6 +5,12 @@ export { safeStringify } from './serialize';
 /* Specific Tables */
 export { insertApiErrorLog, purgeExpiredApiErrorLogs, getApiErrorLogsPage, clearApiErrorLogs } from './repositories/apiErrorLogRepository';
 export {
+     saveLocation, loadLocation, saveScope, loadScope, saveSelfCheckEnabled,
+     loadSelfCheckEnabled, saveSelfCheckSettings, loadSelfCheckSettings,
+     saveLocations as saveAvailableLocations, loadLocations as loadAvailableLocations,
+     saveAllLibraryBranchData, loadAllLibraryBranchData, resetAllLibraryBranchData,
+} from './repositories/libraryBranchRepository';
+export {
      saveUserProfile,
      saveUserSettings,
      savePickupLocationPrefs,
@@ -44,3 +50,4 @@ export {
      loadAllUserData,
      clearAllUserData,
 } from './repositories/userRepository';
+

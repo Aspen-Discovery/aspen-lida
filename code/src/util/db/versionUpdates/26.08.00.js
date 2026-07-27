@@ -139,12 +139,27 @@ export async function up(db) {
                payload TEXT
           );
 
-          CREATE TABLE IF NOT EXISTS user_saved_searches (
-               id INTEGER PRIMARY KEY CHECK (id = 1),
-               updated_at INTEGER NOT NULL,
-               payload TEXT
-          );
-     `);
+           CREATE TABLE IF NOT EXISTS user_saved_searches (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                updated_at INTEGER NOT NULL,
+                payload TEXT
+           );
+
+           CREATE TABLE IF NOT EXISTS library_branch_state (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                updated_at INTEGER NOT NULL,
+                location_id INTEGER,
+                display_name TEXT,
+                library_id INTEGER,
+                is_main_branch INTEGER,
+                solr_scope TEXT,
+                scope TEXT,
+                self_check_enabled INTEGER,
+                location_json TEXT,
+                self_check_settings_json TEXT,
+                locations_json TEXT
+           );
+      `);
 }
 
 
