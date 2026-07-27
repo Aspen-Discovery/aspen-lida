@@ -7,7 +7,7 @@ import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -24,7 +24,6 @@ export const Location = () => {
      const location = route.params?.data ?? false;
      const { library } = React.useContext(LibrarySystemContext);
      const { language } = React.useContext(LanguageContext);
-     const { locations } = React.useContext(LibraryBranchContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { colorMode, textColor, theme } = React.useContext(ThemeContext);

@@ -1,12 +1,9 @@
 import { useToken } from '@gluestack-ui/themed';
-import * as Device from 'expo-device';
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { BRANCH, GLOBALS } from '../util/globals';
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
+import { GLOBALS } from '../util/globals';
+import { logDebugMessage, logInfoMessage } from '../util/logging.js';
 import { formatDiscoveryVersion } from '../helpers/helpers';
-import { loadAllUserData, saveAllUserData } from '../util/db';
 
 export const ThemeContext = React.createContext({
      theme: [],
@@ -29,20 +26,7 @@ export const LibrarySystemContext = React.createContext({
      updateMenu: () => {},
      updateHomeScreenLinks: () => {},
      homeScreenLinks: [],
-     resetLibrary: () => {},
-});
-export const LibraryBranchContext = React.createContext({
-     updateLocation: () => {},
-     location: [],
-     resetLocation: () => {},
-     scope: '',
-     updateScope: () => {},
-     enableSelfCheck: false,
-     updateEnableSelfCheck: () => {},
-     selfCheckSettings: [],
-     updateSelfCheckSettings: () => {},
-     locations: [],
-     updateLocations: () => {},
+      resetLibrary: () => {},
 });
 export const BrowseCategoryContext = React.createContext({
      updateBrowseCategories: () => {},
@@ -266,65 +250,6 @@ export const LibrarySystemProvider = ({ children }) => {
                }}>
                {children}
           </LibrarySystemContext.Provider>
-     );
-};
-
-export const LibraryBranchProvider = ({ children }) => {
-     const [location, setLocation] = useState();
-     const [scope, setScope] = useState();
-     const [enableSelfCheck, setEnableSelfCheck] = useState(false);
-     const [selfCheckSettings, setSelfCheckSettings] = useState([]);
-     const [locations, setLocations] = useState();
-
-     const updateLocation = (data) => {
-          setLocation(data);
-
-          logDebugMessage('updated LibraryBranchContext');
-     };
-
-     const updateScope = (data) => {
-          setScope(data);
-          logDebugMessage('updated scope in LibraryBranchContext');
-     };
-
-     const resetLocation = () => {
-          setLocation({});
-          setScope({});
-          logDebugMessage('reset LibraryBranchContext');
-     };
-
-     const updateEnableSelfCheck = (status) => {
-          setEnableSelfCheck(status);
-          logDebugMessage('updated self check in LibraryBranchContext');
-     };
-
-     const updateSelfCheckSettings = (data) => {
-          setSelfCheckSettings(data);
-          logDebugMessage('updated self check settings in LibraryBranchContext');
-     };
-
-     const updateLocations = (data) => {
-          setLocations(data);
-          logDebugMessage('updated locations in LibraryBranchContext');
-     };
-
-     return (
-          <LibraryBranchContext.Provider
-               value={{
-                    location,
-                    scope,
-                    enableSelfCheck,
-                    selfCheckSettings,
-                    locations,
-                    updateLocation,
-                    resetLocation,
-                    updateScope,
-                    updateEnableSelfCheck,
-                    updateSelfCheckSettings,
-                    updateLocations,
-               }}>
-               {children}
-          </LibraryBranchContext.Provider>
      );
 };
 

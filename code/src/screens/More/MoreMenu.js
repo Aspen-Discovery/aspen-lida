@@ -31,10 +31,10 @@ import { popToast } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
 import {
      LanguageContext,
-     LibraryBranchContext,
      LibrarySystemContext,
      ThemeContext,
 } from '../../context/initialContext';
+import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
@@ -43,7 +43,6 @@ import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/log
 
 export const MoreMenu = () => {
      const { language } = React.useContext(LanguageContext);
-     const { locations } = React.useContext(LibraryBranchContext);
      const { library } = React.useContext(LibrarySystemContext);
      const { menu } = React.useContext(LibrarySystemContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -178,14 +177,14 @@ export const MoreMenu = () => {
 
 const MyLibrary = () => {
      const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
+     const location = useLibraryLocation();
      const { language } = React.useContext(LanguageContext);
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
      let isClosedToday = false;
      let hoursLabel = '';
-     if (location.hours) {
+     if (location?.hours) {
           const day = moment().day();
           if (_.find(location.hours, _.matchesProperty('day', day))) {
                let todaysHours = _.filter(location.hours, { day: day });
@@ -228,9 +227,9 @@ const MyLibrary = () => {
                          <Text bold fontSize="$md" color={theme['tokens']['colors']['primary']['400-text']}>
                               {library.displayName}
                          </Text>
-                         {library.displayName !== location.displayName ? (
+                         {library.displayName !== location?.displayName ? (
                               <Text bold color={theme['tokens']['colors']['primary']['400-text']}>
-                                   {location.displayName}
+                                   {location?.displayName}
                               </Text>
                          ) : null}
                          {hoursLabel ? <Text color={theme['tokens']['colors']['primary']['400-text']}>{hoursLabel}</Text> : null}
@@ -243,10 +242,10 @@ const MyLibrary = () => {
 
 const ViewAllLocations = () => {
      const { language } = React.useContext(LanguageContext);
-     const { location } = React.useContext(LibraryBranchContext);
+     const locations = useAvailableLocations();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
-     if (_.size(location) > 1) {
+     if (_.size(locations) > 1) {
           return (
                <Pressable px="$2" py="$3" onPress={() => navigate('AllLocations')}>
                     <HStack space="sm" alignItems="center">

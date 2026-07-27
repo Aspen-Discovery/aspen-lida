@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import { CheckoutsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { CheckoutsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useLibraryLocation, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
 import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
 import { Box, Button, ButtonGroup, ButtonIcon, ButtonText, Text, Heading, Center, HStack, VStack, Icon, FlatList, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, CloseIcon, ModalCloseButton, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Alert, AlertText } from '@gluestack-ui/themed';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,7 +18,8 @@ export const SelfCheckOut = () => {
      const navigation = useNavigation();
      const route = useRoute();
      const { library } = React.useContext(LibrarySystemContext);
-     const { location, selfCheckSettings } = React.useContext(LibraryBranchContext);
+     const location = useLibraryLocation();
+     const selfCheckSettings = useSelfCheckSettings();
      const { language } = React.useContext(LanguageContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};

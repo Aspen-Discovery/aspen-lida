@@ -31,7 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { ThemeContext, BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext } from '../../context/initialContext';
+import { ThemeContext, BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibrarySystemContext } from '../../context/initialContext';
 import {
      useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
@@ -53,6 +53,7 @@ import { stripHTML, orderByFields } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
+import { saveAvailableLocations } from '../../util/db';
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -201,9 +202,8 @@ export const DrawerContent = (props) => {
      const { category, list, maxNum, updateBrowseCategories, updateBrowseCategoryList } = React.useContext(BrowseCategoryContext);
      const { updateCheckouts } = React.useContext(CheckoutsContext);
      const { updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
-     const [invalidSession, setInvalidSession] = React.useState(false);
-     const { updateLocations } = React.useContext(LibraryBranchContext)
+      const { language } = React.useContext(LanguageContext);
+      const [invalidSession, setInvalidSession] = React.useState(false);
 
 
      React.useEffect(() => {
@@ -525,11 +525,11 @@ export const DrawerContent = (props) => {
           placeholderData: [],
           enabled: !!userLatitude && !!userLongitude && userLatitude !== '0' && userLongitude !== '0',
      }, {
-          onSuccess: (data) => {
-               if(data.ok){
-                    logDebugMessage("Updating locations");
-                    logDebugMessage(data);
-                    updateLocations(data.data.result.locations);
+           onSuccess: (data) => {
+                if(data.ok){
+                     logDebugMessage("Updating locations");
+                     logDebugMessage(data);
+                     saveAvailableLocations(data.data.result.locations);
                } else {
                     logDebugMessage("Error fetching locations");
                     logDebugMessage(data);

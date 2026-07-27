@@ -4,7 +4,8 @@ import { DrawerActions } from '@react-navigation/native';
 import { HStack, Pressable, Text, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LanguageContext, LibraryBranchContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useSelfCheckEnabled } from '../../hooks/useLibraryBranchData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import AccountStackNavigator from '../stack/AccountStackNavigator';
@@ -18,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function TabNavigator() {
      const Tab = createBottomTabNavigator();
 
-     const { enableSelfCheck } = React.useContext(LibraryBranchContext);
+     const enableSelfCheck = useSelfCheckEnabled();
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
      const activeIcon = colorMode === 'light' ? "$coolGray900" : "$warmGray300";

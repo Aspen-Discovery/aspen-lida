@@ -11,7 +11,8 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
@@ -21,7 +22,7 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const AllLocations = () => {
      const { library } = React.useContext(LibrarySystemContext);
-     const { locations, updateLocations } = React.useContext(LibraryBranchContext);
+     const locations = useAvailableLocations();
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
@@ -82,14 +83,17 @@ export const AllLocations = () => {
           }
      );
 
-     // Sync API query response to global Context
-     React.useEffect(() => {
-          if (queryData?.ok && queryData?.data?.result?.locations) {
-               updateLocations(queryData.data.result.locations);
-          } else if (queryData && !queryData.ok) {
-               getErrorMessage(queryData.code, queryData.problem);
-          }
-     }, [queryData]);
+      // Sync API query response to global Context
+      React.useEffect(() => {
+           const syncLocations = async () => {
+                if (queryData?.ok && queryData?.data?.result?.locations) {
+                     await saveLocations(queryData.data.result.locations);
+                } else if (queryData && !queryData.ok) {
+                     getErrorMessage(queryData.code, queryData.problem);
+                }
+           };
+           syncLocations();
+      }, [queryData]);
 
      // Derive sorted locations automatically from context state
      const sortedLocations = React.useMemo(() => {

@@ -30,8 +30,9 @@ import { loadError, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
+import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS, SearchGlobal } from '../../util/globals';
@@ -50,10 +51,10 @@ export const SearchResults = () => {
      const route = useRoute();
      const [page, setPage] = React.useState(1);
      const [storedTerm, setStoredTerm] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { scope } = React.useContext(LibraryBranchContext);
-     const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
+      const { library } = React.useContext(LibrarySystemContext);
+      const { language } = React.useContext(LanguageContext);
+      const scope = useLibraryScope();
+      const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const url = library.baseUrl;
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
@@ -564,7 +565,7 @@ const SearchBox = ({term, navigation}) => {
 
 const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
-     const { location } = React.useContext(LibraryBranchContext);
+     const location = useLibraryLocation();
      const { library } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
 

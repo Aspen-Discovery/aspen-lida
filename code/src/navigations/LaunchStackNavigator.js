@@ -1,7 +1,7 @@
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext, UserContext } from '../context/initialContext';
+import { BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext, UserContext } from '../context/initialContext';
 import { LoadingScreen } from '../screens/Auth/Loading';
 import AccountDrawer from './drawer/DrawerNavigator';
 
@@ -18,10 +18,8 @@ const LaunchStackNavigator = () => {
                                    {(language, updateLanguage, languages, updateLanguages, dictionary, updateDictionary, languageDisplayName, updateLanguageDisplayName) => (
                                         <LibrarySystemContext.Consumer>
                                              {(library, version, url, menu, catalogStatus, catalogStatusMessage) => (
-                                                  <LibraryBranchContext.Consumer>
-                                                       {(location, locations) => (
-                                                            <SearchContext.Consumer>
-                                                                 {(currentIndex, updateCurrentIndex, currentSource, updateCurrentSource, indexes, updateIndexes, sources, updateSources, facets, updateFacets, query, updateQuery, sort, updateSort, resetSearch) => (
+                                                   <SearchContext.Consumer>
+                                                        {(currentIndex, updateCurrentIndex, currentSource, updateCurrentSource, indexes, updateIndexes, sources, updateSources, facets, updateFacets, query, updateQuery, sort, updateSort, resetSearch) => (
                                                                       <CheckoutsContext.Consumer>
                                                                            {(checkouts) => (
                                                                                 <HoldsContext.Consumer>
@@ -54,9 +52,8 @@ const LaunchStackNavigator = () => {
                                                                                                                         version,
                                                                                                                         url,
                                                                                                                         menu,
-                                                                                                                   },
-                                                                                                                   locationContext: location,
-                                                                                                                   browseCategoriesContext: {
+                                                                    },
+                                                                    browseCategoriesContext: {
                                                                                                                         category,
                                                                                                                         list,
                                                                                                                         maxNum,
@@ -76,10 +73,8 @@ const LaunchStackNavigator = () => {
                                                                                 </HoldsContext.Consumer>
                                                                            )}
                                                                       </CheckoutsContext.Consumer>
-                                                                 )}
-                                                            </SearchContext.Consumer>
-                                                       )}
-                                                  </LibraryBranchContext.Consumer>
+                                                                       )}
+                                                                  </SearchContext.Consumer>
                                              )}
                                         </LibrarySystemContext.Consumer>
                                    )}

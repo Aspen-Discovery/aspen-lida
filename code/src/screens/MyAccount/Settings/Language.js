@@ -1,6 +1,6 @@
 import { Box, HStack, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext } from '../../../context/initialContext';
 // custom components and helper files
 import { getLanguageDisplayName, getTranslatedTermsForUserPreferredLanguage, LanguageSwitcher, translationsLibrary } from '../../../translations/TranslationService';
 import { saveLanguage } from '../../../util/api/user';
@@ -8,7 +8,6 @@ import {logErrorMessage} from "../../../util/logging";
 
 export const Settings_LanguageScreen = () => {
      const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
      const { language, updateLanguage, languages, updateDictionary } = React.useContext(LanguageContext);
      const [label, setLabel] = React.useState(getLanguageDisplayName(language, languages));
 

@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
@@ -8,8 +7,8 @@ import { colorMode, useColorModeValue } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
-import { useUserState } from '../../hooks/useUserData';
+import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -23,7 +22,8 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
      const { library } = React.useContext(LibrarySystemContext);
-     const { location, locations } = React.useContext(LibraryBranchContext);
+     const location = useLibraryLocation();
+     const locations = useAvailableLocations();
      const { language } = React.useContext(LanguageContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);

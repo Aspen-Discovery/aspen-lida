@@ -40,7 +40,8 @@ import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/api/system';
@@ -52,7 +53,7 @@ export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
      const [hasError, setHasError] = React.useState(false);
      const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
+     const location = useLibraryLocation();
      const route = useRoute();
 
      const id = route.params.id;

@@ -5,7 +5,7 @@ import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
 import { useAccounts, useDebugMessages } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
@@ -17,7 +17,6 @@ export const SupportScreen = () => {
      const { data: accounts } = useAccounts();
      const { data: userDebugMessage } = useDebugMessages();
      const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const [status, setStatus] = React.useState({

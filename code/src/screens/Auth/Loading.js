@@ -10,7 +10,6 @@ import React from 'react';
 import {
      BrowseCategoryContext,
      LanguageContext,
-     LibraryBranchContext,
      LibrarySystemContext,
      SystemMessagesContext,
      ThemeContext,
@@ -46,12 +45,14 @@ import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
      loadAllUserData,
+     loadAllLibraryBranchData,
      saveUserProfile,
      saveAccounts,
      saveCards,
      saveAppPreferences,
      saveNotificationHistory,
      saveInbox,
+     saveAllLibraryBranchData,
 } from '../../util/db';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
@@ -59,6 +60,7 @@ import {stripHTML} from '../../helpers/helpers';
 
 const prefix = Linking.createURL('/');
 const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
+const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -83,24 +85,32 @@ export const LoadingScreen = () => {
      const [hasIncomingUrlChanged, setIncomingUrlChanged] = React.useState(false);
      const [hasUsableUserCache, setHasUsableUserCache] = React.useState(false);
      const [shouldBlockUserFetch, setShouldBlockUserFetch] = React.useState(true);
-     const [isInitialUserDataReady, setIsInitialUserDataReady] = React.useState(false);
-     const [hasHydratedUserCacheDecision, setHasHydratedUserCacheDecision] = React.useState(false);
-     const isBlockingUserFetchInFlightRef = React.useRef(false);
-     const userDataFetchInvocationRef = React.useRef(0);
-     const fetchAndPersistUserDataRef = React.useRef(null);
+       const [isInitialUserDataReady, setIsInitialUserDataReady] = React.useState(false);
+       const [hasHydratedUserCacheDecision, setHasHydratedUserCacheDecision] = React.useState(false);
+       const [hasUsableLibraryBranchCache, setHasUsableLibraryBranchCache] = React.useState(false);
+       const [shouldBlockLibraryBranchFetch, setShouldBlockLibraryBranchFetch] = React.useState(true);
+       const [isInitialLibraryBranchDataReady, setIsInitialLibraryBranchDataReady] = React.useState(false);
+       const [hasHydratedLibraryBranchCacheDecision, setHasHydratedLibraryBranchCacheDecision] = React.useState(false);
+       const [isSQLiteDataLoaded, setIsSQLiteDataLoaded] = React.useState(false);
+      const isBlockingUserFetchInFlightRef = React.useRef(false);
+      const isBlockingLibraryBranchFetchInFlightRef = React.useRef(false);
+      const userDataFetchInvocationRef = React.useRef(0);
+      const libraryBranchFetchInvocationRef = React.useRef(0);
+      const fetchAndPersistUserDataRef = React.useRef(null);
+      const fetchAndPersistLibraryBranchDataRef = React.useRef(null);
 
-     const { library, updateLibrary, updateMenu, updateCatalogStatus, catalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const { location, updateLocation, updateEnableSelfCheck, updateSelfCheckSettings } = React.useContext(LibraryBranchContext);
-     const { updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
+      const { library, updateLibrary, updateMenu, updateCatalogStatus, catalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
+      const { updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
      const { language, updateLanguage, updateLanguages, updateDictionary, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
      const { updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateTheme, updateColorMode, textColor } = React.useContext(ThemeContext);
 
-     const [loadingText, setLoadingText] = React.useState('');
-     const [loadingTheme, setLoadingTheme] = React.useState(true);
-     const [loadedUser, setLoadedUser] = React.useState({});
-     const user = loadedUser;
-     const hasResolvedLibraryContext = !!library?.libraryId || !!LIBRARY.id;
+      const [loadingText, setLoadingText] = React.useState('');
+      const [loadingTheme, setLoadingTheme] = React.useState(true);
+      const [loadedUser, setLoadedUser] = React.useState({});
+      const [location, setLocation] = React.useState({});
+      const user = loadedUser;
+      const hasResolvedLibraryContext = !!library?.libraryId || !!LIBRARY.id;
 
      const insets = useSafeAreaInsets();
 
@@ -181,9 +191,85 @@ export const LoadingScreen = () => {
           }
      }, [library?.barcodeStyle, languages, updateLanguage, updateLanguageDisplayName]);
 
+      React.useEffect(() => {
+           fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
+      }, [fetchAndPersistUserData]);
+
+     const fetchAndPersistLibraryBranchData = React.useCallback(async ({ runInBackground = false } = {}) => {
+          const invocationId = ++libraryBranchFetchInvocationRef.current;
+          logDebugMessage({
+               event: 'fetchAndPersistLibraryBranchData:start',
+               invocationId,
+               runInBackground,
+          });
+          try {
+               // Fetch location info
+               const locationResp = await getLocationInfo(LIBRARY.url);
+               if (!locationResp?.ok) {
+                    if (runInBackground) {
+                         logWarnMessage('Background location refresh failed. Continuing with cached data.');
+                         return false;
+                    }
+                    const error = getErrorMessage(locationResp?.code ?? 0, locationResp?.problem);
+                    setHasError(true);
+                    setErrorTitle("Unable to load library branches");
+                    setErrorMessage(error.message);
+                    return false;
+               }
+
+               const location = locationResp.data.result?.location ?? [];
+
+               // Fetch self-check settings
+               const selfCheckResp = await getSelfCheckSettings(LIBRARY.url);
+               let selfCheckEnabled = false;
+               let selfCheckSettings = {};
+
+               if (selfCheckResp?.ok && selfCheckResp.data.result?.success) {
+                    selfCheckEnabled = selfCheckResp.data.result.settings?.isEnabled ?? false;
+                    selfCheckSettings = selfCheckResp.data.result.settings ?? {};
+               }
+
+                // Save all library branch data in one transaction
+                await saveAllLibraryBranchData({
+                     location,
+                     selfCheckEnabled,
+                     selfCheckSettings
+                });
+
+                if (!runInBackground) {
+                     setIsInitialLibraryBranchDataReady(true);
+                     setLocation(location);
+                }
+
+               logDebugMessage({
+                    event: 'fetchAndPersistLibraryBranchData:success',
+                    invocationId,
+                    runInBackground,
+               });
+
+               return true;
+          } catch (error) {
+               if (runInBackground) {
+                    logWarnMessage('Background library-branch-data refresh failed. Continuing with cached data.');
+                    logErrorMessage(error);
+                    return false;
+               }
+               logDebugMessage({
+                    event: 'fetchAndPersistLibraryBranchData:error',
+                    invocationId,
+                    runInBackground,
+               });
+               setHasError(true);
+               setErrorTitle(null);
+               setErrorMessage('Error loading library branch data. Please try again or contact the library.');
+               logErrorMessage(error);
+               return false;
+          }
+     }, []);
+
      React.useEffect(() => {
-          fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
-     }, [fetchAndPersistUserData]);
+          fetchAndPersistLibraryBranchDataRef.current = fetchAndPersistLibraryBranchData;
+     }, [fetchAndPersistLibraryBranchData]);
 
      React.useEffect(() => {
           if (!hasResolvedLibraryContext || hasError) return;
@@ -239,18 +325,86 @@ export const LoadingScreen = () => {
                          setHasUsableUserCache(false);
                          setShouldBlockUserFetch(true);
                     }
-                    setHasHydratedUserCacheDecision(true);
+                     setHasHydratedUserCacheDecision(true);
+                } catch (error) {
+                     if (cancelled) return;
+                     logWarnMessage('hydrateUserCache: failed, falling back to blocking fetch');
+                     logErrorMessage(error);
+                     setHasUsableUserCache(false);
+                     setShouldBlockUserFetch(true);
+                     setHasHydratedUserCacheDecision(true);
+                }
+           };
+
+           hydrateUserCache();
+           return () => {
+                cancelled = true;
+           };
+       }, [hasResolvedLibraryContext, hasError]);
+
+       React.useEffect(() => {
+            if (hasHydratedUserCacheDecision && hasHydratedLibraryBranchCacheDecision) {
+                 logDebugMessage('Both SQLite hydrations complete, marking SQLite data as loaded');
+                 setIsSQLiteDataLoaded(true);
+            }
+       }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision]);
+
+     React.useEffect(() => {
+          if (!hasResolvedLibraryContext || hasError) return;
+          let cancelled = false;
+
+          const hydrateLibraryBranchCache = async () => {
+               try {
+                    logDebugMessage('hydrateLibraryBranchCache: starting SQLite hydration');
+                    const cached = await loadAllLibraryBranchData();
+                    const hasAnyCachedLibraryBranchData = !!cached && (!!cached.location || !!cached.selfCheckSettings);
+
+                    logDebugMessage('hydrateLibraryBranchCache: cache snapshot');
+                    logDebugMessage({
+                         hasCachedLocation: !!cached?.location,
+                         hasCachedSelfCheck: !!cached?.selfCheckSettings,
+                         hasAnyCachedLibraryBranchData,
+                    });
+
+                    if (cancelled) return;
+
+                     if (hasAnyCachedLibraryBranchData) {
+                          logDebugMessage('hydrateLibraryBranchCache: using cached library branch data');
+                          setHasUsableLibraryBranchCache(true);
+                          setShouldBlockLibraryBranchFetch(false);
+                          setIsInitialLibraryBranchDataReady(true);
+                          setLocation(cached?.location || {});
+
+                         const isStale = Date.now() - (cached?.updated_at ?? 0) > LIBRARY_BRANCH_DATA_STALE_MS;
+                         logDebugMessage({
+                              event: 'hydrateLibraryBranchCache: stale check',
+                              isStale,
+                              cacheAgeMs: cached?.updated_at ? Date.now() - cached.updated_at : null,
+                              staleThresholdMs: LIBRARY_BRANCH_DATA_STALE_MS,
+                         });
+                         if (isStale) {
+                              logDebugMessage('hydrateLibraryBranchCache: cache stale, running background refresh');
+                              fetchAndPersistLibraryBranchDataRef.current?.({ runInBackground: true });
+                         } else {
+                              logDebugMessage('hydrateLibraryBranchCache: fresh cache path, skipping library-branch-data API fetch');
+                         }
+                    } else {
+                         logDebugMessage('hydrateLibraryBranchCache: cache missing, forcing blocking fetch');
+                         setHasUsableLibraryBranchCache(false);
+                         setShouldBlockLibraryBranchFetch(true);
+                    }
+                    setHasHydratedLibraryBranchCacheDecision(true);
                } catch (error) {
                     if (cancelled) return;
-                    logWarnMessage('hydrateUserCache: failed, falling back to blocking fetch');
+                    logWarnMessage('hydrateLibraryBranchCache: failed, falling back to blocking fetch');
                     logErrorMessage(error);
-                    setHasUsableUserCache(false);
-                    setShouldBlockUserFetch(true);
-                    setHasHydratedUserCacheDecision(true);
+                    setHasUsableLibraryBranchCache(false);
+                    setShouldBlockLibraryBranchFetch(true);
+                    setHasHydratedLibraryBranchCacheDecision(true);
                }
           };
 
-          hydrateUserCache();
+          hydrateLibraryBranchCache();
           return () => {
                cancelled = true;
           };
@@ -540,71 +694,8 @@ export const LoadingScreen = () => {
           }
      });
 
-     const { isSuccess: libraryBranchQuerySuccess} = useQuery(['library_location', LIBRARY.url, 'en'], () => getLocationInfo(LIBRARY.url), {
-          enabled: hasError === false && browseCategoryListQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const location = data.data.result?.location ?? [];
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    updateLocation(location);
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Library Locations');
-                    }
-               } else {
-                    logDebugMessage("Error loading library location");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load library branches");
-               }
-          },
-          onError: (error) => {
-               logWarnMessage("Setting Error to true because library location failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Error loading library branches. Please try again or contact the library.')
-          }
-     });
-
-     const { isSuccess: selfCheckQuerySuccess} = useQuery(['self_check_settings', LIBRARY.url, 'en'], () => getSelfCheckSettings(LIBRARY.url), {
-          enabled: hasError === false && libraryBranchQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const settings = data.data.result ?? [];
-                    logDebugMessage("Loading Self Check Settings");
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Self Check Information');
-                    }
-                    if (settings.success) {
-                         updateEnableSelfCheck(settings.settings.isEnabled ?? false);
-                         updateSelfCheckSettings(settings.settings);
-                    } else {
-                         updateEnableSelfCheck(false);
-                    }
-               } else {
-                    logDebugMessage("Error loading self check settings");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load self check settings");
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading self check settings failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Unknown error loading self check settings. Please try again or contact the library.')
-          }
-
-     });
-
-     React.useEffect(() => {
-          if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
+      React.useEffect(() => {
+           if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
           let cancelled = false;
 
           const runBlockingUserFetch = async () => {
@@ -630,10 +721,39 @@ export const LoadingScreen = () => {
           return () => {
                cancelled = true;
           };
-     }, [hasHydratedUserCacheDecision, shouldBlockUserFetch, hasResolvedLibraryContext, hasError, isInitialUserDataReady, fetchAndPersistUserData]);
+      }, [hasHydratedUserCacheDecision, shouldBlockUserFetch, hasResolvedLibraryContext, hasError, isInitialUserDataReady, fetchAndPersistUserData]);
 
-     useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location.locationId, LIBRARY.url), {
-          enabled: hasError === false && selfCheckQuerySuccess && (isInitialUserDataReady || hasUsableUserCache),
+     React.useEffect(() => {
+          if (!hasHydratedLibraryBranchCacheDecision || !shouldBlockLibraryBranchFetch || !hasResolvedLibraryContext || hasError || isInitialLibraryBranchDataReady) return;
+          let cancelled = false;
+
+          const runBlockingLibraryBranchFetch = async () => {
+               if (isBlockingLibraryBranchFetchInFlightRef.current) {
+                    logDebugMessage('runBlockingLibraryBranchFetch: skipped duplicate invocation while fetch already in flight');
+                    return;
+               }
+               isBlockingLibraryBranchFetchInFlightRef.current = true;
+               logDebugMessage('runBlockingLibraryBranchFetch: starting blocking library-branch-data fetch');
+               setLoadingText('Loading Branch Information');
+               try {
+                    const ok = await fetchAndPersistLibraryBranchData({ runInBackground: false });
+                    if (!cancelled && ok) {
+                         setIsReloading(false);
+                    }
+               } finally {
+                    isBlockingLibraryBranchFetchInFlightRef.current = false;
+                    logDebugMessage('runBlockingLibraryBranchFetch: completed blocking library-branch-data fetch');
+               }
+          };
+
+          runBlockingLibraryBranchFetch();
+          return () => {
+               cancelled = true;
+          };
+     }, [hasHydratedLibraryBranchCacheDecision, shouldBlockLibraryBranchFetch, hasResolvedLibraryContext, hasError, isInitialLibraryBranchDataReady, fetchAndPersistLibraryBranchData]);
+
+       useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(library.libraryId, location?.locationId, LIBRARY.url), {
+             enabled: hasError === false && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && !!location?.locationId,
           onSuccess: (data) => {
                if(data.ok) {
                     logDebugMessage("Loaded System Messages");
@@ -662,13 +782,15 @@ export const LoadingScreen = () => {
           }
      });
 
-     React.useEffect(() => {
-          if (
-               !isReloading &&
-               (isInitialUserDataReady || hasUsableUserCache) &&
-               !hasError &&
-               catalogStatus === 0
-          ) {
+      React.useEffect(() => {
+           if (
+                !isReloading &&
+                isSQLiteDataLoaded &&
+                (isInitialUserDataReady || hasUsableUserCache) &&
+                (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) &&
+                !hasError &&
+                catalogStatus === 0
+           ) {
                logDebugMessage("Checking incoming url");
                if (hasIncomingUrlChanged) {
                     let url = decodeURIComponent(incomingUrl).replace(/\+/g, ' ');
@@ -727,22 +849,25 @@ export const LoadingScreen = () => {
                     location: location,
                     prevRoute: 'LoadingScreen',
                });
-          }
-     }, [
-          isReloading,
-          isInitialUserDataReady,
-          hasUsableUserCache,
-          hasError,
-          catalogStatus,
-          hasIncomingUrlChanged,
-          incomingUrl,
-          linkingUrl,
-          user,
-          library,
-          location,
-          navigation,
-          linkTo,
-     ]);
+           }
+       }, [
+            isReloading,
+            isSQLiteDataLoaded,
+            isInitialUserDataReady,
+            hasUsableUserCache,
+            isInitialLibraryBranchDataReady,
+            hasUsableLibraryBranchCache,
+            hasError,
+            catalogStatus,
+            hasIncomingUrlChanged,
+            incomingUrl,
+            linkingUrl,
+            user,
+            library,
+            location,
+            navigation,
+            linkTo,
+       ]);
 
      if (hasError) {
           return <ForceLogout title={errorTitle} reason={errorMessage} />;

@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -266,22 +266,20 @@ export function App() {
                <ThemeProvider>
                     <SystemMessagesProvider>
                          <LanguageProvider>
-                              <LibrarySystemProvider>
-                                   <LibraryBranchProvider>
-                                        <SearchProvider>
-                                             <CheckoutsProvider>
-                                                  <HoldsProvider>
-                                                       <BrowseCategoryProvider>
-                                                            <GroupedWorkProvider>
-                                                                 {/* Pass state safely to the child container */}
-                                                                 <AppContent state={state} />
-                                                            </GroupedWorkProvider>
-                                                       </BrowseCategoryProvider>
-                                                  </HoldsProvider>
-                                             </CheckoutsProvider>
-                                        </SearchProvider>
-                                   </LibraryBranchProvider>
-                              </LibrarySystemProvider>
+                               <LibrarySystemProvider>
+                                    <SearchProvider>
+                                         <CheckoutsProvider>
+                                              <HoldsProvider>
+                                                   <BrowseCategoryProvider>
+                                                        <GroupedWorkProvider>
+                                                             {/* Pass state safely to the child container */}
+                                                             <AppContent state={state} />
+                                                        </GroupedWorkProvider>
+                                                   </BrowseCategoryProvider>
+                                              </HoldsProvider>
+                                         </CheckoutsProvider>
+                                    </SearchProvider>
+                               </LibrarySystemProvider>
                          </LanguageProvider>
                     </SystemMessagesProvider>
                </ThemeProvider>

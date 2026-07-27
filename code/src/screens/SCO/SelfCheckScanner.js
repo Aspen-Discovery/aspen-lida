@@ -7,8 +7,9 @@ import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
 import { LoadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, LibraryBranchContext } from '../../context/initialContext';
-import { navigate, goBack } from '../../helpers/RootNavigator';
+import { LanguageContext } from '../../context/initialContext';
+import { useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
+import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 export default function SelfCheckScanner() {
@@ -16,7 +17,7 @@ export default function SelfCheckScanner() {
      const isFocused = useIsFocused();
      const [isLoading, setIsLoading] = useState(false);
      const { language } = useContext(LanguageContext);
-     const { selfCheckSettings } = useContext(LibraryBranchContext);
+     const selfCheckSettings = useSelfCheckSettings();
      const [permission, requestPermission] = useCameraPermissions();
      const [scanned, setScanned] = useState(false);
 
