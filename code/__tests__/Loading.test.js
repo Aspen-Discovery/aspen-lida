@@ -21,7 +21,7 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     LibrarySystemContext, LibraryBranchContext,
+     LibrarySystemContext,
      BrowseCategoryContext, LanguageContext, SystemMessagesContext, ThemeContext
 } from '../src/context/initialContext';
 
@@ -47,13 +47,6 @@ const mockContextValues = {
           catalogStatus: 0,
           catalogStatusMessage: '',
           updateHomeScreenLinks: jest.fn()
-     },
-     branch: {
-          location: {},
-          updateLocation: jest.fn(),
-          updateScope: jest.fn(),
-          updateEnableSelfCheck: jest.fn(),
-          updateSelfCheckSettings: jest.fn()
      },
      category: {
           category: {},
@@ -224,25 +217,23 @@ const jestGluestackConfig = createConfig(config);
 const AllTheProviders = ({children}) => {
      const [testQueryClient] = React.useState(() => createTestQueryClient());
      // noinspection JSValidateTypes
-     return (
-          <GluestackUIProvider config={jestGluestackConfig}>
-               <QueryClientProvider client={testQueryClient}>
-                    <ThemeContext.Provider value={mockContextValues.theme}>
-                         <LibrarySystemContext.Provider value={mockContextValues.library}>
-                              <LibraryBranchContext.Provider value={mockContextValues.branch}>
-                                   <BrowseCategoryContext.Provider value={mockContextValues.category}>
-                                        <LanguageContext.Provider value={mockContextValues.language}>
-                                             <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                                  {children}
-                                             </SystemMessagesContext.Provider>
-                                        </LanguageContext.Provider>
-                                   </BrowseCategoryContext.Provider>
-                              </LibraryBranchContext.Provider>
-                         </LibrarySystemContext.Provider>
-                    </ThemeContext.Provider>
-               </QueryClientProvider>
-          </GluestackUIProvider>
-     );
+      return (
+           <GluestackUIProvider config={jestGluestackConfig}>
+                <QueryClientProvider client={testQueryClient}>
+                     <ThemeContext.Provider value={mockContextValues.theme}>
+                          <LibrarySystemContext.Provider value={mockContextValues.library}>
+                               <BrowseCategoryContext.Provider value={mockContextValues.category}>
+                                    <LanguageContext.Provider value={mockContextValues.language}>
+                                         <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                              {children}
+                                         </SystemMessagesContext.Provider>
+                                    </LanguageContext.Provider>
+                               </BrowseCategoryContext.Provider>
+                          </LibrarySystemContext.Provider>
+                     </ThemeContext.Provider>
+                </QueryClientProvider>
+           </GluestackUIProvider>
+      );
 };
 
 beforeEach(() => {
