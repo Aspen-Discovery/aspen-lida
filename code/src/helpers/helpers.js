@@ -239,6 +239,20 @@ export function orderByFields(items, iteratees = [], orders = []) {
  * Manipulate and format dates (replacing moment.js)
  ******************************************************************* **/
 /**
+ * Format a Unix timestamp (seconds) to a "MMM D, YYYY" string, e.g. "Jan 4, 2024".
+ * Returns an empty string for falsy or invalid input.
+ * @param {number|string} unixTimestamp - Unix timestamp in seconds
+ * @returns {string}
+ */
+export function formatUnixDate(unixTimestamp) {
+     if (!unixTimestamp) return '';
+     const date = new Date(Number(unixTimestamp) * 1000);
+     if (isNaN(date.getTime())) return '';
+     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
+/**
  * Format a date as a local YYYY-MM-DD string, ensuring that the month and day are zero-padded to two digits.
  * @param date
  * @returns {string}

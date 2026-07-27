@@ -1,15 +1,16 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React, { useState } from 'react';
 import { popAlert } from '../../../components/loadError';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
-import { useUserState, useListGroups, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { deleteList, editList, getListDetails } from '../../../util/api/list';
+import { deleteList, editList, getLists } from '../../../util/api/list';
 import { refreshProfile } from '../../../util/api/user';
+import {Platform} from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toArray } from '../../../helpers/helpers';
 import {
      AlertDialog,
      AlertDialogContent,
@@ -64,40 +65,30 @@ import {
      SelectContent,
      SelectDragIndicatorWrapper,
      SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     Select, useToast,
+      SelectItem,
+      SelectScrollView,
+      Select, useToast,
 } from '@gluestack-ui/themed';
-import {Platform} from "react-native";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const EditList = (props) => {
-     const queryClient = useQueryClient();
-     const { data, listId } = props;
-     const navigation = useNavigation();
-     const { data: userState } = useUserState();
-     const user = userState?.user ?? {};
-     const updateUserProfile = useUpdateUserProfile();
-     const { data: listGroups } = useListGroups();
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const [showModal, setShowModal] = React.useState(false);
-     const [loading, setLoading] = React.useState(false);
-     const [title, setTitle] = React.useState(data.title);
-     const [description, setDescription] = React.useState(data.description);
-     const [list, setList] = React.useState([]);
-     const [isPublic, setPublic] = React.useState(data.public);
-     const [listGroupId, setListGroupId] = React.useState(data.listGroupId);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+      const { data, listId } = props;
+      const navigation = useNavigation();
+      const { data: userState } = useUserState();
+      const updateUserProfile = useUpdateUserProfile();
+      const { data: listGroups } = useListGroups();
+      const updateLists = useUpdateLists();
+      const { library } = React.useContext(LibrarySystemContext);
+      const { language } = React.useContext(LanguageContext);
+      const [showModal, setShowModal] = React.useState(false);
+      const [loading, setLoading] = React.useState(false);
+      const [title, setTitle] = React.useState(data.title);
+      const [description, setDescription] = React.useState(data.description);
+      const [isPublic, setPublic] = React.useState(data.public);
+      const [listGroupId, setListGroupId] = React.useState(data.listGroupId);
+      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
-     const insets = useSafeAreaInsets();
-
-     useQuery(['list-details', data.id], () => getListDetails(data.id, library.baseUrl), {
-          onSuccess: (data) => {
-               setList(data);
-               setLoading(false);
-          },
-     });
+      const insets = useSafeAreaInsets();
+      const user = userState?.user ?? {};
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
@@ -180,14 +171,14 @@ const EditList = (props) => {
                                        accessibilityLabel={getTermFromDictionary(language, 'list_group')}
                                        onValueChange={(itemValue) => setListGroupId(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             {listGroupId != -1 ? (
-                                                       _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
-                                                            if (group.id === listGroupId) {
-                                                                 return <SelectInput py={0} value={group.title} color={textColor} />;
-                                                            }
-                                                       })
-                                                  ) :
-                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
+                                              {listGroupId !== -1 ? (
+                                                        toArray(listGroups.groups).map((group) => {
+                                                             if (group.id === listGroupId) {
+                                                                  return <SelectInput py={0} value={group.title} color={textColor} />;
+                                                             }
+                                                        })
+                                                   ) :
+                                                   <SelectInput py={0} placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
                                              }
                                              <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                         </SelectTrigger>
@@ -200,12 +191,12 @@ const EditList = (props) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId == -1 ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       {_.map(listGroups.groups, function (item, index, array) {
-                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
-                                                       })}
-                                                  </SelectScrollView>
+                                                   <SelectScrollView>
+                                                        <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId === -1 ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                        {toArray(listGroups.groups).map((item, index) => {
+                                                             return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                        })}
+                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -216,24 +207,27 @@ const EditList = (props) => {
                                    <Button variant="outline" onPress={() => setShowModal(false)} borderColor={theme.tokens.colors.primary['500']}>
                                         <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button
-                                        bgColor={theme.tokens.colors.primary['500']}
-                                        isLoading={loading}
-                                        isLoadingText={getTermFromDictionary(language, 'saving', true)}
-                                        onPress={() => {
-                                             setLoading(true);
-                                             editList(data.id, title, description, isPublic, library.baseUrl, listGroupId).then((r) => {
-                                                  setLoading(false);
-                                                  if (!_.isNull(title)) {
-                                                       navigation.setOptions({ title: title });
-                                                  }
-                                                  setShowModal(false);
-                                                  queryClient.invalidateQueries({ queryKey: ['list-details', data.id, library.baseUrl, language] });
-                                                  queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                             });
-                                        }}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
-                                   </Button>
+                                    <Button
+                                         bgColor={theme.tokens.colors.primary['500']}
+                                         isLoading={loading}
+                                         isLoadingText={getTermFromDictionary(language, 'saving', true)}
+                                         onPress={() => {
+                                              setLoading(true);
+                                              editList(data.id, title, description, isPublic, library.baseUrl, listGroupId).then(async () => {
+                                                   setLoading(false);
+                                                   if (title !== null) {
+                                                        navigation.setOptions({ title: title });
+                                                   }
+                                                   setShowModal(false);
+                                                   // Refresh lists from API and update local database
+                                                   const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                   if (listsResponse.ok) {
+                                                        await updateLists(listsResponse.data.result);
+                                                   }
+                                              });
+                                         }}>
+                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>
@@ -243,19 +237,20 @@ const EditList = (props) => {
 };
 
 const DeleteList = (props) => {
-     const queryClient = useQueryClient();
-     const { listId } = props;
-     const {textColor, colorMode } = React.useContext(ThemeContext);
-     const { data: userState2 } = useUserState();
-     const user = userState2?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const [isOpen, setIsOpen] = React.useState(false);
-     const [loading, setLoading] = useState(false);
-     const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
-     const onClose = () => setIsOpen(false);
-     const cancelRef = React.useRef(null);
-     const toast = useToast();
+      const { listId } = props;
+      const {textColor, colorMode } = React.useContext(ThemeContext);
+      const { data: userState } = useUserState();
+      const { library } = React.useContext(LibrarySystemContext);
+      const { language } = React.useContext(LanguageContext);
+      const updateUserProfile = useUpdateUserProfile();
+      const updateLists = useUpdateLists();
+      const [isOpen, setIsOpen] = React.useState(false);
+      const [loading, setLoading] = useState(false);
+      const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
+      const onClose = () => setIsOpen(false);
+      const cancelRef = React.useRef(null);
+      const toast = useToast();
+      const user = userState?.user ?? {};
 
      return (
           <Center>
@@ -300,35 +295,39 @@ const DeleteList = (props) => {
                                    <Button variant="link" onPress={onClose} ref={cancelRef}>
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                   <Button
-                                        bgColor="$error500"
-                                        isLoading={loading}
-                                        isLoadingText={getTermFromDictionary(language, 'deleting', true)}
-                                        onPress={() => {
-                                             setLoading(true);
-                                             deleteList(listId, library.baseUrl, optOutOfSoftDeletion).then(async (res) => {
-                                                  queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                                  const profileResponse = await refreshProfile(library.baseUrl);
-                                                  if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
-                                                       await updateUserProfile(profileResponse.data.result.profile);
-                                                  }
-                                                  setLoading(false);
-                                                  let status = 'success';
-                                                  setIsOpen(!isOpen);
-                                                  if (res.success === false) {
-                                                       status = 'error';
-                                                       popAlert(toast, res.title, res.message, status);
-                                                  } else {
-                                                       popAlert(toast, res.title, res.message, status);
-                                                       navigateStack('AccountScreenTab', 'MyLists', {
-                                                            libraryUrl: library.baseUrl,
-                                                            hasPendingChanges: true,
-                                                       });
-                                                  }
-                                             });
-                                        }}>
-                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
-                                   </Button>
+                                    <Button
+                                         bgColor="$error500"
+                                         isLoading={loading}
+                                         isLoadingText={getTermFromDictionary(language, 'deleting', true)}
+                                         onPress={() => {
+                                              setLoading(true);
+                                              deleteList(listId, library.baseUrl, optOutOfSoftDeletion).then(async (res) => {
+                                                   // Refresh lists from API and update local database
+                                                   const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                   if (listsResponse.ok) {
+                                                        await updateLists(listsResponse.data.result);
+                                                   }
+                                                   const profileResponse = await refreshProfile(library.baseUrl);
+                                                   if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                        await updateUserProfile(profileResponse.data.result.profile);
+                                                   }
+                                                   setLoading(false);
+                                                   let status = 'success';
+                                                   setIsOpen(!isOpen);
+                                                   if (res.success === false) {
+                                                        status = 'error';
+                                                        popAlert(toast, res.title, res.message, status);
+                                                   } else {
+                                                        popAlert(toast, res.title, res.message, status);
+                                                        navigateStack('AccountScreenTab', 'MyLists', {
+                                                             libraryUrl: library.baseUrl,
+                                                             hasPendingChanges: true,
+                                                        });
+                                                   }
+                                              });
+                                         }}>
+                                         <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>
                     </AlertDialogContent>

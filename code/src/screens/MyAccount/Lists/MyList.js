@@ -1,10 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
-import moment from 'moment';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
      Badge,
@@ -41,27 +37,24 @@ import { loadError, popToast } from '../../../components/loadError';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
-import { useUserState } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary, } from '../../../translations/TranslationService';
+import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
 import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
 import EditList from './EditList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
-export const MyList = () => {
-     const providedList = useRoute().params.details;
+export const MyList = ({ route }) => {
+     const providedList = route?.params?.details ?? {};
      const id = providedList.id;
      const [page, setPage] = React.useState(1);
      const [sort, setSort] = React.useState('dateAdded');
      const [pageSize, setPageSize] = React.useState(20);
-     const { data: userState } = useUserState();
-     const user = userState?.user ?? {};
      const { library } = React.useContext(LibrarySystemContext);
      const [list] = React.useState(providedList);
-     const { language } = React.useContext(LanguageContext);
+     const { language, dictionary } = React.useContext(LanguageContext);
      const insets = useSafeAreaInsets();
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort By Title',
@@ -71,67 +64,89 @@ export const MyList = () => {
      });
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const systemMessagesForScreen = [];
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const toast = useToast();
+     const [isLoading, setIsLoading] = React.useState(true);
+     const [fetchError, setFetchError] = React.useState(null);
+     const [listData, setListData] = React.useState({
+          listTitles: [],
+          totalResults: 0,
+          curPage: 1,
+          totalPages: 1,
+          hasMore: false,
+          sort,
+          message: null,
+     });
+     const hasAppliedDefaultSort = React.useRef(false);
+     const browserBackgroundColor = colorMode === 'light' ? '#ffffff' : '#111827';
+     const t = React.useCallback((key, ellipsis = false, forcedLanguage) => {
+          const lang = forcedLanguage || language;
+          return getTermFromDictionaryHelper(lang, key, ellipsis, dictionary);
+     }, [language, dictionary]);
+     const dayFormatter = React.useMemo(
+          () => new Intl.DateTimeFormat(language || undefined, {
+               weekday: 'long',
+               month: 'long',
+               day: 'numeric',
+               year: 'numeric',
+          }),
+          [language]
+     );
+     const timeFormatter = React.useMemo(
+          () => new Intl.DateTimeFormat(language || undefined, {
+               hour: 'numeric',
+               minute: '2-digit',
+          }),
+          [language]
+     );
+
+     const systemMessagesForScreen = React.useMemo(() => {
+          if (!Array.isArray(systemMessages)) return [];
+          return systemMessages.filter((obj) => obj.showOn === '0');
+     }, [systemMessages]);
 
      React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
-               systemMessages.map((obj, index, collection) => {
-                    if (obj.showOn === '0') {
-                         systemMessagesForScreen.push(obj);
-                    }
-               });
-          }
+          setSortBy((prev) => {
+               const next = { ...prev };
 
-          async function fetchTranslations() {
-               let tmp = sortBy;
-               let term = '';
+               const title = t('sort_by_title');
+               if (!title.includes('%1%')) next.title = title;
 
-               term = getTermFromDictionary(language, 'sort_by_title');
-               if (!term.includes('%1%')) {
-                    tmp = _.set(tmp, 'title', term);
-                    setSortBy(tmp);
-               }
+               const dateAdded = t('sort_by_date_added');
+               if (!dateAdded.includes('%1%')) next.dateAdded = dateAdded;
 
-               term = getTermFromDictionary(language, 'sort_by_date_added');
-               if (!term.includes('%1%')) {
-                    tmp = _.set(tmp, 'dateAdded', term);
-                    setSortBy(tmp);
-               }
+               const recentlyAdded = t('sort_by_recently_added');
+               if (!recentlyAdded.includes('%1%')) next.recentlyAdded = recentlyAdded;
 
-               term = getTermFromDictionary(language, 'sort_by_recently_added');
-               if (!term.includes('%1%')) {
-                    tmp = _.set(tmp, 'recentlyAdded', term);
-                    setSortBy(tmp);
-               }
+               const custom = t('sort_by_user_defined');
+               if (!custom.includes('%1%')) next.custom = custom;
 
-               term = getTermFromDictionary(language, 'sort_by_user_defined');
-               if (!term.includes('%1%')) {
-                    tmp = _.set(tmp, 'custom', term);
-                    setSortBy(tmp);
-               }
-          }
+               return next;
+          });
+     }, [t]);
 
-          fetchTranslations();
-     }, [language, systemMessages]);
-
-     const { status, data, error, isFetching, isPreviousData } = useQuery(['list', id, user.id, sort, page], () => getListTitles(id, library.baseUrl, page, pageSize, pageSize, sort), {
-          keepPreviousData: false,
-          staleTime: 1000,
-          onSuccess: (data) => {
-               if (data.totalPages) {
-                    let tmp = getTermFromDictionary(language, 'page_of_page');
-                    tmp = tmp.replace('%1%', page);
-                    tmp = tmp.replace('%2%', data.totalPages);
-                    setPaginationLabel(tmp);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching user list titles for list " + id);
+     const loadListDetails = React.useCallback(async (targetPage, targetSort) => {
+          setIsLoading(true);
+          setFetchError(null);
+          try {
+               const data = await getListTitles(id, library.baseUrl, targetPage, pageSize, pageSize, targetSort);
+               setListData(data);
+               let tmp = t('page_of_page');
+               tmp = tmp.replace('%1%', data.curPage ?? targetPage);
+               tmp = tmp.replace('%2%', data.totalPages ?? 1);
+               setPaginationLabel(tmp);
+          } catch (error) {
+               logDebugMessage('Error fetching user list titles for list ' + id);
                logErrorMessage(error);
+               setFetchError(error);
+          } finally {
+               setIsLoading(false);
           }
-     });
+     }, [id, library.baseUrl, pageSize, t]);
+
+     React.useEffect(() => {
+          loadListDetails(page, sort);
+     }, [page, sort, loadListDetails]);
 
      const handleOpenItem = (id, title) => {
           navigateStack('AccountScreenTab', 'ListItem', {
@@ -159,9 +174,9 @@ export const MyList = () => {
                enableDefaultShareMenuItem: false,
                presentationStyle: 'automatic',
                showTitle: false,
-               toolbarColor: backgroundColor,
+               toolbarColor: browserBackgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
+               secondaryToolbarColor: browserBackgroundColor,
           };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
@@ -190,47 +205,42 @@ export const MyList = () => {
                               logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, t('error_no_open_resource', false, 'en'), t('error_device_block_browser', false, 'en'), 'error');
                          logErrorMessage(err);
                     }
                });
      };
 
-     if (status !== 'loading') {
-          if (!_.isUndefined(data.defaultSort)) {
-               setSort(data.defaultSort);
+     React.useEffect(() => {
+          if (!hasAppliedDefaultSort.current && listData?.sort && listData.sort !== sort) {
+               hasAppliedDefaultSort.current = true;
+               setSort(listData.sort);
           }
-     }
-
-     const queryClient = useQueryClient();
+     }, [listData?.sort, sort]);
 
      const renderItem = (item) => {
           const imageUrl = item.image;
-          const key = 'medium_' + item.id;
 
           if (item.recordType === 'event') {
                let registrationRequired = false;
-               if (!_.isUndefined(item.registration_required)) {
+               if (item.registration_required !== undefined) {
                     registrationRequired = item.registration_required;
                }
 
                const startTime = item.start_date.date;
                const endTime = item.end_date.date;
+               const normalizeDateTime = (value) => {
+                    if (!value || typeof value !== 'string') return null;
+                    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+                    const parsed = new Date(normalized);
+                    return Number.isNaN(parsed.getTime()) ? null : parsed;
+               };
 
-               let time1 = startTime.split(' ');
-               let day = time1[0];
-               let time2 = endTime.split(' ');
-
-               let time1arr = time1[1].split(':');
-               let time2arr = time2[1].split(':');
-
-               let displayDay = moment(day);
-               let displayStartTime = moment().set({ hour: time1arr[0], minute: time1arr[1] });
-               let displayEndTime = moment().set({ hour: time2arr[0], minute: time2arr[1] });
-
-               displayDay = moment(displayDay).format('dddd, MMMM D, YYYY');
-               displayStartTime = moment(displayStartTime).format('h:mm A');
-               displayEndTime = moment(displayEndTime).format('h:mm A');
+               const startDate = normalizeDateTime(startTime);
+               const endDate = normalizeDateTime(endTime);
+               const displayDay = startDate ? dayFormatter.format(startDate) : '';
+               const displayStartTime = startDate ? timeFormatter.format(startDate) : '';
+               const displayEndTime = endDate ? timeFormatter.format(endDate) : '';
 
                return (
                     <Pressable borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2" onPress={() => handleOpenEvent(item)}>
@@ -251,13 +261,13 @@ export const MyList = () => {
                                    <Button
                                         onPress={() => {
                                              removeTitlesFromList(id, item.id, library.baseUrl, 'Events').then(async () => {
-                                                  queryClient.invalidateQueries({ queryKey: ['list', id] });
+                                                       await loadListDetails(page, sort);
                                              });
                                         }}
                                         size="$sm"
                                         variant="link">
                                         <ButtonIcon color="$warning500" as={MaterialIcons} name="delete" />
-                                        <ButtonText color="$warning500">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                        <ButtonText color="$warning500">{t('delete')}</ButtonText>
                                    </Button>
                               </VStack>
                               <VStack w="65%">
@@ -279,7 +289,7 @@ export const MyList = () => {
                                    {registrationRequired ? (
                                         <HStack mt="$1" direction="row" space="sm" flexWrap="wrap">
                                              <Badge key={0} colorScheme="secondary" mt="$1" variant="outline" borderRadius="$sm" fontSize="$xs">
-                                                  <BadgeText>{getTermFromDictionary(language, 'registration_required')}</BadgeText>
+                                                  <BadgeText>{t('registration_required')}</BadgeText>
                                              </Badge>
                                         </HStack>
                                    ) : null}
@@ -308,13 +318,13 @@ export const MyList = () => {
                               <Button
                                    onPress={() => {
                                         removeTitlesFromList(id, item.id, library.baseUrl, 'GroupedWork').then(async () => {
-                                             queryClient.invalidateQueries({ queryKey: ['list', id] });
+                                             await loadListDetails(page, sort);
                                         });
                                    }}
                                    size="sm"
                                    variant="link">
                                    <ButtonIcon color="$warning500" as={MaterialIcons} name="delete" mr="$1" />
-                                   <ButtonText color="$warning500">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                   <ButtonText color="$warning500">{t('delete')}</ButtonText>
                               </Button>
                          </VStack>
                          <VStack w="65%">
@@ -327,7 +337,7 @@ export const MyList = () => {
                               </Text>
                               {item.author ? (
                                    <Text color={textColor} fontSize="$xs">
-                                        {getTermFromDictionary(language, 'by')} {item.author}
+                                        {t('by')} {item.author}
                                    </Text>
                               ) : null}
                          </VStack>
@@ -348,18 +358,18 @@ export const MyList = () => {
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
                               <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => setPage(page - 1)} isDisabled={page === 1}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{t('previous')}</ButtonText>
                               </Button>
                               <Button
                                    bgColor={theme.tokens.colors.primary['500']}
                                    onPress={() => {
-                                        if (!isPreviousData && data?.hasMore) {
+                                        if (listData?.hasMore) {
                                              logDebugMessage('Adding to page');
                                              setPage(page + 1);
                                         }
                                    }}
-                                   isDisabled={isPreviousData || !data?.hasMore}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                   isDisabled={isLoading || !listData?.hasMore}>
+                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{t('next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
@@ -393,7 +403,7 @@ export const MyList = () => {
                     case "dateAdded":
                          return sortBy.dateAdded;
                     default:
-                         return getTermFromDictionary(language, 'select_sort_method');
+                         return t('select_sort_method');
                }
           };
 
@@ -411,7 +421,7 @@ export const MyList = () => {
                                         name="sortBy"
                                         selectedValue={sort}
                                         defaultValue={sort}
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
+                                        accessibilityLabel={t('select_sort_method')}
                                         onValueChange={(itemValue) => setSort(itemValue)}>
                                         <SelectTrigger variant="outline" size="sm">
                                              <SelectInput py={0} color={textColor} value={sortLabel()} />
@@ -446,11 +456,12 @@ export const MyList = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+          if (Array.isArray(systemMessages)) {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
+                    return null;
                });
           }
           return null;
@@ -458,16 +469,16 @@ export const MyList = () => {
 
      return (
           <Box style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
-               {status === 'loading' || isFetching ? (
+               {systemMessagesForScreen.length > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+               {isLoading ? (
                     loadingSpinner()
-               ) : status === 'error' ? (
+               ) : fetchError ? (
                     loadError('Error', '')
                ) : (
                     <>
                          <Box style={{ paddingBottom: 100 }}>
                               {getActionButtons()}
-                              <FlatList data={data.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
+                              <FlatList data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
                          </Box>
                     </>
                )}

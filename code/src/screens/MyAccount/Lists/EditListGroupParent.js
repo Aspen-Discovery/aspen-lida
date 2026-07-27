@@ -1,8 +1,7 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
 import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
-import { useUserState, useListGroups } from '../../../hooks/useUserData';
+import { useUserState, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import {
      Center,
      Button,
@@ -38,44 +37,44 @@ import {
 } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { editListGroupParent } from '../../../util/api/list';
+import { editListGroupParent, getLists, getListGroups } from '../../../util/api/list';
 import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
-import _ from 'lodash';
+import { toArray } from '../../../helpers/helpers';
 
 export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
-     const queryClient = useQueryClient();
-     const { data: userState } = useUserState();
-     const user = userState?.user ?? {};
-     const { data: listGroups } = useListGroups();
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const [showModal, setShowModal] = React.useState(false);
-     const [loading, setLoading] = React.useState(false);
+      const { data: userState } = useUserState();
+      const { data: listGroups } = useListGroups();
+      const updateLists = useUpdateLists();
+      const updateListGroups = useUpdateListGroups();
+      const { library } = React.useContext(LibrarySystemContext);
+      const { language } = React.useContext(LanguageContext);
+      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const [showModal, setShowModal] = React.useState(false);
+      const [loading, setLoading] = React.useState(false);
 
-     const [selectedGroup, setSelectedGroup] = React.useState(null);
-     const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
+      const [selectedGroup, setSelectedGroup] = React.useState(null);
+      const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
 
-     const insets = useSafeAreaInsets();
+      const insets = useSafeAreaInsets();
 
-     const toast = useToast();
+      const toast = useToast();
 
-     React.useEffect(() => {
-          if (listGroups && listGroups.groups && parentId != null) {
-               const found = _.find(Object.values(listGroups.groups), { id: parentId }) || null;
-               setSelectedGroup(found);
-          } else {
-               setSelectedGroup(null);
-          }
-     }, [listGroups.groups, parentId]);
+      React.useEffect(() => {
+           if (listGroups && listGroups.groups && parentId != null) {
+                const found = toArray(listGroups.groups).find((item) => item.id === parentId) || null;
+                setSelectedGroup(found);
+           } else {
+                setSelectedGroup(null);
+           }
+      }, [listGroups.groups, parentId]);
 
-     const updateSelectedGroup = (groupId) => {
-          const group = _.find(Object.values(listGroups.groups), { id: groupId });
-          setSelectedGroup(group);
-          setNewListGroupParentId(groupId);
-     }
+      const updateSelectedGroup = (groupId) => {
+           const group = toArray(listGroups.groups).find((item) => item.id === groupId);
+           setSelectedGroup(group);
+           setNewListGroupParentId(groupId);
+      }
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -106,22 +105,22 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                         selectedValue={newListGroupParentId}
                                         accessibilityLabel={getTermFromDictionary(language, 'move_list_group_to')}
                                         onValueChange={(itemValue) => updateSelectedGroup(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
-                                             {_.isNull(selectedGroup) && !_.isNull(parentId) ? (
-                                                       _.map(Object.values(listGroups.groups), function (group, selectedIndex, array) {
-                                                            if (group.id === parentId) {
-                                                                 return <SelectInput value={group.title} color={textColor} />;
-                                                            }
-                                                       })
-                                                  ) :
-                                                  (_.isNull(selectedGroup) && _.isNull(parentId) ? (
-                                                       <SelectInput color={textColor} value={getTermFromDictionary(language, 'choose_existing_list_group')} />
-                                                  ) : (
-                                                       <SelectInput color={textColor} value={selectedGroup.title} />
-                                                  ))
-                                             }
-                                           <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
-                                        </SelectTrigger>
+                                         <SelectTrigger variant="outline" size="md">
+                                              {selectedGroup === null && parentId !== null ? (
+                                                        toArray(listGroups.groups).map((group) => {
+                                                             if (group.id === parentId) {
+                                                                  return <SelectInput value={group.title} color={textColor} />;
+                                                             }
+                                                        })
+                                                   ) :
+                                                   (selectedGroup === null && parentId === null ? (
+                                                        <SelectInput color={textColor} value={getTermFromDictionary(language, 'choose_existing_list_group')} />
+                                                   ) : (
+                                                        <SelectInput color={textColor} value={selectedGroup.title} />
+                                                   ))
+                                              }
+                                            <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
                                              <SelectContent
@@ -131,14 +130,14 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  <SelectScrollView>
-                                                       {_.map(listGroups.groups, function (item, index, array) {
-                                                            if(item.id === id || item.id === parentId || item.parentGroupId === id) {
-                                                                 return null;
-                                                            }
-                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={newListGroupParentId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: newListGroupParentId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
-                                                       })}
-                                                  </SelectScrollView>
+                                                   <SelectScrollView>
+                                                        {toArray(listGroups.groups).map((item, index) => {
+                                                             if(item.id === id || item.id === parentId || item.parentGroupId === id) {
+                                                                  return null;
+                                                             }
+                                                             return <SelectItem key={index} value={item.id} label={item.title} bgColor={newListGroupParentId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: newListGroupParentId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                        })}
+                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
@@ -149,33 +148,43 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                    <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
                                         <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']}
-                                           isLoading={loading}
-                                           isDisabled={_.isNull(selectedGroup)}
-                                           isLoadingText={getTermFromDictionary(language, 'saving', true)}
-                                           onPress={() => {
-                                                setLoading(true);
-                                                editListGroupParent(id, newListGroupParentId, library.baseUrl).then(async (res) => {
-                                                     queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
-                                                     queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-                                                     setLoading(false);
-                                                     let status = 'success';
-                                                     setShowModal(false);
-                                                     handleUpdate(id);
-                                                     if (res.data.result.success === false) {
-                                                          status = 'error';
-                                                          popAlert(toast, res.data.result.title, res.data.result.message, status);
-                                                     } else {
-                                                          popAlert(toast, res.data.result.title, res.data.result.message, status);
-                                                          navigateStack('AccountScreenTab', 'MyLists', {
-                                                               libraryUrl: library.baseUrl,
-                                                               hasPendingChanges: true,
-                                                          });
-                                                     }
-                                                });
-                                           }}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
-                                   </Button>
+                                     <Button bgColor={theme.tokens.colors.primary['500']}
+                                             isLoading={loading}
+                                             isDisabled={selectedGroup === null}
+                                             isLoadingText={getTermFromDictionary(language, 'saving', true)}
+                                            onPress={() => {
+                                                 setLoading(true);
+                                                 editListGroupParent(id, newListGroupParentId, library.baseUrl).then(async (res) => {
+                                                      // Refresh lists and list groups from API and update local database
+                                                      const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                      if (listsResponse.ok) {
+                                                           await updateLists(listsResponse.data.result);
+                                                      }
+                                                      const groupsResponse = await getListGroups(library.baseUrl);
+                                                      if (groupsResponse.ok) {
+                                                           await updateListGroups({
+                                                                groups: groupsResponse.data?.result?.groups ?? [],
+                                                                unassigned: groupsResponse.data?.result?.unassigned ?? 0,
+                                                           });
+                                                      }
+                                                      setLoading(false);
+                                                      let status = 'success';
+                                                      setShowModal(false);
+                                                      handleUpdate(id);
+                                                      if (res.data.result.success === false) {
+                                                           status = 'error';
+                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                      } else {
+                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                           navigateStack('AccountScreenTab', 'MyLists', {
+                                                                libraryUrl: library.baseUrl,
+                                                                hasPendingChanges: true,
+                                                           });
+                                                      }
+                                                 });
+                                            }}>
+                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>
