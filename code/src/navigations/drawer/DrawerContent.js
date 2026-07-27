@@ -104,7 +104,7 @@ const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
                     try {
                          const result = await queryFnRef.current();
                          if (onSuccessRef.current) {
-                              onSuccessRef.current(result);
+                              await onSuccessRef.current(result);
                          }
                          return result;
                     } catch (thrownError) {
@@ -266,7 +266,10 @@ export const DrawerContent = (props) => {
                     if (validProfile) {
                          setInvalidSession(false);
                          const profile = data.data.result.profile;
-                         await updateUserProfile(profile);
+                         // Only write to SQLite (and trigger re-renders) when the profile actually changed
+                         if (JSON.stringify(userRef.current) !== JSON.stringify(profile)) {
+                              await updateUserProfile(profile);
+                         }
                     } else {
                          let errorFetching = data.errorFetching ?? false;
                          if (errorFetching === false) {

@@ -72,35 +72,35 @@ function useSqliteReadQuery(queryKey, queryFn, options = {}) {
      const [dataUpdatedAt, setDataUpdatedAt] = React.useState(0);
      const [errorUpdatedAt, setErrorUpdatedAt] = React.useState(0);
 
-     const load = React.useCallback(async () => {
-          if (!enabled) {
-               return data;
-          }
+      const load = React.useCallback(async () => {
+           if (!enabled) {
+                return data;
+           }
 
-          setIsLoading(true);
-          try {
-               const nextData = await queryFn();
-               userDataSnapshotCache.set(cacheKey, nextData);
-               setData(nextData);
-               setError(null);
-               const now = Date.now();
-               setDataUpdatedAt(now);
-               if (typeof onSuccess === 'function') {
-                    onSuccess(nextData);
-               }
-               return nextData;
-          } catch (e) {
-               setError(e);
-               const now = Date.now();
-               setErrorUpdatedAt(now);
-               if (typeof onError === 'function') {
-                    onError(e);
-               }
-               throw e;
-          } finally {
-               setIsLoading(false);
-          }
-     }, [enabled, queryFn, onSuccess, onError, data, cacheKey]);
+           setIsLoading(true);
+           try {
+                const nextData = await queryFn();
+                userDataSnapshotCache.set(cacheKey, nextData);
+                setData(nextData);
+                setError(null);
+                const now = Date.now();
+                setDataUpdatedAt(now);
+                if (typeof onSuccess === 'function') {
+                     onSuccess(nextData);
+                }
+                return nextData;
+           } catch (e) {
+                setError(e);
+                const now = Date.now();
+                setErrorUpdatedAt(now);
+                if (typeof onError === 'function') {
+                     onError(e);
+                }
+                throw e;
+           } finally {
+                setIsLoading(false);
+           }
+      }, [enabled, queryFn, onSuccess, onError, cacheKey]);
 
      React.useEffect(() => {
           if (!enabled) {
