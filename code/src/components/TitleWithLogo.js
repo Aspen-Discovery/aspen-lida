@@ -1,14 +1,15 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { ThemeContext } from '../context/initialContext';
+
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { View, Image, Text, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
 import { Platform, useWindowDimensions } from 'react-native';
 import { decodeHTML } from '../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../themes/theme';
 
 const HeaderLogoBar = (props) => {
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
      const library = useLibrary();
      const { width, height } = useWindowDimensions();
 
@@ -50,7 +51,7 @@ const HeaderLogoBar = (props) => {
 };
 
 export default function TitleWithLogo(props) {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const navigation = useNavigation();
      const hideBack = props.hideBack ?? false;
      const insets = useSafeAreaInsets();

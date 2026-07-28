@@ -24,7 +24,7 @@ import {
 } from '@gluestack-ui/themed';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 
-import { SearchContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -35,6 +35,7 @@ import { SearchGlobal } from '../../util/globals';
 import { buildParamsForUrl } from '../../util/api/searchHelper';
 import { UnsavedChangesExit } from './UnsavedChanges';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
@@ -44,7 +45,7 @@ export const FiltersScreen = () => {
      const location = useLibraryLocation();
      const language = useActiveLanguage();
      const { currentIndex, currentSource } = React.useContext(SearchContext);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
      const pendingFiltersFromParams = useNavigationState((state) => state.routes[0]['params']['pendingFilters']);
      const [searchTerm, setSearchTerm] = React.useState(SearchGlobal.term ?? '');
 
@@ -54,8 +55,7 @@ export const FiltersScreen = () => {
      React.useEffect(() => {
           if (pendingFilters !== pendingFiltersFromParams) {
                navigation.setOptions({
-                    headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" />,
-               });
+                    headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" /> });
           }
      }, [pendingFilters, pendingFiltersFromParams, language]);
 
@@ -196,8 +196,7 @@ export const FiltersScreen = () => {
                term: '',
                facets: obj.facets,
                pendingUpdates: [],
-               extra: obj,
-          });
+               extra: obj });
      };
 
      const openSearchSources = () => {
@@ -215,9 +214,7 @@ export const FiltersScreen = () => {
                screen: 'SearchResults',
                params: {
                     term: SearchGlobal.term,
-                    pendingParams: params,
-               },
-          });
+                    pendingParams: params } });
      };
 
      const discardChanges = () => {
@@ -232,9 +229,7 @@ export const FiltersScreen = () => {
                screen: 'SearchResults',
                params: {
                     term: SearchGlobal.term,
-                    pendingParams: '',
-               },
-          });
+                    pendingParams: '' } });
      };
 
      const clearSelections = () => {
@@ -249,9 +244,7 @@ export const FiltersScreen = () => {
                screen: 'SearchResults',
                params: {
                     term: SearchGlobal.term,
-                    pendingParams: '',
-               },
-          });
+                    pendingParams: '' } });
      };
 
      const clearSearch = () => {
@@ -267,8 +260,7 @@ export const FiltersScreen = () => {
                term: searchTerm,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
      };
 
      const getSearchIndexLabel = () => {

@@ -4,13 +4,14 @@ import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/them
 import React from 'react';
 
 // custom components and helper files
-import { ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const Hours = (data) => {
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const location = data.data;
 
      /* location.hours */

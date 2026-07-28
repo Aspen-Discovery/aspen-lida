@@ -11,7 +11,7 @@ import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -21,6 +21,7 @@ import { refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/
 import { formatDiscoveryVersion, orderByFields, parseToDate } from '../../../helpers/helpers';
 import { logDebugMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyLibraryCard = () => {
      const navigation = useNavigation();
@@ -41,7 +42,7 @@ export const MyLibraryCard = () => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
@@ -180,7 +181,7 @@ export const MyLibraryCard = () => {
           await ScreenOrientation.unlockAsync();
      };
 
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
      const drawerBg = colorMode === 'light' ? "$warmGray50" : "$coolGray800";
 
      return (
@@ -216,8 +217,7 @@ export const MyLibraryCard = () => {
                                         onPress={() => {
                                              navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                                                   prevRoute: 'MyLibraryCard',
-                                                  hasPendingChanges: false,
-                                             });
+                                                  hasPendingChanges: false });
                                         }}>
                                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'manage_alternate_library_card')}</ButtonText>
                                    </Button>
@@ -267,8 +267,7 @@ export const MyLibraryCard = () => {
                                                        setShowDrawer(false);
                                                        navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                                                             prevRoute: 'MyLibraryCard',
-                                                            hasPendingChanges: false,
-                                                       });
+                                                            hasPendingChanges: false });
                                                   }}>
                                                   <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                                                        {getTermFromDictionary(language, 'manage_alternate_library_card')}
@@ -290,7 +289,7 @@ const CreateLibraryCard = (data) => {
      const { numCards, hasOpenModalRef, openBarcodeModal } = data ?? 0;
 
      const [expirationText, setExpirationText] = React.useState('');
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      const library = useLibrary();
      const language = data.language || useActiveLanguage();
@@ -438,7 +437,7 @@ const CreateLibraryCard = (data) => {
 };
 
 const CardCarousel = (data) => {
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      const language = useActiveLanguage();
      const [internalIndex, setInternalIndex] = React.useState(0);
      const cards = orderByFields(data.cards ?? [], ['key']);
@@ -457,15 +456,13 @@ const CardCarousel = (data) => {
      let baseOptions = {
           vertical: false,
           width: screenWidth,
-          height: screenWidth * 0.9,
-     };
+          height: screenWidth * 0.9 };
 
      if (isVertical) {
           baseOptions = {
                vertical: true,
                width: screenWidth * 0.5,
-               height: screenWidth * 0.6,
-          };
+               height: screenWidth * 0.6 };
      }
 
      const PaginationItem = (props) => {
@@ -484,8 +481,7 @@ const CardCarousel = (data) => {
                          setCurrentIndex(index);
                          ref.current?.scrollTo({
                               index: index,
-                              animated: false,
-                         });
+                              animated: false });
                     }}>
                     <ButtonText color={index === currentIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>{card.displayName}</ButtonText>
                </Button>
@@ -500,8 +496,7 @@ const CardCarousel = (data) => {
                     flex={1}
                     alignItems="center"
                     style={{
-                         transform: [{ scale: 0.9 }],
-                    }}>
+                         transform: [{ scale: 0.9 }] }}>
                     <CreateLibraryCard key={0} card={card} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />
                </Box>
           );
@@ -529,8 +524,7 @@ const CardCarousel = (data) => {
                     onSnapToItem={(index) => setCurrentIndex(index)}
                     modeConfig={{
                          parallaxScrollingScale: 0.9,
-                         parallaxScrollingOffset: 50,
-                    }}
+                         parallaxScrollingOffset: 50 }}
                     data={cards}
                     renderItem={({ item, index }) => <CreateLibraryCard key={index} card={item} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />}
                />
@@ -546,7 +540,7 @@ const CardCarousel = (data) => {
 };
 
 const BarcodeModal = ({ card, showModal, closeModal, language }) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const library = useLibrary();
      const [orientation, setOrientation] = React.useState('portrait');
      const [screenDimensions, setScreenDimensions] = React.useState(Dimensions.get('window'));

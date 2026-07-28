@@ -30,6 +30,7 @@ function buildConfigFromColors(colors) {
           tokens: {
                ...defaultConfig.tokens,
                colors: {
+                    ...defaultConfig.tokens.colors,
                     primary: colors?.primary ?? defaultConfig.tokens.colors.primary,
                     secondary: colors?.secondary ?? defaultConfig.tokens.colors.secondary,
                     tertiary: colors?.tertiary ?? defaultConfig.tokens.colors.tertiary,
@@ -109,6 +110,12 @@ export function useTheme() {
           await resetThemeState();
      }, [resetThemeState]);
 
+     const forceRefreshTheme = React.useCallback(async (toast, url = null) => {
+          const builtTheme = await buildThemeForLibrary(toast, url);
+          await updateTheme(builtTheme.theme);
+          return builtTheme;
+     }, [updateTheme]);
+
      return {
           theme,
           themeColors,
@@ -119,6 +126,7 @@ export function useTheme() {
           updateColorMode,
           updateTextColor,
           resetTheme,
+          forceRefreshTheme,
      };
 }
 
@@ -162,3 +170,5 @@ export function UseColorMode(props) {
           </Box>
      );
 }
+
+export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

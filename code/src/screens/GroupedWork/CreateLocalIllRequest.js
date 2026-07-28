@@ -40,7 +40,7 @@ import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -50,6 +50,7 @@ import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } fro
 import { stripHTML } from '../../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
@@ -90,8 +91,7 @@ export const CreateLocalIllRequest = () => {
           onError: (error) => {
                logDebugMessage('Error fetching local ILL form configuration');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      useFocusEffect(
           React.useCallback(() => {
@@ -120,7 +120,7 @@ const Request = (payload) => {
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const navigation = useNavigation();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
@@ -149,8 +149,7 @@ const Request = (payload) => {
                note: note ?? null,
                catalogKey: workId ?? null,
                pickupLocation: pickupLocation ?? null,
-               volumeId: volumeId,
-          };
+               volumeId: volumeId };
           await submitLocalIllRequest(toast, library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {

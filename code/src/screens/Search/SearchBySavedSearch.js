@@ -8,19 +8,20 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { ThemeContext, SystemMessagesContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { fetchSearchResultsForSavedSearch } from '../../util/api/search';
 import { DisplayResult } from './DisplayResult';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const SearchResultsForSavedSearch = () => {
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const searchId = useRoute().params.id ?? '';
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');

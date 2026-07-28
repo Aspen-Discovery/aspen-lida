@@ -1,7 +1,6 @@
 import 'expo-dev-client';
-import { config } from '@gluestack-ui/config';
-import { GluestackUIProvider, Box, SafeAreaView, useToast } from '@gluestack-ui/themed';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { GluestackUIProvider, useToast } from '@gluestack-ui/themed';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,13 +12,15 @@ import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
-import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider } from './src/context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from './src/context/initialContext';
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
-import { createTheme, saveTheme } from './src/themes/theme';
+import { buildThemeForLibrary, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from './src/util/logging.js';
-import { initDatabase } from './src/util/db/sqlite';
+import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
+import { initDatabase } from './src/util/db';
+import { loadLibraryUrl, loadThemeState, saveThemeState, isStoredThemeIdMatch } from './src/util/db';
+import { GLOBALS } from './src/util/globals';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
 enableScreens();
@@ -58,7 +59,7 @@ if (__DEV__) {
 
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
-     const { colorMode, updateColorMode, updateTheme } = React.useContext(ThemeContext);
+     const { colorMode, theme } = useThemeForDisplay();
      const toast = useToast();
 
      const [dbReady, setDbReady] = React.useState(false);
@@ -83,68 +84,80 @@ export default function AppContainer() {
      }, []);
 
      React.useEffect(() => {
-          let loadingBaseTheme = true;
+          let active = true;
           (async () => {
-               logDebugMessage('3 Running setupNativeBaseTheme... ' + colorMode);
-               try {
-                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                          if (mode === 'light' || mode === 'dark') {
-                              updateColorMode(mode);
-                         } else {
-                              updateColorMode('light');
-                         }
-                    });
-               } catch (e) {
-                    logErrorMessage("4 Could not load color mode " + e);
-                    // something went wrong (or the item didn't exist yet in storage)
-                    // so just set it to the default: light
-                    updateColorMode('light');
+               if (!dbReady) {
+                    return;
                }
+               logDebugMessage('3 Running buildThemeForLibrary...');
+               try {
+                    const current = await loadThemeState();
+                    const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
+                    const textColor = mode === 'dark' ? 'textLight50' : 'textLight950';
+                    const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
+                    const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
+                    const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
+                    const isThemeStale = themeAgeMs > THEME_STALE_MS;
 
-               if (colorMode) {
-                    logDebugMessage("5 Creating Default Theme " + colorMode);
-                    await createTheme(toast, colorMode).then(async (result) => {
-                         logDebugMessage("5a retrieved data from createTheme");
-                         updateTheme(result);
-                         logDebugMessage("5b Set Aspen Theme");
-                         logDebugMessage("5c Saving Theme");
-                         await saveTheme(result);
-                    });
-
-                    setLoading(false);
+                    if (!hasStoredTheme || !hasMatchingThemeId || isThemeStale) {
+                         const persistedLibraryUrl = await loadLibraryUrl();
+                         const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
+                         logDebugMessage(`4 Building theme for current themeId using url=${themeUrl ?? 'none'} stale=${isThemeStale} ageMs=${themeAgeMs}`);
+                         if (!themeUrl) {
+                              logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                         } else {
+                              const builtTheme = await buildThemeForLibrary(toast, themeUrl);
+                              await saveThemeState({
+                                   themeId: builtTheme.themeId,
+                                   colorMode: mode,
+                                   textColor,
+                                   themeColors: builtTheme.themeColors,
+                              });
+                         }
+                    } else if (!current?.textColor || !current?.colorMode) {
+                         await saveThemeState({
+                              ...current,
+                              colorMode: mode,
+                              textColor,
+                         });
+                    }
+               } catch (e) {
+                    logErrorMessage('4 Could not load or build theme ' + e);
+               } finally {
+                    if (active) {
+                         setLoading(false);
+                    }
                }
           })();
           return () => {
-               loadingBaseTheme = false;
+               active = false;
           };
-     }, [colorMode]);
+     }, [dbReady, toast]);
 
      if (isLoading || !dbReady) {
           logDebugMessage("6 Still loading, showing splash screen");
           return <SplashScreenNative />;
      }else{
-          logDebugMessage("7 Loading main page colorMode " + colorMode);
+          logDebugMessage("7 Loading AppContainer colorMode " + colorMode);
           return (
                <SafeAreaProvider>
                     <QueryClientProvider client={queryClient}>
                           <Sentry.TouchEventBoundary>
-                                <GluestackUIProvider config={config} colorMode={colorMode}>
-                                     <ThemeProvider>
-                                          <SearchProvider>
-                                                <CheckoutsProvider>
-                                                     <HoldsProvider>
-                                                          <SystemMessagesProvider>
-                                                               <GroupedWorkProvider>
-                                                                    <AuthProvider>
-                                                                         <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
-                                                                         <App />
-                                                                    </AuthProvider>
-                                                               </GroupedWorkProvider>
-                                                          </SystemMessagesProvider>
-                                                     </HoldsProvider>
-                                                </CheckoutsProvider>
-                                          </SearchProvider>
-                                     </ThemeProvider>
+                                <GluestackUIProvider config={theme} colorMode={colorMode}>
+                                     <SearchProvider>
+                                           <CheckoutsProvider>
+                                                <HoldsProvider>
+                                                     <SystemMessagesProvider>
+                                                          <GroupedWorkProvider>
+                                                               <AuthProvider>
+                                                                    <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
+                                                                    <App />
+                                                               </AuthProvider>
+                                                          </GroupedWorkProvider>
+                                                     </SystemMessagesProvider>
+                                                </HoldsProvider>
+                                           </CheckoutsProvider>
+                                     </SearchProvider>
                                 </GluestackUIProvider>
                           </Sentry.TouchEventBoundary>
                     </QueryClientProvider>

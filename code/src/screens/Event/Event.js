@@ -29,8 +29,7 @@ import {
      ModalBody,
      ModalFooter,
      HStack,
-     CloseIcon, ModalCloseButton, ModalBackdrop,
-} from '@gluestack-ui/themed';
+     CloseIcon, ModalCloseButton, ModalBackdrop } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
@@ -39,7 +38,7 @@ import { showLocation } from 'react-native-map-link';
 import { loadError, popAlert, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -50,6 +49,7 @@ import { decodeHTML, stripHTML } from '../../helpers/helpers';
 import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -61,7 +61,7 @@ export const EventScreen = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const [hasValidImage, setHasValidImage] = React.useState(false);
      const [eventData, setEventData] = React.useState([]);
      const [errorMessage, setErrorMessage] = React.useState('');
@@ -134,7 +134,7 @@ const DisplayEvent = (payload) => {
      const route = useRoute();
      const source = route.params.source;
      const language = useActiveLanguage();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
@@ -144,8 +144,7 @@ const DisplayEvent = (payload) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           await WebBrowser.openBrowserAsync(event.url, browserParams)
                .then((res) => {
@@ -191,8 +190,7 @@ const DisplayEvent = (payload) => {
                                    style={{
                                         width: '100%',
                                         height: 150,
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -224,7 +222,7 @@ const DisplayEvent = (payload) => {
 };
 
 const EventTitle = ({ title, hasCoverImage }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      if (title) {
           return (
                <>
@@ -239,7 +237,7 @@ const EventTitle = ({ title, hasCoverImage }) => {
 };
 
 const EventDescription = ({ description }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (description) {
           return (
@@ -258,7 +256,7 @@ const EventDescription = ({ description }) => {
 };
 
 const EventAudiences = ({ audiences }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (audiences) {
           return (
@@ -277,7 +275,7 @@ const EventAudiences = ({ audiences }) => {
 };
 
 const EventCategories = ({ categories }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (categories) {
           return (
@@ -296,7 +294,7 @@ const EventCategories = ({ categories }) => {
 };
 
 const EventProgramTypes = ({ programTypes }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (programTypes) {
           return (
@@ -321,7 +319,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
      const [modalBodyHeading, setModalBodyHeading] = React.useState('');
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const toast = useToast();
 
      let displayDay = false;
@@ -360,8 +358,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          ? await Calendar.getDefaultCalendarAsync()
                          : {
                                 isLocalAccount: true,
-                                name: location.name + ' Events',
-                           };
+                                name: location.name + ' Events' };
 
                const calendars = await Calendar.getCalendarsAsync();
 
@@ -378,8 +375,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          source: defaultCalendarSource,
                          name: 'libraryCalendarEvents',
                          ownerAccount: 'personal',
-                         accessLevel: Calendar.CalendarAccessLevel.OWNER,
-                    });
+                         accessLevel: Calendar.CalendarAccessLevel.OWNER });
                }
 
                logInfoMessage('calendarId: ' + calendarId);
@@ -411,8 +407,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          id: event.id,
                          location: eventLocation,
                          allDay: event.isAllDay ?? false,
-                         url: event.url,
-                    }).then(async (result) => {
+                         url: event.url }).then(async (result) => {
                          return toast.show({
                               duration: 5000,
                               accessibilityAnnouncement: getTermFromDictionary(language, 'event_added_to_calendar'),
@@ -437,8 +432,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                                              </Alert>
                                         </Center>
                                    );
-                              },
-                         });
+                              } });
                     });
                } catch (e) {
                    logDebugMessage(e);
@@ -507,7 +501,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
 };
 
 const Directions = ({ location, room }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      let hasCoordinates = false;
      if (location) {
           if (!_.isUndefined(location.coordinates) && _.isObject(location.coordinates)) {
@@ -527,14 +521,12 @@ const Directions = ({ location, room }) => {
                          longitude: location.coordinates.longitude,
                          sourceLatitude,
                          sourceLongitude,
-                         googleForceLatLon: true,
-                    });
+                         googleForceLatLon: true });
                } else {
                     showLocation({
                          latitude: location.coordinates.latitude,
                          longitude: location.coordinates.longitude,
-                         googleForceLatLon: true,
-                    });
+                         googleForceLatLon: true });
                }
           }
      };
@@ -567,7 +559,7 @@ const AddToYourEvents = ({ id, source }) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const [isLoading, setIsLoading] = React.useState(false);
      const toast = useToast();
 
@@ -600,7 +592,7 @@ const AddToYourEvents = ({ id, source }) => {
 
 const InYourEvents = () => {
      const language = useActiveLanguage();
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      return (
           <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
                <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
@@ -612,7 +604,7 @@ const RegistrationModal = ({ event }) => {
      const language = useActiveLanguage();
      const [showRegistrationModal, setShowRegistrationModal] = React.useState(false);
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const backgroundColor= colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const openLink = async () => {
@@ -624,8 +616,7 @@ const RegistrationModal = ({ event }) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           setShowRegistrationModal(false);
           WebBrowser.openBrowserAsync(event.url, browserParams);

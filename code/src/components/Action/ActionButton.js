@@ -20,17 +20,17 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text, useToast,
-} from '@gluestack-ui/themed';
+     Text, useToast } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { passUserToDiscovery } from '../../util/api/user';
 import * as WebBrowser from 'expo-web-browser';
+import { useTheme } from '../../themes/theme';
 
 export const ActionButton = (data) => {
-     const {theme, textColor, backgroundColor, colorMode} = useContext(ThemeContext);
+     const {theme, textColor, backgroundColor, colorMode} = useTheme();
      const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
@@ -71,8 +71,7 @@ export const ActionButton = (data) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           userHasAlternateLibraryCard,
-          shouldPromptAlternateLibraryCard,
-     } = data;
+          shouldPromptAlternateLibraryCard } = data;
      if (_.isObject(action)) {
           if (action.type === 'overdrive_sample') {
                return <LoadOverDriveSample title={action.title} prevRoute={prevRoute} id={fullRecordId} type={action.type} sampleNumber={action.sampleNumber} formatId={action.formatId} />;
@@ -196,8 +195,7 @@ export const ActionButton = (data) => {
                                         showTitle: false,
                                         toolbarColor: backgroundColor,
                                         controlsColor: textColor,
-                                        secondaryToolbarColor: backgroundColor,
-                                   };
+                                        secondaryToolbarColor: backgroundColor };
                                    await WebBrowser.openBrowserAsync(action.redirectParams.url, browserParams);
                               }
                          }

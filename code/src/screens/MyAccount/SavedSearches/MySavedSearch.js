@@ -6,7 +6,7 @@ import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { uniquePrimitiveArray } from '../../../helpers/helpers';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -15,6 +15,7 @@ import { getSavedSearch } from '../../../util/api/list';
 import AddToList from '../../Search/AddToList';
 import { logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -24,7 +25,7 @@ export const MySavedSearch = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const {colorMode} = React.useContext(ThemeContext);
+     const {colorMode} = useTheme();
      const [status, setStatus] = React.useState('loading');
      const [data, setData] = React.useState([]);
 
@@ -85,7 +86,7 @@ const SavedSearch = (data) => {
      const item = data.data;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const {colorMode} = React.useContext(ThemeContext);
+     const {colorMode} = useTheme();
 
      const imageUrl = library.baseUrl + item.image;
 
@@ -101,8 +102,7 @@ const SavedSearch = (data) => {
      const openGroupedWork = () => {
           navigateStack('AccountScreenTab', 'SavedSearchItem', {
                id: item.id,
-               title: getCleanTitle(item.title),
-          });
+               title: getCleanTitle(item.title) });
      };
 
      return (
@@ -124,8 +124,7 @@ const SavedSearch = (data) => {
                               style={{
                                    width: 100,
                                    height: 150,
-                                   borderRadius: "$sm",
-                              }}
+                                   borderRadius: "$sm" }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"

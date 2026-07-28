@@ -23,7 +23,7 @@ import React from 'react';
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { GroupedWorkContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { GroupedWorkContext, SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
@@ -40,6 +40,7 @@ import Variations from './Variations';
 
 import { logDebugMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -64,7 +65,7 @@ export const GroupedWorkScreen = () => {
      const library = useLibrary();
      const userLanguage = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
 
      const { status, data, error, isFetching } = useQuery(['groupedWork', id, userLanguage, library.baseUrl], () => getGroupedWork(route.params.id, userLanguage, library.baseUrl));
 
@@ -146,7 +147,7 @@ const DisplayGroupedWork = (payload) => {
      const { format } = React.useContext(GroupedWorkContext);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { colorMode } = React.useContext(ThemeContext);
+     const { colorMode } = useTheme();
 
      const formats = Object.keys(groupedWork.formats);
 
@@ -154,19 +155,15 @@ const DisplayGroupedWork = (payload) => {
           queries: formats.map((format) => {
                return {
                     queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]),
-               };
-          }),
-     });
+                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]) };
+          }) });
 
      useQueries({
           queries: formats.map((format) => {
                return {
                     queryKey: ['variation', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getVariations(id, format, language, library.baseUrl, groupedWork.formats[format]),
-               };
-          }),
-     });
+                    queryFn: () => getVariations(id, format, language, library.baseUrl, groupedWork.formats[format]) };
+          }) });
 
      const key = 'large_' + groupedWork.id;
 
@@ -188,7 +185,7 @@ const DisplayGroupedWork = (payload) => {
 };
 
 const Title = ({ title }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      if (title) {
           return (
                <>
@@ -204,7 +201,7 @@ const Title = ({ title }) => {
 
 const Author = ({ author }) => {
      const library = useLibrary();
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
      if (author) {
           return (
                <Button size="sm" variant="link" onPress={() => startSearch(author, 'SearchResults', library.baseUrl)}>
@@ -224,7 +221,7 @@ const Format = (data) => {
      const isSelected = data.isSelected;
      const updateFormat = data.updateFormat;
      const btnStyle = isSelected === key ? 'solid' : 'outline';
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
 
      return (
           <Button size="sm" bg={btnStyle === 'outline' ? 'transparent' : theme['tokens']['colors']['secondary']['400']} borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} mb="$1" mr="$1" variant={btnStyle} onPress={() => updateFormat(key)}>
@@ -234,7 +231,7 @@ const Format = (data) => {
 };
 
 const Description = ({ description }) => {
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      if (description) {
           return (
                <Text mt="$5" mb="$5" sx={{ '@base': { fontSize: 14, lineHeight: 21 }, '@lg': { fontSize: 20, lineHeight: 27 } }} color={textColor}>
@@ -248,7 +245,7 @@ const Description = ({ description }) => {
 
 const Language = ({ language }) => {
      const user_language = useActiveLanguage();
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      if (language) {
           return (
                <HStack mt="$3" mb="$1">
@@ -269,7 +266,7 @@ const Language = ({ language }) => {
 const Formats = ({ formats }) => {
      const language = useActiveLanguage();
      const { format, updateFormat } = React.useContext(GroupedWorkContext);
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      if (formats) {
           return (
                <>
@@ -294,7 +291,7 @@ const Formats = ({ formats }) => {
 
 const BibliographicInformationLink = ({ groupedWorkId }) => {
      const language = useActiveLanguage();
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();

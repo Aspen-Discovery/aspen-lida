@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 
-import { SearchContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
@@ -12,6 +12,7 @@ import { popAlert } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const HomeScreenLinkGrid = ({links}) => {
      const { width } = Dimensions.get('window');
@@ -47,7 +48,7 @@ const HomeScreenLinkGrid = ({links}) => {
 }
 
 const Link = ({link}) => {
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
      const { updateCurrentIndex } = React.useContext(SearchContext);
@@ -118,22 +119,19 @@ const Link = ({link}) => {
                                    author: 'SearchByAuthor',
                                    list: 'SearchByList',
                                    grouped_work: 'GroupedWorkScreen',
-                                   search: 'SearchResults',
-                              };
+                                   search: 'SearchResults' };
 
                               if (searchScreenMap[segments[1]]) {
                                    if(segments[1] === 'browse_category' || segments[1] === 'list' || segments[1] === 'grouped_work') {
                                         logDebugMessage(searchScreenMap[segments[1]]);
                                         navigation.navigate('BrowseTab', {
                                              screen: searchScreenMap[segments[1]],
-                                             params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {},
-                                        });
+                                             params: link.deepLinkId ? { id: link.deepLinkId, title: link.title } : {} });
                                    } else if(segments[1] === 'author') {
                                         updateCurrentIndex('Author');
                                         navigation.navigate('BrowseTab', {
                                              screen: 'SearchResults',
-                                             params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {},
-                                        });
+                                             params: link.deepLinkId ? { term: link.deepLinkId, title: link.deepLinkId } : {} });
 
                                    }
                               }

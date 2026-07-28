@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
-import { SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary, useHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { useBrowseCategories, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
@@ -23,6 +23,7 @@ import { DisplayErrorAlertDialog } from '../../components/loadError';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import HomeScreenLinkGrid from './Link';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -31,7 +32,7 @@ export const DiscoverHomeScreen = () => {
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
 
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
      const { data: userState } = useUserState();
@@ -65,8 +66,7 @@ export const DiscoverHomeScreen = () => {
           navigation.setOptions({
                headerLeft: () => {
                     return null;
-               },
-          });
+               } });
      }, [navigation]);
 
      useFocusEffect(
@@ -159,8 +159,7 @@ export const DiscoverHomeScreen = () => {
                term: searchTerm,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
           clearText();
      };
 
@@ -291,7 +290,7 @@ export const DiscoverHomeScreen = () => {
 };
 
 const ButtonOptions = (props) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
      const { language, showManageCategories, onRefreshCategories, maxNum, onLoadAllCategories } = props;
@@ -301,12 +300,9 @@ const ButtonOptions = (props) => {
                <ButtonGroup
                     sx={{
                          '@base': {
-                              flexDirection: 'column',
-                         },
+                              flexDirection: 'column' },
                          '@lg': {
-                              flexDirection: 'row',
-                         },
-                    }}>
+                              flexDirection: 'row' } }}>
                     <Button
                          isDisabled={maxNum === 9999}
                          bg={theme.tokens.colors.primary['500']}

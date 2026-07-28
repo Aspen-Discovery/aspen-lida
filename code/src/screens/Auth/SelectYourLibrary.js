@@ -19,8 +19,7 @@ import {
      Pressable,
      Text,
      Heading,
-     VStack, ModalBackdrop, CloseIcon, ModalBody, InputIcon, InputSlot,
-} from '@gluestack-ui/themed';
+     VStack, ModalBackdrop, CloseIcon, ModalBody, InputIcon, InputSlot } from '@gluestack-ui/themed';
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,12 +28,13 @@ import { PermissionsPrompt } from '../../components/PermissionsPrompt';
 // custom components and helper files
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useKeyboard } from '../../hooks/hooks';
-import { ThemeContext } from '../../context/initialContext';
+
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
+import { useTheme } from '../../themes/theme';
 
 export const SelectYourLibrary = (payload) => {
      const isKeyboardOpen = useKeyboard();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const { isCommunity, showModal, setShowModal, updateSelectedLibrary, selectedLibrary, shouldRequestPermissions, permissionRequested, libraries, allLibraries, setShouldRequestPermissions } = payload;
      const [query, setQuery] = React.useState('');
      const screenHeight = Dimensions.get('window').height;
@@ -138,7 +138,7 @@ export const SelectYourLibrary = (payload) => {
                               </VStack>
                          </ModalBody>
                     </ModalContent>
-               </Modal>
+                </Modal>
           </Center>
      );
 };

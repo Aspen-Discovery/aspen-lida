@@ -1,6 +1,6 @@
 // TODO: Remove unused file
 import React from 'react';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useAccounts } from '../../hooks/useUserData';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -12,12 +12,13 @@ import { AlertDialog,      AlertDialogBackdrop,
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import _ from 'lodash';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const FinishCheckOutSession = () => {
      const navigation = useNavigation();
      const language = useActiveLanguage();
      const { data: accounts } = useAccounts();
-     const { textColor, colorMode, theme } = React.useContext(ThemeContext);
+     const { textColor, colorMode, theme } = useTheme();
 
      const [isOpen, setIsOpen] = React.useState(useRoute().params?.startNew ?? true);
      const cancelRef = React.useRef(null);
@@ -26,13 +27,11 @@ export const FinishCheckOutSession = () => {
           setIsOpen(false);
           if (_.size(accounts) >= 1) {
                navigation.replace('StartCheckOutSession', {
-                    startNew: true,
-               });
+                    startNew: true });
           } else {
                navigation.replace('SelfCheckOut', {
                     startNew: true,
-                    barcode: null,
-               });
+                    barcode: null });
           }
      };
 

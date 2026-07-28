@@ -4,12 +4,13 @@ import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed
 import React from 'react';
 import { ScrollView } from 'react-native';
 
-import { SearchContext, ThemeContext } from '../../../context/initialContext';
+import { SearchContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getSearchIndexes } from '../../../util/api/search';
 import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 // custom components and helper files
 
@@ -17,7 +18,7 @@ export const SearchSourceScreen = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
-     const { textColor, theme } = React.useContext(ThemeContext);
+     const { textColor, theme } = useTheme();
      logDebugMessage('currentSource: ' + currentSource);
 
      const search = async () => {
@@ -25,8 +26,7 @@ export const SearchSourceScreen = () => {
                term: SearchGlobal.term,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
      };
 
      const updateSource = async (source) => {

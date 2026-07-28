@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
-import { ThemeContext } from '../../context/initialContext';
+import { useTheme } from '../../themes/theme';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
@@ -26,10 +26,11 @@ import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
+const Stack = createStackNavigator();
+
 const BrowseStackNavigator = () => {
      const language = useActiveLanguage();
-     const {textColor} = React.useContext(ThemeContext);
-     const Stack = createStackNavigator();
+     const { textColor } = useTheme();
      return (
           <Stack.Navigator
                id="BrowseStack"
@@ -210,7 +211,7 @@ const BrowseStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.term;
                               return <TitleWithLogo title={title} />
                          },
-//                         title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.term,
+                         //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.term,
                          params: {
                               pendingParams: [],
                          },
@@ -251,7 +252,7 @@ const BrowseStackNavigator = () => {
 const EditionsStack = createStackNavigator();
 export const EditionsModal = () => {
      const language = useActiveLanguage();
-     const {textColor} = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      return (
           <EditionsStack.Navigator
                id="EditionsStack"
@@ -301,7 +302,7 @@ export const EditionsModal = () => {
 const FilterModalStack = createNativeStackNavigator();
 const FilterModal = () => {
      const language = useActiveLanguage();
-     const {textColor} = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"

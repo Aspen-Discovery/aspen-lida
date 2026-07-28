@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useLinkTo, useNavigation} from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
@@ -6,15 +5,14 @@ import * as SecureStore from 'expo-secure-store';
 import _, {isEmpty, isUndefined} from 'lodash';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
-import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
-import {createGlueTheme} from '../../themes/theme';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { buildThemeForLibrary, useTheme } from '../../themes/theme';
 import {
      getLanguageDisplayName,
      getTermFromDictionary,
      getTranslatedTermsForUserPreferredLanguage,
      setTranslationsLibrary,
-     translationsLibrary,
-} from '../../translations/TranslationService';
+     translationsLibrary } from '../../translations/TranslationService';
 import {
      getCatalogStatus,
      getLibraryInfo,
@@ -33,7 +31,7 @@ import {
 } from '../../util/api/user';
 import {formatLinkedAccounts, formatNotificationHistory} from '../../util/api/userHelper';
 
-import {LIBRARY} from '../../util/globals';
+import { GLOBALS, LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -53,24 +51,23 @@ import {
      saveLibrary,
      saveMenu,
      saveHomeScreenLinks,
-} from '../../util/db';
+      loadThemeState,
+      saveThemeState,
+      isStoredThemeIdMatch } from '../../util/db';
 import {
      useUpdateLibraryVersion,
-     useUpdateCatalogStatus,
-} from '../../hooks/useLibrarySystemData';
+     useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
 import {
      useUpdateBrowseCategories,
      useUpdateMaxCategories,
-     useUpdateBrowseCategoryList,
-} from '../../hooks/useBrowseCategoryData';
+     useUpdateBrowseCategoryList } from '../../hooks/useBrowseCategoryData';
 import {
      useActiveLanguage,
      useAvailableLanguages,
      useUpdateActiveLanguage,
      useUpdateAvailableLanguages,
      useUpdateDictionary,
-     useUpdateLanguageDisplayName,
-} from '../../hooks/useLanguageData';
+     useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
 import {stripHTML} from '../../helpers/helpers';
@@ -87,9 +84,7 @@ Notifications.setNotificationHandler({
      handleNotification: async () => ({
           shouldShowAlert: true,
           shouldPlaySound: true,
-          shouldSetBadge: false,
-     }),
-});
+          shouldSetBadge: false }) });
 
 export const LoadingScreen = () => {
      const linkingUrl = Linking.useLinkingURL();
@@ -141,7 +136,7 @@ export const LoadingScreen = () => {
        const updateDictionary = useUpdateDictionary();
        const updateLanguageDisplayName = useUpdateLanguageDisplayName();
        const { updateSystemMessages } = React.useContext(SystemMessagesContext);
-       const { updateTheme, updateColorMode, textColor } = React.useContext(ThemeContext);
+       const { updateTheme, updateColorMode, textColor } = useTheme();
 
        // Get library system update hooks
        const updateLibraryVersion = useUpdateLibraryVersion();
@@ -172,8 +167,7 @@ export const LoadingScreen = () => {
           logDebugMessage({
                event: 'fetchAndPersistUserData:start',
                invocationId,
-               runInBackground,
-          });
+               runInBackground });
           try {
                const profileResp = await refreshProfile(LIBRARY.url);
                const validProfile = profileResp?.ok && profileResp?.data?.result?.success !== false && profileResp?.data?.result?.success !== 'false';
@@ -219,8 +213,7 @@ export const LoadingScreen = () => {
                logDebugMessage({
                     event: 'fetchAndPersistUserData:success',
                     invocationId,
-                    runInBackground,
-               });
+                    runInBackground });
 
                return true;
           } catch (error) {
@@ -232,8 +225,7 @@ export const LoadingScreen = () => {
                logDebugMessage({
                     event: 'fetchAndPersistUserData:error',
                     invocationId,
-                    runInBackground,
-               });
+                    runInBackground });
                setHasError(true);
                setErrorTitle(null);
                setErrorMessage('Error loading user data. Please try again or contact the library.');
@@ -251,8 +243,7 @@ export const LoadingScreen = () => {
           logDebugMessage({
                event: 'fetchAndPersistLibraryBranchData:start',
                invocationId,
-               runInBackground,
-          });
+               runInBackground });
           try {
                // Fetch location info
                const locationResp = await getLocationInfo(LIBRARY.url);
@@ -295,8 +286,7 @@ export const LoadingScreen = () => {
                logDebugMessage({
                     event: 'fetchAndPersistLibraryBranchData:success',
                     invocationId,
-                    runInBackground,
-               });
+                    runInBackground });
 
                return true;
           } catch (error) {
@@ -308,8 +298,7 @@ export const LoadingScreen = () => {
                logDebugMessage({
                     event: 'fetchAndPersistLibraryBranchData:error',
                     invocationId,
-                    runInBackground,
-               });
+                    runInBackground });
                setHasError(true);
                setErrorTitle(null);
                setErrorMessage('Error loading library branch data. Please try again or contact the library.');
@@ -327,8 +316,7 @@ export const LoadingScreen = () => {
            logDebugMessage({
                 event: 'fetchAndPersistLibrarySystemData:start',
                 invocationId,
-                runInBackground,
-           });
+                runInBackground });
            try {
                 // Fetch catalog status
                 const catalogResp = await getCatalogStatus(LIBRARY.url);
@@ -380,8 +368,7 @@ export const LoadingScreen = () => {
                 logDebugMessage({
                      event: 'fetchAndPersistLibrarySystemData:success',
                      invocationId,
-                     runInBackground,
-                });
+                     runInBackground });
 
                 return true;
            } catch (error) {
@@ -393,8 +380,7 @@ export const LoadingScreen = () => {
                 logDebugMessage({
                      event: 'fetchAndPersistLibrarySystemData:error',
                      invocationId,
-                     runInBackground,
-                });
+                     runInBackground });
                 setHasError(true);
                 setErrorTitle(null);
                 setErrorMessage('Error loading library system data. Please try again or contact the library.');
@@ -475,8 +461,7 @@ export const LoadingScreen = () => {
                            matchesCatUsername: !!normalizedKey && normalizedKey === normalizedCat,
                            matchesBarcode: !!normalizedKey && normalizedKey === normalizedBarcode,
                            matchesLoggedInUser,
-                           hasAnyCachedUserData,
-                      });
+                           hasAnyCachedUserData });
 
                       if (cancelled) return;
 
@@ -492,8 +477,7 @@ export const LoadingScreen = () => {
                                 event: 'hydrateUserCache: stale check',
                                 isStale,
                                 cacheAgeMs: cached?.updatedAt ? Date.now() - cached.updatedAt : null,
-                                staleThresholdMs: USER_DATA_STALE_MS,
-                           });
+                                staleThresholdMs: USER_DATA_STALE_MS });
                            if (isStale) {
                                 logDebugMessage('hydrateUserCache: cache stale, running background refresh');
                                 fetchAndPersistUserDataRef.current?.({ runInBackground: true });
@@ -543,8 +527,7 @@ export const LoadingScreen = () => {
                     logDebugMessage({
                          hasCachedLocation: !!cached?.location,
                          hasCachedSelfCheck: !!cached?.selfCheckSettings,
-                         hasAnyCachedLibraryBranchData,
-                    });
+                         hasAnyCachedLibraryBranchData });
 
                     if (cancelled) return;
 
@@ -561,8 +544,7 @@ export const LoadingScreen = () => {
                               event: 'hydrateLibraryBranchCache: stale check',
                               isStale,
                               cacheAgeMs: branchUpdatedAt ? Date.now() - branchUpdatedAt : null,
-                              staleThresholdMs: LIBRARY_BRANCH_DATA_STALE_MS,
-                         });
+                              staleThresholdMs: LIBRARY_BRANCH_DATA_STALE_MS });
                          if (isStale) {
                               logDebugMessage('hydrateLibraryBranchCache: cache stale, running background refresh');
                               fetchAndPersistLibraryBranchDataRef.current?.({ runInBackground: true });
@@ -606,8 +588,7 @@ export const LoadingScreen = () => {
                           hasCachedLibrary: !!cached?.library,
                           hasCachedMenu: !!cached?.menu,
                           hasCachedCatalogStatus: cached?.catalogStatus !== undefined,
-                          hasAnyCachedLibrarySystemData,
-                     });
+                          hasAnyCachedLibrarySystemData });
 
                      if (cancelled) return;
 
@@ -628,8 +609,7 @@ export const LoadingScreen = () => {
                                menuIsStale,
                                cacheAgeMs: cached?.updatedAt ? Date.now() - cached.updatedAt : null,
                                metadataStaleThresholdMs: LIBRARY_SYSTEM_METADATA_STALE_MS,
-                               menuStaleThresholdMs: LIBRARY_SYSTEM_MENU_STALE_MS,
-                          });
+                               menuStaleThresholdMs: LIBRARY_SYSTEM_MENU_STALE_MS });
 
                           if (metadataIsStale || menuIsStale) {
                                logDebugMessage('hydrateLibrarySystemCache: cache stale, running background refresh');
@@ -720,29 +700,33 @@ export const LoadingScreen = () => {
                     setProgress(0);
                     queryClient.clear();
                     try {
-                         await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                              if (mode === 'light' || mode === 'dark') {
-                                   updateColorMode(mode);
-                              } else {
-                                   updateColorMode('light');
-                              }
-                         });
+                         const currentThemeState = await loadThemeState();
+                         const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
+                         await updateColorMode(mode);
+                         const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
+                         const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
+
+                         if (!hasStoredTheme || !hasMatchingThemeId) {
+                              const builtTheme = await buildThemeForLibrary(null, LIBRARY.url);
+                              await saveThemeState({
+                                   themeId: builtTheme.themeId,
+                                   colorMode: mode,
+                                   textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                                   themeColors: builtTheme.themeColors });
+                              await updateTheme(builtTheme.theme);
+                         }
                     } catch (e) {
-                         // something went wrong (or the item didn't exist yet in storage)
-                         // so just set it to the default: light
-                         updateColorMode('light');
+                         logErrorMessage('Unable to load theme state in Loading screen');
+                         logErrorMessage(e);
+                    } finally {
+                         setLoadingTheme(false);
                     }
 
-                    await createGlueTheme(LIBRARY.url).then((result) => {
-                         logDebugMessage("Creating glue theme");
-                         updateTheme(result);
-                         setLoadingTheme(false);
-                         //if we have no library we should set error
-                         //to avoid being stuck on loading screen.
-                         if (LIBRARY.url === null) {
-                              setHasError(true);
-                         }
-                    });
+                    //if we have no library we should set error
+                    //to avoid being stuck on loading screen.
+                    if (LIBRARY.url === null) {
+                         setHasError(true);
+                    }
                }else{
                     logDebugMessage('isFocused is not 0.');
                }
@@ -1233,8 +1217,7 @@ export const LoadingScreen = () => {
                     user: user,
                     library: library,
                     location: location,
-                    prevRoute: 'LoadingScreen',
-               });
+                    prevRoute: 'LoadingScreen' });
            }
        }, [
             isReloading,

@@ -47,7 +47,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { CheckoutsContext, SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
@@ -56,6 +56,7 @@ import { stripHTML } from '../../../helpers/helpers';
 import { MyCheckout } from './MyCheckout';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyCheckouts = () => {
      const isFetchingCheckouts = useIsFetching({ queryKey: ['checkouts'] });
@@ -82,7 +83,7 @@ export const MyCheckouts = () => {
      const renewConfirmationRef = React.useRef(null);
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      const toast = useToast();
 
@@ -93,8 +94,7 @@ export const MyCheckouts = () => {
           axis_360: 'Checked Out Titles for Boundless',
           cloud_library: 'Checked Out Titles for cloudLibrary',
           palace_project: 'Checked Out Titles for Palace Project',
-          all: 'Checked Out Titles',
-     });
+          all: 'Checked Out Titles' });
 
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort by Title',
@@ -103,13 +103,11 @@ export const MyCheckouts = () => {
           due_desc: 'Sort by Due Date Descending',
           format: 'Sort by Format',
           library_account: 'Sort by Library Account',
-          times_renewed: 'Sort by Times Renewed',
-     });
+          times_renewed: 'Sort by Times Renewed' });
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, false, language), {
@@ -430,8 +428,7 @@ export const MyCheckouts = () => {
                                                        confirmRenewalFee: result.confirmRenewalFee ?? false,
                                                        recordId: record ?? null,
                                                        action: result.api.action,
-                                                       renewType: 'all',
-                                                  });
+                                                       renewType: 'all' });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {

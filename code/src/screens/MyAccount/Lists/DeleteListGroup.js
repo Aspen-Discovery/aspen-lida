@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { refreshProfile } from '../../../util/api/user';
 import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const DeleteListGroup = ({id, handleUpdate}) => {
       const { data: userState } = useUserState();
@@ -18,7 +19,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const { textColor, theme, colorMode } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
       const toast = useToast();
@@ -65,8 +66,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
                                                       if (groupsResponse.ok) {
                                                            await updateListGroups({
                                                                 groups: groupsResponse.data?.result?.groups ?? [],
-                                                                unassigned: groupsResponse.data?.result?.unassigned ?? 0,
-                                                           });
+                                                                unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
                                                       }
                                                       const profileResponse = await refreshProfile(library.baseUrl);
                                                       if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
@@ -83,8 +83,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
                                                            popAlert(toast, res.data.result.title, res.data.result.message, status);
                                                            navigateStack('AccountScreenTab', 'MyLists', {
                                                                 libraryUrl: library.baseUrl,
-                                                                hasPendingChanges: true,
-                                                           });
+                                                                hasPendingChanges: true });
                                                       }
                                                  });
                                             }}

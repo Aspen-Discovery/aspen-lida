@@ -10,7 +10,7 @@ import { LoadError, loadError } from '../../components/loadError';
 import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
 
 // custom components and helper files
-import { HoldsContext, ThemeContext } from '../../context/initialContext';
+import { HoldsContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
@@ -22,6 +22,7 @@ import { getStatusIndicator } from './StatusIndicator';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const Variations = (props) => {
      // 1. Hooks (Plural Variations)
@@ -31,7 +32,7 @@ export const Variations = (props) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { updateHolds } = React.useContext(HoldsContext);
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { colorMode, theme, textColor } = useTheme();
 
      const [isLoading, setLoading] = React.useState(false);
      const [confirmingHold, setConfirmingHold] = React.useState(false);
@@ -55,8 +56,7 @@ export const Variations = (props) => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['variation', id, format, language, library.baseUrl],
           queryFn: () => getVariations(id, format, language, library.baseUrl, props.data.formats[format]),
-          enabled: !!id && !!format && !!props.data?.formats?.[format],
-     });
+          enabled: !!id && !!format && !!props.data?.formats?.[format] });
 
      // 2. Helper Functions
      const onResponseClose = () => setResponseIsOpen(false);
@@ -300,7 +300,7 @@ const Variation = (props) => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor, colorMode, theme } = React.useContext(ThemeContext);
+     const { textColor, colorMode, theme } = useTheme();
 
      // 2. Props Destructuring
      const {
@@ -388,8 +388,7 @@ const Variation = (props) => {
                recordId: recordId,
                source: source,
                volumeInfo: volumeInfo,
-               prevRoute: prevRoute,
-          });
+               prevRoute: prevRoute });
      };
 
      return (

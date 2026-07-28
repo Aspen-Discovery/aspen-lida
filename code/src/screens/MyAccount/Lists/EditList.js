@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { popAlert } from '../../../components/loadError';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -12,6 +12,7 @@ import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 import {
      AlertDialog,
      AlertDialogContent,
@@ -68,8 +69,7 @@ import {
      SelectDragIndicator,
       SelectItem,
       SelectScrollView,
-      Select, useToast,
-} from '@gluestack-ui/themed';
+      Select, useToast } from '@gluestack-ui/themed';
 
 const EditList = (props) => {
       const { data, listId } = props;
@@ -86,7 +86,7 @@ const EditList = (props) => {
       const [description, setDescription] = React.useState(data.description);
       const [isPublic, setPublic] = React.useState(data.public);
       const [listGroupId, setListGroupId] = React.useState(data.listGroupId);
-      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+      const { theme, textColor, colorMode } = useTheme();
 
       const insets = useSafeAreaInsets();
       const user = userState?.user ?? {};
@@ -97,15 +97,13 @@ const EditList = (props) => {
                     <Pressable
                          onPress={() => {
                               navigateStack('AccountScreenTab', 'MyLists', {
-                                   hasPendingChanges: true,
-                              });
+                                   hasPendingChanges: true });
                          }}
                          mr={3}
                          p="$1">
                          <ChevronLeftIcon size={5} color={textColor} />
                     </Pressable>
-               ),
-          });
+               ) });
      }, [navigation]);
 
      return (
@@ -239,7 +237,7 @@ const EditList = (props) => {
 
 const DeleteList = (props) => {
       const { listId } = props;
-      const {textColor, colorMode } = React.useContext(ThemeContext);
+      const {textColor, colorMode } = useTheme();
       const { data: userState } = useUserState();
       const library = useLibrary();
       const language = useActiveLanguage();
@@ -322,8 +320,7 @@ const DeleteList = (props) => {
                                                         popAlert(toast, res.title, res.message, status);
                                                         navigateStack('AccountScreenTab', 'MyLists', {
                                                              libraryUrl: library.baseUrl,
-                                                             hasPendingChanges: true,
-                                                        });
+                                                             hasPendingChanges: true });
                                                    }
                                               });
                                          }}>

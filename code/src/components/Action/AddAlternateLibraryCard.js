@@ -24,7 +24,7 @@ import {
      InputIcon,
      useToast
 } from '@gluestack-ui/themed';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -37,6 +37,7 @@ import { EyeOff, Eye } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const AddAlternateLibraryCard = (props) => {
      const {
@@ -67,8 +68,7 @@ export const AddAlternateLibraryCard = (props) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           recordSource,
-          activeAccount,
-     } = props;
+          activeAccount } = props;
 
      let isPlacingHold = false;
      if (_.isObject(action)) {
@@ -80,7 +80,7 @@ export const AddAlternateLibraryCard = (props) => {
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const { width } = useWindowDimensions();
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
@@ -117,18 +117,14 @@ export const AddAlternateLibraryCard = (props) => {
 
      const source = {
           baseUrl: library.baseUrl,
-          html: formMessage,
-     };
+          html: formMessage };
 
      const tagsStyles = {
           body: {
-               color: textColor,
-          },
+               color: textColor },
           a: {
                color: textColor,
-               textDecorationColor: textColor,
-          },
-     };
+               textDecorationColor: textColor } };
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
@@ -223,8 +219,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             title: result.title,
                                                             confirmationNeeded: result.confirmationNeeded ?? false,
                                                             confirmationId: result.confirmationId ?? null,
-                                                            recordId: id ?? null,
-                                                       };
+                                                            recordId: id ?? null };
                                                        tmp = _.merge(obj, tmp);
                                                        setHoldConfirmationResponse(tmp);
                                                   }
@@ -237,8 +232,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             patronId: activeAccount,
                                                             pickupLocation: location,
                                                             bibId: id ?? null,
-                                                            items: result.items ?? [],
-                                                       };
+                                                            items: result.items ?? [] };
 
                                                        tmp = _.merge(obj, tmp);
                                                        setHoldSelectItemResponse(tmp);

@@ -1,16 +1,6 @@
-import { useToken } from '@gluestack-ui/themed';
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { logDebugMessage, logInfoMessage } from '../util/logging.js';
-import { formatDiscoveryVersion } from '../helpers/helpers';
-
-export const ThemeContext = React.createContext({
-     theme: [],
-     updateTheme: () => {},
-     colorMode: 'light',
-     updateColorMode: () => {},
-     resetTheme: () => {},
-});
+import { logDebugMessage } from '../util/logging.js';
 export const DiscoveryContext = React.createContext();
 export const CheckoutsContext = React.createContext({
      updateCheckouts: () => {},
@@ -55,57 +45,6 @@ export const SearchContext = React.createContext({
      resetSearch: () => {},
 });
 
-export const ThemeProvider = ({ children }) => {
-     const [theme, setTheme] = useState([]);
-     const [colorMode, setColorMode] = useState('light');
-     const [textColor, setTextColor] = useState('textLight50');
-     const darkText = useToken('colors', 'textLight950');
-     const lightText = useToken('colors', 'textLight50');
-
-     const updateTheme = (data) => {
-          setTheme(data);
-     };
-
-     const updateColorMode = (data) => {
-          if (data !== colorMode) {
-               setColorMode(data);
-               logDebugMessage('Updated color mode in context to ' + data);
-          }
-          if (data === 'light') {
-               updateTextColor(darkText);
-          }
-
-          if (data === 'dark') {
-               updateTextColor(lightText);
-          }
-     };
-
-     const updateTextColor = (data) => {
-          if (data != textColor) {
-               setTextColor(data);
-               logDebugMessage('Updated text color in context');
-          }
-     };
-
-     const resetTheme = () => {
-          setTheme([]);
-     };
-
-     return (
-          <ThemeContext.Provider
-               value={{
-                    theme,
-                    updateTheme,
-                    colorMode,
-                    updateColorMode,
-                    textColor,
-                    updateTextColor,
-                    resetTheme,
-               }}>
-               {children}
-          </ThemeContext.Provider>
-     );
-};
 
 export const DiscoveryProvider = ({ children }) => {
      const [version, setVersion] = useState();

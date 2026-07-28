@@ -11,7 +11,7 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -19,6 +19,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -81,8 +82,7 @@ export const AllLocations = () => {
                onError: (error) => {
                     logDebugMessage("Error fetching locations");
                     logErrorMessage(error);
-               },
-          }
+               } }
      );
 
       // Sync API query response to global Context
@@ -125,8 +125,7 @@ export const AllLocations = () => {
                     borderBottomWidth="$1"
                     _dark={{
                          borderColor: '$coolGray600',
-                         bgColor: '$coolGray700',
-                    }}
+                         bgColor: '$coolGray700' }}
                     borderColor="$coolGray200">
                     <ButtonGroup alignItems="center" isAttached>
                          <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('alphabetical')}>
@@ -170,7 +169,7 @@ export const AllLocations = () => {
 
 const DisplayLocation = (data) => {
      const language = useActiveLanguage();
-     const {textColor} = React.useContext(ThemeContext);
+     const {textColor} = useTheme();
      const location = data.data;
 
      let units = false;
@@ -228,8 +227,7 @@ const DisplayLocation = (data) => {
      const goToLocation = () => {
           navigate('Location', {
                data: location,
-               title: location.displayName,
-          });
+               title: location.displayName });
      };
 
      return (

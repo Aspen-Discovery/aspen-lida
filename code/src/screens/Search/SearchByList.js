@@ -8,13 +8,14 @@ import { loadError } from '../../components/loadError';
 
 // custom components and helper files
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { DisplayResult } from './DisplayResult';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { fetchSearchResultsForList } from '../../util/api/search';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -28,7 +29,7 @@ export const SearchResultsForList = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const url = library.baseUrl;
 
@@ -57,8 +58,7 @@ export const SearchResultsForList = () => {
           onError: (error) => {
                logDebugMessage('Error searching by list');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {

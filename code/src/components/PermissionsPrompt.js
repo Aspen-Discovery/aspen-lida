@@ -1,13 +1,14 @@
 import * as Linking from 'expo-linking';
 import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Button, ButtonGroup, ButtonText, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { ThemeContext } from '../context/initialContext';
+
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { useActiveLanguage } from '../hooks/useLanguageData';
+import { useTheme } from '../themes/theme';
 
 export const PermissionsPrompt = (data) => {
      const { promptTitle, promptBody, setShouldRequestPermissions, updateStatus } = data;
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
      const language = useActiveLanguage();
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {

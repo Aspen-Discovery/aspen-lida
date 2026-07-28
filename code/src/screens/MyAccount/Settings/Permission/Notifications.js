@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
-import { ThemeContext } from '../../../../context/initialContext';
+
 import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
@@ -14,10 +14,11 @@ import Constants from 'expo-constants';
 import { useNotificationPermissions, useNotificationPreferences } from '../../../../hooks/useNotifications';
 import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
 import { useActiveLanguage } from '../../../../hooks/useLanguageData';
+import { useTheme } from '../../../../themes/theme';
 
 export const NotificationPermissionStatus = () => {
     const language = useActiveLanguage();
-    const { textColor } = React.useContext(ThemeContext);
+    const { textColor } = useTheme();
     const library = useLibrary();
     const { data: userState } = useUserState();
     const expoToken = userState?.expoToken ?? false;
@@ -71,7 +72,7 @@ export const NotificationPermissionDescription = () => {
     const route = useRoute();
     const prevRoute = route.params?.prevRoute ?? null;
 
-    const { theme, textColor } = React.useContext(ThemeContext);
+    const { theme, textColor } = useTheme();
     const language = useActiveLanguage();
     const library = useLibrary();
     const { data: notifSettings } = useNotificationSettings();
@@ -113,8 +114,7 @@ export const NotificationPermissionDescription = () => {
                             as={ChevronLeftIcon}
                         />
                     </Button>
-                ),
-            });
+                ) });
         }
     }, [navigation, prevRoute, theme]);
 
@@ -241,7 +241,7 @@ export const NotificationPermissionDescription = () => {
 };
 
 const NotificationPreferencesSection = ({ preferences, updatePreference, notificationSettings }) => {
-    const { textColor } = React.useContext(ThemeContext);
+    const { textColor } = useTheme();
 
     return (
         <>
@@ -260,7 +260,7 @@ const NotificationPreferencesSection = ({ preferences, updatePreference, notific
 
 const NotificationPermissionUsage = () => {
     const language = useActiveLanguage();
-    const { textColor } = React.useContext(ThemeContext);
+    const { textColor } = useTheme();
 
     return (
         <Accordion variant="unfilled" width="$full" size="sm">
@@ -291,7 +291,7 @@ const NotificationPermissionUsage = () => {
 };
 
 const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermissions, revokeNotificationPermissions }) => {
-    const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+    const { colorMode, theme, textColor } = useTheme();
     const language = useActiveLanguage();
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [showAlertDialog, setShowAlertDialog] = React.useState(false);

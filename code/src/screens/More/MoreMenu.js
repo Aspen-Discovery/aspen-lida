@@ -29,7 +29,7 @@ import {
 import React from 'react';
 import { popToast } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { useLibrary, useLibraryMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -38,12 +38,13 @@ import { deleteAspenUser } from '../../util/api/user';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const MoreMenu = () => {
      const language = useActiveLanguage();
      const library = useLibrary();
      const menu = useLibraryMenu();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      const { signOut } = React.useContext(AuthContext);
      const hasMenuItems = _.size(menu);
@@ -55,8 +56,7 @@ export const MoreMenu = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: null,
-          });
+               headerLeft: null });
      }, [navigation]);
 
      const initiateDeleteAspenUser = async () => {
@@ -178,7 +178,7 @@ const MyLibrary = () => {
      const location = useLibraryLocation();
      const language = useActiveLanguage();
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      let isClosedToday = false;
      let hoursLabel = '';
@@ -241,7 +241,7 @@ const MyLibrary = () => {
 const ViewAllLocations = () => {
      const language = useActiveLanguage();
      const locations = useAvailableLocations();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      if (_.size(locations) > 1) {
           return (
@@ -259,7 +259,7 @@ const ViewAllLocations = () => {
 
 const Settings = () => {
      const language = useActiveLanguage();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      return (
           <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
@@ -273,7 +273,7 @@ const Settings = () => {
 
 const DeleteAccount = () => {
      const language = useActiveLanguage();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
 
      return (
          <Pressable px="$2" py="$3" onPress={() => navigate('MyPreferences')}>
@@ -288,7 +288,7 @@ const DeleteAccount = () => {
 const PrivacyPolicy = () => {
      const language = useActiveLanguage();
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -298,8 +298,7 @@ const PrivacyPolicy = () => {
           showTitle: false,
           toolbarColor: backgroundColor,
           controlsColor: textColor,
-          secondaryToolbarColor: backgroundColor,
-     };
+          secondaryToolbarColor: backgroundColor };
 
      const openURL = async () => {
           const url = appendQuery(LIBRARY.appSettings?.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
@@ -360,7 +359,7 @@ const MenuLink = (payload) => {
      let categoryLabel = _.sample(categories);
      categoryLabel = categoryLabel.category;
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -370,8 +369,7 @@ const MenuLink = (payload) => {
           showTitle: false,
           toolbarColor: backgroundColor,
           controlsColor: textColor,
-          secondaryToolbarColor: backgroundColor,
-     };
+          secondaryToolbarColor: backgroundColor };
 
      const [expanded, setExpanded] = React.useState(false);
 
@@ -389,8 +387,7 @@ const MenuLink = (payload) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           let formattedUrl = url;
           if (!isValidHttpUrl(url)) {

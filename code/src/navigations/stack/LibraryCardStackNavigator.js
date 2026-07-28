@@ -8,8 +8,9 @@ import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
 
+const Stack = createNativeStackNavigator();
+
 const LibraryCardStackNavigator = () => {
-     const Stack = createNativeStackNavigator();
      const language = useActiveLanguage();
      return (
           <Stack.Navigator

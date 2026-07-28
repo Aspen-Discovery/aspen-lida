@@ -15,7 +15,7 @@ import {
 import React, { useContext, useLayoutEffect, useState } from 'react';
 
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState, useAccounts, useViewers, useCards, useUpdateAccounts, useUpdateViewers, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { toArray } from '../../../helpers/helpers';
@@ -27,6 +27,7 @@ import DisableAccountLinking from './DisableAccountLinking';
 import EnableAccountLinking from './EnableAccountLinking';
 import { logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();
@@ -36,7 +37,7 @@ export const MyLinkedAccounts = () => {
      const { data: viewers } = useViewers();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useContext(ThemeContext);
+     const { textColor } = useTheme();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = useContext(SystemMessagesContext);
 
@@ -53,8 +54,7 @@ export const MyLinkedAccounts = () => {
 
      useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
 
@@ -166,7 +166,7 @@ const Account = ({ account, type }) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useContext(ThemeContext);
+     const { textColor } = useTheme();
      const toast = useToast();
 
      const refreshLinkedAccounts = async () => {

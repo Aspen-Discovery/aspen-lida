@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
 import { fetchSavedSearches } from '../../../util/api/list';
 import { loadError } from '../../../components/loadError';
@@ -13,6 +13,7 @@ import { navigateStack } from '../../../helpers/RootNavigator';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();
@@ -22,14 +23,13 @@ export const MySavedSearches = () => {
      const updateSavedSearches = useUpdateSavedSearches();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      useFocusEffect(
@@ -104,7 +104,7 @@ export const MySavedSearches = () => {
 const Item = (data) => {
      const language = useActiveLanguage();
      const item = data.data;
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
 
      let hasNewResults = 0;
      if (item?.hasNewResults !== undefined) {
@@ -115,8 +115,7 @@ const Item = (data) => {
           navigateStack('AccountScreenTab', 'MySavedSearch', {
                id: item.id,
                details: item,
-               title: item.title,
-          });
+               title: item.title });
      };
 
      return (

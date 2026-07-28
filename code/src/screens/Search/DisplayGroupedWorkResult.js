@@ -5,13 +5,14 @@ import _ from 'lodash';
 import React from 'react';
 
 // custom components and helper files
-import { ThemeContext } from '../../context/initialContext';
+
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getFormats } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -20,7 +21,7 @@ export const DisplayGroupedWorkResult = (props) => {
      let params = useRoute();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      let formats = item?.itemList ?? [];
      const id = item.key ?? item.id;
@@ -53,8 +54,7 @@ export const DisplayGroupedWorkResult = (props) => {
           navigate('GroupedWorkScreen', {
                id: id,
                title: getCleanTitle(title),
-               url: library.baseUrl,
-          });
+               url: library.baseUrl });
      };
 
      function getFormat(n) {
@@ -92,8 +92,7 @@ export const DisplayGroupedWorkResult = (props) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -103,13 +102,11 @@ export const DisplayGroupedWorkResult = (props) => {
                               <Center
                                    mt="$1"
                                    sx={{
-                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                   }}>
+                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                        }}>
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                         <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} fontSize="$xs" textAlign="center">
                                              {item.language}
                                         </BadgeText>

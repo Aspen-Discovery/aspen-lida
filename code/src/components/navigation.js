@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, ThemeContext } from '../context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -49,6 +49,7 @@ try {
 
 import { AuthContext } from '../context/AuthContext';
 import { useActiveLanguage } from '../hooks/useLanguageData';
+import { useTheme } from '../themes/theme';
 export { AuthContext };
 
 const iOSRelease = Constants.expoConfig.ios.bundleIdentifier;
@@ -84,8 +85,7 @@ try {
           release: releaseCode,
           dist: distribution,
           autoInject: false,
-          integrations: integrations,
-     });
+          integrations: integrations });
 
      Sentry.setTag('patch', GLOBALS.appPatch);
      Sentry.setTag('stage', GLOBALS.appStage);
@@ -104,32 +104,28 @@ export function App() {
                               ...prevState,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true,
-                         };
+                              refreshUserData: true };
                     case 'SIGN_IN':
                          return {
                               ...prevState,
                               isSignOut: false,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true,
-                         };
+                              refreshUserData: true };
                     case 'SIGN_OUT':
                          return {
                               ...prevState,
                               isSignOut: true,
                               userToken: null,
                               isLoading: false,
-                              refreshUserData: false,
-                         };
+                              refreshUserData: false };
                }
           },
           {
                isLoading: true,
                isSignOut: false,
                userToken: null,
-               refreshUserData: false,
-          }
+               refreshUserData: false }
      );
 
      React.useEffect(() => {
@@ -212,8 +208,7 @@ export function App() {
                dispatch({
                     type: 'RESTORE_TOKEN',
                     token: userToken,
-                    refreshData: true,
-               });
+                    refreshData: true });
           };
           bootstrapAsync();
      }, []);
@@ -248,14 +243,12 @@ export function App() {
                     dispatch({
                          type: 'SIGN_IN',
                          token: userToken,
-                         refreshData: true,
-                    });
+                         refreshData: true });
                },
                signOut: async () => {
                     logDebugMessage('Session ended.');
                     dispatch({ type: 'SIGN_OUT' });
-               },
-          }),
+               } }),
           []
      );
 
@@ -266,20 +259,18 @@ export function App() {
 
      return (
           <AuthContext.Provider value={authContext}>
-               <ThemeProvider>
-                    <SystemMessagesProvider>
-                          <SearchProvider>
-                               <CheckoutsProvider>
-                                    <HoldsProvider>
-                                         <GroupedWorkProvider>
-                                              {/* Pass state safely to the child container */}
-                                              <AppContent state={state} />
-                                         </GroupedWorkProvider>
-                                    </HoldsProvider>
-                               </CheckoutsProvider>
-                          </SearchProvider>
-                    </SystemMessagesProvider>
-               </ThemeProvider>
+               <SystemMessagesProvider>
+                     <SearchProvider>
+                          <CheckoutsProvider>
+                               <HoldsProvider>
+                                    <GroupedWorkProvider>
+                                         {/* Pass state safely to the child container */}
+                                         <AppContent state={state} />
+                                    </GroupedWorkProvider>
+                               </HoldsProvider>
+                          </CheckoutsProvider>
+                     </SearchProvider>
+               </SystemMessagesProvider>
           </AuthContext.Provider>
      );
 }
@@ -294,7 +285,7 @@ function AppContent({state}) {
      }, [state.isSignOut]);
 
      const language = useActiveLanguage();
-     const { colorMode } = React.useContext(ThemeContext);
+     const { colorMode } = useTheme();
 
      const primaryColor = useToken('colors', 'primary.base');
      const primaryColorContrast = useToken('colors', 'primary.baseContrast');
@@ -304,18 +295,14 @@ function AppContent({state}) {
                ...DefaultTheme.colors,
                background: '#f5f5f4', // Equivalent to $backgroundLight50
                card: '#ffffff',
-               text: '#171717',
-          },
-     };
+               text: '#171717' } };
      const darkTheme = {
           ...DarkTheme,
           colors: {
                ...DarkTheme.colors,
                background: '#111827', // Equivalent to $backgroundDark900
                card: '#1f2937',
-               text: '#fafafa',
-          },
-     };
+               text: '#fafafa' } };
 
      return (
           <NavigationContainer
@@ -345,36 +332,20 @@ function AppContent({state}) {
                                                                       MyPreferences: 'user/preferences',
                                                                       MyProfile: 'user',
                                                                       MyReadingHistory: 'user/reading_history',
-                                                                      MyCampaigns: 'user/campaigns',
-                                                                 },
-                                                            },
+                                                                      MyCampaigns: 'user/campaigns' } },
                                                             LibraryCardTab: {
                                                                  screens: {
-                                                                      LibraryCard: 'user/library_card',
-                                                                 },
-                                                            },
+                                                                      LibraryCard: 'user/library_card' } },
                                                             SearchTab: {
                                                                  screens: {
                                                                       SearchByCategory: 'search/browse_category',
                                                                       SearchByAuthor: 'search/author',
-                                                                      SearchByList: 'search/list',
-                                                                 },
-                                                            },
+                                                                      SearchByList: 'search/list' } },
                                                             BrowseTab: {
                                                                  screens: {
                                                                       HomeScreen: 'home',
                                                                       GroupedWorkScreen: 'search/grouped_work',
-                                                                      SearchResults: 'search',
-                                                                 },
-                                                            },
-                                                       },
-                                                  },
-                                             },
-                                        },
-                                   },
-                              },
-                         },
-                    },
+                                                                      SearchResults: 'search' } } } } } } } } } },
                     async getInitialURL() {
                          let url = await Linking.getInitialURL();
 
@@ -402,12 +373,10 @@ function AppContent({state}) {
                               subscription.remove();
                               linkingSubscription.remove();
                          };
-                    },
-               }}>
+                    } }}>
                <Stack.Navigator
                     screenOptions={{
-                         headerShown: false,
-                    }}
+                         headerShown: false }}
                     name="RootNavigator">
                     {state.userToken === null ? (
                          // No token found, user isn't signed in
@@ -416,8 +385,7 @@ function AppContent({state}) {
                               component={LoginScreen}
                               options={{
                                    headerShown: false,
-                                   animationTypeForReplace: state.isSignOut ? 'pop' : 'push',
-                              }}
+                                   animationTypeForReplace: state.isSignOut ? 'pop' : 'push' }}
                          />
                     ) : (
                          // User is signed in
@@ -427,8 +395,7 @@ function AppContent({state}) {
                          name="LibraryCardScanner"
                          component={LibraryCardScanner}
                          options={{
-                              presentation: 'modal',
-                         }}
+                              presentation: 'modal' }}
                     />
                     <Stack.Screen
                          name="SelfRegistration"
@@ -441,8 +408,7 @@ function AppContent({state}) {
                               headerShown: true,
                               presentation: 'card',
                               gestureEnabled: false,
-                              headerBackTitleVisible: false,
-                         }}
+                              headerBackTitleVisible: false }}
                     />
                </Stack.Navigator>
           </NavigationContainer>

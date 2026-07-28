@@ -47,7 +47,7 @@ import { EyeOff, Eye } from 'lucide-react-native';
 import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RenderHtml from 'react-native-render-html';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
@@ -61,6 +61,7 @@ import { SelectVolume } from './SelectVolume';
 import { SelectNewHoldSublocation } from './SelectNewHoldSublocation';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../../util/logging.js';
+import { useTheme } from '../../../themes/theme';
 
 export const HoldPrompt = (props) => {
      // 1. ALL HOOK DECLARATIONS FIRST (Unconditional & Predictable Order)
@@ -78,7 +79,7 @@ export const HoldPrompt = (props) => {
      const { data: sublocations } = useSublocations();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
 
      const {
           language,
@@ -181,8 +182,7 @@ export const HoldPrompt = (props) => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['copies', id, variationId, language, library.baseUrl],
           queryFn: () => getCopies(id, language, variationId, library.baseUrl),
-          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId),
-     });
+          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId) });
 
      // Effect Hooks
      React.useEffect(() => {
@@ -205,8 +205,7 @@ export const HoldPrompt = (props) => {
           smsNotification: smsNotification,
           phoneNumber: phoneNumber,
           smsNumber: smsNumber,
-          smsCarrier: smsCarrier,
-     };
+          smsCarrier: smsCarrier };
 
      let promptForHoldType = false;
      let derivedTypeOfHold = typeOfHold;
@@ -258,13 +257,11 @@ export const HoldPrompt = (props) => {
 
      const source = {
           baseUrl: library.baseUrl,
-          html: formMessage,
-     };
+          html: formMessage };
 
      const tagsStyles = {
           body: { color: textColor },
-          a: { color: textColor, textDecorationColor: textColor },
-     };
+          a: { color: textColor, textDecorationColor: textColor } };
 
 
      // 3. EVENT HANDLERS & CALLBACKS
@@ -430,8 +427,7 @@ export const HoldPrompt = (props) => {
                                                                  title: result.title,
                                                                  confirmationNeeded: result.confirmationNeeded ?? false,
                                                                  confirmationId: result.confirmationId ?? null,
-                                                                 recordId: id ?? null,
-                                                            };
+                                                                 recordId: id ?? null };
                                                             tmp = _.merge(obj, tmp);
                                                             setHoldConfirmationResponse(tmp);
                                                        }
@@ -444,8 +440,7 @@ export const HoldPrompt = (props) => {
                                                                  patronId: activeAccount,
                                                                  pickupLocation: location,
                                                                  bibId: id ?? null,
-                                                                 items: result.items ?? [],
-                                                            };
+                                                                 items: result.items ?? [] };
 
                                                             tmp = _.merge(obj, tmp);
                                                             setHoldSelectItemResponse(tmp);
@@ -671,8 +666,7 @@ export const HoldPrompt = (props) => {
                                                                       title: result.title,
                                                                       confirmationNeeded: result.confirmationNeeded ?? false,
                                                                       confirmationId: result.confirmationId ?? null,
-                                                                      recordId: id ?? null,
-                                                                 };
+                                                                      recordId: id ?? null };
                                                                  tmp = _.merge(obj, tmp);
                                                                  setHoldConfirmationResponse(tmp);
                                                             }
@@ -685,8 +679,7 @@ export const HoldPrompt = (props) => {
                                                                       patronId: activeAccount,
                                                                       pickupLocation: location,
                                                                       bibId: id ?? null,
-                                                                      items: result.items ?? [],
-                                                                 };
+                                                                      items: result.items ?? [] };
 
                                                                  tmp = _.merge(obj, tmp);
                                                                  setHoldSelectItemResponse(tmp);

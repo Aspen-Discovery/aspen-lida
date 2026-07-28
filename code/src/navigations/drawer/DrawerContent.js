@@ -23,7 +23,7 @@ import {
      VStack,
      useToast
 } from '@gluestack-ui/themed';
-import { useColorModeValue, UseColorMode } from '../../themes/theme';
+import { useColorModeValue, UseColorMode, useTheme } from '../../themes/theme';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { AppState, Platform, View } from 'react-native';
@@ -31,21 +31,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { ThemeContext, CheckoutsContext, HoldsContext } from '../../context/initialContext';
+import { CheckoutsContext, HoldsContext } from '../../context/initialContext';
 import {
      useCatalogStatus,
      useLibrary,
      useUpdateCatalogStatus,
-     useUpdateHomeScreenLinks,
-} from '../../hooks/useLibrarySystemData';
+     useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
-     useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups,
-} from '../../hooks/useUserData';
+     useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups } from '../../hooks/useUserData';
 import {
      useBrowseCategories, useMaxCategories, useUpdateBrowseCategories,
-     useBrowseCategoryExpiration,
-} from '../../hooks/useBrowseCategoryData';
+     useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
@@ -69,9 +66,7 @@ Notifications.setNotificationHandler({
      handleNotification: async () => ({
           shouldShowAlert: true,
           shouldPlaySound: true,
-          shouldSetBadge: false,
-     }),
-});
+          shouldSetBadge: false }) });
 
 const prefix = Linking.createURL('/');
 const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
@@ -87,8 +82,7 @@ const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
           initialData,
           placeholderData,
           retry = 0,
-          runOnMount = false,
-     } = queryOptions;
+          runOnMount = false } = queryOptions;
 
      const { onSuccess, onError } = callbacks;
      const onSuccessRef = React.useRef(onSuccess);
@@ -183,8 +177,7 @@ const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
           isError: false,
           dataUpdatedAt: 0,
           errorUpdatedAt: 0,
-          refetch: executeQuery,
-     };
+          refetch: executeQuery };
 };
 
 export const DrawerContent = (props) => {
@@ -247,8 +240,7 @@ export const DrawerContent = (props) => {
           enabled: !!library.baseUrl,
           refetchInterval: 60 * 1000 * 5,
           refetchIntervalInBackground: true,
-          refetchOnWindowFocus: 'always',
-     }, {
+          refetchOnWindowFocus: 'always' }, {
           onSuccess: (data) => {
                if(data.ok) {
                     let catalogMessage = null;
@@ -275,8 +267,7 @@ export const DrawerContent = (props) => {
           queryFn: () => refreshProfile(library.baseUrl),
           refetchInterval: 60 * 1000 * 5,
           refetchIntervalInBackground: true,
-          refetchOnWindowFocus: 'always',
-     }, {
+          refetchOnWindowFocus: 'always' }, {
           onSuccess: async (data) => {
                if(data.ok) {
                     logDebugMessage("Refreshed user in Drawer Content");
@@ -363,8 +354,7 @@ export const DrawerContent = (props) => {
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always',
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: (data) => {
                if(data.ok) {
                     let holds = formatHolds(data.data.result.holds ?? []);
@@ -387,8 +377,7 @@ export const DrawerContent = (props) => {
           queryFn: () => getPatronCheckedOutItems('all', library.baseUrl, false, language),
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
-          refetchOnWindowFocus: 'always',
-     }, {
+          refetchOnWindowFocus: 'always' }, {
           onSuccess: (data) => {
                if(data.ok) {
                     let checkouts = data.data.result.checkedOutItems ?? [];
@@ -413,8 +402,7 @@ export const DrawerContent = (props) => {
           refetchIntervalInBackground: true,
           notifyOnChangeProps: ['data'],
           refetchOnWindowFocus: 'always',
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: async (data) => {
                if(data.ok) {
                     await updateLists(data.data.result);
@@ -437,8 +425,7 @@ export const DrawerContent = (props) => {
           refetchIntervalInBackground: true,
           notifyOnChangeProps: ['data'],
           refetchOnWindowFocus: 'always',
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: async (data) => {
                if (data.ok) {
                     await updateLists({ ...data.data.result, lists: formatLists(data.data.result) });
@@ -451,8 +438,7 @@ export const DrawerContent = (props) => {
           onError: (error) => {
                logDebugMessage('Error fetching all user lists');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      useQueryWithCallbacks({
           queryKey: ['list_groups', user.id, library.baseUrl, language],
@@ -461,8 +447,7 @@ export const DrawerContent = (props) => {
           refetchIntervalInBackground: true,
           notifyOnChangeProps: ['data'],
           refetchOnWindowFocus: 'always',
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: async (data) => {
                if(data.ok) {
                     const groups = {
@@ -488,8 +473,7 @@ export const DrawerContent = (props) => {
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
           notifyOnChangeProps: ['data'],
-          refetchOnWindowFocus: 'always',
-     }, {
+          refetchOnWindowFocus: 'always' }, {
           onSuccess: async (data) => {
                if(data.ok) {
                     const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
@@ -512,8 +496,7 @@ export const DrawerContent = (props) => {
           queryFn: () => getPickupLocations(library.baseUrl),
           refetchInterval: 60 * 1000 * 30,
           refetchIntervalInBackground: true,
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: async (data) => {
                logDebugMessage("Finished pickup_locations query, setting data");
                if(data.ok) {
@@ -540,8 +523,7 @@ export const DrawerContent = (props) => {
           queryFn: () => getPickupSublocations(library.baseUrl),
           refetchInterval: 60 * 1000 * 30,
           refetchIntervalInBackground: true,
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: (data) => {
                logDebugMessage('Finished pickup_sub_locations query, setting data');
                if (data) {
@@ -555,8 +537,7 @@ export const DrawerContent = (props) => {
           onError: (error) => {
                logDebugMessage('Error fetching pickup sublocations');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      useQueryWithCallbacks({
           queryKey: ['locations', library.baseUrl, language, userLatitude, userLongitude],
@@ -565,8 +546,7 @@ export const DrawerContent = (props) => {
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always',
           placeholderData: [],
-          enabled: !!userLatitude && !!userLongitude && userLatitude !== '0' && userLongitude !== '0',
-     }, {
+          enabled: !!userLatitude && !!userLongitude && userLatitude !== '0' && userLongitude !== '0' }, {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
@@ -581,16 +561,14 @@ export const DrawerContent = (props) => {
           onError: (error) => {
                logDebugMessage("Error fetching locations");
                logErrorMessage(error);
-          },
-     });
+          } });
 
      useQueryWithCallbacks({
           queryKey: ['browse_categories_list', library.baseUrl, language],
           queryFn: () => getBrowseCategoryListForUser(library.baseUrl),
           refetchInterval: 60 * 1000 * 15,
           refetchIntervalInBackground: true,
-          placeholderData: [],
-     }, {
+          placeholderData: [] }, {
           onSuccess: (data) => {
                logDebugMessage("Fetched Browse Categories List");
                if(data.ok){
@@ -614,8 +592,7 @@ export const DrawerContent = (props) => {
           initialData: GLOBALS.appSessionId,
           refetchInterval: 86400000,
           refetchIntervalInBackground: true,
-          retry: 5,
-     }, {
+          retry: 5 }, {
           onSuccess: (data) => {
                if(data.ok) {
                     if (typeof data.data.result?.session !== 'undefined') {
@@ -793,8 +770,7 @@ export const DrawerContent = (props) => {
                     contentContainerStyle={{
                          flexGrow: 1,
                          paddingTop: insets.top,
-                         paddingBottom: insets.bottom,
-                    }}
+                         paddingBottom: insets.bottom }}
                >
                     <VStack space="$md" mx="$3" flex={1}>
                          <UserProfileOverview />
@@ -842,7 +818,7 @@ const UserProfileOverview = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      const icon = library.logoApp ?? library.favicon ?? Constants.expoConfig.ios.icon;
 
@@ -881,7 +857,7 @@ const Checkouts = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Pressable
@@ -891,8 +867,7 @@ const Checkouts = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyCheckouts', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -917,7 +892,7 @@ const Checkouts = () => {
 const Holds = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
 
@@ -929,8 +904,7 @@ const Holds = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyHolds', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
@@ -957,7 +931,7 @@ const UserLists = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Pressable
@@ -967,8 +941,7 @@ const UserLists = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyLists', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -990,7 +963,7 @@ const SavedSearches = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Pressable
@@ -1000,8 +973,7 @@ const SavedSearches = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MySavedSearches', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1028,7 +1000,7 @@ const ReadingHistory = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Pressable
@@ -1038,8 +1010,7 @@ const ReadingHistory = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyReadingHistory', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1059,7 +1030,7 @@ const ReadingHistory = () => {
 const UserProfile = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Pressable
@@ -1068,8 +1039,7 @@ const UserProfile = () => {
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyProfile', {
                          libraryUrl: library.baseUrl,
-                         hasPendingChanges: false,
-                    });
+                         hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
                     <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1082,7 +1052,7 @@ const UserProfile = () => {
 const NotificationHistory = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
           return (
@@ -1091,8 +1061,7 @@ const NotificationHistory = () => {
                     py="$2"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyNotificationHistory', {
-                              hasPendingChanges: false,
-                         });
+                              hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1110,7 +1079,7 @@ const LinkedAccounts = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      if (library.allowLinkedAccounts === '1') {
           return (
@@ -1120,8 +1089,7 @@ const LinkedAccounts = () => {
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyLinkedAccounts', {
                               libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         })
+                              hasPendingChanges: false })
                     }>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1140,7 +1108,7 @@ const LinkedAccounts = () => {
 const AlternateLibraryCard = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      const shouldShowAlternateLibraryCard = library.showAlternateLibraryCard ?? false;
 
@@ -1153,8 +1121,7 @@ const AlternateLibraryCard = () => {
                     onPress={() => {
                          navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                               prevRoute: 'AccountDrawer',
-                              hasPendingChanges: false,
-                         });
+                              hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1172,7 +1139,7 @@ const Fines = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor: themeTextColor } = React.useContext(ThemeContext);
+     const { textColor: themeTextColor } = useTheme();
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
@@ -1215,7 +1182,7 @@ const Events = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      if (library.hasEventSettings) {
           return (
@@ -1226,8 +1193,7 @@ const Events = () => {
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyEvents', {
                               libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         });
+                              hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1252,7 +1218,7 @@ const Events = () => {
 const YearInReview = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor: themeTextColor } = React.useContext(ThemeContext);
+     const { textColor: themeTextColor } = useTheme();
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
@@ -1287,7 +1253,7 @@ const YearInReview = () => {
 const Campaigns = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      if (library.hasCommunityEngagementEnabled) {
           return(
                <Pressable
@@ -1297,8 +1263,7 @@ const Campaigns = () => {
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyCampaigns', {
                               libraryUrl: library.baseUrl,
-                              hasPendingChanges: false,
-                         })
+                              hasPendingChanges: false })
                     }>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
@@ -1353,7 +1318,7 @@ async function addStoredNotification(message) {
 function LogOutButton() {
      const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
 
      return (
           <Button size="md" action="secondary" onPress={signOut} bgColor={theme.tokens.colors.primary['500']}>

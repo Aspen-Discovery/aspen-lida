@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import {getTermFromDictionary} from "../../../translations/TranslationService";
 import {Platform} from "react-native";
@@ -37,6 +37,7 @@ import {SelectNewHoldSublocation} from "../../../components/Action/Holds/SelectN
 
 import { logDebugMessage } from '../../../util/logging.js';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const Settings_PickupLocations = () => {
 	const [loading, setLoading] = React.useState(false);
@@ -47,7 +48,7 @@ export const Settings_PickupLocations = () => {
     const { data: locations } = useLocations();
 	const { data: sublocations } = useSublocations();
     const updateUserProfile = useUpdateUserProfile();
-	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+	const { theme, textColor, colorMode } = useTheme();
 	const insets = useSafeAreaInsets();
      const toast = useToast();
 

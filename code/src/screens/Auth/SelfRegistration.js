@@ -7,14 +7,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getSelfRegistrationForm, submitSelfRegistration } from '../../util/api/registration';
-import { ThemeContext } from '../../context/initialContext';
+
 
 import { ScrollView, Box, Button, ButtonGroup, ButtonText, FormControl, FormControlHelper, FormControlHelperText, Icon, Input, Text, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, CheckIcon, FormControlLabel, FormControlLabelText, InputField, HStack, KeyboardAvoidingView } from '@gluestack-ui/themed';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
+import { useTheme } from '../../themes/theme';
 
 export const SelfRegistration = () => {
 	const insets = useSafeAreaInsets();
-	const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+	const {theme, textColor, colorMode} = useTheme();
 	const route = useRoute();
 	const navigation = useNavigation();
 	const libraryUrl = route?.params?.libraryUrl ?? '';
@@ -39,8 +40,7 @@ export const SelfRegistration = () => {
                               _.forEach(properties, function (field, key) {
                                    let prop = field.property;
                                    const property = {
-                                        [prop]: '',
-                                   };
+                                        [prop]: '' };
                                    _.merge(object, property);
                               });
                          });

@@ -47,7 +47,7 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { popAlert } from '../../../components/loadError';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createList, getLists, getListGroups } from '../../../util/api/list';
@@ -56,6 +56,7 @@ import { Platform } from 'react-native';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const CreateList = (props) => {
       const { setLoading } = props;
@@ -67,7 +68,7 @@ const CreateList = (props) => {
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const { textColor, theme, colorMode } = useTheme();
       const [loading, setAdding] = React.useState(false);
       const [showModal, setShowModal] = useState(false);
 
@@ -304,8 +305,7 @@ const CreateList = (props) => {
                                                         if (groupsResponse.ok) {
                                                              await updateListGroups({
                                                                   groups: groupsResponse.data?.result?.groups ?? [],
-                                                                  unassigned: groupsResponse.data?.result?.unassigned ?? 0,
-                                                             });
+                                                                  unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
                                                         }
                                                         toggle();
                                                         popAlert(toast, getTermFromDictionary(language, 'list_created'), res.message, status);

@@ -55,7 +55,7 @@ import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState, useReadingHistory, useUpdateReadingHistory, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getAuthor, getCleanTitle, getDateLastUsed, getFormat, getTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -68,6 +68,7 @@ import { ActionsheetIcon } from '@gluestack-ui/themed';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -94,7 +95,7 @@ export const MyReadingHistory = () => {
           return systemMessages.filter((obj) => obj.showOn === '0');
      }, [systemMessages]);
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const pageHistory = React.useMemo(() => {
           if (!Array.isArray(readingHistory?.history)) return [];
           return readingHistory.history.slice(0, pageSize);
@@ -104,13 +105,11 @@ export const MyReadingHistory = () => {
           title: 'Sort by Title',
           author: 'Sort by Author',
           format: 'Sort by Format',
-          last_used: 'Sort by Last Used',
-     });
+          last_used: 'Sort by Last Used' });
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -119,8 +118,7 @@ export const MyReadingHistory = () => {
                title: getTermFromDictionary(language, 'sort_by_title').includes('%1%') ? prev.title : getTermFromDictionary(language, 'sort_by_title'),
                author: getTermFromDictionary(language, 'sort_by_author').includes('%1%') ? prev.author : getTermFromDictionary(language, 'sort_by_author'),
                format: getTermFromDictionary(language, 'sort_by_format').includes('%1%') ? prev.format : getTermFromDictionary(language, 'sort_by_format'),
-               last_used: getTermFromDictionary(language, 'sort_by_last_used').includes('%1%') ? prev.last_used : getTermFromDictionary(language, 'sort_by_last_used'),
-          }));
+               last_used: getTermFromDictionary(language, 'sort_by_last_used').includes('%1%') ? prev.last_used : getTermFromDictionary(language, 'sort_by_last_used') }));
      }, [language]);
 
      const [isOpen, setIsOpen] = React.useState(false);
@@ -275,7 +273,7 @@ export const MyReadingHistory = () => {
      };
 
      const getActionButtons = () => {
-          const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+          const { theme, textColor, colorMode } = useTheme();
 
           let sortLength = 8 * sortBy.last_used.length + 80;
           if (sort === 'author') {
@@ -549,7 +547,7 @@ const Item = React.memo(({ data: item, onDelete }) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const {textColor, colorMode } = React.useContext(ThemeContext);
+     const {textColor, colorMode } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [deleting, setDelete] = React.useState(false);
@@ -564,8 +562,7 @@ const Item = React.memo(({ data: item, onDelete }) => {
                title: getCleanTitle(title),
                url: library.baseUrl,
                userContext: user,
-               libraryContext: library,
-          });
+               libraryContext: library });
      };
 
      const refreshAndSaveUserProfile = React.useCallback(async () => {
@@ -598,8 +595,7 @@ const Item = React.memo(({ data: item, onDelete }) => {
                                    style={{
                                         width: 100,
                                         height: 150,
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"

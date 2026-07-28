@@ -3,7 +3,7 @@ import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCategoryVisibility, useMaxCategories, useUpdateBrowseCategories } from '../../../hooks/useBrowseCategoryData';
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
@@ -12,6 +12,7 @@ import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util
 import _ from 'lodash';
 import { useToast } from '@gluestack-ui/themed';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const Settings_BrowseCategories = () => {
      const navigation = useNavigation();
@@ -20,7 +21,7 @@ export const Settings_BrowseCategories = () => {
      const language = useActiveLanguage();
      const list = useBrowseCategoryList();
      const updateBrowseCategoryList = useUpdateBrowseCategoryList();
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
 
      const [isFetching, setIsFetching] = React.useState(false);
 
@@ -67,7 +68,7 @@ const DisplayCategory = (data) => {
      const toggleSwitch = () => setToggle((previousState) => !previousState);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { colorMode, textColor, theme} = React.useContext(ThemeContext);
+     const { colorMode, textColor, theme} = useTheme();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const maxNum = useMaxCategories();
      const updateBrowseCategories = useUpdateBrowseCategories();
@@ -98,8 +99,7 @@ const DisplayCategory = (data) => {
                               <Text color="$white" bold>{error.title}</Text>
                               <Text color="$white">{error.message}</Text>
                          </Box>
-                    ),
-               });
+                    ) });
           } else {
                // Keep Home screen in sync by refreshing visible browse categories.
                const requestedMax = maxNum > 0 ? maxNum : 5;

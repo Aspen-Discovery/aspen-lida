@@ -26,7 +26,7 @@ import {
      ModalFooter,
      ModalHeader, useToast
 } from '@gluestack-ui/themed';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { freezeHold, freezeHolds } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import {logDebugMessage, logWarnMessage} from "../../../util/logging";
@@ -134,9 +134,7 @@ export const SelectThawDate = (props) => {
                                              sx={{
                                                   ':checked': {
                                                        borderColor: theme.tokens.colors.primary['500'],
-                                                       backgroundColor: theme.tokens.colors.primary['500'],
-                                                  },
-                                             }}
+                                                       backgroundColor: theme.tokens.colors.primary['500'] } }}
                                         >
                                              <CheckboxIcon
                                                   as={MaterialIcons}

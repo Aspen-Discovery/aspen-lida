@@ -4,7 +4,7 @@ import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/theme
 import React from 'react';
 
 // custom components and helper files
-import { HoldsContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext } from '../../../context/initialContext';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { refreshProfile } from '../../../util/api/user';
@@ -12,6 +12,7 @@ import { completeAction } from '../../../util/api/userHelper';
 import { HoldPrompt } from './HoldPrompt';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
+import { useTheme } from '../../../themes/theme';
 
 export const PlaceHold = (props) => {
      const queryClient = useQueryClient();
@@ -57,7 +58,7 @@ export const PlaceHold = (props) => {
       const library = useLibrary();
       const [loading, setLoading] = React.useState(false);
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const toast = useToast();
 
      const refreshAndSaveUserProfile = React.useCallback(async () => {
@@ -219,8 +220,7 @@ export const PlaceHold = (props) => {
                                              title: ilsResponse.api?.title ?? ilsResponse.title,
                                              confirmationNeeded: ilsResponse.confirmationNeeded ?? false,
                                              confirmationId: ilsResponse.confirmationId ?? null,
-                                             recordId: record ?? null,
-                                        });
+                                             recordId: record ?? null });
                                    }
                                    if (ilsResponse?.shouldBeItemHold && ilsResponse.shouldBeItemHold) {
                                         setHoldSelectItemResponse({
@@ -229,8 +229,7 @@ export const PlaceHold = (props) => {
                                              patronId: user.id,
                                              pickupLocation: pickupLocation,
                                              bibId: record ?? null,
-                                             items: ilsResponse.items ?? [],
-                                        });
+                                             items: ilsResponse.items ?? [] });
                                    }
 
                                    if (ilsResponse?.success === true || ilsResponse?.success === 'true') {

@@ -27,8 +27,7 @@ import {
      SelectScrollView,
      SelectTrigger,
      Text, useToast,
-     VStack,
-} from '@gluestack-ui/themed';
+     VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { loadError, popToast } from '../../../components/loadError';
@@ -36,7 +35,7 @@ import { loadError, popToast } from '../../../components/loadError';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
@@ -44,6 +43,7 @@ import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
 import EditList from './EditList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
 import { useActiveLanguage, useDictionary } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -62,10 +62,9 @@ export const MyList = ({ route }) => {
           title: 'Sort By Title',
           dateAdded: 'Sort By Date Added',
           recentlyAdded: 'Sort By Recently Added',
-          custom: 'Sort By User Defined',
-     });
+          custom: 'Sort By User Defined' });
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const toast = useToast();
      const [isLoading, setIsLoading] = React.useState(true);
@@ -77,8 +76,7 @@ export const MyList = ({ route }) => {
           totalPages: 1,
           hasMore: false,
           sort,
-          message: null,
-     });
+          message: null });
      const hasAppliedDefaultSort = React.useRef(false);
      const browserBackgroundColor = colorMode === 'light' ? '#ffffff' : '#111827';
      const t = React.useCallback((key, ellipsis = false, forcedLanguage) => {
@@ -90,15 +88,13 @@ export const MyList = ({ route }) => {
                weekday: 'long',
                month: 'long',
                day: 'numeric',
-               year: 'numeric',
-          }),
+               year: 'numeric' }),
           [language]
      );
      const timeFormatter = React.useMemo(
           () => new Intl.DateTimeFormat(language || undefined, {
                hour: 'numeric',
-               minute: '2-digit',
-          }),
+               minute: '2-digit' }),
           [language]
      );
 
@@ -154,8 +150,7 @@ export const MyList = ({ route }) => {
           navigateStack('AccountScreenTab', 'ListItem', {
                id: id,
                url: library.baseUrl,
-               title: getCleanTitle(title),
-          });
+               title: getCleanTitle(title) });
      };
 
      const handleOpenEvent = (item) => {
@@ -166,8 +161,7 @@ export const MyList = ({ route }) => {
                     id: item.id,
                     url: library.baseUrl,
                     title: getCleanTitle(item.title),
-                    source: item.source,
-               });
+                    source: item.source });
           }
      };
 
@@ -178,8 +172,7 @@ export const MyList = ({ route }) => {
                showTitle: false,
                toolbarColor: browserBackgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: browserBackgroundColor,
-          };
+               secondaryToolbarColor: browserBackgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     if (res.type === 'cancel' || res.type === 'dismiss') {
@@ -254,8 +247,7 @@ export const MyList = ({ route }) => {
                                         style={{
                                              width: 100,
                                              height: 150,
-                                             borderRadius: "$sm",
-                                        }}
+                                             borderRadius: "$sm" }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"

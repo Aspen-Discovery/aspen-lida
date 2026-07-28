@@ -6,16 +6,17 @@ import { useRoute } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { AppState, Platform } from 'react-native';
 
-import { ThemeContext } from '../../../../context/initialContext';
+
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useActiveLanguage } from '../../../../hooks/useLanguageData';
+import { useTheme } from '../../../../themes/theme';
 
 export const CalendarPermissionStatus = () => {
      const language = useActiveLanguage();
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const [permissionStatus, setPermissionStatus] = React.useState(false);
 
      const appState = React.useRef(AppState.currentState);
@@ -58,7 +59,7 @@ export const CalendarPermissionStatus = () => {
 };
 
 export const CalendarPermissionDescription = () => {
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const [permissionStatus, setPermissionStatus] = React.useState(useRoute().params?.permissionStatus ?? false);
      const language = useActiveLanguage();
 
@@ -88,7 +89,7 @@ export const CalendarPermissionDescription = () => {
 
 const CalendarPermissionUsage = () => {
      const language = useActiveLanguage();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      return (
           <Accordion variant="unfilled" width="$full" size="sm">
@@ -116,7 +117,7 @@ const CalendarPermissionUsage = () => {
 };
 
 const CalendarPermissionUpdate = (payload) => {
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { colorMode, theme, textColor } = useTheme();
      const language = useActiveLanguage();
      const [showAlertDialog, setShowAlertDialog] = React.useState(false);
      const [manuallyPromptPermission, setManuallyPromptPermission] = React.useState(false);

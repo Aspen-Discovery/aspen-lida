@@ -1,14 +1,15 @@
 import React from 'react';
 import { Box, ScrollView } from '@gluestack-ui/themed';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { decodeHTML } from '../../../helpers/helpers';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useTheme } from '../../../themes/theme';
 
 export const PalaceProjectInstructions = () => {
      const library = useLibrary();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const { width } = useWindowDimensions();
 
      let instructions = decodeHTML(
@@ -21,18 +22,14 @@ export const PalaceProjectInstructions = () => {
 
      const source = {
           baseUrl: library.baseUrl,
-          html: instructions,
-     };
+          html: instructions };
 
      const tagsStyles = {
           body: {
-               color: textColor,
-          },
+               color: textColor },
           a: {
                color: textColor,
-               textDecorationColor: textColor,
-          },
-     };
+               textDecorationColor: textColor } };
 
      return (
           <ScrollView>

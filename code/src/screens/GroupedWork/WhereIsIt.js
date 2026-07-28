@@ -1,4 +1,4 @@
-import { ThemeContext } from '../../context/initialContext';
+
 import React from 'react';
 import { Text, HStack, FlatList, Box } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
@@ -9,13 +9,14 @@ import { getManifestation, getRelatedRecord } from '../../util/api/item';
 import { loadError } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const WhereIsIt = () => {
      const route = useRoute();
      const { id, format, prevRoute, type, recordId, source } = route.params;
      const language = useActiveLanguage();
      const library = useLibrary();
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      const [isLoading, setLoading] = React.useState(false);
 
      const { status, data, error, isFetching } = useQuery({
@@ -26,8 +27,7 @@ export const WhereIsIt = () => {
               } else {
                   return await getRelatedRecord(id, recordId, format, library.baseUrl);
               }
-          },
-     });
+          } });
 
 	 return (
           <Box p="$5">
@@ -62,7 +62,7 @@ export const WhereIsIt = () => {
 };
 
 const Details = (data) => {
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
      const manifestation = data.manifestation;
      const source = data.source;
      return (

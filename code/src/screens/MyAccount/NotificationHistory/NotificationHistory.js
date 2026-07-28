@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { loadError } from '../../../components/loadError';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useNotificationHistory, useUpdateNotificationHistory, useInbox, useUpdateInbox } from '../../../hooks/useUserData';
 import { Heading, Box, Button, ButtonText, ButtonGroup, Center, FlatList, HStack, Icon, Pressable, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import { navigate } from '../../../helpers/RootNavigator';
@@ -14,6 +14,7 @@ import { fetchNotificationHistory } from '../../../util/api/user';
 import { formatNotificationHistory } from '../../../util/api/userHelper';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyNotificationHistory = () => {
      const navigation = useNavigation();
@@ -23,7 +24,7 @@ export const MyNotificationHistory = () => {
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { colorMode, theme, textColor } = useTheme();
      const { data: notificationHistory } = useNotificationHistory();
      const updateNotificationHistory = useUpdateNotificationHistory();
      const { data: inbox } = useInbox();
@@ -36,8 +37,7 @@ export const MyNotificationHistory = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -128,8 +128,7 @@ export const MyNotificationHistory = () => {
 
      const handleOpenMyMessage = (item) => {
           navigate('MyNotificationHistoryMessageModal', {
-               message: item,
-          });
+               message: item });
      };
 
      return (
@@ -149,7 +148,7 @@ export const MyNotificationHistory = () => {
 };
 
 const Item = (data) => {
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const message = data.data;
      const handleOpenMyMessage = data.handleOpenMyMessage;
      let content = stripHTML(message.content);

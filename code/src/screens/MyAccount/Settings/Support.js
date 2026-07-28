@@ -5,13 +5,14 @@ import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useAccounts, useDebugMessages } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const SupportScreen = () => {
      const navigation = useNavigation();
@@ -19,13 +20,12 @@ export const SupportScreen = () => {
      const { data: userDebugMessage } = useDebugMessages();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const [status, setStatus] = React.useState({
           needsUpdate: false,
           url: null,
           latest: GLOBALS.appVersion,
-          canOpenUrl: false,
-     });
+          canOpenUrl: false });
 
      const numLinkedAccounts = _.size(accounts) ?? 0;
 
@@ -154,8 +154,7 @@ export const SupportScreen = () => {
                                    <Box
                                         pl="6"
                                         _text={{
-                                             color: 'coolGray.600',
-                                        }}>
+                                             color: 'coolGray.600' }}>
                                         Please update your app for the latest features and fixes.
                                         {status.canOpenUrl ? (
                                              <Pressable mt={3} variant="ghost" onPress={() => openAppStore(status.url)}>
@@ -175,8 +174,7 @@ async function checkStoreVersion() {
      try {
           const version = await checkVersion({
                bundleId: GLOBALS.bundleId,
-               currentVersion: GLOBALS.appVersion,
-          });
+               currentVersion: GLOBALS.appVersion });
           if (version.needsUpdate) {
                let url = (url = GLOBALS.iosStoreUrl);
                if (Platform.OS === 'android') {
@@ -185,8 +183,7 @@ async function checkStoreVersion() {
                return {
                     needsUpdate: true,
                     url: url,
-                    latest: version.version,
-               };
+                    latest: version.version };
           }
      } catch (e) {
           logErrorMessage(e);
@@ -195,6 +192,5 @@ async function checkStoreVersion() {
      return {
           needsUpdate: false,
           url: null,
-          latest: GLOBALS.appVersion,
-     };
+          latest: GLOBALS.appVersion };
 }

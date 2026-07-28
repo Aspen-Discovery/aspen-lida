@@ -16,11 +16,10 @@ import {
      InputField,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton, InputIcon, InputSlot, useToast,
-} from '@gluestack-ui/themed';
+     ModalBackdrop, CloseIcon, ModalCloseButton, InputIcon, InputSlot, useToast } from '@gluestack-ui/themed';
 import React, { useState, useRef } from 'react';
 
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
 import { addLinkedAccount, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
 import { formatLinkedAccounts } from '../../../util/api/userHelper';
@@ -28,6 +27,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import {logErrorMessage} from "../../../util/logging";
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 // custom components and helper files
 
@@ -39,7 +39,7 @@ const AddLinkedAccount = () => {
      const updateUserProfile = useUpdateUserProfile();
      const updateAccounts = useUpdateAccounts();
      const updateViewers = useUpdateViewers();
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
      const [showPassword, setShowPassword] = useState(false);

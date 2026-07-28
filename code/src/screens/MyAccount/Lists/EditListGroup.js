@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState } from '../../../hooks/useUserData';
 import { Button, ButtonGroup, ButtonIcon, ButtonText, Center, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,12 +7,13 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { editListGroup } from '../../../util/api/list';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
       const { data: userState } = useUserState();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const { textColor, theme, colorMode } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
 
@@ -61,8 +62,7 @@ export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
                                                       handleUpdate(id);
                                                       navigateStack('AccountScreenTab', 'MyLists', {
                                                            libraryUrl: library.baseUrl,
-                                                           hasPendingChanges: true,
-                                                      });
+                                                           hasPendingChanges: true });
                                                  });
                                             }}>
                                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>

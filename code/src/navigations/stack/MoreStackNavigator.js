@@ -21,9 +21,10 @@ import {Settings_PickupLocations} from "../../screens/MyAccount/Settings/PickupL
 import { APIErrorLog } from '../../screens/MyAccount/Settings/Logs/APIErrorLog';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
+const Stack = createNativeStackNavigator();
+
 const MoreStackNavigator = () => {
      const language = useActiveLanguage();
-     const Stack = createNativeStackNavigator();
      return (
           <Stack.Navigator
                initialRouteName="MoreMenu"

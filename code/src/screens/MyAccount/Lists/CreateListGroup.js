@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { popAlert } from '../../../components/loadError';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const CreateListGroup = (props) => {
       const { setLoading, updateSelectedListGroup } = props;
@@ -21,7 +22,7 @@ const CreateListGroup = (props) => {
       const updateListGroupsData = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const { textColor, theme, colorMode } = useTheme();
       const [loading, setAdding] = React.useState(false);
       const [showModal, setShowModal] = useState(false);
 
@@ -124,8 +125,7 @@ const CreateListGroup = (props) => {
                                                    if (groupsResponse.ok) {
                                                         await updateListGroupsData({
                                                              groups: groupsResponse.data?.result?.groups ?? [],
-                                                             unassigned: groupsResponse.data?.result?.unassigned ?? 0,
-                                                        });
+                                                             unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
                                                    }
                                                    const profileResponse = await refreshProfile(library.baseUrl);
                                                    if (profileResponse?.ok && profileResponse?.data?.result?.profile) {

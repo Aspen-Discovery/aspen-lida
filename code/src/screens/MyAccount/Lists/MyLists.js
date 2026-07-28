@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useLists, useListGroups, useUpdateLists, useUpdateListGroups, useUserState } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -21,6 +21,7 @@ import { EditListGroupParent } from './EditListGroupParent';
 import { DeleteListGroup } from './DeleteListGroup';
 import { formatUnixDate, orderByFields } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 const LISTS_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
@@ -41,14 +42,13 @@ export const MyLists = () => {
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const [loading, setLoading] = React.useState(false);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [currentListGroup, setCurrentListGroup] = React.useState(-1);
      const [currentListGroupData, setCurrentListGroupData] = React.useState({
           listGroupDetails: { title: '', id: -1 },
-          listsInGroup: [],
-     });
+          listsInGroup: [] });
 
      // Track when we last fetched from the API (resets on app restart, which is intentional).
      const listsLastFetchedAt = React.useRef(null);
@@ -82,8 +82,7 @@ export const MyLists = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      // ─── Fetch helpers ──────────────────────────────────────────────────────────
@@ -114,8 +113,7 @@ export const MyLists = () => {
                if (groupsResult.ok) {
                     await updateListGroups({
                          groups: groupsResult.data?.result?.groups ?? [],
-                         unassigned: groupsResult.data?.result?.unassigned ?? 0,
-                    });
+                         unassigned: groupsResult.data?.result?.unassigned ?? 0 });
                } else {
                     logDebugMessage('Error fetching user list groups');
                     logDebugMessage(groupsResult);
@@ -253,8 +251,7 @@ export const MyLists = () => {
                id: item.id,
                details: item,
                title: item.title,
-               libraryUrl: library.baseUrl,
-          });
+               libraryUrl: library.baseUrl });
      };
 
      const listEmptyComponent = () => (

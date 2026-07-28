@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { ThemeContext } from '../../context/initialContext';
+
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
@@ -23,8 +23,7 @@ import { GetLoginForm } from './LoginForm';
 import { ResetPassword } from './ResetPassword';
 import { SelectYourLibrary } from './SelectYourLibrary';
 import { SplashScreen } from './Splash';
-import { createGlueTheme } from '../../themes/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../themes/theme';
 import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust path if your file differs
 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +31,7 @@ import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/log
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
+     const [isThemeInitialized, setIsThemeInitialized] = React.useState(false);
      const insets = useSafeAreaInsets();
      const [permissionRequested, setPermissionRequested] = React.useState(false);
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
@@ -58,7 +58,7 @@ export const LoginScreen = () => {
      const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
-     const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const toast = useToast();
 
      let isCommunity = true;
@@ -68,9 +68,13 @@ export const LoginScreen = () => {
 
      const logoImage = Constants.expoConfig.extra.loginLogo;
 
-     useFocusEffect(
-          React.useCallback(() => {
-               const bootstrapAsync = async () => {
+     const handleThemeInitialized = React.useCallback(() => {
+          setIsThemeInitialized(true);
+     }, []);
+
+      useFocusEffect(
+           React.useCallback(() => {
+                const bootstrapAsync = async () => {
                     await getPermissions('statusCheck').then(async (result) => {
                          if (result.success === false && result.status === 'undetermined' && GLOBALS.releaseChannel !== 'DEV' && Platform.OS === 'android') {
                               setShouldRequestPermissions(true);
@@ -102,39 +106,25 @@ export const LoginScreen = () => {
                               }
                          }
                     });
+                     if (isCommunity) {
+                          await fetchAllLibrariesFromGreenhouse().then((response) => {
+                               if(response.success) {
+                                    const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
+                                    setAllLibraries(libraries);
+                               } else {
+                                    setAllLibraries([]);
+                                    logDebugMessage("Error loading libraries from Greenhouse");
+                                    logDebugMessage(response);
+                                    getErrorMessage(response.code ?? 0, response.problem)
+                               }
+                          });
+                     }
 
-                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                         logDebugMessage("Loaded color mode from AsyncStorage got " + mode);
-                         if (mode === 'light' || mode === 'dark') {
-                              updateColorMode(mode);
-                         } else {
-                              updateColorMode('light');
-                         }
-                    });
-
-                    await createGlueTheme(toast, Constants.expoConfig.extra.apiUrl).then((result) => {
-                         updateTheme(result);
-                    });
-
-                    if (isCommunity) {
-                         await fetchAllLibrariesFromGreenhouse().then((response) => {
-                              if(response.success) {
-                                   const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
-                                   setAllLibraries(libraries);
-                              } else {
-                                   setAllLibraries([]);
-                                   logDebugMessage("Error loading libraries from Greenhouse");
-                                   logDebugMessage(response);
-                                   getErrorMessage(response.code ?? 0, response.problem)
-                              }
-                         });
-                    }
-
-                    setIsLoading(false);
-               };
-               bootstrapAsync();
-          }, [])
-     );
+                     setIsLoading(false);
+                };
+                bootstrapAsync();
+          }, [toast, isCommunity])
+      );
 
      const onLogoTap = () => {
           const TAP_WINDOW_MS = 1500; // 5 taps must happen within this window
@@ -300,8 +290,8 @@ export const LoginScreen = () => {
           </SafeAreaView>
      );
 
-     if (isLoading) {
-          return <SplashScreen />;
+     if (isLoading || !isThemeInitialized) {
+          return <SplashScreen shouldInitializeTheme={true} onThemeInitialized={handleThemeInitialized} />;
      }
 
      logDebugMessage("Loading Login page colorMode = " + colorMode );
@@ -316,8 +306,7 @@ async function getPermissions(kind = 'statusCheck') {
                await SecureStore.setItemAsync('longitude', '0');
                return {
                     success: false,
-                    status: status,
-               };
+                    status: status };
           }
      } else {
           const { status } = await Location.requestForegroundPermissionsAsync();
@@ -326,8 +315,7 @@ async function getPermissions(kind = 'statusCheck') {
                await SecureStore.setItemAsync('longitude', '0');
                return {
                     success: false,
-                    status: status,
-               };
+                    status: status };
           }
 
           let location = await Location.getLastKnownPositionAsync({});
@@ -343,11 +331,9 @@ async function getPermissions(kind = 'statusCheck') {
           }
           return {
                success: true,
-               status: 'granted',
-          };
+               status: 'granted' };
      }
 
      return {
-          success: false,
-     };
+          success: false };
 }

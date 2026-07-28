@@ -3,11 +3,11 @@ import { Image } from 'expo-image';
 import _ from 'lodash';
 import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
-import { colorMode, useColorModeValue } from '../../themes/theme';
+import { colorMode, useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -29,7 +29,7 @@ export const MyLibrary = () => {
      const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme } = React.useContext(ThemeContext);
+     const { textColor, theme } = useTheme();
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -108,8 +108,7 @@ export const MyLibrary = () => {
                                    width: '100%',
                                    height: 200,
                                    borderRadius: "$sm",
-                                   zIndex: -1,
-                              }}
+                                   zIndex: -1 }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"

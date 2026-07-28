@@ -7,7 +7,7 @@ import React from 'react';
 import { popToast } from '../../components/loadError';
 
 // custom components and helper files
-import { ThemeContext } from '../../context/initialContext';
+
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -15,6 +15,7 @@ import { decodeHTML } from '../../helpers/helpers';
 import AddToList from './AddToList';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -22,7 +23,7 @@ export const DisplayEventResult = (props) => {
      const item = props.data;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const toast = useToast();
 
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
@@ -82,8 +83,7 @@ export const DisplayEventResult = (props) => {
                     id: id,
                     title: getCleanTitle(item.title),
                     url: library.baseUrl,
-                    source: eventSource,
-               });
+                    source: eventSource });
           }
      };
 
@@ -94,8 +94,7 @@ export const DisplayEventResult = (props) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     if (res.type === 'cancel' || res.type === 'dismiss') {
@@ -142,8 +141,7 @@ export const DisplayEventResult = (props) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"

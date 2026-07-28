@@ -1,18 +1,20 @@
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { CheckoutsContext, HoldsContext, SearchContext, SystemMessagesContext, ThemeContext } from '../context/initialContext';
+import { CheckoutsContext, HoldsContext, SearchContext, SystemMessagesContext } from '../context/initialContext';
 import { useCatalogStatus, useLibrary, useLibraryMenu, useLibraryUrl, useLibraryVersion } from '../hooks/useLibrarySystemData';
 import { useActiveLanguage, useAvailableLanguages, useDictionary, useLanguageDisplayName, useUpdateActiveLanguage, useUpdateAvailableLanguages, useUpdateDictionary, useUpdateLanguageDisplayName } from '../hooks/useLanguageData';
 import { LoadingScreen } from '../screens/Auth/Loading';
 import AccountDrawer from './drawer/DrawerNavigator';
+import { useTheme } from '../themes/theme';
+
+const Stack = createNativeStackNavigator();
 
 const LaunchStackNavigator = () => {
-     const Stack = createNativeStackNavigator();
      const route = useRoute();
      const refreshUserData = route.params?.refreshUserData ?? false;
 
-     const { colorMode: mode, updateColorMode } = React.useContext(ThemeContext);
+     const { colorMode: mode, updateColorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const language = useActiveLanguage();
      const updateLanguage = useUpdateActiveLanguage();
@@ -39,8 +41,7 @@ const LaunchStackNavigator = () => {
           updateQuery,
           sort,
           updateSort,
-          resetSearch,
-     } = React.useContext(SearchContext);
+          resetSearch } = React.useContext(SearchContext);
 
      const library = useLibrary();
      const version = useLibraryVersion();
@@ -54,16 +55,14 @@ const LaunchStackNavigator = () => {
                screenOptions={{
                     headerShown: false,
                     headerBackTitleVisible: false,
-                    gestureEnabled: false,
-               }}>
+                    gestureEnabled: false }}>
                {refreshUserData ? (
                     <Stack.Screen
                          name="LoadingScreen"
                          component={LoadingScreen}
                          options={{
                               animationEnabled: false,
-                              header: () => null,
-                         }}
+                              header: () => null }}
                     />
                ) : null}
                <Stack.Screen
@@ -76,8 +75,7 @@ const LaunchStackNavigator = () => {
                               url,
                               menu,
                               catalogStatus,
-                              catalogStatusMessage,
-                         },
+                              catalogStatusMessage },
                          checkoutsContext: { checkouts },
                          holdsContext: { holds },
                          languageContext: {
@@ -88,8 +86,7 @@ const LaunchStackNavigator = () => {
                               dictionary,
                               updateDictionary,
                               languageDisplayName,
-                              updateLanguageDisplayName,
-                         },
+                              updateLanguageDisplayName },
                          systemMessagesContext: { systemMessages, updateSystemMessages },
                          themeContext: { mode, updateColorMode },
                          searchContext: {
@@ -107,9 +104,7 @@ const LaunchStackNavigator = () => {
                               updateQuery,
                               sort,
                               updateSort,
-                              resetSearch,
-                         },
-                    }}
+                              resetSearch } }}
                />
           </Stack.Navigator>
      );

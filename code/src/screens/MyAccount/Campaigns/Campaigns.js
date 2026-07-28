@@ -36,7 +36,7 @@ import {
 } from '@gluestack-ui/themed';
 import { fetchCampaigns, unenrollCampaign, enrollCampaign, optIntoCampaignEmails, optUserOutOfCampaignLeaderboard, optUserInToCampaignLeaderboard, addActivityProgress } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState } from '../../../hooks/useUserData';
 import { Image } from 'expo-image';
 import * as Sharing from 'expo-sharing';
@@ -44,6 +44,7 @@ import * as FileSystem from 'expo-file-system';
 import PlaceholderImg from '../../../assets/digital-reward-placeholder.png';
 import { logDebugMessage, logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 // Constants
 const PAGE_SIZE = 20;
@@ -71,7 +72,7 @@ export const MyCampaigns = () => {
 	const queryClient = useQueryClient();
 	const library = useLibrary();
 	const language = useActiveLanguage();
-	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+	const { theme, textColor, colorMode } = useTheme();
 
 	React.useEffect(() => {
 		queryClient.invalidateQueries(['all_campaigns']);
@@ -91,8 +92,7 @@ export const MyCampaigns = () => {
 
 	React.useLayoutEffect(() => {
 		navigation.setOptions({
-			headerLeft: () => <Box />,
-		});
+			headerLeft: () => <Box /> });
 	}, [navigation]);
 
 	//Utility Functions
@@ -143,8 +143,7 @@ export const MyCampaigns = () => {
 
 			acc[userName].campaigns.push({
 				...campaign,
-				linkedUserId: userId,
-			});
+				linkedUserId: userId });
 			return acc;
 		}, {});
 	};
@@ -228,8 +227,7 @@ export const MyCampaigns = () => {
 	const toggleExpanded = (id) => {
 		setExpandedCampaigns((prev) => ({
 			...prev,
-			[id]: !prev[id],
-		}));
+			[id]: !prev[id] }));
 	};
 
 	const handleOpenActions = (item, linkedUserId) => {
@@ -652,8 +650,7 @@ export const MyCampaigns = () => {
 											item,
 											expanded: expandedCampaigns[item.id],
 											onToggle: () => toggleExpanded(item.id),
-											onOpenActions: () => handleOpenActions(item, userId),
-										})}
+											onOpenActions: () => handleOpenActions(item, userId) })}
 									</Box>
 								);
 							})}
@@ -676,8 +673,7 @@ export const MyCampaigns = () => {
 							item,
 							expanded: expandedCampaigns[item.id],
 							onToggle: () => toggleExpanded(item.id),
-							onOpenActions: () => handleOpenActions(item, filterBy === 'linkedUserCampaigns' ? item.linkedUserId : null),
-						});
+							onOpenActions: () => handleOpenActions(item, filterBy === 'linkedUserCampaigns' ? item.linkedUserId : null) });
 					}}
 
 					keyExtractor={(item, index) => item?.id ? String(item.id) : String(index)}

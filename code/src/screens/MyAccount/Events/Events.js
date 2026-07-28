@@ -6,13 +6,13 @@ import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack, useToast } from '@gluestack-ui/themed';
-import { useColorModeValue } from '../../../themes/theme';
+import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
 import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigate } from '../../../helpers/RootNavigator';
@@ -36,7 +36,7 @@ export const MyEvents = () => {
      const { data: savedEvents } = useSavedEvents();
      const updateSavedEvents = useUpdateSavedEvents();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, colorMode, textColor} = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor} = useTheme();
      const pageSize = 25;
      const systemMessagesForScreen = [];
 
@@ -46,8 +46,7 @@ export const MyEvents = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -79,8 +78,7 @@ export const MyEvents = () => {
                          totalPages: data.data.result.page_total ?? 0,
                          hasMore: morePages,
                          filter: data.data.result.filter ?? filterBy,
-                         message: data.data?.result?.message ?? null,
-                    }
+                         message: data.data?.result?.message ?? null }
 
                     updateSavedEvents(events.events);
                     updateEvents(data.data.result ?? []);
@@ -162,8 +160,7 @@ export const MyEvents = () => {
                          borderTopWidth="$1"
                          _dark={{
                               borderColor: '$coolGray600',
-                              backgroundColor: '$coolGray700',
-                         }}
+                              backgroundColor: '$coolGray700' }}
                          borderColor="$coolGray200"
                          flexWrap="nowrap"
                          alignItems="center">
@@ -233,7 +230,7 @@ const Item = (data) => {
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
      const library = useLibrary();
-     const {colorMode} = React.useContext(ThemeContext);
+     const {colorMode} = useTheme();
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -309,8 +306,7 @@ const Item = (data) => {
                          id: event.sourceId,
                          title: getCleanTitle(event.title),
                          url: library.baseUrl,
-                         source: source,
-                    });
+                         source: source });
                }
           }
      };
@@ -322,8 +318,7 @@ const Item = (data) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     logDebugMessage(res);
@@ -393,8 +388,7 @@ const Item = (data) => {
                                    style={{
                                         width: 100,
                                         height: 150,
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"

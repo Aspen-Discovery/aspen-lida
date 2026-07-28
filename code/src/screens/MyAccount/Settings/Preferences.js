@@ -5,12 +5,12 @@ import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
 import { Box, Divider, HStack, Icon, Pressable, Text, VStack, ChevronRightIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useUpdateExpoToken } from '../../../hooks/useUserData';
 
 // custom components and helper files
 import { navigate } from '../../../helpers/RootNavigator';
-import { UseColorMode } from '../../../themes/theme';
+import { UseColorMode, useTheme } from '../../../themes/theme';
 import { getTermFromDictionary, LanguageSwitcher } from '../../../translations/TranslationService';
 import { logErrorMessage } from '../../../util/logging';
 import * as Device from "expo-device";
@@ -24,7 +24,7 @@ export const PreferencesScreen = () => {
      const user = userState?.user ?? {};
      const expoToken = userState?.expoToken ?? false;
      const updateExpoToken = useUpdateExpoToken();
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
 
      React.useEffect(() => {
           const updateTokens = navigation.addListener('focus', async () => {
@@ -32,8 +32,7 @@ export const PreferencesScreen = () => {
                     const token = (!Device.isDevice
                          ? { data: 'ExponentPushToken[testToken' + Device.modelName + ']' }
                          : await Notifications.getExpoPushTokenAsync({
-                              projectId: Constants.expoConfig.extra.eas.projectId,
-                         })).data;
+                              projectId: Constants.expoConfig.extra.eas.projectId })).data;
                     if (token) {
                          if (!_.isEmpty(user.notification_preferences)) {
                               const tokenStorage = user.notification_preferences;

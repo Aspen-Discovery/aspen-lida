@@ -2,7 +2,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import React from 'react';
 import { Dimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemeContext } from '../../context/initialContext';
+
 import { DrawerContent } from './DrawerContent';
 import { useToken } from '@gluestack-ui/themed';
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
@@ -23,20 +23,16 @@ const AccountDrawer = () => {
                     backBehavior: 'none',
                     lazy: false,
                     drawerStyle: {
-                         width: Dimensions.get('window').width * 0.8,
-                    },
-               }}
+                         width: Dimensions.get('window').width * 0.8 } }}
                drawerContent={(props) => <DrawerContent {...props} />}>
                <Drawer.Screen
                     name="TabsNavigator"
                     getComponent={() => require('../tab/TabNavigator').default}
                     screenOptions={{
                          headerShown: false,
-                         lazy: false,
-                    }}
+                         lazy: false }}
                     options={({ props }) => ({
-                         params: { ...props },
-                    })}
+                         params: { ...props } })}
                />
           </Drawer.Navigator>
      );

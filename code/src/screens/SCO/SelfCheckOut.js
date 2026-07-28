@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { CheckoutsContext, ThemeContext } from '../../context/initialContext';
+import { CheckoutsContext } from '../../context/initialContext';
 import { useLibraryLocation, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -14,6 +14,7 @@ import { checkoutItem, refreshProfile } from '../../util/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const SelfCheckOut = () => {
      const queryClient = useQueryClient();
@@ -29,7 +30,7 @@ export const SelfCheckOut = () => {
      const { data: cards } = useCards();
      const { data: accounts } = useAccounts();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
-     const {textColor, colorMode, theme} = React.useContext(ThemeContext);
+     const {textColor, colorMode, theme} = useTheme();
 
      const passedItems = route.params?.items ?? [];
      const [items, setItems] = React.useState(passedItems);
@@ -90,8 +91,7 @@ export const SelfCheckOut = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -144,8 +144,7 @@ export const SelfCheckOut = () => {
                                         /*useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, true, language), {
                                              onSuccess: (data) => {
                                                   updateCheckouts(data);
-                                             },
-                                        });*/
+                                             } });*/
 
                                         setMustConfirm(false); //reset in case multi-checkout session
                                         if (result.completionMessage && (result.mustConfirmCompletionMessage === 1 || result.mustConfirmCompletionMessage === true || result.mustConfirmCompletionMessage === '1' || result.mustConfirmCompletionMessage === 'true')) {
@@ -170,8 +169,7 @@ export const SelfCheckOut = () => {
      const openScanner = async () => {
           barcode = null;
           navigateStack('SelfCheckTab', 'SelfCheckOutScanner', {
-               activeAccount,
-          });
+               activeAccount });
      };
 
      const finishSession = () => {
@@ -183,13 +181,11 @@ export const SelfCheckOut = () => {
           setShowFinishModal(false);
           if (_.size(accounts) >= 1) {
                navigation.replace('StartCheckOutSession', {
-                    startNew: true,
-               });
+                    startNew: true });
           } else {
                navigation.replace('SelfCheckOut', {
                     startNew: true,
-                    barcode: null,
-               });
+                    barcode: null });
           }
      };
 
@@ -325,8 +321,7 @@ export const SelfCheckOut = () => {
                                                                  type: null,
                                                                  activeAccount,
                                                                  startNew: false,
-                                                                 items,
-                                                            });
+                                                                 items });
                                                        }}>
                                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'add_new_item')}</ButtonText>
                                                   </Button>
@@ -413,8 +408,7 @@ export const SelfCheckOut = () => {
                                                             type: null,
                                                             activeAccount,
                                                             startNew: false,
-                                                            items,
-                                                       });
+                                                            items });
                                                   }}>
                                                   <ButtonText textColor={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'try_again')}</ButtonText>
                                              </Button>

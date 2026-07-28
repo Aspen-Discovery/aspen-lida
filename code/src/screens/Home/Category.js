@@ -12,14 +12,15 @@ import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const loggedEmptyCategoryKeys = new Set();
 
 const DisplayBrowseCategory = ({category}) => {
      const toast = useToast();
-     const { theme, colorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode } = useTheme();
      const language = useActiveLanguage();
      const library = useLibrary();
      const maxNum = useMaxCategories();
@@ -101,8 +102,7 @@ const DisplayBrowseCategory = ({category}) => {
                               <Text color="$white" bold>{error.title}</Text>
                               <Text color="$white">{error.message}</Text>
                          </Box>
-                    ),
-               });
+                    ) });
           } else {
                await refreshHomeFeed();
           }
@@ -128,8 +128,7 @@ const DisplayBrowseCategory = ({category}) => {
                               <Text color="$white" bold>{error.title}</Text>
                               <Text color="$white">{error.message}</Text>
                          </Box>
-                    ),
-               });
+                    ) });
           } else {
                await refreshHomeFeed();
           }
@@ -168,7 +167,7 @@ const DisplayBrowseCategory = ({category}) => {
 };
 
 const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
-     const { colorMode, theme } = React.useContext(ThemeContext);
+     const { colorMode, theme } = useTheme();
 
      const isSystemCategory = textId === 'system_user_lists' || textId === 'system_saved_searches' || textId === 'system_recommended_for_you';
 
@@ -182,8 +181,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 
           navigateStack('BrowseTab', screen, {
                title: label,
-               id: key,
-          });
+               id: key });
      };
 
      return (
@@ -202,7 +200,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 
 const DisplayBrowseCategoryRecord = ({record}) => {
      const library = useLibrary();
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const language = useActiveLanguage();
 
      let type = 'grouped_work';
@@ -277,14 +275,12 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                navigateStack('BrowseTab', 'SearchByList', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else if (type === 'SavedSearch' || type === 'savedsearch') {
                navigateStack('BrowseTab', 'SearchBySavedSearch', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else if (type === 'Event' || _.includes(type, '_event')) {
                let eventSource = 'unknown';
                if (type === 'communico_event') {
@@ -303,14 +299,12 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     id: key,
                     title: title,
                     source: eventSource,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else {
                navigateStack('BrowseTab', 'GroupedWorkScreen', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           }
      }
 
@@ -322,21 +316,17 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                sx={{
                     '@base': {
                          width: 100,
-                         height: 150,
-                    },
+                         height: 150 },
                     '@lg': {
                          width: 180,
-                         height: 250,
-                    },
-               }}>
+                         height: 250 } }}>
                <Image
                     alt={getTitle}
                     source={imageUrl}
                     style={{
                          width: '100%',
                          height: '100%',
-                         borderRadius: "$sm",
-                    }}
+                         borderRadius: "$sm" }}
                     placeholder={blurhash}
                     transition={1000}
                     contentFit="cover"
@@ -356,7 +346,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 
 const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, isSystemBrowseCategory }) => {
      const toast = useToast();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
      const maxNum = useMaxCategories();
@@ -397,8 +387,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
                               <Text color="$white" bold>{error.title}</Text>
                               <Text color="$white">{error.message}</Text>
                          </Box>
-                    ),
-               });
+                    ) });
           } else {
                await refreshHomeFeed();
           }
@@ -423,7 +412,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
 }
 
 const DisplayMoreResultsButton = ({ category }) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const language = useActiveLanguage();
 
      const isListSource = category.source === 'List';
@@ -438,8 +427,7 @@ const DisplayMoreResultsButton = ({ category }) => {
 
           navigateStack('BrowseTab', screen, {
                title: label,
-               id: key,
-          });
+               id: key });
      }
 
      return (
@@ -451,18 +439,14 @@ const DisplayMoreResultsButton = ({ category }) => {
                mr="$3"
                bgColor={theme.tokens.colors.primary['500']}
                style={{
-                    borderRadius: "$sm",
-               }}
+                    borderRadius: "$sm" }}
                sx={{
                     '@base': {
                          width: 100,
-                         height: 150,
-                    },
+                         height: 150 },
                     '@lg': {
                          width: 180,
-                         height: 250,
-                    },
-               }}>
+                         height: 250 } }}>
                <Text bold color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_more')}</Text>
           </Pressable>
      )

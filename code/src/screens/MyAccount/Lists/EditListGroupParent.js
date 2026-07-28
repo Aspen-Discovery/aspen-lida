@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import {
      Center,
@@ -43,6 +43,7 @@ import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const { data: userState } = useUserState();
@@ -51,7 +52,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+      const { textColor, theme, colorMode } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
 
@@ -165,8 +166,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                       if (groupsResponse.ok) {
                                                            await updateListGroups({
                                                                 groups: groupsResponse.data?.result?.groups ?? [],
-                                                                unassigned: groupsResponse.data?.result?.unassigned ?? 0,
-                                                           });
+                                                                unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
                                                       }
                                                       setLoading(false);
                                                       let status = 'success';
@@ -179,8 +179,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                            popAlert(toast, res.data.result.title, res.data.result.message, status);
                                                            navigateStack('AccountScreenTab', 'MyLists', {
                                                                 libraryUrl: library.baseUrl,
-                                                                hasPendingChanges: true,
-                                                           });
+                                                                hasPendingChanges: true });
                                                       }
                                                  });
                                             }}>

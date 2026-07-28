@@ -21,17 +21,18 @@ import {
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../translations/TranslationService';
 import { stripHTML } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
+import { useTheme } from '../../themes/theme';
 
 export const ResetPassword = (props) => {
      const library = useLibrary();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const { ils, forgotPasswordType, usernameLabel, passwordLabel, showForgotPasswordModal, setShowForgotPasswordModal } = props;
      const [isProcessing, setIsProcessing] = React.useState(false);
      const [isLoading, setIsLoading] = React.useState(false);

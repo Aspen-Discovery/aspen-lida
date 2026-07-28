@@ -4,14 +4,13 @@ import {
      Actionsheet,
      ActionsheetContent,
      ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast,
-} from '@gluestack-ui/themed';
+     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
-import { ThemeContext } from '../../../context/initialContext';
+
 import { useUserState } from '../../../hooks/useUserData';
 import {
      getAuthor,
@@ -31,6 +30,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from '../../../util/api/user';
 import { stripHTML, formatDiscoveryVersion } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyCheckout = (props) => {
      const { data: userState } = useUserState();
@@ -38,7 +38,7 @@ export const MyCheckout = (props) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const version = formatDiscoveryVersion(library.discoveryVersion);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [access, setAccess] = useState(false);
@@ -62,8 +62,7 @@ export const MyCheckout = (props) => {
                url: library.baseUrl,
                userContext: user,
                libraryContext: library,
-               prevRoute: 'MyCheckouts',
-          });
+               prevRoute: 'MyCheckouts' });
      };
      const toggle = () => {
           setIsOpen(!isOpen);
@@ -130,8 +129,7 @@ export const MyCheckout = (props) => {
                          style={{
                               width: 100,
                               height: 150,
-                              borderRadius: "$sm",
-                         }}
+                              borderRadius: "$sm" }}
                          placeholder={blurhash}
                          transition={1000}
                          contentFit="cover"
@@ -193,8 +191,7 @@ export const MyCheckout = (props) => {
                                                        source: checkout.source ?? null,
                                                        itemId: itemId ?? null,
                                                        userId: checkout.userId ?? null,
-                                                       renewType: 'single',
-                                                  });
+                                                       renewType: 'single' });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {

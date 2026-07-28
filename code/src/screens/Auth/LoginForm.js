@@ -12,14 +12,13 @@ import {
      FormControlLabelText,
      Input,
      InputField, InputIcon,
-     InputSlot,
-} from '@gluestack-ui/themed';
+     InputSlot } from '@gluestack-ui/themed';
 import React, { useRef } from 'react';
 
 // custom components and helper files
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
-import { ThemeContext } from '../../context/initialContext';
+
 import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -33,9 +32,10 @@ import { ResetExpiredPin } from './ResetExpiredPin';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
+import { useTheme } from '../../themes/theme';
 
 export const GetLoginForm = (props) => {
-     const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode} = useTheme();
      const navigation = useNavigation();
      const barcode = useRoute().params?.barcode ?? null;
      const [loading, setLoading] = React.useState(false);
@@ -329,7 +329,6 @@ export const GetLoginForm = (props) => {
 async function checkAspenDiscovery(url, id) {
      const client = createApiClient({
           url,
-          timeout: GLOBALS.timeoutFast,
-     });
+          timeout: GLOBALS.timeoutFast });
      return await client.get('/SystemAPI?method=getLibraryInfo', { id });
 }

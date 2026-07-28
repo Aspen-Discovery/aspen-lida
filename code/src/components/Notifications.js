@@ -7,11 +7,12 @@ import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
-import { ThemeContext } from '../context/initialContext';
+
 
 // custom components and helper files
 import { stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
+import { useTheme } from '../themes/theme';
 
 export async function registerForPushNotificationsAsync(updateUserDebugMessage) {
      try {
@@ -47,8 +48,7 @@ export async function registerForPushNotificationsAsync(updateUserDebugMessage) 
           }else{
                //Real devices
                const response = await Notifications.getExpoPushTokenAsync({
-                    projectId: Constants.expoConfig.extra.eas.projectId,
-               });
+                    projectId: Constants.expoConfig.extra.eas.projectId });
 
                logDebugMessage('Got push token:' + response.data);
                return response.data;
@@ -65,8 +65,7 @@ async function createNotificationChannelGroup(id, name, description = null) {
      if (Platform.OS === 'android') {
           await Notifications.setNotificationChannelGroupAsync(`${id}`, {
                name: `${name}`,
-               description: `${description}`,
-          });
+               description: `${description}` });
      }
 }
 
@@ -85,8 +84,7 @@ async function createNotificationChannel(id, name, groupId) {
                vibrationPattern: [0, 250, 250, 250],
                lightColor: '#FF231F7C',
                groupId: `${groupId}`,
-               showBadge: true,
-          });
+               showBadge: true });
      }
 }
 
@@ -101,8 +99,7 @@ async function createNotificationCategory(id, name, button) {
      await Notifications.setNotificationCategoryAsync(`${id}`, [
           {
                identifier: `${name}`,
-               buttonTitle: `${button}`,
-          },
+               buttonTitle: `${button}` },
      ]);
 }
 
@@ -212,7 +209,7 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 export const DisplaySystemMessage = (props) => {
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
-     const {theme} = useContext(ThemeContext);
+     const {theme} = useTheme();
      let style = props.style;
      if (style === '') {
           style = 'info';

@@ -333,7 +333,7 @@ export async function getThemeInfo(toast, url = null) {
      await getAppSettings(toast, libraryUrl, 10000, GLOBALS.slug);
 
      const client = createApiClient({
-          url: GLOBALS.url,
+          url: libraryUrl,
           timeout: 10000,
      });
 
