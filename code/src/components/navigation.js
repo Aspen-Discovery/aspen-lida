@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -48,6 +48,7 @@ try {
 
 
 import { AuthContext } from '../context/AuthContext';
+import { useActiveLanguage } from '../hooks/useLanguageData';
 export { AuthContext };
 
 const iOSRelease = Constants.expoConfig.ios.bundleIdentifier;
@@ -267,18 +268,16 @@ export function App() {
           <AuthContext.Provider value={authContext}>
                <ThemeProvider>
                     <SystemMessagesProvider>
-                          <LanguageProvider>
-                                <SearchProvider>
-                                     <CheckoutsProvider>
-                                          <HoldsProvider>
-                                               <GroupedWorkProvider>
-                                                    {/* Pass state safely to the child container */}
-                                                    <AppContent state={state} />
-                                               </GroupedWorkProvider>
-                                          </HoldsProvider>
-                                     </CheckoutsProvider>
-                                </SearchProvider>
-                          </LanguageProvider>
+                          <SearchProvider>
+                               <CheckoutsProvider>
+                                    <HoldsProvider>
+                                         <GroupedWorkProvider>
+                                              {/* Pass state safely to the child container */}
+                                              <AppContent state={state} />
+                                         </GroupedWorkProvider>
+                                    </HoldsProvider>
+                               </CheckoutsProvider>
+                          </SearchProvider>
                     </SystemMessagesProvider>
                </ThemeProvider>
           </AuthContext.Provider>
@@ -294,7 +293,7 @@ function AppContent({state}) {
           }
      }, [state.isSignOut]);
 
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode } = React.useContext(ThemeContext);
 
      const primaryColor = useToken('colors', 'primary.base');

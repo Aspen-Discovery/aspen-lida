@@ -4,7 +4,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { HStack, Pressable, Text, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useSelfCheckEnabled } from '../../hooks/useLibraryBranchData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -15,6 +15,7 @@ import MoreStackNavigator from '../stack/MoreStackNavigator';
 import SelfCheckOutStackNavigator from '../stack/SelfCheckOutStackNavigator';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export default function TabNavigator() {
      const Tab = createBottomTabNavigator();
@@ -121,7 +122,7 @@ export default function TabNavigator() {
 }
 
 export const TabItem = ({ state, descriptors, navigation }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
      // Resolve tokens to actual color strings for native components

@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { LanguageContext } from '../../context/initialContext';
 import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import TitleWithLogo from '../../components/TitleWithLogo';
@@ -20,9 +19,10 @@ import { PreferencesScreen } from '../../screens/MyAccount/Settings/Preferences'
 import { SupportScreen } from '../../screens/MyAccount/Settings/Support';
 import {Settings_PickupLocations} from "../../screens/MyAccount/Settings/PickupLocations";
 import { APIErrorLog } from '../../screens/MyAccount/Settings/Logs/APIErrorLog';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const MoreStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const Stack = createNativeStackNavigator();
      return (
           <Stack.Navigator

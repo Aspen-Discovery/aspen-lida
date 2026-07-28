@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
@@ -24,9 +24,10 @@ import { SearchResultsForSavedSearch } from '../../screens/Search/SearchBySavedS
 import { SearchResults } from '../../screens/Search/SearchResults';
 import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const BrowseStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      const Stack = createStackNavigator();
      return (
@@ -249,7 +250,7 @@ const BrowseStackNavigator = () => {
 
 const EditionsStack = createStackNavigator();
 export const EditionsModal = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      return (
           <EditionsStack.Navigator
@@ -299,7 +300,7 @@ export const EditionsModal = () => {
 
 const FilterModalStack = createNativeStackNavigator();
 const FilterModal = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      return (
           <FilterModalStack.Navigator

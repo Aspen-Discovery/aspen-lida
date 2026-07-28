@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { ChevronLeftIcon, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 import { PalaceProjectInstructions } from '../../components/Action/CheckOut/PalaceProjectInstructions';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { EventScreen } from '../../screens/Event/Event';
 import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
 import { CreateLocalIllRequestEmail } from '../../screens/GroupedWork/CreateLocalIllRequestEmail';
@@ -31,11 +31,12 @@ import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { EditionsModal } from './BrowseStackNavigator';
 import { MyCampaigns } from '../../screens/MyAccount/Campaigns/Campaigns';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
 
 const AccountStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme,textColor } = React.useContext(ThemeContext);
      const Stack = createNativeStackNavigator();
      return (
@@ -380,7 +381,7 @@ const AccountStackNavigator = () => {
 
 const PalaceProjectStack = createStackNavigator();
 export const PalaceProjectInstructionsModal = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      return (
           <PalaceProjectStack.Navigator
@@ -413,7 +414,7 @@ export const PalaceProjectInstructionsModal = () => {
 
 const MyNotificationHistoryMessageStack = createNativeStackNavigator();
 export const MyNotificationHistoryMessageModal = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme } = React.useContext(ThemeContext);
      return (
           <MyNotificationHistoryMessageStack.Navigator

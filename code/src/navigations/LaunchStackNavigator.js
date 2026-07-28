@@ -1,15 +1,9 @@
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import {
-     CheckoutsContext,
-     HoldsContext,
-     LanguageContext,
-     SearchContext,
-     SystemMessagesContext,
-     ThemeContext,
-} from '../context/initialContext';
+import { CheckoutsContext, HoldsContext, SearchContext, SystemMessagesContext, ThemeContext } from '../context/initialContext';
 import { useCatalogStatus, useLibrary, useLibraryMenu, useLibraryUrl, useLibraryVersion } from '../hooks/useLibrarySystemData';
+import { useActiveLanguage, useAvailableLanguages, useDictionary, useLanguageDisplayName, useUpdateActiveLanguage, useUpdateAvailableLanguages, useUpdateDictionary, useUpdateLanguageDisplayName } from '../hooks/useLanguageData';
 import { LoadingScreen } from '../screens/Auth/Loading';
 import AccountDrawer from './drawer/DrawerNavigator';
 
@@ -20,16 +14,14 @@ const LaunchStackNavigator = () => {
 
      const { colorMode: mode, updateColorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const {
-          language,
-          updateLanguage,
-          languages,
-          updateLanguages,
-          dictionary,
-          updateDictionary,
-          languageDisplayName,
-          updateLanguageDisplayName,
-     } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const updateLanguage = useUpdateActiveLanguage();
+     const languages = useAvailableLanguages();
+     const updateLanguages = useUpdateAvailableLanguages();
+     const dictionary = useDictionary();
+     const updateDictionary = useUpdateDictionary();
+     const languageDisplayName = useLanguageDisplayName();
+     const updateLanguageDisplayName = useUpdateLanguageDisplayName();
      const { checkouts } = React.useContext(CheckoutsContext);
      const { holds } = React.useContext(HoldsContext);
      const {

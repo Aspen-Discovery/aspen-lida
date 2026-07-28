@@ -1,7 +1,6 @@
 import { useToken } from '@gluestack-ui/themed';
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { GLOBALS } from '../util/globals';
 import { logDebugMessage, logInfoMessage } from '../util/logging.js';
 import { formatDiscoveryVersion } from '../helpers/helpers';
 
@@ -31,17 +30,6 @@ export const GroupedWorkContext = React.createContext({
      format: [],
      language: [],
      resetGroupedWork: () => {},
-});
-export const LanguageContext = React.createContext({
-     updateLanguage: () => {},
-     language: '',
-     languageDisplayName: '',
-     languages: [],
-     dictionary: [],
-     updateLanguages: () => {},
-     updateDictionary: () => {},
-     resetLanguage: () => {},
-     updateLanguageDisplayName: () => {},
 });
 export const SystemMessagesContext = React.createContext({
      updateSystemMessages: () => {},
@@ -226,49 +214,6 @@ export const GroupedWorkProvider = ({ children }) => {
      return <GroupedWorkContext.Provider value={{ groupedWork, format, language, updateGroupedWork, updateFormat, updateLanguage, resetGroupedWork }}>{children}</GroupedWorkContext.Provider>;
 };
 
-export const LanguageProvider = ({ children }) => {
-     const [language, setLanguage] = useState();
-     const [languages, setLanguages] = useState();
-     const [dictionary, setDictionary] = useState();
-     const [languageDisplayName, setLanguageDisplayName] = useState();
-
-     const updateLanguage = (data) => {
-          logDebugMessage('updated language to ' + data + ' in LanguageContext');
-          GLOBALS.language = data;
-          setLanguage(data);
-     };
-
-     const updateLanguages = (data) => {
-          logDebugMessage('updated available library languages in LanguageContext');
-          setLanguages(data);
-     };
-
-     const updateDictionary = (data) => {
-          logDebugMessage('updated dictionary in LanguageContext');
-          setDictionary(data);
-     };
-
-     const updateLanguageDisplayName = (data) => {
-          logDebugMessage('updated language display name in LanguageContext');
-          setLanguageDisplayName(data);
-     };
-
-     return (
-          <LanguageContext.Provider
-               value={{
-                    language,
-                    updateLanguage,
-                    languages,
-                    updateLanguages,
-                    dictionary,
-                    updateDictionary,
-                    languageDisplayName,
-                    updateLanguageDisplayName,
-               }}>
-               {children}
-          </LanguageContext.Provider>
-     );
-};
 
 export const SystemMessagesProvider = ({ children }) => {
      const [systemMessages, setSystemMessages] = useState();
