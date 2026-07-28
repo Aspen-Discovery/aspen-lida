@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useLists, useListGroups, useUpdateLists, useUpdateListGroups, useUserState } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -20,6 +20,7 @@ import { EditListGroup } from './EditListGroup';
 import { EditListGroupParent } from './EditListGroupParent';
 import { DeleteListGroup } from './DeleteListGroup';
 import { formatUnixDate, orderByFields } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 const LISTS_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
@@ -34,7 +35,7 @@ export const MyLists = () => {
      const { data: listGroups } = useListGroups();
      const updateLists = useUpdateLists();
      const updateListGroups = useUpdateListGroups();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const [page, setPage] = React.useState(1);
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');

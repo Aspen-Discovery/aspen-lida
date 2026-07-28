@@ -1,7 +1,7 @@
 import { ScrollView } from '@gluestack-ui/themed';
 import React from 'react';
 
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { CalendarPermissionStatus } from './Permission/Calendar';
 import { CameraPermissionStatus } from './Permission/Camera';
 import { GeolocationPermissionStatus } from './Permission/Geolocation';

@@ -4,17 +4,18 @@ import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed
 import React from 'react';
 import { ScrollView } from 'react-native';
 
-import { LanguageContext, SearchContext, ThemeContext } from '../../../context/initialContext';
+import { SearchContext, ThemeContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getSearchIndexes } from '../../../util/api/search';
 import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 // custom components and helper files
 
 export const SearchSourceScreen = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
      const { textColor, theme } = React.useContext(ThemeContext);
      logDebugMessage('currentSource: ' + currentSource);

@@ -4,11 +4,12 @@ import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/them
 import React from 'react';
 
 // custom components and helper files
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const Hours = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
      const location = data.data;
 
@@ -29,7 +30,7 @@ const Hours = (data) => {
 };
 
 const Day = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { hours, textColor } = data;
 
      function formatTime(time) {

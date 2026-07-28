@@ -4,12 +4,13 @@ import { Button, ButtonText, Center, View } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
-import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { ThemeContext } from '../context/initialContext';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { navigateStack, goBack } from '../helpers/RootNavigator';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { LoadError } from './loadError';
 import { LoadingSpinner } from './loadingSpinner';
+import { useActiveLanguage } from '../hooks/useLanguageData';
 
 export default function Scanner() {
      const navigation = useNavigation();
@@ -17,7 +18,7 @@ export default function Scanner() {
      const [isLoading, setLoading] = React.useState(false);
      const [permission, requestPermission] = useCameraPermissions();
      const [scanned, setScanned] = React.useState(false);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      let allowedBarcodes = ['upc_a', 'upc_e', 'ean13', 'ean8', 'codabar'];

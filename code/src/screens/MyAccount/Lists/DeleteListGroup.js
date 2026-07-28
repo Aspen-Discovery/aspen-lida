@@ -1,5 +1,5 @@
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { deleteListGroup, getLists, getListGroups } from '../../../util/api/list
 import { refreshProfile } from '../../../util/api/user';
 import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const DeleteListGroup = ({id, handleUpdate}) => {
       const { data: userState } = useUserState();
@@ -16,7 +17,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);

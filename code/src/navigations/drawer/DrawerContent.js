@@ -31,7 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { ThemeContext, CheckoutsContext, HoldsContext, LanguageContext } from '../../context/initialContext';
+import { ThemeContext, CheckoutsContext, HoldsContext } from '../../context/initialContext';
 import {
      useCatalogStatus,
      useLibrary,
@@ -63,6 +63,7 @@ import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
 import { saveAvailableLocations } from '../../util/db';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -219,7 +220,7 @@ export const DrawerContent = (props) => {
       const emptyRefreshAttemptedRef = React.useRef(false);
       const { updateCheckouts } = React.useContext(CheckoutsContext);
       const { updateHolds } = React.useContext(HoldsContext);
-       const { language } = React.useContext(LanguageContext);
+       const language = useActiveLanguage();
        const [invalidSession, setInvalidSession] = React.useState(false);
 
 
@@ -311,6 +312,10 @@ export const DrawerContent = (props) => {
       useFocusEffect(
            React.useCallback(() => {
                 const validateBrowseCategoriesCache = async () => {
+                     if (!library.baseUrl) {
+                          return;
+                     }
+
                      const isEmpty = !Array.isArray(category) || category.length === 0;
                      const shouldRefreshForEmpty = isEmpty && !emptyRefreshAttemptedRef.current;
                      const shouldRefresh = categoriesExpired || shouldRefreshForEmpty;
@@ -326,32 +331,30 @@ export const DrawerContent = (props) => {
                      browseRefreshInFlightRef.current = true;
                      const requestedMax = maxNum > 0 ? maxNum : 5;
 
-                     if (shouldRefresh) {
-                          logDebugMessage("Browse categories cache expired in drawer, fetching from API");
-                          try {
-                               const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
-                               if (response?.ok) {
-                                    const result = response.data.result;
-                                    await updateBrowseCategories(result.browseCategories);
-                                    if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
-                                         emptyRefreshAttemptedRef.current = false;
-                                    }
-                                    await updateHomeScreenLinks(result.homeScreenLinks ?? []);
-                                    logDebugMessage("Browse categories refreshed from API");
-                               } else {
-                                    logDebugMessage("Error fetching browse categories from API");
-                                    getErrorMessage(response?.code ?? 0, response?.problem);
+                     logDebugMessage("Browse categories cache expired in drawer, fetching from API");
+                     try {
+                          const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+                          if (response?.ok) {
+                               const result = response.data.result;
+                               await updateBrowseCategories(result.browseCategories);
+                               if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
+                                    emptyRefreshAttemptedRef.current = false;
                                }
-                          } catch (error) {
-                               logDebugMessage("Error validating browse categories cache: " + error.message);
-                          } finally {
-                               browseRefreshInFlightRef.current = false;
+                               await updateHomeScreenLinks(result.homeScreenLinks ?? []);
+                               logDebugMessage("Browse categories refreshed from API");
+                          } else {
+                               logDebugMessage("Error fetching browse categories from API");
+                               getErrorMessage(response?.code ?? 0, response?.problem);
                           }
+                     } catch (error) {
+                          logDebugMessage("Error validating browse categories cache: " + error.message);
+                     } finally {
+                          browseRefreshInFlightRef.current = false;
                      }
                 };
                 
                 validateBrowseCategoriesCache();
-           }, [categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks])
+           }, [category, categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks])
       );
 
       useQueryWithCallbacks({
@@ -819,7 +822,7 @@ export const DrawerContent = (props) => {
                               <AlternateLibraryCard />
                          </VStack>
 
-                         <VStack space={3} alignItems="center" pt="4">
+                         <VStack space={3} alignItems="center" pt="$4">
                               <HStack space={2}>
                                    <LogOutButton />
                               </HStack>
@@ -838,7 +841,7 @@ const UserProfileOverview = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      const icon = library.logoApp ?? library.favicon ?? Constants.expoConfig.ios.icon;
@@ -877,7 +880,7 @@ const Checkouts = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -916,7 +919,7 @@ const Holds = () => {
      const user = userState?.user ?? {};
      const { textColor } = React.useContext(ThemeContext);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      return (
           <Pressable
@@ -953,7 +956,7 @@ const UserLists = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -986,7 +989,7 @@ const SavedSearches = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -1024,7 +1027,7 @@ const ReadingHistory = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -1055,7 +1058,7 @@ const ReadingHistory = () => {
 
 const UserProfile = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -1078,7 +1081,7 @@ const UserProfile = () => {
 
 const NotificationHistory = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
@@ -1106,7 +1109,7 @@ const LinkedAccounts = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      if (library.allowLinkedAccounts === '1') {
@@ -1136,7 +1139,7 @@ const LinkedAccounts = () => {
 
 const AlternateLibraryCard = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      const shouldShowAlternateLibraryCard = library.showAlternateLibraryCard ?? false;
@@ -1168,7 +1171,7 @@ const Fines = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
@@ -1211,7 +1214,7 @@ const Events = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      if (library.hasEventSettings) {
@@ -1248,7 +1251,7 @@ const Events = () => {
 
 const YearInReview = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
@@ -1283,7 +1286,7 @@ const YearInReview = () => {
 
 const Campaigns = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
      if (library.hasCommunityEngagementEnabled) {
           return(
@@ -1348,7 +1351,7 @@ async function addStoredNotification(message) {
 }
 
 function LogOutButton() {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
      const { theme } = React.useContext(ThemeContext);
 

@@ -40,7 +40,7 @@ import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -49,6 +49,7 @@ import { getLocalIllForm } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { stripHTML } from '../../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
@@ -118,7 +119,7 @@ const Request = (payload) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const navigation = useNavigation();
      const queryClient = useQueryClient();

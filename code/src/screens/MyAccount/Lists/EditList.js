@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -11,6 +11,7 @@ import { refreshProfile } from '../../../util/api/user';
 import {Platform} from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import {
      AlertDialog,
      AlertDialogContent,
@@ -78,7 +79,7 @@ const EditList = (props) => {
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
       const [title, setTitle] = React.useState(data.title);
@@ -241,7 +242,7 @@ const DeleteList = (props) => {
       const {textColor, colorMode } = React.useContext(ThemeContext);
       const { data: userState } = useUserState();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const updateUserProfile = useUpdateUserProfile();
       const updateLists = useUpdateLists();
       const [isOpen, setIsOpen] = React.useState(false);

@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
 import { fetchSavedSearches } from '../../../util/api/list';
 import { loadError } from '../../../components/loadError';
@@ -12,6 +12,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();
@@ -20,7 +21,7 @@ export const MySavedSearches = () => {
      const { data: savedSearches } = useSavedSearches();
      const updateSavedSearches = useUpdateSavedSearches();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -101,7 +102,7 @@ export const MySavedSearches = () => {
 };
 
 const Item = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const item = data.data;
      const { textColor, colorMode } = React.useContext(ThemeContext);
 

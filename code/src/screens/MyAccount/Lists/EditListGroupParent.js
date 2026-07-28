@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import {
      Center,
@@ -42,6 +42,7 @@ import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const { data: userState } = useUserState();
@@ -49,7 +50,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);

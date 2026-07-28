@@ -19,8 +19,9 @@ import React, { useRef } from 'react';
 // custom components and helper files
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
+import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocationInfo, getCatalogStatus } from '../../util/api/system';
@@ -62,7 +63,7 @@ export const GetLoginForm = (props) => {
       const updateCatalogStatus = useUpdateCatalogStatus();
       const { status: catalogStatus } = useCatalogStatus();
       const updateLibrary = useUpdateLibrary();
-     const { updateLanguage } = React.useContext(LanguageContext);
+     const updateLanguage = useUpdateActiveLanguage();
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
@@ -127,7 +128,7 @@ export const GetLoginForm = (props) => {
                          GLOBALS.appSessionId = validatedUser.session ?? '';
                          GLOBALS.language = validatedUser.lang ?? 'en';
                          const userHomeLocationId = validatedUser.homeLocationId ?? null;
-                         updateLanguage(validatedUser.lang ?? 'en');
+                         await updateLanguage(validatedUser.lang ?? 'en');
                          if (validatedUser.success) {
                               await setAsyncStorage(userHomeLocationId);
                               signIn();

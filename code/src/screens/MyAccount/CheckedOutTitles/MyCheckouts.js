@@ -47,7 +47,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { CheckoutsContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
@@ -55,6 +55,7 @@ import { sortCheckouts } from '../../../util/api/userHelper';
 import { stripHTML } from '../../../helpers/helpers';
 import { MyCheckout } from './MyCheckout';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MyCheckouts = () => {
      const isFetchingCheckouts = useIsFetching({ queryKey: ['checkouts'] });
@@ -68,7 +69,7 @@ export const MyCheckouts = () => {
      const updateUserCheckoutSortMethod = (v) => updateSortSettings({ userCheckoutSortMethod: v });
      const library = useLibrary();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [checkoutSource, setCheckoutSource] = React.useState('all');
      const [isLoading, setLoading] = React.useState(false);
      const [renewAll, setRenewAll] = React.useState(false);

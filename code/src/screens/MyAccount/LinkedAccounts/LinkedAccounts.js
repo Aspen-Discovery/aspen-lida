@@ -15,11 +15,7 @@ import {
 import React, { useContext, useLayoutEffect, useState } from 'react';
 
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
-import {
-     LanguageContext,
-     SystemMessagesContext,
-     ThemeContext,
-} from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useAccounts, useViewers, useCards, useUpdateAccounts, useUpdateViewers, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { toArray } from '../../../helpers/helpers';
@@ -30,6 +26,7 @@ import AddLinkedAccount from './AddLinkedAccount';
 import DisableAccountLinking from './DisableAccountLinking';
 import EnableAccountLinking from './EnableAccountLinking';
 import { logErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();
@@ -38,7 +35,7 @@ export const MyLinkedAccounts = () => {
      const { data: accounts } = useAccounts();
      const { data: viewers } = useViewers();
      const library = useLibrary();
-     const { language } = useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = useContext(ThemeContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = useContext(SystemMessagesContext);
@@ -168,7 +165,7 @@ const Account = ({ account, type }) => {
      const updateViewers = useUpdateViewers();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = useContext(ThemeContext);
      const toast = useToast();
 

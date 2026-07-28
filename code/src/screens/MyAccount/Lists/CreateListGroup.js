@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { refreshProfile } from '../../../util/api/user';
 import { popAlert } from '../../../components/loadError';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const CreateListGroup = (props) => {
       const { setLoading, updateSelectedListGroup } = props;
@@ -19,7 +20,7 @@ const CreateListGroup = (props) => {
       const { data: listGroups } = useListGroups();
       const updateListGroupsData = useUpdateListGroups();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [loading, setAdding] = React.useState(false);
       const [showModal, setShowModal] = useState(false);

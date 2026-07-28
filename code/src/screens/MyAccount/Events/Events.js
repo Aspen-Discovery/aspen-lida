@@ -12,7 +12,7 @@ import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigate } from '../../../helpers/RootNavigator';
@@ -20,6 +20,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
 import { refreshProfile } from '../../../util/api/user';
 import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -29,7 +30,7 @@ export const MyEvents = () => {
      const [isLoading, setLoading] = React.useState(false);
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: savedEvents } = useSavedEvents();
@@ -230,7 +231,7 @@ const Item = (data) => {
      const { data: userState2 } = useUserState();
      const user = userState2?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const {colorMode} = React.useContext(ThemeContext);
 

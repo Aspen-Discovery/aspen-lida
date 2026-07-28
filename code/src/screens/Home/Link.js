@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 
-import { LanguageContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, ThemeContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
@@ -11,6 +11,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { popAlert } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const HomeScreenLinkGrid = ({links}) => {
      const { width } = Dimensions.get('window');
@@ -48,7 +49,7 @@ const HomeScreenLinkGrid = ({links}) => {
 const Link = ({link}) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { updateCurrentIndex } = React.useContext(SearchContext);
      const toast = useToast();
 

@@ -11,7 +11,7 @@ import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -20,6 +20,7 @@ import { refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/
 
 import { formatDiscoveryVersion, orderByFields, parseToDate } from '../../../helpers/helpers';
 import { logDebugMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MyLibraryCard = () => {
      const navigation = useNavigation();
@@ -39,7 +40,7 @@ export const MyLibraryCard = () => {
      const { data: cards } = useCards();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme } = React.useContext(ThemeContext);
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
@@ -292,7 +293,7 @@ const CreateLibraryCard = (data) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
      const library = useLibrary();
-     const language = data.language || React.useContext(LanguageContext).language;
+     const language = data.language || useActiveLanguage();
 
      let barcodeStyle;
      if (card.barcodeStyle != null) {
@@ -438,7 +439,7 @@ const CreateLibraryCard = (data) => {
 
 const CardCarousel = (data) => {
      const { theme, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [internalIndex, setInternalIndex] = React.useState(0);
      const cards = orderByFields(data.cards ?? [], ['key']);
      const isVertical = data.orientation;

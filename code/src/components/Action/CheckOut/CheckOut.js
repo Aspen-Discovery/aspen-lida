@@ -33,7 +33,7 @@ import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
 // custom components and helper files
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { decodeHTML } from '../../../helpers/helpers';
@@ -42,6 +42,7 @@ import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/us
 import { HoldPrompt } from '../Holds/HoldPrompt';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const CheckOut = (props) => {
      const queryClient = useQueryClient();
@@ -51,7 +52,7 @@ export const CheckOut = (props) => {
      const { data: accounts } = useAccounts();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [loading, setLoading] = React.useState(false);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
 

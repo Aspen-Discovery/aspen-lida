@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary, useHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { useBrowseCategories, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
@@ -22,6 +22,7 @@ import DisplayBrowseCategory from './Category';
 import { DisplayErrorAlertDialog } from '../../components/loadError';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import HomeScreenLinkGrid from './Link';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -44,7 +45,7 @@ export const DiscoverHomeScreen = () => {
      const { categoriesExpired } = useBrowseCategoryExpiration();
      const browseRefreshInFlightRef = React.useRef(false);
      const emptyRefreshAttemptedRef = React.useRef(false);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const [preliminaryLoadingCheck, setPreliminaryCheck] = React.useState(false);
 
@@ -100,6 +101,10 @@ export const DiscoverHomeScreen = () => {
      useFocusEffect(
           React.useCallback(() => {
                const validateBrowseCategoriesCache = async () => {
+                    if (!library.baseUrl) {
+                         return;
+                    }
+
                     const isEmpty = !Array.isArray(category) || category.length === 0;
                     const shouldRefreshForEmpty = isEmpty && !emptyRefreshAttemptedRef.current;
                     const shouldRefresh = categoriesExpired || shouldRefreshForEmpty;
@@ -119,32 +124,30 @@ export const DiscoverHomeScreen = () => {
                          await updateMaxCategories(5);
                     }
 
-                    if (shouldRefresh) {
-                         logDebugMessage("Browse categories cache expired, fetching from API");
-                         setLoading(true);
-                         try {
-                              const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
-                              if (response?.ok) {
-                                   const result = response.data.result;
-                                   await updateBrowseCategories(result.browseCategories);
-                                   if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
-                                        emptyRefreshAttemptedRef.current = false;
-                                   }
-                                   logDebugMessage("Browse categories refreshed from API");
-                              } else {
-                                   logDebugMessage("Error fetching browse categories from API");
+                    logDebugMessage("Browse categories cache expired or empty, fetching from API");
+                    setLoading(true);
+                    try {
+                         const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+                         if (response?.ok) {
+                              const result = response.data.result;
+                              await updateBrowseCategories(result.browseCategories);
+                              if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
+                                   emptyRefreshAttemptedRef.current = false;
                               }
-                         } catch (error) {
-                              logDebugMessage("Error validating browse categories cache: " + error.message);
-                         } finally {
-                              browseRefreshInFlightRef.current = false;
-                              setLoading(false);
+                              logDebugMessage("Browse categories refreshed from API");
+                         } else {
+                              logDebugMessage("Error fetching browse categories from API");
                          }
+                    } catch (error) {
+                         logDebugMessage("Error validating browse categories cache: " + error.message);
+                    } finally {
+                         browseRefreshInFlightRef.current = false;
+                         setLoading(false);
                     }
                };
 
                validateBrowseCategoriesCache();
-          }, [categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateMaxCategories])
+          }, [category, categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateMaxCategories])
      );
 
      const clearText = () => {

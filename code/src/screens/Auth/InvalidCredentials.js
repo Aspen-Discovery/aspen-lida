@@ -3,14 +3,15 @@ import { Center, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDial
 import React from 'react';
 
 import { AuthContext } from '../../context/AuthContext';
-import {LanguageContext, ThemeContext} from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const InvalidCredentials = () => {
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => setIsOpen(false);

@@ -1,6 +1,6 @@
 // TODO: Remove unused file
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useAccounts } from '../../hooks/useUserData';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -11,10 +11,11 @@ import { AlertDialog,      AlertDialogBackdrop,
      AlertDialogFooter, Button, ButtonText, ButtonGroup, Center, Text, Heading } from '@gluestack-ui/themed';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import _ from 'lodash';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const FinishCheckOutSession = () => {
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: accounts } = useAccounts();
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
 

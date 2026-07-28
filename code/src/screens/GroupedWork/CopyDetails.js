@@ -4,8 +4,8 @@ import {Button, ButtonText, Center, Modal, ModalContent, ModalHeader, ModalBody,
 import {MaterialIcons} from '@expo/vector-icons';
 import {getItemDetails} from '../../util/api/item';
 import _ from 'lodash';
-import {LanguageContext} from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 import {useQueryClient} from '@tanstack/react-query';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
@@ -22,7 +22,7 @@ import { DisplayErrorAlertDialog } from '../../components/loadError';
 
 const ShowItemDetails = (props) => {
      const library = useLibrary();
-     const {language} = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const {
           data,
@@ -149,7 +149,7 @@ const ShowItemDetails = (props) => {
 };
 
 const renderHeader = () => {
-    const {language} = React.useContext(LanguageContext);
+    const language = useActiveLanguage();
      return (
          <HStack space={4} justifyContent="space-between" pb={2}>
               <Text bold w="30%" fontSize="$xs">

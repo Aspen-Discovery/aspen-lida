@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
 import { Box, Divider, HStack, Icon, Pressable, Text, VStack, ChevronRightIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateExpoToken } from '../../../hooks/useUserData';
 
 // custom components and helper files
@@ -14,11 +14,12 @@ import { UseColorMode } from '../../../themes/theme';
 import { getTermFromDictionary, LanguageSwitcher } from '../../../translations/TranslationService';
 import { logErrorMessage } from '../../../util/logging';
 import * as Device from "expo-device";
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const PreferencesScreen = () => {
       const navigation = useNavigation();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const expoToken = userState?.expoToken ?? false;

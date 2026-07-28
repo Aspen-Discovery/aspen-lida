@@ -7,7 +7,7 @@ import { colorMode, useColorModeValue } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -18,6 +18,7 @@ import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
 import {logDebugMessage} from "../../util/logging";
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -25,7 +26,7 @@ export const MyLibrary = () => {
      const library = useLibrary();
      const location = useLibraryLocation();
      const locations = useAvailableLocations();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme } = React.useContext(ThemeContext);

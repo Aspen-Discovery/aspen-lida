@@ -20,19 +20,20 @@ import {
 } from '@gluestack-ui/themed';
 import React, { useState, useRef } from 'react';
 
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
 import { addLinkedAccount, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
 import { formatLinkedAccounts } from '../../../util/api/userHelper';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import {logErrorMessage} from "../../../util/logging";
 import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 // custom components and helper files
 
 const AddLinkedAccount = () => {
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

@@ -3,7 +3,7 @@ import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCategoryVisibility, useMaxCategories, useUpdateBrowseCategories } from '../../../hooks/useBrowseCategoryData';
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
@@ -11,12 +11,13 @@ import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../../util/a
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import _ from 'lodash';
 import { useToast } from '@gluestack-ui/themed';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const Settings_BrowseCategories = () => {
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const list = useBrowseCategoryList();
      const updateBrowseCategoryList = useUpdateBrowseCategoryList();
      const { theme } = React.useContext(ThemeContext);
@@ -65,7 +66,7 @@ const DisplayCategory = (data) => {
      const [errorMessage, setErrorMessage] = React.useState('');
      const toggleSwitch = () => setToggle((previousState) => !previousState);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode, textColor, theme} = React.useContext(ThemeContext);
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const maxNum = useMaxCategories();

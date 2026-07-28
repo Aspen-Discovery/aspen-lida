@@ -29,7 +29,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
-import { HoldsContext, LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -43,6 +43,7 @@ import { SelectThawDate } from './SelectThawDate.js';
 
 import { logDebugMessage } from '../../../util/logging.js';
 import { useQueryClient } from '@tanstack/react-query';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -57,7 +58,7 @@ export const MyHold = (props) => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
      const [cancelling, startCancelling] = React.useState(false);
@@ -401,7 +402,7 @@ export const MyHold = (props) => {
 export const ManageSelectedHolds = (props) => {
      const { selectedValues, onAllDateChange, selectedReactivationDate, resetGroup, context } = props;
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
@@ -569,7 +570,7 @@ export const ManageSelectedHolds = (props) => {
 export const ManageAllHolds = (props) => {
      const queryClient = useQueryClient();
      const { resetGroup } = props;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);

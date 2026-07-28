@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useUserState, useAccounts } from '../../hooks/useUserData';
 import {
      AlertDialog,
@@ -36,10 +36,11 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import _ from 'lodash';
 import {logDebugMessage} from "../../util/logging";
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const StartCheckOutSession = () => {
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: accounts } = useAccounts();

@@ -12,14 +12,15 @@ import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const loggedEmptyCategoryKeys = new Set();
 
 const DisplayBrowseCategory = ({category}) => {
      const toast = useToast();
      const { theme, colorMode } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const maxNum = useMaxCategories();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
@@ -202,7 +203,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 const DisplayBrowseCategoryRecord = ({record}) => {
      const library = useLibrary();
      const { theme } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      let type = 'grouped_work';
      if (!_.isUndefined(record.source)) {
@@ -357,7 +358,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      const toast = useToast();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const maxNum = useMaxCategories();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const updateBrowseCategories = useUpdateBrowseCategories();
@@ -423,7 +424,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
 
 const DisplayMoreResultsButton = ({ category }) => {
      const { theme } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const isListSource = category.source === 'List';
 

@@ -55,7 +55,7 @@ import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useReadingHistory, useUpdateReadingHistory, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getAuthor, getCleanTitle, getDateLastUsed, getFormat, getTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -67,6 +67,7 @@ import AddToList from '../../Search/AddToList';
 import { ActionsheetIcon } from '@gluestack-ui/themed';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -79,7 +80,7 @@ export const MyReadingHistory = () => {
      const [searchTerm, setSearchTerm] = React.useState('');
      const [filter, setFilter] = React.useState('');
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
@@ -547,7 +548,7 @@ const Item = React.memo(({ data: item, onDelete }) => {
      const user = userState2?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor, colorMode } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
 

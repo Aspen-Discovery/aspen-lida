@@ -36,13 +36,14 @@ import { loadError, popToast } from '../../../components/loadError';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
 import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
 import EditList from './EditList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
+import { useActiveLanguage, useDictionary } from '../../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -54,7 +55,8 @@ export const MyList = ({ route }) => {
      const [pageSize, setPageSize] = React.useState(20);
      const library = useLibrary();
      const [list] = React.useState(providedList);
-     const { language, dictionary } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const dictionary = useDictionary();
      const insets = useSafeAreaInsets();
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort By Title',

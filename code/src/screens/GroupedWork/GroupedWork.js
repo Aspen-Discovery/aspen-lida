@@ -23,7 +23,7 @@ import React from 'react';
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { GroupedWorkContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { GroupedWorkContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
@@ -39,6 +39,7 @@ import AddToList from '../Search/AddToList';
 import Variations from './Variations';
 
 import { logDebugMessage, getErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -61,7 +62,7 @@ export const GroupedWorkScreen = () => {
      const updatePickupLocationPrefs = useUpdatePickupLocationPrefs();
      const { language, updateGroupedWork, updateFormat } = React.useContext(GroupedWorkContext);
      const library = useLibrary();
-     const { language: userLanguage } = React.useContext(LanguageContext);
+     const userLanguage = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
 
@@ -144,7 +145,7 @@ const DisplayGroupedWork = (payload) => {
      const id = route.params.id;
      const { format } = React.useContext(GroupedWorkContext);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode } = React.useContext(ThemeContext);
 
      const formats = Object.keys(groupedWork.formats);
@@ -246,7 +247,7 @@ const Description = ({ description }) => {
 };
 
 const Language = ({ language }) => {
-     const { language: user_language } = React.useContext(LanguageContext);
+     const user_language = useActiveLanguage();
      const { theme, textColor } = React.useContext(ThemeContext);
      if (language) {
           return (
@@ -266,7 +267,7 @@ const Language = ({ language }) => {
 };
 
 const Formats = ({ formats }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { format, updateFormat } = React.useContext(GroupedWorkContext);
      const { theme, textColor } = React.useContext(ThemeContext);
      if (formats) {
@@ -292,7 +293,7 @@ const Formats = ({ formats }) => {
 };
 
 const BibliographicInformationLink = ({ groupedWorkId }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, colorMode } = React.useContext(ThemeContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};

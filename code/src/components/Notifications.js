@@ -7,7 +7,7 @@ import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
-import {ThemeContext} from "../context/initialContext";
+import { ThemeContext } from '../context/initialContext';
 
 // custom components and helper files
 import { stripHTML } from '../helpers/helpers';

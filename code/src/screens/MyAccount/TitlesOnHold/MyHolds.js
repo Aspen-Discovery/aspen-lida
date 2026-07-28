@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { HoldsContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { getPatronHolds, refreshProfile, setSortPreferences } from '../../../util/api/user';
@@ -32,6 +32,7 @@ import { getPickupLocations } from '../../../util/api/user';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MyHolds = () => {
      const isFetchingHolds = useIsFetching({ queryKey: ['holds'] });
@@ -49,7 +50,7 @@ export const MyHolds = () => {
      const updatePickupLocations = useUpdateLocations();
      const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [holdSource, setHoldSource] = React.useState('all');
      const [isLoading, setLoading] = React.useState(false);
      const [values, setGroupValues] = React.useState([]);

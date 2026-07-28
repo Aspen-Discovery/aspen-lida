@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, Button, ButtonText, ButtonIcon, Center } from '@gluestack-ui/themed';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useUserState } from '../../hooks/useUserData';
 import { TrashIcon } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { removeTitlesFromList } from '../../util/api/list';
 import AddToList from './AddToList';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -17,7 +18,7 @@ export const DisplayListResult = (props) => {
      const item = props.data;
      const isUserList = props.isUserList;
      const listId = props.listId;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const queryClient = useQueryClient();
 

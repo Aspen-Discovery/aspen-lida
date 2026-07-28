@@ -24,7 +24,7 @@ import {
 } from '@gluestack-ui/themed';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 
-import { LanguageContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -34,6 +34,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { SearchGlobal } from '../../util/globals';
 import { buildParamsForUrl } from '../../util/api/searchHelper';
 import { UnsavedChangesExit } from './UnsavedChanges';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
@@ -41,7 +42,7 @@ export const FiltersScreen = () => {
      const [loading, setLoading] = React.useState(false);
      const library = useLibrary();
      const location = useLibraryLocation();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { currentIndex, currentSource } = React.useContext(SearchContext);
      const {theme, textColor, colorMode } = React.useContext(ThemeContext);
      const pendingFiltersFromParams = useNavigationState((state) => state.routes[0]['params']['pendingFilters']);

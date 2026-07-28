@@ -8,12 +8,12 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories } from '../../../components/Notifications';
 import { getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
 
-import { LanguageContext } from '../../../context/initialContext';
 import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings, useUpdateExpoToken } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile } from '../../../util/api/user';
 
 import { logDebugMessage, logWarnMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const Settings_NotificationOptions = () => {
      const [isLoading, setLoading] = React.useState(false);
@@ -25,7 +25,7 @@ export const Settings_NotificationOptions = () => {
      const expoToken = userState?.expoToken ?? false;
      const { data: notificationSettings } = useNotificationSettings();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const toast = useToast();
 
      const isNotificationsEnabled = Boolean(expoToken);
@@ -114,7 +114,7 @@ export const Settings_NotificationOptions = () => {
 };
 
 const EnableAllNotifications = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const updateUserProfile = useUpdateUserProfile();
      const updateNotificationSettings = useUpdateNotificationSettings();
      const expoToken = userState?.expoToken ?? false;

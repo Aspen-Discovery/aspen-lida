@@ -5,14 +5,15 @@ import { useRoute } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { AppState, Platform } from 'react-native';
 
-import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
+import { ThemeContext } from '../../../../context/initialContext';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 
 export const CameraPermissionStatus = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode, textColor } = React.useContext(ThemeContext);
      const [permissionStatus, setPermissionStatus] = React.useState(false);
 
@@ -58,7 +59,7 @@ export const CameraPermissionStatus = () => {
 export const CameraPermissionDescription = () => {
      const { colorMode, textColor } = React.useContext(ThemeContext);
      const [permissionStatus, setPermissionStatus] = React.useState(useRoute().params?.permissionStatus ?? false);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      return (
           <ScrollView p="$5">
@@ -85,7 +86,7 @@ export const CameraPermissionDescription = () => {
 };
 
 const CameraPermissionUsage = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor } = React.useContext(ThemeContext);
 
      return (
@@ -115,7 +116,7 @@ const CameraPermissionUsage = () => {
 
 const CameraPermissionUpdate = (payload) => {
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [showAlertDialog, setShowAlertDialog] = React.useState(false);
      const [manuallyPromptPermission, setManuallyPromptPermission] = React.useState(false);
      const setPermissionStatus = payload.setPermissionStatus;

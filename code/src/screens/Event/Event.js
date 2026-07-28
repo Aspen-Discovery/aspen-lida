@@ -39,7 +39,7 @@ import { showLocation } from 'react-native-map-link';
 import { loadError, popAlert, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -49,6 +49,7 @@ import { refreshProfile } from '../../util/api/user';
 import { decodeHTML, stripHTML } from '../../helpers/helpers';
 import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -58,7 +59,7 @@ export const EventScreen = () => {
      const id = route.params.id;
      const source = route.params.source;
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const [hasValidImage, setHasValidImage] = React.useState(false);
@@ -132,7 +133,7 @@ const DisplayEvent = (payload) => {
      const hasValidImage = payload.hasValidImage;
      const route = useRoute();
      const source = route.params.source;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
@@ -239,7 +240,7 @@ const EventTitle = ({ title, hasCoverImage }) => {
 
 const EventDescription = ({ description }) => {
      const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (description) {
           return (
                <Box mt={5}>
@@ -258,7 +259,7 @@ const EventDescription = ({ description }) => {
 
 const EventAudiences = ({ audiences }) => {
      const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (audiences) {
           return (
                <Box>
@@ -277,7 +278,7 @@ const EventAudiences = ({ audiences }) => {
 
 const EventCategories = ({ categories }) => {
      const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (categories) {
           return (
                <Box>
@@ -296,7 +297,7 @@ const EventCategories = ({ categories }) => {
 
 const EventProgramTypes = ({ programTypes }) => {
      const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (programTypes) {
           return (
                <Box>
@@ -314,7 +315,7 @@ const EventProgramTypes = ({ programTypes }) => {
 };
 
 const AddToCalendar = ({ start, end, location, event }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [showModal, setShowModal] = React.useState(false);
      const [modalBodyText, setModalBodyText] = React.useState('');
      const [modalBodyHeading, setModalBodyHeading] = React.useState('');
@@ -565,7 +566,7 @@ const AddToYourEvents = ({ id, source }) => {
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme } = React.useContext(ThemeContext);
      const [isLoading, setIsLoading] = React.useState(false);
      const toast = useToast();
@@ -598,7 +599,7 @@ const AddToYourEvents = ({ id, source }) => {
 };
 
 const InYourEvents = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme } = React.useContext(ThemeContext);
      return (
           <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
@@ -608,7 +609,7 @@ const InYourEvents = () => {
 };
 
 const RegistrationModal = ({ event }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [showRegistrationModal, setShowRegistrationModal] = React.useState(false);
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);

@@ -39,7 +39,6 @@ import {
 import React, { useState } from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -47,6 +46,7 @@ import { getVolumes } from '../../util/api/item';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const SelectVolumeHold = (props) => {
      const { id, title, action, volumeInfo, prevRoute, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef } = props;
@@ -60,7 +60,7 @@ const SelectVolumeHold = (props) => {
      const { data: locations } = useLocations();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const toast = useToast();
 
      const isPlacingHold = action.includes('hold');

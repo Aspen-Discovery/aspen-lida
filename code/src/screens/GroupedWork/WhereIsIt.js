@@ -1,4 +1,4 @@
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import React from 'react';
 import { Text, HStack, FlatList, Box } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
@@ -8,11 +8,12 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 import { getManifestation, getRelatedRecord } from '../../util/api/item';
 import { loadError } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const WhereIsIt = () => {
      const route = useRoute();
      const { id, format, prevRoute, type, recordId, source } = route.params;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const { theme, textColor } = React.useContext(ThemeContext);
      const [isLoading, setLoading] = React.useState(false);

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { CheckoutsContext, LanguageContext, ThemeContext } from '../../context/initialContext';
+import { CheckoutsContext, ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -13,6 +13,7 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 import { checkoutItem, refreshProfile } from '../../util/api/user';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const SelfCheckOut = () => {
      const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ export const SelfCheckOut = () => {
      const library = useLibrary();
      const location = useLibraryLocation();
      const selfCheckSettings = useSelfCheckSettings();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

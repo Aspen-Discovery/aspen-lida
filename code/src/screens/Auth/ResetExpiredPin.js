@@ -35,7 +35,7 @@ import {
 import React from 'react';
 import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { saveAllLibraryBranchData } from '../../util/db';
 import { useUpdateUserProfile } from '../../hooks/useUserData';
@@ -46,6 +46,7 @@ import { getUserProfile, resetExpiredPin } from '../../util/api/user';
 import { getBrowseCategoriesAndHomeLinks } from '../../util/api/search';
 
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const ResetExpiredPin = (props) => {
      const [resetSuccessful, setResetSuccessful] = React.useState(false);
@@ -56,7 +57,7 @@ export const ResetExpiredPin = (props) => {
      const updateUserProfile = useUpdateUserProfile();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const updateBrowseCategories = useUpdateBrowseCategories();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { username, resetToken, url, pinValidationRules, setExpiredPin, patronsLibrary } = props;
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {

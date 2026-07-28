@@ -5,15 +5,16 @@ import { Box, Button, ButtonText, FormControl, HStack, Text, useColorMode } from
 import React from 'react';
 import { ScrollView } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { addAppliedFilter } from '../../../util/api/searchHelper';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 // custom components and helper files
 
 export const Facet_Date = (props) => {
      const { data, category, updater } = props;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const [loading, setLoading] = React.useState(false);
 

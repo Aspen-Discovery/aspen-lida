@@ -10,7 +10,7 @@ import { LoadError, loadError } from '../../components/loadError';
 import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
 
 // custom components and helper files
-import { HoldsContext, LanguageContext, ThemeContext } from '../../context/initialContext';
+import { HoldsContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
@@ -21,6 +21,7 @@ import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const Variations = (props) => {
      // 1. Hooks (Plural Variations)
@@ -28,7 +29,7 @@ export const Variations = (props) => {
      const route = useRoute();
       const insets = useSafeAreaInsets();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { updateHolds } = React.useContext(HoldsContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
@@ -298,7 +299,7 @@ const Variation = (props) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
 
      // 2. Props Destructuring

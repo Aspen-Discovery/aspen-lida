@@ -4,13 +4,14 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
 import { saveLastListUsed } from '../../util/db';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getListDetails, getListGroupDetails, getListGroups, getLists, getListTitles } from '../../util/api/list';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import {
      Box,
@@ -73,7 +74,7 @@ const AddToList = (props) => {
      const user = userState?.user ?? {};
      const { data: userLists } = useLists();
      const { data: listGroups } = useListGroups();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const insets = useSafeAreaInsets();
      const lists = userLists?.lists ?? userLists ?? [];
      const [listId, setListId] = useState();

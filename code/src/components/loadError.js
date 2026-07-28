@@ -4,8 +4,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { ThemeContext } from '../context/initialContext';
 import { logDebugMessage } from '../util/logging.js';
+import { useActiveLanguage } from '../hooks/useLanguageData';
 
 /**
  * Catch an error and display it to the user
@@ -138,7 +139,7 @@ export function popAlert(toast, title, description, status) {
 
 export const DisplayErrorAlertDialog = (props) => {
      const { title, message } = props;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => setIsOpen(false);

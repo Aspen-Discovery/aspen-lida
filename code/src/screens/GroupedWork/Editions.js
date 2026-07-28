@@ -15,12 +15,13 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const Editions = () => {
      // 1. Hooks
@@ -30,7 +31,7 @@ export const Editions = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { language } = useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode, theme, textColor } = useContext(ThemeContext);
      const insets = useSafeAreaInsets();
 
@@ -330,7 +331,7 @@ export const Editions = () => {
 
 const Edition = (props) => {
      // 1. Hooks
-     const { language } = useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = useContext(ThemeContext);
 
      // 2. Props

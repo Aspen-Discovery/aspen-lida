@@ -29,10 +29,7 @@ import {
 import React from 'react';
 import { popToast } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import {
-     LanguageContext,
-     ThemeContext,
-} from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { useLibrary, useLibraryMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -40,9 +37,10 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const MoreMenu = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const menu = useLibraryMenu();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -178,7 +176,7 @@ export const MoreMenu = () => {
 const MyLibrary = () => {
      const library = useLibrary();
      const location = useLibraryLocation();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
@@ -241,7 +239,7 @@ const MyLibrary = () => {
 };
 
 const ViewAllLocations = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const locations = useAvailableLocations();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
@@ -260,7 +258,7 @@ const ViewAllLocations = () => {
 };
 
 const Settings = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
      return (
@@ -274,7 +272,7 @@ const Settings = () => {
 };
 
 const DeleteAccount = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
      return (
@@ -288,7 +286,7 @@ const DeleteAccount = () => {
 };
 
 const PrivacyPolicy = () => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
      const toast = useToast();

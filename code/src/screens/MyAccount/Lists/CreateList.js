@@ -47,7 +47,7 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createList, getLists, getListGroups } from '../../../util/api/list';
@@ -55,6 +55,7 @@ import { refreshProfile } from '../../../util/api/user';
 import { Platform } from 'react-native';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 const CreateList = (props) => {
       const { setLoading } = props;
@@ -65,7 +66,7 @@ const CreateList = (props) => {
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [loading, setAdding] = React.useState(false);
       const [showModal, setShowModal] = useState(false);

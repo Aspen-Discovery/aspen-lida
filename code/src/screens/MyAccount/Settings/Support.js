@@ -5,19 +5,20 @@ import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useAccounts, useDebugMessages } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const SupportScreen = () => {
      const navigation = useNavigation();
      const { data: accounts } = useAccounts();
      const { data: userDebugMessage } = useDebugMessages();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const [status, setStatus] = React.useState({
           needsUpdate: false,

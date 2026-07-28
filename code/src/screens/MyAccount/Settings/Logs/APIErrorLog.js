@@ -1,7 +1,8 @@
 import React from 'react';
 import { Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon, AccordionContent, AccordionContentText, Box, Button, ButtonText, FlatList, Heading, HStack, Spinner, Text, VStack, ChevronUpIcon, ChevronDownIcon } from '@gluestack-ui/themed';
 import { clearApiErrorLogs, getApiErrorLogsPage } from '../../../../util/db';
-import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
+import { ThemeContext } from '../../../../context/initialContext';
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 
 /* move this to the helpers.js */
@@ -24,8 +25,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
           hasPrevious: false,
      });
 
-     const languageCtx = React.useContext(LanguageContext) ?? {};
-     const language = languageCtx.language ?? 'en';
+     const language = useActiveLanguage();
 
      const themeCtx = React.useContext(ThemeContext) ?? {};
      const theme = themeProp ?? themeCtx.theme ?? {};

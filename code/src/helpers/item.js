@@ -3,13 +3,14 @@ import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/
 import React from 'react';
 import _ from 'lodash';
 
-import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { ThemeContext } from '../context/initialContext';
 import { useUserState } from '../hooks/useUserData';
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../translations/TranslationService';
+import { useActiveLanguage } from '../hooks/useLanguageData';
 
 export const isOverdue = (overdue) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (overdue) {
           return (
                <Badge action="error" borderRadius="$sm" mt={-2} alignSelf="flex-start">
@@ -71,7 +72,7 @@ export function getCleanTitle(title) {
 
 export const getCallNumber = (callNumber) => {
      const {textColor} = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (callNumber) {
           return (
                <Text fontSize="$xs" color={textColor}>
@@ -87,7 +88,7 @@ export const getCallNumber = (callNumber) => {
 
 export const getVolume = (volume) => {
      const {textColor} = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (volume) {
           return (
                <Text fontSize="$xs" color={textColor}>
@@ -103,7 +104,7 @@ export const getVolume = (volume) => {
 
 export const getAuthor = (author) => {
      const {textColor} = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (author) {
           let displayAuthor = author;
           const countComma = displayAuthor.split(',').length - 1;
@@ -124,7 +125,7 @@ export const getAuthor = (author) => {
 };
 
 export const getFormat = (format, source = null) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const {textColor} = React.useContext(ThemeContext);
      if (format && format !== 'Unknown') {
@@ -171,7 +172,7 @@ export const getFormat = (format, source = null) => {
 };
 
 export const getBadge = (status, frozen, available, source, statusMessage) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (frozen) {
           if (statusMessage) {
                return (
@@ -216,7 +217,7 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
 };
 
 export const getType = (type) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (type && type !== 'ils') {
           if (type === 'interlibrary_loan') {
@@ -247,7 +248,7 @@ export const getType = (type) => {
 };
 
 export const getOnHoldFor = (user) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (user) {
           return (
@@ -263,7 +264,7 @@ export const getOnHoldFor = (user) => {
 };
 
 export const getCheckedOutTo = (props) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [checkedOutTo] = React.useState();
@@ -283,7 +284,7 @@ export const getCheckedOutTo = (props) => {
 };
 
 export const getDueDate = (date) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (date && date !== 0) {
           //offset is in minutes we multiply 60 to get seconds
@@ -304,7 +305,7 @@ export const getDueDate = (date) => {
 };
 
 export const getDateLastUsed = (date, checkedOut) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (date && date !== 0) {
           const dateLastUsed = moment.unix(date);
@@ -326,7 +327,7 @@ export const getDateLastUsed = (date, checkedOut) => {
 };
 
 export const willAutoRenew = (props) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
@@ -345,7 +346,7 @@ export const willAutoRenew = (props) => {
 };
 
 export const getPickupLocation = (location, source) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (location && source === 'ils') {
           return (
@@ -362,7 +363,7 @@ export const getPickupLocation = (location, source) => {
 };
 
 export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (outOfHoldGroupMessage) {
           return (
@@ -379,7 +380,7 @@ export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
 }
 
 export const getPosition = (position, available, length, holdPosition, usesHoldPosition, outOfHoldGroupMessage) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (!outOfHoldGroupMessage && position && !available && position !== 0 && position !== '0') {
           if (length && usesHoldPosition) {
@@ -406,7 +407,7 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
 };
 
 export const getExpirationDate = (expiration, available) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (expiration && available) {
           const expirationDateUnix = moment.unix(expiration);
@@ -425,7 +426,7 @@ export const getExpirationDate = (expiration, available) => {
 };
 
 export const getRenewalCount = (count, available = null) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      if (available) {
           return (
@@ -442,7 +443,7 @@ export const getRenewalCount = (count, available = null) => {
 };
 
 export const getCollectionName = (source, collectionName = null) => {
-	const { language } = React.useContext(LanguageContext);
+	const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
 	if (source === 'overdrive' && collectionName) {
 		return (

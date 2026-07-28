@@ -5,12 +5,13 @@ import _ from 'lodash';
 import React from 'react';
 
 // custom components and helper files
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getFormats } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -18,7 +19,7 @@ export const DisplayGroupedWorkResult = (props) => {
      const item = props.data;
      let params = useRoute();
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
      let formats = item?.itemList ?? [];

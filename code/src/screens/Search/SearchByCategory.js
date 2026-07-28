@@ -9,19 +9,20 @@ import { Image } from 'expo-image';
 import { loadError } from '../../components/loadError';
 import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../translations/TranslationService';
 import { fetchSearchResultsForBrowseCategory } from '../../util/api/search';
 import { DisplayResult } from './DisplayResult';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const SearchResultsForBrowseCategory = () => {
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 

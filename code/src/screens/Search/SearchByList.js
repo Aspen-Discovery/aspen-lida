@@ -8,12 +8,13 @@ import { loadError } from '../../components/loadError';
 
 // custom components and helper files
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { DisplayResult } from './DisplayResult';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { fetchSearchResultsForList } from '../../util/api/search';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -25,7 +26,7 @@ export const SearchResultsForList = () => {
      const screenTitle = useRoute().params?.title ?? '';
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const queryClient = useQueryClient();

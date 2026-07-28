@@ -7,7 +7,7 @@ import RenderHtml from 'react-native-render-html';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 
 // custom components and helper files
 import { useUserState, useUpdateUserProfile } from '../../../hooks/useUserData';
@@ -17,6 +17,7 @@ import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/us
 import { decodeHTML } from '../../../helpers/helpers';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../util/logging';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const MyAlternateLibraryCard = () => {
      const navigation = useNavigation();
@@ -25,7 +26,7 @@ export const MyAlternateLibraryCard = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import {getTermFromDictionary} from "../../../translations/TranslationService";
 import {Platform} from "react-native";
@@ -36,11 +36,12 @@ import {refreshProfile, updateHoldPickupPreferences} from "../../../util/api/use
 import {SelectNewHoldSublocation} from "../../../components/Action/Holds/SelectNewHoldSublocation";
 
 import { logDebugMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const Settings_PickupLocations = () => {
 	const [loading, setLoading] = React.useState(false);
 	const library = useLibrary();
-	const { language } = React.useContext(LanguageContext);
+	const language = useActiveLanguage();
 	const { data: userState } = useUserState();
     const user = userState?.user ?? {};
     const { data: locations } = useLocations();

@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
-import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
+import { ThemeContext } from '../../../../context/initialContext';
 import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
@@ -13,9 +13,10 @@ import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useNotificationPermissions, useNotificationPreferences } from '../../../../hooks/useNotifications';
 import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 
 export const NotificationPermissionStatus = () => {
-    const { language } = React.useContext(LanguageContext);
+    const language = useActiveLanguage();
     const { textColor } = React.useContext(ThemeContext);
     const library = useLibrary();
     const { data: userState } = useUserState();
@@ -71,7 +72,7 @@ export const NotificationPermissionDescription = () => {
     const prevRoute = route.params?.prevRoute ?? null;
 
     const { theme, textColor } = React.useContext(ThemeContext);
-    const { language } = React.useContext(LanguageContext);
+    const language = useActiveLanguage();
     const library = useLibrary();
     const { data: notifSettings } = useNotificationSettings();
     const notificationSettings = notifSettings;
@@ -258,7 +259,7 @@ const NotificationPreferencesSection = ({ preferences, updatePreference, notific
 };
 
 const NotificationPermissionUsage = () => {
-    const { language } = React.useContext(LanguageContext);
+    const language = useActiveLanguage();
     const { textColor } = React.useContext(ThemeContext);
 
     return (
@@ -291,7 +292,7 @@ const NotificationPermissionUsage = () => {
 
 const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermissions, revokeNotificationPermissions }) => {
     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-    const { language } = React.useContext(LanguageContext);
+    const language = useActiveLanguage();
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [showAlertDialog, setShowAlertDialog] = React.useState(false);
 

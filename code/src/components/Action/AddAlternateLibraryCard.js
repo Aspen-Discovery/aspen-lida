@@ -24,7 +24,7 @@ import {
      InputIcon,
      useToast
 } from '@gluestack-ui/themed';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -36,6 +36,7 @@ import RenderHtml from 'react-native-render-html';
 import { EyeOff, Eye } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const AddAlternateLibraryCard = (props) => {
      const {
@@ -78,7 +79,7 @@ export const AddAlternateLibraryCard = (props) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const queryClient = useQueryClient();
      const { width } = useWindowDimensions();

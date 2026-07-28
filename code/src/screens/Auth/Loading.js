@@ -6,17 +6,14 @@ import * as SecureStore from 'expo-secure-store';
 import _, {isEmpty, isUndefined} from 'lodash';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
-import {
-     LanguageContext,
-     SystemMessagesContext,
-     ThemeContext,
-} from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import {createGlueTheme} from '../../themes/theme';
 import {
      getLanguageDisplayName,
      getTermFromDictionary,
      getTranslatedTermsForUserPreferredLanguage,
-     translationsLibrary
+     setTranslationsLibrary,
+     translationsLibrary,
 } from '../../translations/TranslationService';
 import {
      getCatalogStatus,
@@ -51,11 +48,11 @@ import {
      saveInbox,
      saveAllLibraryBranchData,
      loadAllLibrarySystemData,
+     loadAllLanguageData,
      saveCatalogStatus,
      saveLibrary,
      saveMenu,
      saveHomeScreenLinks,
-     saveAllBrowseCategoryData,
 } from '../../util/db';
 import {
      useUpdateLibraryVersion,
@@ -66,6 +63,14 @@ import {
      useUpdateMaxCategories,
      useUpdateBrowseCategoryList,
 } from '../../hooks/useBrowseCategoryData';
+import {
+     useActiveLanguage,
+     useAvailableLanguages,
+     useUpdateActiveLanguage,
+     useUpdateAvailableLanguages,
+     useUpdateDictionary,
+     useUpdateLanguageDisplayName,
+} from '../../hooks/useLanguageData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
 import {stripHTML} from '../../helpers/helpers';
@@ -73,6 +78,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const prefix = Linking.createURL('/');
 const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
+const LANGUAGE_DATA_STALE_MS = 12 * 60 * 60 * 1000;
 const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;
 const LIBRARY_SYSTEM_METADATA_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
 const LIBRARY_SYSTEM_MENU_STALE_MS = 5 * 60 * 1000; // 5 minutes
@@ -111,6 +117,10 @@ export const LoadingScreen = () => {
         const [shouldBlockLibrarySystemFetch, setShouldBlockLibrarySystemFetch] = React.useState(true);
         const [isInitialLibrarySystemDataReady, setIsInitialLibrarySystemDataReady] = React.useState(false);
         const [hasHydratedLibrarySystemCacheDecision, setHasHydratedLibrarySystemCacheDecision] = React.useState(false);
+        const [hasUsableLanguageCache, setHasUsableLanguageCache] = React.useState(false);
+        const [shouldBlockLanguageFetch, setShouldBlockLanguageFetch] = React.useState(true);
+        const [isInitialLanguageDataReady, setIsInitialLanguageDataReady] = React.useState(false);
+        const [hasHydratedLanguageCacheDecision, setHasHydratedLanguageCacheDecision] = React.useState(false);
        const isBlockingUserFetchInFlightRef = React.useRef(false);
        const isBlockingLibraryBranchFetchInFlightRef = React.useRef(false);
        const isBlockingLibrarySystemFetchInFlightRef = React.useRef(false);
@@ -124,7 +134,12 @@ export const LoadingScreen = () => {
        const updateBrowseCategories = useUpdateBrowseCategories();
        const updateBrowseCategoryList = useUpdateBrowseCategoryList();
        const updateMaxCategories = useUpdateMaxCategories();
-       const { language, updateLanguage, updateLanguages, updateDictionary, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
+       const language = useActiveLanguage();
+       const languages = useAvailableLanguages();
+       const updateLanguage = useUpdateActiveLanguage();
+       const updateLanguages = useUpdateAvailableLanguages();
+       const updateDictionary = useUpdateDictionary();
+       const updateLanguageDisplayName = useUpdateLanguageDisplayName();
        const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const { updateTheme, updateColorMode, textColor } = React.useContext(ThemeContext);
 
@@ -144,7 +159,9 @@ export const LoadingScreen = () => {
        const loadingMessageType = appSettings?.loadingMessageType;
        const loadingMessage = appSettings?.loadingMessage;
        const user = loadedUser;
-       const hasResolvedLibraryContext = !!libraryData?.libraryId || !!LIBRARY.id;
+        // Use URL availability to start hydration/bootstrap. Requiring library metadata here can deadlock
+        // because metadata is fetched later in this same loading pipeline.
+        const hasResolvedLibraryContext = !!LIBRARY.url;
 
      const insets = useSafeAreaInsets();
 
@@ -172,8 +189,8 @@ export const LoadingScreen = () => {
                const profile = profileResp.data.result.profile ?? {};
                await saveUserProfile(profile);
                setLoadedUser(profile);
-               updateLanguage(profile.interfaceLanguage ?? 'en');
-               updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
+               await updateLanguage(profile.interfaceLanguage ?? 'en');
+               await updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
 
                const linkedResp = await getLinkedAccounts(LIBRARY.url, 'en');
                if (linkedResp?.ok) {
@@ -390,6 +407,50 @@ export const LoadingScreen = () => {
             fetchAndPersistLibrarySystemDataRef.current = fetchAndPersistLibrarySystemData;
        }, [fetchAndPersistLibrarySystemData]);
 
+       const fetchAndPersistLanguageData = React.useCallback(async ({ runInBackground = false } = {}) => {
+            try {
+                 const activeLanguage = language ?? 'en';
+
+                 const languageResponse = await getLibraryLanguages(LIBRARY.url);
+                 if (!languageResponse?.ok) {
+                      if (runInBackground) {
+                           logWarnMessage('Background language-list refresh failed. Continuing with cached language list.');
+                           return false;
+                      }
+                      const error = getErrorMessage(languageResponse?.code ?? 0, languageResponse?.problem);
+                      setHasError(true);
+                      setErrorTitle('Unable to load library languages');
+                      setErrorMessage(error.message);
+                      return false;
+                 }
+
+                 const fetchedLanguages = _.sortBy(languageResponse?.data?.result?.languages ?? [], 'weight', 'displayName');
+                 await updateLanguages(fetchedLanguages);
+
+                 await getTranslatedTermsForUserPreferredLanguage(activeLanguage, LIBRARY.url);
+                 setTranslationsLibrary(translationsLibrary);
+                 await updateDictionary(translationsLibrary);
+
+                 if (!runInBackground) {
+                      setIsInitialLanguageDataReady(true);
+                      setProgress(prevProgress => prevProgress + (100 / numSteps));
+                 }
+
+                 return true;
+            } catch (error) {
+                 if (runInBackground) {
+                      logWarnMessage('Background language-data refresh failed. Continuing with cached translations.');
+                      logErrorMessage(error);
+                      return false;
+                 }
+                 setHasError(true);
+                 setErrorTitle(null);
+                 setErrorMessage('Error loading language data. Please try again or contact the library.');
+                 logErrorMessage(error);
+                 return false;
+            }
+       }, [language, updateLanguages, updateDictionary, numSteps]);
+
        React.useEffect(() => {
             if (!hasResolvedLibraryContext || hasError) return;
             let cancelled = false;
@@ -462,11 +523,11 @@ export const LoadingScreen = () => {
        }, [hasResolvedLibraryContext, hasError]);
 
         React.useEffect(() => {
-             if (hasHydratedUserCacheDecision && hasHydratedLibraryBranchCacheDecision && hasHydratedLibrarySystemCacheDecision) {
+             if (hasHydratedUserCacheDecision && hasHydratedLibraryBranchCacheDecision && hasHydratedLibrarySystemCacheDecision && hasHydratedLanguageCacheDecision) {
                   logDebugMessage('All SQLite hydrations complete, marking SQLite data as loaded');
                   setIsSQLiteDataLoaded(true);
              }
-        }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision, hasHydratedLibrarySystemCacheDecision]);
+        }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision, hasHydratedLibrarySystemCacheDecision, hasHydratedLanguageCacheDecision]);
 
      React.useEffect(() => {
           if (!hasResolvedLibraryContext || hasError) return;
@@ -599,6 +660,54 @@ export const LoadingScreen = () => {
       }, [hasResolvedLibraryContext, hasError]);
 
       React.useEffect(() => {
+           if (!hasResolvedLibraryContext || hasError) return;
+           let cancelled = false;
+
+           const hydrateLanguageCache = async () => {
+                try {
+                     const cached = await loadAllLanguageData();
+                     const hasCachedLanguageData = !!cached && (Array.isArray(cached.languages) || _.isObject(cached.dictionary));
+
+                     if (cancelled) return;
+
+                     if (hasCachedLanguageData) {
+                          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
+                          const cachedDictionary = _.isObject(cached.dictionary) ? cached.dictionary : {};
+                          await updateLanguages(cachedLanguages);
+                          setTranslationsLibrary(cachedDictionary);
+                          await updateDictionary(cachedDictionary);
+
+                          setHasUsableLanguageCache(true);
+                          setShouldBlockLanguageFetch(false);
+                          setIsInitialLanguageDataReady(true);
+
+                          const isStale = !cached?.updatedAt || (Date.now() - cached.updatedAt > LANGUAGE_DATA_STALE_MS);
+                          if (isStale) {
+                               fetchAndPersistLanguageData({ runInBackground: true });
+                          }
+                     } else {
+                          setHasUsableLanguageCache(false);
+                          setShouldBlockLanguageFetch(true);
+                     }
+
+                     setHasHydratedLanguageCacheDecision(true);
+                } catch (error) {
+                     if (cancelled) return;
+                     logWarnMessage('hydrateLanguageCache: failed, falling back to blocking language fetch');
+                     logErrorMessage(error);
+                     setHasUsableLanguageCache(false);
+                     setShouldBlockLanguageFetch(true);
+                     setHasHydratedLanguageCacheDecision(true);
+                }
+           };
+
+           hydrateLanguageCache();
+           return () => {
+                cancelled = true;
+           };
+      }, [hasResolvedLibraryContext, hasError, updateLanguages, updateDictionary, fetchAndPersistLanguageData]);
+
+      React.useEffect(() => {
           const unsubscribe = navigation.addListener('focus', async () => {
                logDebugMessage('Setting up focus listener');
                //Only invoke the focus event once
@@ -702,62 +811,44 @@ export const LoadingScreen = () => {
            };
       }, [LIBRARY.url, loadingTheme]);
 
-     /**
-      * Preload parameterized translations for use on holds and checkouts pages. This does not halt loading LiDA.
-      */
-     useQuery(['active_language', language, LIBRARY.url], () => getTranslatedTermsForUserPreferredLanguage(language ?? 'en', LIBRARY.url), {
-          enabled: !!LIBRARY.url && catalogStatusSuccess,
-          onSuccess: async () => {
-               logDebugMessage("Loaded Translations");
-               setProgress(prevProgress => prevProgress + (100 / numSteps));
-               updateDictionary(translationsLibrary);
-               if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
-                    setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
-               } else if (loadingMessageType === 1) {
-                    setLoadingText('Loading Languages');
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading active language failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Unknown error loading patron preferred language. Please try again or contact the library.')
-          }
-     });
+      const [languagesQuerySuccess, setLanguagesQuerySuccess] = React.useState(false);
 
-      const { isSuccess: languagesQuerySuccess} = useQuery(['languages', LIBRARY.url], () => getLibraryLanguages(LIBRARY.url), {
-           enabled: hasError === false && !!catalogStatusData,
-           onSuccess: async (data) => {
-                if(data.ok) {
-                     logDebugMessage("Loaded library languages");
-                     setProgress(prevProgress => prevProgress + (100 / numSteps));
-                     let languages = [];
-                     if (data?.data?.result) {
-                          logDebugMessage('Library languages saved at Loading');
-                          languages = _.sortBy(data.data.result.languages, 'weight', 'displayName');
-                     }
-                     updateLanguages(languages);
-                     if (loadingMessageType === 1) {
-                          setLoadingText('Loading Library Information');
-                     }
-                } else {
-                     logDebugMessage("Error loading library languages");
-                     logDebugMessage(data);
-                     const error = getErrorMessage(data.code ?? 0, data.problem);
-                     setHasError(true);
-                     setErrorMessage(error.message);
-                     setErrorTitle("Unable to load library languages");
-                }
-           },
-           onError: (error) => {
-                logDebugMessage("Setting Error to true because loading languages failed");
-                logErrorMessage(error);
-                setHasError(true);
-                setErrorTitle(null);
-                setErrorMessage('Error loading languages. Please try again or contact the library.')
+      React.useEffect(() => {
+           if (!catalogStatusData || hasError || !hasHydratedLanguageCacheDecision || !shouldBlockLanguageFetch || isInitialLanguageDataReady) {
+                return;
            }
-      });
+
+           let cancelled = false;
+           const runBlockingLanguageFetch = async () => {
+                if (loadingMessageType === 1) {
+                     setLoadingText('Loading Languages');
+                }
+
+                const ok = await fetchAndPersistLanguageData({ runInBackground: false });
+                if (cancelled || !ok) {
+                     return;
+                }
+
+                setLanguagesQuerySuccess(true);
+                if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
+                     setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
+                } else if (loadingMessageType === 1) {
+                     setLoadingText('Loading Library Information');
+                }
+           };
+
+           runBlockingLanguageFetch();
+           return () => {
+                cancelled = true;
+           };
+      }, [catalogStatusData, hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady, fetchAndPersistLanguageData, loadingMessageType, language]);
+
+      React.useEffect(() => {
+           if (hasError || !hasHydratedLanguageCacheDecision || shouldBlockLanguageFetch || !isInitialLanguageDataReady) {
+                return;
+           }
+           setLanguagesQuerySuccess(true);
+      }, [hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady]);
 
       React.useEffect(() => {
            const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
@@ -1082,6 +1173,7 @@ export const LoadingScreen = () => {
                  (isInitialUserDataReady || hasUsableUserCache) &&
                  (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) &&
                  (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) &&
+                 (isInitialLanguageDataReady || hasUsableLanguageCache) &&
                  !hasError &&
                  catalogStatus === 0
             ) {
@@ -1151,6 +1243,8 @@ export const LoadingScreen = () => {
             hasUsableUserCache,
             isInitialLibraryBranchDataReady,
             hasUsableLibraryBranchCache,
+            isInitialLanguageDataReady,
+            hasUsableLanguageCache,
             hasError,
             catalogStatus,
             hasIncomingUrlChanged,

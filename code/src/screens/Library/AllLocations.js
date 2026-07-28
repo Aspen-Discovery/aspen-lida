@@ -11,20 +11,21 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const AllLocations = () => {
      const library = useLibrary();
      const locations = useAvailableLocations();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
 
@@ -168,7 +169,7 @@ export const AllLocations = () => {
 };
 
 const DisplayLocation = (data) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const {textColor} = React.useContext(ThemeContext);
      const location = data.data;
 

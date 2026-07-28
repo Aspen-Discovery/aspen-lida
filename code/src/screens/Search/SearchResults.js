@@ -30,7 +30,7 @@ import { loadError, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
-import { LanguageContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
 import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
@@ -43,6 +43,7 @@ import { setDefaultFacets } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -52,7 +53,7 @@ export const SearchResults = () => {
      const [page, setPage] = React.useState(1);
      const [storedTerm, setStoredTerm] = React.useState('');
       const library = useLibrary();
-      const { language } = React.useContext(LanguageContext);
+      const language = useActiveLanguage();
       const scope = useLibraryScope();
       const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
@@ -231,7 +232,7 @@ export const SearchResults = () => {
 const DisplayResult = (data) => {
      const item = data.data;
      const library = useLibrary();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
@@ -477,7 +478,7 @@ const DisplayResult = (data) => {
 };
 
 const FilterBar = ({ navigation }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const type = useRoute().params.type ?? 'catalog';
@@ -521,7 +522,7 @@ const FilterBar = ({ navigation }) => {
 };
 
 const SearchBox = ({term, navigation}) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { colorMode, textColor } = React.useContext(ThemeContext);
      const [searchTerm, setSearchTerm] = React.useState(term);
 

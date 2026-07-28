@@ -36,13 +36,14 @@ import {
 } from '@gluestack-ui/themed';
 import { fetchCampaigns, unenrollCampaign, enrollCampaign, optIntoCampaignEmails, optUserOutOfCampaignLeaderboard, optUserInToCampaignLeaderboard, addActivityProgress } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
 import { useUserState } from '../../../hooks/useUserData';
 import { Image } from 'expo-image';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import PlaceholderImg from '../../../assets/digital-reward-placeholder.png';
 import { logDebugMessage, logErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 // Constants
 const PAGE_SIZE = 20;
@@ -69,7 +70,7 @@ export const MyCampaigns = () => {
 	const navigation = useNavigation();
 	const queryClient = useQueryClient();
 	const library = useLibrary();
-	const { language } = React.useContext(LanguageContext);
+	const language = useActiveLanguage();
 	const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
 	React.useEffect(() => {
