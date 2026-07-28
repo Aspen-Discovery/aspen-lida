@@ -137,6 +137,8 @@ export const LoadingScreen = () => {
        const [loadedUser, setLoadedUser] = React.useState({});
        const [location, setLocation] = React.useState({});
        const [libraryData, setLibraryData] = React.useState({});
+        const [libraryLinksQuerySuccess, setLibraryLinksQuerySuccess] = React.useState(false);
+        const [browseCategoryQuerySuccess, setBrowseCategoryQuerySuccess] = React.useState(false);
        const library = libraryData ?? {};
        const appSettings = libraryData?.appSettings ?? LIBRARY?.appSettings ?? {};
        const loadingMessageType = appSettings?.loadingMessageType;
@@ -355,6 +357,7 @@ export const LoadingScreen = () => {
 
                 if (!runInBackground) {
                      setIsInitialLibrarySystemDataReady(true);
+                     setLibraryLinksQuerySuccess(true);
                 }
 
                 logDebugMessage({
@@ -822,11 +825,16 @@ export const LoadingScreen = () => {
            };
       }, [hasError, languagesQuerySuccess]);
 
-       let libraryLinksQuerySuccess = false;
-
        React.useEffect(() => {
-           if (hasError || (!isInitialUserDataReady && !hasUsableUserCache)) return;
+           if (hasError || (!isInitialUserDataReady && !hasUsableUserCache) || libraryLinksQuerySuccess) return;
            let cancelled = false;
+
+           // If library system bootstrap already ran from cache or blocking fetch,
+           // menu data is already persisted and we can skip the duplicate link call.
+           if (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) {
+                setLibraryLinksQuerySuccess(true);
+                return;
+           }
 
            (async () => {
                 try {
@@ -841,7 +849,7 @@ export const LoadingScreen = () => {
                           if (loadingMessageType === 1) {
                                setLoadingText('Loading Home Screen Feed');
                           }
-                           libraryLinksQuerySuccess = true;
+                           setLibraryLinksQuerySuccess(true);
                       } else {
                           logDebugMessage("Error loading library links");
                           logDebugMessage(data);
@@ -863,9 +871,7 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasError, isInitialUserDataReady, hasUsableUserCache]);
-
-       let browseCategoryQuerySuccess = false;
+      }, [hasError, isInitialUserDataReady, hasUsableUserCache, libraryLinksQuerySuccess, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache]);
 
        React.useEffect(() => {
            if (hasError || !libraryLinksQuerySuccess) return;
@@ -886,7 +892,7 @@ export const LoadingScreen = () => {
                           if (loadingMessageType === 1) {
                                setLoadingText('Loading Browse Category List');
                           }
-                           browseCategoryQuerySuccess = true;
+                           setBrowseCategoryQuerySuccess(true);
                       } else {
                           logDebugMessage("Error loading browse categories and home screen links");
                           logDebugMessage(data);
