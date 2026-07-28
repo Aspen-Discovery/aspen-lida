@@ -4,9 +4,17 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Box, Button, ButtonText, ButtonIcon, Menu, MenuItem, MenuItemLabel } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../context/initialContext';
+import { ThemeContext } from '../context/initialContext';
 import { saveLanguage } from '../util/api/user';
 import { useLibrary } from '../hooks/useLibrarySystemData';
+import {
+     useActiveLanguage,
+     useAvailableLanguages,
+     useLanguageDisplayName,
+     useUpdateActiveLanguage,
+     useUpdateLanguageDisplayName,
+     useUpdateDictionary,
+} from '../hooks/useLanguageData';
 
 import {decodeHTML } from '../helpers/helpers';
 import { GLOBALS } from '../util/globals';
@@ -20,24 +28,27 @@ import { createApiClient } from '../util/api/apiFactory';
 export const LanguageSwitcher = () => {
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const library = useLibrary();
-     const { language, updateLanguage, languages, updateDictionary, languageDisplayName, updateLanguageDisplayName } = React.useContext(LanguageContext);
-     const [label, setLabel] = React.useState(getLanguageDisplayName(language, languages));
+     const language = useActiveLanguage();
+     const languages = useAvailableLanguages();
+     const languageDisplayName = useLanguageDisplayName();
+     const updateLanguage = useUpdateActiveLanguage();
+     const updateDictionary = useUpdateDictionary();
+     const updateLanguageDisplayName = useUpdateLanguageDisplayName();
 
      const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
 
      const changeLanguage = async (val) => {
-          const tmp = val;
-          await saveLanguage(tmp, library?.baseUrl ?? '').then(async (result) => {
-               if (result) {
-                    updateLanguage(tmp);
-                    updateLanguageDisplayName(getLanguageDisplayName(tmp, languages));
-                    await getTranslatedTermsForUserPreferredLanguage(tmp, library?.baseUrl ?? '').then(() => {
-                         updateDictionary(translationsLibrary);
-                    });
-               } else {
-                    logErrorMessage('there was an error updating the language...');
-               }
-          });
+          const result = await saveLanguage(val, library?.baseUrl ?? '');
+          if (!result) {
+               logErrorMessage('there was an error updating the language...');
+               return;
+          }
+
+          await updateLanguage(val);
+          const nextDisplayName = getLanguageDisplayName(val, languages);
+          await updateLanguageDisplayName(nextDisplayName);
+          await getTranslatedTermsForUserPreferredLanguage(val, library?.baseUrl ?? '');
+          await updateDictionary(translationsLibrary);
      };
 
      if (_.isArray(languages) && _.size(languages) > 1) {
@@ -194,15 +205,23 @@ export async function getTranslationsWithValues(key, values, language, url, addT
  * @param {string} languages
  **/
 export function getLanguageDisplayName(code, languages) {
-     let language = _.filter(languages, ['code', code]);
-     language = _.values(language[0]);
-     return language[3];
+     if (!Array.isArray(languages) || !code) {
+          return '';
+     }
+     const language = _.find(languages, ['code', code]);
+     return language?.displayName ?? '';
 }
 
 /**
  * Local storage for translated terms
  */
 export let translationsLibrary = helperLibrary;
+
+export function setTranslationsLibrary(dictionary) {
+     if (_.isObject(dictionary)) {
+          translationsLibrary = dictionary;
+     }
+}
 
 // Make sure we only load translations once.
 const activeTranslationRequests = {};
@@ -325,27 +344,12 @@ export async function getTranslatedTermsForUserPreferredLanguage(language, url) 
 }
 
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false) => {
-     let dictionary = undefined;
-     try {
-          const context = React.useContext(LanguageContext);
-          dictionary = context?.dictionary;
-     } catch (e) {
-          // can't use context in this scenario
-     }
-     return helperGetTermFromDictionary(language, key, ellipsis, dictionary);
+     return helperGetTermFromDictionary(language, key, ellipsis, translationsLibrary);
 };
 
 export const getVariableTermFromDictionary = async (language, key, url) => {
      if (language && key) {
-          let tmpDictionary = translationsLibrary;
-          try {
-               const context = React.useContext(LanguageContext);
-               if (context?.dictionary) {
-                    tmpDictionary = context.dictionary;
-               }
-          } catch (e) {
-               // can't use context in this scenario
-          }
+          const tmpDictionary = translationsLibrary;
           if (tmpDictionary[language]) {
                const thisDictionary = tmpDictionary[language];
                if (thisDictionary[key]) {
