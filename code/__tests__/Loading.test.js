@@ -21,7 +21,7 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     SystemMessagesContext, ThemeContext
+     SystemMessagesContext
 } from '../src/context/initialContext';
 import { AuthContext } from '../src/context/AuthContext';
 
@@ -87,10 +87,36 @@ jest.mock('../src/hooks/useUserData', () => ({
 // Mock the API endpoints called by useQuery
 jest.mock('../src/themes/theme', () => {
      const {basicThemeObject} = require('../__mocks__/themes');
+     const themeColors = {
+          primary: basicThemeObject.tokens.colors.primary,
+          secondary: basicThemeObject.tokens.colors.secondary,
+          tertiary: basicThemeObject.tokens.colors.tertiary,
+     };
 
      return {
-          createGlueTheme: jest.fn(() => Promise.resolve(basicThemeObject)),
-          createTheme: jest.fn(() => Promise.resolve(basicThemeObject))
+          buildThemeForLibrary: jest.fn(() => Promise.resolve({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+          })),
+          useThemeForDisplay: jest.fn(() => ({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+               colorMode: 'light',
+               textColor: '#000',
+          })),
+          useTheme: jest.fn(() => ({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+               colorMode: 'light',
+               textColor: '#000',
+               updateTheme: jest.fn(),
+               updateColorMode: jest.fn(),
+               updateTextColor: jest.fn(),
+               resetTheme: jest.fn(),
+          })),
      };
 });
 
@@ -183,6 +209,15 @@ jest.mock('../src/util/db', () => ({
      saveLibrary: jest.fn(() => Promise.resolve()),
      saveMenu: jest.fn(() => Promise.resolve()),
      saveHomeScreenLinks: jest.fn(() => Promise.resolve()),
+     loadThemeState: jest.fn(() => Promise.resolve({
+          themeId: 1,
+          colorMode: 'light',
+          textColor: 'textLight950',
+          themeColors: null,
+          updatedAt: null,
+     })),
+     saveThemeState: jest.fn(() => Promise.resolve()),
+     isStoredThemeIdMatch: jest.fn(() => Promise.resolve(false)),
 }));
 
 const mockNavigate = jest.fn();
@@ -244,11 +279,9 @@ const AllTheProviders = ({children}) => {
              <GluestackUIProvider config={jestGluestackConfig}>
                   <QueryClientProvider client={testQueryClient}>
                        <AuthContext.Provider value={authValue}>
-                            <ThemeContext.Provider value={mockContextValues.theme}>
-                                 <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                      {children}
-                                 </SystemMessagesContext.Provider>
-                            </ThemeContext.Provider>
+                            <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                 {children}
+                            </SystemMessagesContext.Provider>
                        </AuthContext.Provider>
                   </QueryClientProvider>
              </GluestackUIProvider>
