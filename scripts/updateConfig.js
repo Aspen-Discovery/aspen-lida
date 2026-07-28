@@ -166,7 +166,6 @@ const app_config = {
      },
      plugins: [
           'expo-secure-store',
-          'expo-localization',
           'expo-notifications',
           'expo-sqlite',
           'expo-font',
