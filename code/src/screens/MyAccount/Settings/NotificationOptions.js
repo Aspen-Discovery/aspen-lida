@@ -14,6 +14,7 @@ import { refreshProfile } from '../../../util/api/user';
 
 import { logDebugMessage, logWarnMessage } from '../../../util/logging.js';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const Settings_NotificationOptions = () => {
      const [isLoading, setLoading] = React.useState(false);

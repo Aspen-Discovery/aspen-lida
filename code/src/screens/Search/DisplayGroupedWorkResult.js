@@ -13,6 +13,7 @@ import { getFormats } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

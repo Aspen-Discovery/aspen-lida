@@ -10,6 +10,7 @@ import { popAlert } from '../../../components/loadError';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const DeleteListGroup = ({id, handleUpdate}) => {
       const { data: userState } = useUserState();

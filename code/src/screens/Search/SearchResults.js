@@ -45,6 +45,7 @@ import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/loggi
 import { createApiClient } from '../../util/api/apiFactory';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -215,7 +216,7 @@ export const SearchResults = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (

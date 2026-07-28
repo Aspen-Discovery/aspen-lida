@@ -33,6 +33,7 @@ import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyHolds = () => {
      const isFetchingHolds = useIsFetching({ queryKey: ['holds'] });

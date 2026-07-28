@@ -16,6 +16,7 @@ import { fetchSearchResultsForList } from '../../util/api/search';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -86,7 +87,7 @@ export const SearchResultsForList = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (

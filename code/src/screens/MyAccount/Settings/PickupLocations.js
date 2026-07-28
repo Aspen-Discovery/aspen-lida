@@ -38,6 +38,7 @@ import {SelectNewHoldSublocation} from "../../../components/Action/Holds/SelectN
 import { logDebugMessage } from '../../../util/logging.js';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const Settings_PickupLocations = () => {
 	const [loading, setLoading] = React.useState(false);

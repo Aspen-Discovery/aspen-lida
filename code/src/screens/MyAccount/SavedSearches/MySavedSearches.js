@@ -14,6 +14,7 @@ import { DisplaySystemMessage } from '../../../components/Notifications';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MySavedSearches = () => {
      const navigation = useNavigation();

@@ -45,6 +45,7 @@ import PlaceholderImg from '../../../assets/digital-reward-placeholder.png';
 import { logDebugMessage, logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 // Constants
 const PAGE_SIZE = 20;

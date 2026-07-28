@@ -134,7 +134,7 @@ export const MyAlternateLibraryCard = () => {
      return (
           <ScrollView>
                {isLoading ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : (
                     <Box p="$5">
                          {showSystemMessage()}

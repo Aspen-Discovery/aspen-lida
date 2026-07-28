@@ -22,6 +22,7 @@ import { DeleteListGroup } from './DeleteListGroup';
 import { formatUnixDate, orderByFields } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 const LISTS_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours

@@ -28,6 +28,7 @@ import EnableAccountLinking from './EnableAccountLinking';
 import { logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();

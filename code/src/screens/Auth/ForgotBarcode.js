@@ -28,6 +28,7 @@ import { useKeyboard } from '../../hooks/hooks';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { forgotBarcode } from '../../util/api/user';
 import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 export const ForgotBarcode = (props) => {
      const isKeyboardOpen = useKeyboard();

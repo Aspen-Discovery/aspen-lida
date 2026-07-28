@@ -36,6 +36,7 @@ import { buildParamsForUrl } from '../../util/api/searchHelper';
 import { UnsavedChangesExit } from './UnsavedChanges';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
@@ -59,8 +60,8 @@ export const FiltersScreen = () => {
           }
      }, [pendingFilters, pendingFiltersFromParams, language]);
 
-     const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
-     const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
+     const locationGroupedWorkDisplaySettings = location?.groupedWorkDisplaySettings ?? [];
+     const libraryGroupedWorkDisplaySettings = library?.groupedWorkDisplaySettings ?? [];
 
      const renderFilter = (label, index) => {
           return (

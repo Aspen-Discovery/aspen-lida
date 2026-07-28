@@ -45,6 +45,7 @@ import { logDebugMessage } from '../../../util/logging.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

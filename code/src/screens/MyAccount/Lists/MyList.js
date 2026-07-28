@@ -44,6 +44,7 @@ import EditList from './EditList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
 import { useActiveLanguage, useDictionary } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

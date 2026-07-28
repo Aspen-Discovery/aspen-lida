@@ -21,6 +21,7 @@ import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
 import { refreshProfile } from '../../../util/api/user';
 import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

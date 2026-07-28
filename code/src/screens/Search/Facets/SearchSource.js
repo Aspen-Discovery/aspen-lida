@@ -11,6 +11,7 @@ import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 // custom components and helper files
 

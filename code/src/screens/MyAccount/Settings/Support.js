@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import {logDebugMessage, logErrorMessage} from "../../../util/logging";
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const SupportScreen = () => {
      const navigation = useNavigation();

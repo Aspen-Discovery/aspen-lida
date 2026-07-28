@@ -15,6 +15,7 @@ import { useNotificationPermissions, useNotificationPreferences } from '../../..
 import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
 import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 import { useTheme } from '../../../../themes/theme';
+import { useLibrary } from '../../../../hooks/useLibrarySystemData';
 
 export const NotificationPermissionStatus = () => {
     const language = useActiveLanguage();
