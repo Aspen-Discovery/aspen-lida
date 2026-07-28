@@ -1,6 +1,6 @@
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import _ from 'lodash';
 import moment from 'moment';
 import {
@@ -31,10 +31,11 @@ import { popToast } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
-import { useLibrary, useLibraryMenu } from '../../hooks/useLibrarySystemData';
+import { useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
+import { getLibraryLinks } from '../../util/api/system';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
@@ -44,6 +45,7 @@ export const MoreMenu = () => {
      const language = useActiveLanguage();
      const library = useLibrary();
      const menu = useLibraryMenu();
+     const updateMenu = useUpdateMenu();
      const { textColor, theme, colorMode } = useTheme();
 
      const { signOut } = React.useContext(AuthContext);
@@ -53,6 +55,36 @@ export const MoreMenu = () => {
      const [showDeleteResultsModal, setShowDeleteResultsModal] = React.useState(false);
      const [deleteResults, setDeleteResults] = React.useState('');
      const [deleting, setDeleting] = React.useState(false);
+
+     useFocusEffect(
+          React.useCallback(() => {
+               if (!library.baseUrl) return;
+               let cancelled = false;
+
+               (async () => {
+                    try {
+                         const data = await getLibraryLinks(library.baseUrl);
+                         if (cancelled) return;
+                         if (data?.ok) {
+                              const links = data.data.result?.items ?? [];
+                              await updateMenu(links);
+                              logDebugMessage('MoreMenu: refreshed library menu links');
+                         } else {
+                              logDebugMessage('MoreMenu: library menu refresh returned non-ok response');
+                         }
+                    } catch (error) {
+                         if (!cancelled) {
+                              logErrorMessage('MoreMenu: failed to refresh library menu links');
+                              logErrorMessage(error);
+                         }
+                    }
+               })();
+
+               return () => {
+                    cancelled = true;
+               };
+          }, [library.baseUrl, updateMenu])
+     );
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
