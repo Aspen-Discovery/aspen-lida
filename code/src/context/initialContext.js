@@ -1,7 +1,6 @@
-import _ from 'lodash';
 import React, { useState } from 'react';
 import { logDebugMessage } from '../util/logging.js';
-export const DiscoveryContext = React.createContext();
+
 export const CheckoutsContext = React.createContext({
      updateCheckouts: () => {},
      checkouts: [],
@@ -44,28 +43,6 @@ export const SearchContext = React.createContext({
      updateSort: () => {},
      resetSearch: () => {},
 });
-
-
-export const DiscoveryProvider = ({ children }) => {
-     const [version, setVersion] = useState();
-     const [url, setUrl] = useState();
-
-     const updateUrl = (data) => {
-          setUrl(data);
-     };
-
-     return (
-          <DiscoveryContext.Provider
-               value={{
-                    version,
-                    url,
-                    updateUrl,
-               }}>
-               {children}
-          </DiscoveryContext.Provider>
-     );
-};
-
 
 
 export const CheckoutsProvider = ({ children }) => {
@@ -127,8 +104,8 @@ export const GroupedWorkProvider = ({ children }) => {
           setGroupedWork(data);
           logDebugMessage('updated GroupedWorkContext');
 
-          const keys = _.keys(data.formats);
-          setFormat(_.first(keys));
+          const formatKeys = Object.keys(data?.formats ?? {});
+          setFormat(formatKeys[0]);
           logDebugMessage('updated format in GroupedWorkContext:updateGroupedWork');
 
           setLanguage(data.language);
