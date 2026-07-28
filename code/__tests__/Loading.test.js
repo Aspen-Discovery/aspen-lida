@@ -21,9 +21,9 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     LibrarySystemContext,
      BrowseCategoryContext, LanguageContext, SystemMessagesContext, ThemeContext
 } from '../src/context/initialContext';
+import { AuthContext } from '../src/context/AuthContext';
 
 const {act} = require('@testing-library/react-native');
 
@@ -39,15 +39,6 @@ const createTestQueryClient = () => new QueryClient({
 });
 
 const mockContextValues = {
-     library: {
-          library: {appSettings: {loadingMessageType: 0}},
-          updateLibrary: jest.fn(),
-          updateMenu: jest.fn(),
-          updateCatalogStatus: jest.fn(),
-          catalogStatus: 0,
-          catalogStatusMessage: '',
-          updateHomeScreenLinks: jest.fn()
-     },
      category: {
           category: {},
           updateBrowseCategories: jest.fn(),
@@ -65,7 +56,22 @@ const mockContextValues = {
           languages: []
      },
      messages: {systemMessages: [], updateSystemMessages: jest.fn()},
-     theme: {theme: {}, updateTheme: jest.fn(), colorMode: 'light', updateColorMode: jest.fn(), textColor: '#000'}
+     theme: {
+          theme: {
+               tokens: {
+                    colors: {
+                         primary: {
+                              500: '#1d4ed8',
+                              '500-text': '#ffffff',
+                         },
+                    },
+               },
+          },
+          updateTheme: jest.fn(),
+          colorMode: 'light',
+          updateColorMode: jest.fn(),
+          textColor: '#000'
+     }
 };
 
 const mockUpdateUserProfile = jest.fn(async () => {});
@@ -155,12 +161,20 @@ jest.mock('../src/util/api/search', () => {
 
 jest.mock('../src/util/db', () => ({
      loadAllUserData: jest.fn(() => Promise.resolve({ user: null, updatedAt: null })),
+     loadAllLibraryBranchData: jest.fn(() => Promise.resolve({ location: null, selfCheckSettings: null, updated_at: null })),
+     loadAllLibrarySystemData: jest.fn(() => Promise.resolve({ library: null, menu: null, catalogStatus: null, updatedAt: null })),
      saveUserProfile: jest.fn(() => Promise.resolve()),
      saveAccounts: jest.fn(() => Promise.resolve()),
      saveCards: jest.fn(() => Promise.resolve()),
      saveAppPreferences: jest.fn(() => Promise.resolve()),
      saveNotificationHistory: jest.fn(() => Promise.resolve()),
      saveInbox: jest.fn(() => Promise.resolve()),
+     saveAllLibraryBranchData: jest.fn(() => Promise.resolve()),
+     saveCatalogStatus: jest.fn(() => Promise.resolve()),
+     saveLibraryVersion: jest.fn(() => Promise.resolve()),
+     saveLibrary: jest.fn(() => Promise.resolve()),
+     saveMenu: jest.fn(() => Promise.resolve()),
+     saveHomeScreenLinks: jest.fn(() => Promise.resolve()),
 }));
 
 const mockNavigate = jest.fn();
@@ -216,23 +230,24 @@ const jestGluestackConfig = createConfig(config);
 
 const AllTheProviders = ({children}) => {
      const [testQueryClient] = React.useState(() => createTestQueryClient());
+     const authValue = React.useMemo(() => ({ signOut: jest.fn(), signIn: jest.fn(), signUp: jest.fn(), state: {} }), []);
      // noinspection JSValidateTypes
       return (
-           <GluestackUIProvider config={jestGluestackConfig}>
-                <QueryClientProvider client={testQueryClient}>
-                     <ThemeContext.Provider value={mockContextValues.theme}>
-                          <LibrarySystemContext.Provider value={mockContextValues.library}>
-                               <BrowseCategoryContext.Provider value={mockContextValues.category}>
-                                    <LanguageContext.Provider value={mockContextValues.language}>
-                                         <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                              {children}
-                                         </SystemMessagesContext.Provider>
-                                    </LanguageContext.Provider>
-                               </BrowseCategoryContext.Provider>
-                          </LibrarySystemContext.Provider>
-                     </ThemeContext.Provider>
-                </QueryClientProvider>
-           </GluestackUIProvider>
+            <GluestackUIProvider config={jestGluestackConfig}>
+                 <QueryClientProvider client={testQueryClient}>
+                      <AuthContext.Provider value={authValue}>
+                           <ThemeContext.Provider value={mockContextValues.theme}>
+                                <BrowseCategoryContext.Provider value={mockContextValues.category}>
+                                     <LanguageContext.Provider value={mockContextValues.language}>
+                                          <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                               {children}
+                                          </SystemMessagesContext.Provider>
+                                     </LanguageContext.Provider>
+                                </BrowseCategoryContext.Provider>
+                           </ThemeContext.Provider>
+                      </AuthContext.Provider>
+                 </QueryClientProvider>
+            </GluestackUIProvider>
       );
 };
 
