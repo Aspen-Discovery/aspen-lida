@@ -4,6 +4,9 @@ export const key = '26.08.00';
  * Creates persistent storage tables for user data.
  * user_state holds all scalar fields for the logged-in user and session settings.
  * Each collection (accounts, lists, etc.) gets its own table for independent querying.
+ *
+ * library_system_state holds library configuration and system-wide data.
+ * Stores library URL, metadata, menu links, catalog status, home screen links, and app settings.
  * @param db
  * @returns {Promise<void>}
  */
@@ -159,9 +162,25 @@ export async function up(db) {
                 self_check_settings_json TEXT,
                 locations_json TEXT
            );
+
+           CREATE TABLE IF NOT EXISTS library_system_state (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                updated_at INTEGER NOT NULL,
+                url TEXT,
+                name TEXT,
+                favicon TEXT,
+                library_id INTEGER,
+                version TEXT,
+                languages_json TEXT,
+                local_ill_json TEXT,
+                library_json TEXT,
+                menu_json TEXT,
+                catalog_status INTEGER,
+                catalog_status_message TEXT,
+                home_screen_links_json TEXT,
+                app_settings_json TEXT,
+                app_settings_url_cache TEXT,
+                app_settings_slug_cache TEXT
+           );
       `);
 }
-
-
-
-
