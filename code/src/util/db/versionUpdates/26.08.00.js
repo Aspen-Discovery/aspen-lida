@@ -202,5 +202,14 @@ export async function up(db) {
                  languages_json TEXT,
                  dictionary_json TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS theme_state (
+                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 updated_at INTEGER NOT NULL,
+                 theme_id INTEGER,
+                 color_mode TEXT,
+                 text_color TEXT,
+                 theme_colors_json TEXT
+            );
        `);
 }

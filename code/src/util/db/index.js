@@ -39,6 +39,15 @@ export {
      resetLanguageData,
 } from './repositories/languageRepository';
 export {
+     saveThemeState,
+     loadThemeState,
+     saveThemeColors,
+     saveThemeColorMode,
+     saveThemeTextColor,
+     resetThemeState,
+     isStoredThemeIdMatch,
+} from './repositories/themeRepository';
+export {
      saveUserProfile,
      saveUserSettings,
      savePickupLocationPrefs,
