@@ -27,7 +27,7 @@ import { saveLibraryUrl } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 import { trackAppLaunches, trackAppResume } from '../util/analytics';
@@ -95,7 +95,6 @@ try {
 
 
 export function App() {
-     const queryClient = useQueryClient();
      const [state, dispatch] = React.useReducer(
           (prevState, action) => {
                switch (action.type) {
