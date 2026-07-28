@@ -125,20 +125,30 @@ export async function getCatalogStatus(url = null) {
  * @returns {Promise<*|*[]>}
  */
 export async function getAppSettings(toast, url, timeout, slug) {
-     if (LIBRARY.appSettings != null && LIBRARY.appSettings.length > 0 && LIBRARY.appSettingsUrl === url && LIBRARY.appSettingsSlug === slug) {
-          return LIBRARY.appSettings;
-     }
-     logDebugMessage(`Getting App Settings from url: ${url} slug: ${slug}`);
+     const APPSETTINGS_STALE_MS = 48 * 60 * 60 * 1000; // 48 hours
 
      try {
+          // Check SQLite cache first
+          const { loadAppSettings, saveAppSettings } = require('../db');
+          const cached = await loadAppSettings();
+
+          if (cached?.settings && cached.urlCache === url && cached.slugCache === slug) {
+               const cacheAgeMs = Date.now() - (cached?.updatedAt ?? 0);
+               if (cacheAgeMs < APPSETTINGS_STALE_MS) {
+                    logDebugMessage(`Using cached app settings for url: ${url} slug: ${slug} (cache age: ${cacheAgeMs}ms)`);
+                    return cached.settings;
+               }
+          }
+
+          logDebugMessage(`Getting App Settings from url: ${url} slug: ${slug}`);
+
           const client = createApiClient({ url, timeout });
           const response = await client.get('/SystemAPI?method=getAppSettings', { slug });
 
           if (response?.ok) {
-               LIBRARY.appSettings = response.data?.result?.settings ?? [];
-               LIBRARY.appSettingsUrl = url;
-               LIBRARY.appSettingsSlug = slug;
-               return LIBRARY.appSettings;
+               const settings = response.data?.result?.settings ?? [];
+               await saveAppSettings(settings, url, slug);
+               return settings;
           }
 
           logWarnMessage(`Did not get valid response from getAppSettings url: ${url} slug: ${slug}`);
