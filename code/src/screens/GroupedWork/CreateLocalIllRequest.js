@@ -40,8 +40,9 @@ import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/api/system';
@@ -51,8 +52,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
-     const [hasError, setHasError] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
+      const [hasError, setHasError] = React.useState(false);
+     const library = useLibrary();
      const location = useLibraryLocation();
      const route = useRoute();
 
@@ -111,9 +112,9 @@ const Request = (payload) => {
      const [note, setNote] = React.useState('');
      const [acceptFee, setAcceptFee] = React.useState(false);
      const [pickupLocation, setPickupLocation] = React.useState();
-     const [isSubmitting, setIsSubmitting] = React.useState(false);
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
      const [errorMessage, setErrorMessage] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

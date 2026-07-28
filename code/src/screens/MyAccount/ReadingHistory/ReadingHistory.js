@@ -55,7 +55,7 @@ import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useReadingHistory, useUpdateReadingHistory, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getAuthor, getCleanTitle, getDateLastUsed, getFormat, getTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -78,7 +78,7 @@ export const MyReadingHistory = () => {
      const [sort, setSort] = React.useState('checkedOut');
      const [searchTerm, setSearchTerm] = React.useState('');
      const [filter, setFilter] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
@@ -546,7 +546,7 @@ const Item = React.memo(({ data: item, onDelete }) => {
      const { data: userState2 } = useUserState();
      const user = userState2?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const {textColor, colorMode } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();

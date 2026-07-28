@@ -17,7 +17,6 @@ import React, { useContext, useLayoutEffect, useState } from 'react';
 import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
 import {
      LanguageContext,
-     LibrarySystemContext,
      SystemMessagesContext,
      ThemeContext,
 } from '../../../context/initialContext';
@@ -38,7 +37,7 @@ export const MyLinkedAccounts = () => {
      const user = userState?.user ?? {};
      const { data: accounts } = useAccounts();
      const { data: viewers } = useViewers();
-     const { library } = useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = useContext(LanguageContext);
      const { textColor } = useContext(ThemeContext);
      const queryClient = useQueryClient();
@@ -168,7 +167,7 @@ const Account = ({ account, type }) => {
      const updateAccounts = useUpdateAccounts();
      const updateViewers = useUpdateViewers();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = useContext(LanguageContext);
      const { textColor } = useContext(ThemeContext);
      const toast = useToast();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [showModal, setShowModal] = React.useState(false);

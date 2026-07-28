@@ -11,7 +11,8 @@ import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
@@ -37,7 +38,7 @@ export const MyLibraryCard = () => {
      const user = userState?.user ?? {};
      const { data: cards } = useCards();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
 
@@ -290,7 +291,7 @@ const CreateLibraryCard = (data) => {
      const [expirationText, setExpirationText] = React.useState('');
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
 
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const language = data.language || React.useContext(LanguageContext).language;
 
      let barcodeStyle;
@@ -545,7 +546,7 @@ const CardCarousel = (data) => {
 
 const BarcodeModal = ({ card, showModal, closeModal, language }) => {
      const { theme } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const [orientation, setOrientation] = React.useState('portrait');
      const [screenDimensions, setScreenDimensions] = React.useState(Dimensions.get('window'));
      const [manuallyRotated, setManuallyRotated] = React.useState(false);

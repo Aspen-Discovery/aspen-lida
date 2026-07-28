@@ -15,7 +15,7 @@ import {
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { enableAccountLinking, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
@@ -25,7 +25,7 @@ import { toArray } from '../../../helpers/helpers';
 // custom components and helper files
 
 const EnableAccountLinking = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const updateUserProfile = useUpdateUserProfile();
      const updateAccounts = useUpdateAccounts();

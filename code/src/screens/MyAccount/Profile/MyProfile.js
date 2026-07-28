@@ -8,13 +8,13 @@ import { useNavigation } from '@react-navigation/native';
 import Profile_ContactInformation from './ContactInformation';
 import Profile_Identity from './Identity';
 import Profile_MainAddress from './MainAddress';
-import { LibrarySystemContext, SystemMessagesContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState } from '../../../hooks/useUserData';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 
 export const MyProfile = () => {
      const navigation = useNavigation();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const queryClient = useQueryClient();

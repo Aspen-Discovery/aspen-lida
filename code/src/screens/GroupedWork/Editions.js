@@ -15,7 +15,8 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -25,7 +26,7 @@ export const Editions = () => {
      // 1. Hooks
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { library } = useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

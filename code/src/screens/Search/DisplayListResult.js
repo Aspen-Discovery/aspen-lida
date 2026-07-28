@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, Button, ButtonText, ButtonIcon, Center } from '@gluestack-ui/themed';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { useUserState } from '../../hooks/useUserData';
 import { TrashIcon } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,7 +18,7 @@ export const DisplayListResult = (props) => {
      const isUserList = props.isUserList;
      const listId = props.listId;
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const queryClient = useQueryClient();
 
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);

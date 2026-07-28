@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 import _ from 'lodash';
 import React from 'react';
 
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,7 +16,7 @@ const DisplayBrowseCategory = ({category}) => {
      const queryClient = useQueryClient();
      const { theme, colorMode } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { maxNum } = React.useContext(BrowseCategoryContext);
 
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
@@ -157,7 +157,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 }
 
 const DisplayBrowseCategoryRecord = ({record}) => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme } = React.useContext(ThemeContext);
      const { language } = React.useContext(LanguageContext);
 
@@ -314,7 +314,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      const queryClient = useQueryClient();
 
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
 

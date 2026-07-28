@@ -23,14 +23,15 @@ import {
      Text, useToast,
 } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
-import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { passUserToDiscovery } from '../../util/api/user';
 import * as WebBrowser from 'expo-web-browser';
 
 export const ActionButton = (data) => {
      const {theme, textColor, backgroundColor, colorMode} = useContext(ThemeContext);
-     const { library } = useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
@@ -155,7 +156,7 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(toast, library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(toast, library?.baseUrl ?? '', 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
@@ -171,7 +172,7 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(toast, library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(toast, library?.baseUrl ?? '', 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>

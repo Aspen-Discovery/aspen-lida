@@ -31,10 +31,10 @@ import { popToast } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
 import {
      LanguageContext,
-     LibrarySystemContext,
      ThemeContext,
 } from '../../context/initialContext';
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useLibrary, useLibraryMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
@@ -43,8 +43,8 @@ import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/log
 
 export const MoreMenu = () => {
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { menu } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
+     const menu = useLibraryMenu();
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
 
      const { signOut } = React.useContext(AuthContext);
@@ -176,7 +176,7 @@ export const MoreMenu = () => {
 };
 
 const MyLibrary = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const location = useLibraryLocation();
      const { language } = React.useContext(LanguageContext);
 
@@ -353,7 +353,7 @@ const PrivacyPolicy = () => {
 };
 
 const MenuLink = (payload) => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const categories = payload.links;
      let hasMultiple = false;
      if (_.size(categories) > 1) {

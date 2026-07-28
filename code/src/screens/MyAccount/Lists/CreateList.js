@@ -47,7 +47,7 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createList, getLists, getListGroups } from '../../../util/api/list';
@@ -64,7 +64,7 @@ const CreateList = (props) => {
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [loading, setAdding] = React.useState(false);

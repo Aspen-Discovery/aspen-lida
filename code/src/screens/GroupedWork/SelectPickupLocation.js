@@ -29,7 +29,7 @@ import {
      useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
-import { LibrarySystemContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
@@ -47,7 +47,7 @@ const SelectPickupLocation = (props) => {
      const { data: accounts } = useAccounts();
      const { data: locations } = useLocations();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const toast = useToast();
 
      const isPlacingHold = action.includes('hold');

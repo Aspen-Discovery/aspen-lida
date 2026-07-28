@@ -8,7 +8,7 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories } from '../../../components/Notifications';
 import { getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
 
-import { LanguageContext, LibrarySystemContext } from '../../../context/initialContext';
+import { LanguageContext } from '../../../context/initialContext';
 import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings, useUpdateExpoToken } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile } from '../../../util/api/user';
@@ -24,7 +24,7 @@ export const Settings_NotificationOptions = () => {
      const { data: userState } = useUserState();
      const expoToken = userState?.expoToken ?? false;
      const { data: notificationSettings } = useNotificationSettings();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const toast = useToast();
 
@@ -118,7 +118,7 @@ const EnableAllNotifications = (data) => {
      const updateUserProfile = useUpdateUserProfile();
      const updateNotificationSettings = useUpdateNotificationSettings();
      const expoToken = userState?.expoToken ?? false;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount, setLoading } = data;
      const toast = useToast();
 
@@ -174,7 +174,7 @@ const EnableAllNotifications = (data) => {
 const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount }) => {
      const updateUserProfile = useUpdateUserProfile();
      const expoToken = userState?.expoToken ?? false;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const toast = useToast();
 
      const preference = data;

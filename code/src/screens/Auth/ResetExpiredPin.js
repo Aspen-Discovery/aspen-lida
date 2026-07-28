@@ -35,7 +35,8 @@ import {
 import React from 'react';
 import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { BrowseCategoryContext, LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { saveAllLibraryBranchData } from '../../util/db';
 import { useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -48,8 +49,9 @@ import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/log
 export const ResetExpiredPin = (props) => {
      const [resetSuccessful, setResetSuccessful] = React.useState(false);
      const [resetMessage, setResetMessage] = React.useState('');
-     const { signIn } = React.useContext(AuthContext);
-     const { updateLibrary, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
+      const { signIn } = React.useContext(AuthContext);
+     const updateLibrary = useUpdateLibrary();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      const updateUserProfile = useUpdateUserProfile();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const { updateBrowseCategories } = React.useContext(BrowseCategoryContext);

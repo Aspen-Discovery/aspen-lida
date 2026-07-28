@@ -7,20 +7,21 @@ import RenderHtml from 'react-native-render-html';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { decodeHTML } from '../../../helpers/helpers';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../util/logging';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyAlternateLibraryCard = () => {
      const navigation = useNavigation();
      const route = useRoute();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

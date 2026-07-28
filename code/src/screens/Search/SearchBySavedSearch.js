@@ -8,7 +8,8 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LibrarySystemContext, LanguageContext, ThemeContext, SystemMessagesContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext, SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { fetchSearchResultsForSavedSearch } from '../../util/api/search';
 import { DisplayResult } from './DisplayResult';
@@ -16,7 +17,7 @@ import { logDebugMessage, logErrorMessage } from '../../util/logging';
 
 export const SearchResultsForSavedSearch = () => {
      const [page, setPage] = React.useState(1);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);

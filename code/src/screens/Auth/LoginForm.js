@@ -19,7 +19,8 @@ import React, { useRef } from 'react';
 // custom components and helper files
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocationInfo, getCatalogStatus } from '../../util/api/system';
@@ -58,7 +59,9 @@ export const GetLoginForm = (props) => {
      // make ref to move the user to next input field
      const passwordRef = useRef();
      const { signIn } = React.useContext(AuthContext);
-     const { updateCatalogStatus, catalogStatus, updateLibrary   } = React.useContext(LibrarySystemContext);
+      const updateCatalogStatus = useUpdateCatalogStatus();
+      const { status: catalogStatus } = useCatalogStatus();
+      const updateLibrary = useUpdateLibrary();
      const { updateLanguage } = React.useContext(LanguageContext);
      const patronsLibrary = props.selectedLibrary;
 
@@ -66,12 +69,9 @@ export const GetLoginForm = (props) => {
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
-          updateCatalogStatus({
-               message: null,
-               status: 0,
-          });
-          logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
-          const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
+           updateCatalogStatus(0, null);
+           logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
+           const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
           if (result.ok) {
                const libraryInfo = result.data?.result?.library;
                updateLibrary(libraryInfo);
@@ -94,8 +94,8 @@ export const GetLoginForm = (props) => {
                          message: catalogMessage
                     }
                     logDebugMessage('Catalog status: ' + JSON.stringify(currentStatus));
-                    updateCatalogStatus(currentStatus);
-                    if (currentStatus.status >= 1) {
+                     updateCatalogStatus(currentStatus.status, currentStatus.message);
+                     if (currentStatus.status >= 1) {
                          // catalog is offline
                          logInfoMessage('catalog is offline');
                          setLoading(false);
@@ -110,11 +110,8 @@ export const GetLoginForm = (props) => {
                          return;
                     } else {
                          logInfoMessage('Catalog online');
-                         logDebugMessage(catalogStatus);
-                         updateCatalogStatus({
-                              status: 0,
-                              message: null,
-                         });
+                          logDebugMessage(catalogStatus);
+                          updateCatalogStatus(0, null);
                     }
                }else{
                     logDebugMessage('Could not get catalog status');

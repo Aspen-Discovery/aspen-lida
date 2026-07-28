@@ -4,7 +4,8 @@ import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/theme
 import React from 'react';
 
 // custom components and helper files
-import { HoldsContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, ThemeContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { refreshProfile } from '../../../util/api/user';
 import { completeAction } from '../../../util/api/userHelper';
@@ -53,7 +54,7 @@ export const PlaceHold = (props) => {
      const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
      const { data: accounts } = useAccounts();
      const { data: locations } = useLocations();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const [loading, setLoading] = React.useState(false);
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme } = React.useContext(ThemeContext);

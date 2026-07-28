@@ -4,14 +4,15 @@ import {Button, ButtonText, Center, Modal, ModalContent, ModalHeader, ModalBody,
 import {MaterialIcons} from '@expo/vector-icons';
 import {getItemDetails} from '../../util/api/item';
 import _ from 'lodash';
-import {LanguageContext, LibrarySystemContext} from '../../context/initialContext';
+import {LanguageContext} from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import {useQueryClient} from '@tanstack/react-query';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { DisplayErrorAlertDialog } from '../../components/loadError';
 
 /*const CopyDetails = (props) => {
- const { library } = React.useContext(LibrarySystemContext);
+ const library = useLibrary();
  const [open, setOpen] = React.useState(false);
  const toggleModal = () => {
  setOpen(!open);
@@ -20,7 +21,7 @@ import { DisplayErrorAlertDialog } from '../../components/loadError';
  };*/
 
 const ShowItemDetails = (props) => {
-     const {library} = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const {language} = React.useContext(LanguageContext);
      const queryClient = useQueryClient();
      const {

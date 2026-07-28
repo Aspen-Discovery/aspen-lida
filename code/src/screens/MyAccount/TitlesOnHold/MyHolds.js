@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { getPatronHolds, refreshProfile, setSortPreferences } from '../../../util/api/user';
@@ -47,7 +47,7 @@ export const MyHolds = () => {
      const updateUserHoldReadySortMethod = (v) => updateSortSettings({ userHoldReadySortMethod: v });
      const { data: locations } = useLocations();
      const updatePickupLocations = useUpdateLocations();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
      const [holdSource, setHoldSource] = React.useState('all');

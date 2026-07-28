@@ -3,7 +3,8 @@ import _ from 'lodash';
 import { Box, Button, ButtonText, Center, FlatList, FormControl, Input, InputField, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { LanguageContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -14,7 +15,7 @@ export const SearchHome = () => {
      const navigation = useNavigation();
      const [searchTerm, setSearchTerm] = React.useState('');
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const discoveryVersion = formatDiscoveryVersion(library.discoveryVersion) ?? '22.10.00';
      const quickSearchNum = _.size(library.quickSearches);
 

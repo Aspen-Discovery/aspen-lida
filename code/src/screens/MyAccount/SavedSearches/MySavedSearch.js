@@ -6,7 +6,7 @@ import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { uniquePrimitiveArray } from '../../../helpers/helpers';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -20,7 +20,7 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const MySavedSearch = () => {
      const route = useRoute();
      const id = route.params.id;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const {colorMode} = React.useContext(ThemeContext);
@@ -82,7 +82,7 @@ export const MySavedSearch = () => {
 
 const SavedSearch = (data) => {
      const item = data.data;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const {colorMode} = React.useContext(ThemeContext);
 

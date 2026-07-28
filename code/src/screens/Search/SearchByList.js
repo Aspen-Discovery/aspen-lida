@@ -8,7 +8,7 @@ import { loadError } from '../../components/loadError';
 
 // custom components and helper files
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { DisplayResult } from './DisplayResult';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { DisplaySystemMessage } from '../../components/Notifications';
@@ -24,7 +24,7 @@ export const SearchResultsForList = () => {
      const prevRoute = useRoute().params?.prevRoute ?? 'HomeScreen';
      const screenTitle = useRoute().params?.title ?? '';
      const [page, setPage] = React.useState(1);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);

@@ -1,21 +1,21 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { LibrarySystemContext, ThemeContext } from '../context/initialContext';
-import { View, Image, Text, useColorMode, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
+import { ThemeContext } from '../context/initialContext';
+import { useLibrary } from '../hooks/useLibrarySystemData';
+import { View, Image, Text, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
 import { Platform, useWindowDimensions } from 'react-native';
 import { decodeHTML } from '../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HeaderLogoBar = (props) => {
      const { theme, colorMode } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { width, height } = useWindowDimensions();
 
-     if (library.headerLogoApp){
+     if (library?.headerLogoApp){
           const localBrandingLogoUri = library.headerLogoApp;
 
           //Assume an image that is 1536 x 200
-          const colorMode = useColorMode();
           let backgroundColor = '#FFFFFF';
           if (library.headerLogoBackgroundColorApp !== undefined) {
                backgroundColor = library.headerLogoBackgroundColorApp;
@@ -41,7 +41,7 @@ const HeaderLogoBar = (props) => {
 
           return (
                <HStack backgroundColor={backgroundColor} safeAreaTop='1' safeAreaBottom='1' justifyContent={headerLogoAlignment} flexDirection='row' height={scaledImageHeight}>
-                         <Image source={{uri: localBrandingLogoUri}} alt={library.displayName} placeholder="" width={scaledImageWidth} height={scaledImageHeight} resizeMode='contain' />
+                         <Image source={{uri: localBrandingLogoUri}} alt={library.displayName ?? ''} placeholder="" width={scaledImageWidth} height={scaledImageHeight} resizeMode='contain' />
                </HStack>
           );
      }else{

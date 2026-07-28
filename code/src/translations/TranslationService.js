@@ -4,8 +4,9 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Box, Button, ButtonText, ButtonIcon, Menu, MenuItem, MenuItemLabel } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
 import { saveLanguage } from '../util/api/user';
+import { useLibrary } from '../hooks/useLibrarySystemData';
 
 import {decodeHTML } from '../helpers/helpers';
 import { GLOBALS } from '../util/globals';
@@ -18,7 +19,7 @@ import { createApiClient } from '../util/api/apiFactory';
  ******************************************************************* **/
 export const LanguageSwitcher = () => {
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language, updateLanguage, languages, updateDictionary, languageDisplayName, updateLanguageDisplayName } = React.useContext(LanguageContext);
      const [label, setLabel] = React.useState(getLanguageDisplayName(language, languages));
 
@@ -26,11 +27,11 @@ export const LanguageSwitcher = () => {
 
      const changeLanguage = async (val) => {
           const tmp = val;
-          await saveLanguage(tmp, library.baseUrl).then(async (result) => {
+          await saveLanguage(tmp, library?.baseUrl ?? '').then(async (result) => {
                if (result) {
                     updateLanguage(tmp);
                     updateLanguageDisplayName(getLanguageDisplayName(tmp, languages));
-                    await getTranslatedTermsForUserPreferredLanguage(tmp, library.baseUrl).then(() => {
+                    await getTranslatedTermsForUserPreferredLanguage(tmp, library?.baseUrl ?? '').then(() => {
                          updateDictionary(translationsLibrary);
                     });
                } else {

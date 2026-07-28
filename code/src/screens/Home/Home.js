@@ -10,7 +10,8 @@ import { Platform } from 'react-native';
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { BrowseCategoryContext, LanguageContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary, useHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -35,9 +36,10 @@ export const DiscoverHomeScreen = () => {
      const { textColor, colorMode } = React.useContext(ThemeContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
-     const { data: userState } = useUserState();
+      const { data: userState } = useUserState();
      const notificationOnboard = userState?.notificationOnboard ?? 0;
-     const { library, homeScreenLinks } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
+     const homeScreenLinks = useHomeScreenLinks();
      const { category, updateMaxCategories, maxNum, updateBrowseCategories } = React.useContext(BrowseCategoryContext);
      const { language } = React.useContext(LanguageContext);
 

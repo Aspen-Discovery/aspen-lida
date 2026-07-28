@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useSavedSearches, useUpdateSavedSearches } from '../../../hooks/useUserData';
 import { fetchSavedSearches } from '../../../util/api/list';
 import { loadError } from '../../../components/loadError';
@@ -19,7 +19,7 @@ export const MySavedSearches = () => {
      const [fetchError, setFetchError] = React.useState(null);
      const { data: savedSearches } = useSavedSearches();
      const updateSavedSearches = useUpdateSavedSearches();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 

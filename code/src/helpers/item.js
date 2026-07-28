@@ -3,8 +3,9 @@ import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/
 import React from 'react';
 import _ from 'lodash';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
+import { LanguageContext, ThemeContext } from '../context/initialContext';
 import { useUserState } from '../hooks/useUserData';
+import { useLibrary } from '../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../translations/TranslationService';
 
 export const isOverdue = (overdue) => {
@@ -124,7 +125,7 @@ export const getAuthor = (author) => {
 
 export const getFormat = (format, source = null) => {
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const {textColor} = React.useContext(ThemeContext);
      if (format && format !== 'Unknown') {
           if (source) {

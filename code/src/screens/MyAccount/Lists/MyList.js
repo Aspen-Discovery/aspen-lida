@@ -36,7 +36,7 @@ import { loadError, popToast } from '../../../components/loadError';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
@@ -52,7 +52,7 @@ export const MyList = ({ route }) => {
      const [page, setPage] = React.useState(1);
      const [sort, setSort] = React.useState('dateAdded');
      const [pageSize, setPageSize] = React.useState(20);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const [list] = React.useState(providedList);
      const { language, dictionary } = React.useContext(LanguageContext);
      const insets = useSafeAreaInsets();

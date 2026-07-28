@@ -2,13 +2,14 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, Al
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import _ from 'lodash';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { logInfoMessage } from '../../util/logging';
 
 export const CatalogOffline = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { catalogStatus, catalogStatusMessage } = React.useContext(LibrarySystemContext);
+      const { language } = React.useContext(LanguageContext);
+     const { status: catalogStatus, message: catalogStatusMessage } = useCatalogStatus();
      const { signOut } = React.useContext(AuthContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const [isOpen, setIsOpen] = React.useState(true);

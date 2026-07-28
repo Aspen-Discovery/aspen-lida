@@ -31,9 +31,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { ThemeContext, BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { ThemeContext, BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext } from '../../context/initialContext';
 import {
-     useUserState, useCards,
+     useCatalogStatus,
+     useLibrary,
+     useUpdateCatalogStatus,
+     useUpdateHomeScreenLinks,
+} from '../../hooks/useLibrarySystemData';
+import { useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups,
 } from '../../hooks/useUserData';
@@ -195,7 +200,10 @@ export const DrawerContent = (props) => {
      const updateCards = useUpdateCards();
      const updateLists = useUpdateLists();
      const updateListGroups = useUpdateListGroups();
-     const { library, catalogStatus, updateCatalogStatus, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
+     const { status: catalogStatus } = useCatalogStatus();
+     const updateCatalogStatus = useUpdateCatalogStatus();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      // noinspection JSUnusedLocalSymbols
      const [ notifications, setNotifications] = React.useState([]);
      const [messages, setILSMessages] = React.useState([]);
@@ -239,7 +247,7 @@ export const DrawerContent = (props) => {
                     }
 
                     let status = data.data.result?.catalogStatus ?? 0;
-                    updateCatalogStatus({status: status, message: catalogMessage});
+                    updateCatalogStatus(status, catalogMessage);
                } else {
                     logDebugMessage("Error fetching catalog status");
                     logDebugMessage(data);
@@ -798,7 +806,7 @@ export const DrawerContent = (props) => {
 const UserProfileOverview = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -837,7 +845,7 @@ const UserProfileOverview = () => {
 const Checkouts = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -876,7 +884,7 @@ const Holds = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { textColor } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
 
      return (
@@ -913,7 +921,7 @@ const Holds = () => {
 const UserLists = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -946,7 +954,7 @@ const UserLists = () => {
 const SavedSearches = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -984,7 +992,7 @@ const SavedSearches = () => {
 const ReadingHistory = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1015,7 +1023,7 @@ const ReadingHistory = () => {
 };
 
 const UserProfile = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1038,7 +1046,7 @@ const UserProfile = () => {
 };
 
 const NotificationHistory = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1066,7 +1074,7 @@ const NotificationHistory = () => {
 const LinkedAccounts = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1096,7 +1104,7 @@ const LinkedAccounts = () => {
 };
 
 const AlternateLibraryCard = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1128,7 +1136,7 @@ const AlternateLibraryCard = () => {
 const Fines = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
@@ -1171,7 +1179,7 @@ const Fines = () => {
 const Events = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
 
@@ -1208,7 +1216,7 @@ const Events = () => {
 };
 
 const YearInReview = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor } = React.useContext(ThemeContext);
      const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
@@ -1243,7 +1251,7 @@ const YearInReview = () => {
 };
 
 const Campaigns = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor } = React.useContext(ThemeContext);
      if (library.hasCommunityEngagementEnabled) {

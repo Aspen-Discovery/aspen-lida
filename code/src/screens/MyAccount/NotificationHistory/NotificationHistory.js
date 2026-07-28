@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { loadError } from '../../../components/loadError';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useNotificationHistory, useUpdateNotificationHistory, useInbox, useUpdateInbox } from '../../../hooks/useUserData';
 import { Heading, Box, Button, ButtonText, ButtonGroup, Center, FlatList, HStack, Icon, Pressable, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import { navigate } from '../../../helpers/RootNavigator';
@@ -20,7 +20,7 @@ export const MyNotificationHistory = () => {
      const [fetchError, setFetchError] = React.useState(null);
      const [page, setPage] = React.useState(1);
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
      const { data: notificationHistory } = useNotificationHistory();

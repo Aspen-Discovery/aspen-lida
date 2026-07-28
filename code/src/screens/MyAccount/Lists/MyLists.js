@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useLists, useListGroups, useUpdateLists, useUpdateListGroups, useUserState } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -29,7 +29,7 @@ export const MyLists = () => {
      const hasPendingChanges = useRoute().params.hasPendingChanges ?? false;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: lists } = useLists();
      const { data: listGroups } = useListGroups();
      const updateLists = useUpdateLists();

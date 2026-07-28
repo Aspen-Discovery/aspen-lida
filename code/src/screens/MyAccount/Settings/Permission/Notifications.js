@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
 import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
@@ -17,7 +17,7 @@ import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from 
 export const NotificationPermissionStatus = () => {
     const { language } = React.useContext(LanguageContext);
     const { textColor } = React.useContext(ThemeContext);
-    const { library } = React.useContext(LibrarySystemContext);
+    const library = useLibrary();
     const { data: userState } = useUserState();
     const expoToken = userState?.expoToken ?? false;
     const updateExpoToken = useUpdateExpoToken();
@@ -72,7 +72,7 @@ export const NotificationPermissionDescription = () => {
 
     const { theme, textColor } = React.useContext(ThemeContext);
     const { language } = React.useContext(LanguageContext);
-    const { library } = React.useContext(LibrarySystemContext);
+    const library = useLibrary();
     const { data: notifSettings } = useNotificationSettings();
     const notificationSettings = notifSettings;
     const expoToken2 = userState?.expoToken ?? false;

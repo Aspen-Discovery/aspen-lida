@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups } from '../../../hooks/useUserData';
 import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,7 +18,7 @@ const CreateListGroup = (props) => {
       const updateUserProfile = useUpdateUserProfile();
       const { data: listGroups } = useListGroups();
       const updateListGroupsData = useUpdateListGroups();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [loading, setAdding] = React.useState(false);

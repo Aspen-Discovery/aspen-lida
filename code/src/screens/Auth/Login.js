@@ -8,10 +8,11 @@ import _ from 'lodash';
 import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { ThemeContext } from '../../context/initialContext';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
+import { saveLibrary, saveLibraryUrl } from '../../util/db';
 
 // custom components and helper files
 import { GLOBALS } from '../../util/globals';
@@ -57,7 +58,6 @@ export const LoginScreen = () => {
      const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
-     const { updateLibrary } = React.useContext(LibrarySystemContext);
      const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
      const toast = useToast();
 
@@ -165,20 +165,21 @@ export const LoginScreen = () => {
           };
      }, []);
 
-     const updateSelectedLibrary = async (data) => {
-          if (data) {
-               logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
-          }else{
-               logDebugMessage("No data passed to updateSelectedLibrary");
-          }
-          setSelectedLibrary(data);
-          LIBRARY.url = data.baseUrl; // used in some cases before library context is set
-          await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
-               if (_.isObject(result)) {
-                    const library = result.data.result?.library ?? [];
-                    logDebugMessage("Updating library context on Login screen to: " + library.displayName + ' (' + library.libraryId + ')');
-                    updateLibrary(library);
-                    logInfoMessage('Base Url is now: ' + library.baseUrl + ', library is: ' + library.libraryId);
+      const updateSelectedLibrary = async (data) => {
+           if (data) {
+                logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
+           }else{
+                logDebugMessage("No data passed to updateSelectedLibrary");
+           }
+           setSelectedLibrary(data);
+           LIBRARY.url = data.baseUrl; // Keep for backwards compatibility until all code migrated
+           await saveLibraryUrl(data.baseUrl); // Save to SQLite
+           await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
+                if (_.isObject(result)) {
+                     const library = result.data.result?.library ?? [];
+                     logDebugMessage("Saving library to SQLite on Login screen: " + library.displayName + ' (' + library.libraryId + ')');
+                     await saveLibrary(library);
+                     logInfoMessage('Base Url is now: ' + library.baseUrl + ', library is: ' + library.libraryId);
                     if (library.barcodeStyle) {
                          setAllowBarcodeScanner(true);
                          if (library.barcodeStyle === 'CODE39') {

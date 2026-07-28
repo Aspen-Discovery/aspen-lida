@@ -10,7 +10,8 @@ import { LoadError, loadError } from '../../components/loadError';
 import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
 
 // custom components and helper files
-import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { HoldsContext, LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -25,10 +26,9 @@ export const Variations = (props) => {
      // 1. Hooks (Plural Variations)
      const queryClient = useQueryClient();
      const route = useRoute();
-     const insets = useSafeAreaInsets();
-     const { library } = React.useContext(LibrarySystemContext);
+      const insets = useSafeAreaInsets();
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
-     const updateUserProfile = useUpdateUserProfile();
      const { updateHolds } = React.useContext(HoldsContext);
      const { colorMode, theme, textColor } = React.useContext(ThemeContext);
 
@@ -297,7 +297,7 @@ const Variation = (props) => {
      // 1. Hooks (Singular Variation)
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { textColor, colorMode, theme } = React.useContext(ThemeContext);
 

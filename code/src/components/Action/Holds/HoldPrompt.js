@@ -47,7 +47,8 @@ import { EyeOff, Eye } from 'lucide-react-native';
 import { Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RenderHtml from 'react-native-render-html';
-import { LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { ThemeContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { decodeHTML } from '../../../helpers/helpers';
@@ -76,7 +77,7 @@ export const HoldPrompt = (props) => {
      const { data: locations } = useLocations();
      const { data: sublocations } = useSublocations();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
 
      const {

@@ -29,7 +29,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
-import { HoldsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext, LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -55,7 +55,7 @@ export const MyHold = (props) => {
      const section = props.section;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
@@ -404,7 +404,7 @@ export const ManageSelectedHolds = (props) => {
      const { language } = React.useContext(LanguageContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const insets = useSafeAreaInsets();
@@ -571,7 +571,7 @@ export const ManageAllHolds = (props) => {
      const { resetGroup } = props;
      const { language } = React.useContext(LanguageContext);
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};

@@ -7,7 +7,8 @@ import { colorMode, useColorModeValue } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -21,7 +22,7 @@ import {logDebugMessage} from "../../util/logging";
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const location = useLibraryLocation();
      const locations = useAvailableLocations();
      const { language } = React.useContext(LanguageContext);

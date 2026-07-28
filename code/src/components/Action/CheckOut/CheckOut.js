@@ -33,7 +33,8 @@ import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { decodeHTML } from '../../../helpers/helpers';
 import { completeAction } from '../../../util/api/userHelper';
@@ -49,7 +50,7 @@ export const CheckOut = (props) => {
      const user = userState?.user ?? {};
      const { data: accounts } = useAccounts();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const [loading, setLoading] = React.useState(false);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);

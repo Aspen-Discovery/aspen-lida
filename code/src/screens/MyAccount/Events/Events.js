@@ -12,7 +12,7 @@ import { loadError, popAlert, popToast } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigate } from '../../../helpers/RootNavigator';
@@ -28,7 +28,7 @@ export const MyEvents = () => {
      const queryClient = useQueryClient();
      const [isLoading, setLoading] = React.useState(false);
      const [page, setPage] = React.useState(1);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
@@ -231,7 +231,7 @@ const Item = (data) => {
      const user = userState2?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const {colorMode} = React.useContext(ThemeContext);
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));

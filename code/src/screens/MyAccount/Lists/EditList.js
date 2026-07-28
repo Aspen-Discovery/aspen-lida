@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { popAlert } from '../../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -77,7 +77,7 @@ const EditList = (props) => {
       const updateUserProfile = useUpdateUserProfile();
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
@@ -240,7 +240,7 @@ const DeleteList = (props) => {
       const { listId } = props;
       const {textColor, colorMode } = React.useContext(ThemeContext);
       const { data: userState } = useUserState();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const updateUserProfile = useUpdateUserProfile();
       const updateLists = useUpdateLists();

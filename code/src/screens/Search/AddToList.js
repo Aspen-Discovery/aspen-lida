@@ -4,7 +4,7 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
@@ -68,7 +68,7 @@ const AddToList = (props) => {
      const [open, setOpen] = React.useState(false);
      const [screen, setScreen] = React.useState('add-new');
      const [loading, setLoading] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: userLists } = useLists();

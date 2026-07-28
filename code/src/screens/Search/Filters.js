@@ -24,7 +24,7 @@ import {
 } from '@gluestack-ui/themed';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 
-import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SearchContext, ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -39,7 +39,7 @@ export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const location = useLibraryLocation();
      const { language } = React.useContext(LanguageContext);
      const { currentIndex, currentSource } = React.useContext(SearchContext);

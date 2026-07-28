@@ -53,19 +53,20 @@ export async function RemoveData(queryClient) {
           SecureStore.deleteItemAsync('userToken');
           SecureStore.deleteItemAsync('logo');
           SecureStore.deleteItemAsync('favicon');
+
           logDebugMessage('Removing Data in async storage');
           await AsyncStorage.removeItem('@userToken');
           await AsyncStorage.removeItem('@patronProfile');
           await AsyncStorage.removeItem('@libraryInfo');
           await AsyncStorage.removeItem('@locationInfo');
           await AsyncStorage.removeItem('@pathUrl');
-          logDebugMessage('Invalidating Queries');
      } catch (e) {
           logErrorMessage('Error clearing storage');
           logErrorMessage(e);
      }
 
      logDebugMessage('Clearing Context information');
+     // Keep LIBRARY global clear for backwards compatibility
      LIBRARY.url = null;
      LIBRARY.name = null;
      LIBRARY.favicon = null;
@@ -90,11 +91,15 @@ export async function RemoveData(queryClient) {
           logErrorMessage('Error invalidating all queries');
           logErrorMessage(e);
      }
+
      try {
-          const { clearAllUserData } = require('../util/db');
+          const { clearAllUserData, resetAllLibrarySystemData, resetAllLibraryBranchData } = require('../util/db');
           await clearAllUserData();
+          await resetAllLibrarySystemData();
+          await resetAllLibraryBranchData();
+          logDebugMessage('Cleared all SQLite data');
      } catch (e) {
-          logErrorMessage('Error clearing user data from SQLite');
+          logErrorMessage('Error clearing data from SQLite');
           logErrorMessage(e);
      }
 

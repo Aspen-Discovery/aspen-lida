@@ -30,7 +30,7 @@ import { loadError, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
-import { LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
 import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
@@ -51,7 +51,7 @@ export const SearchResults = () => {
      const route = useRoute();
      const [page, setPage] = React.useState(1);
      const [storedTerm, setStoredTerm] = React.useState('');
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const scope = useLibraryScope();
       const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
@@ -230,7 +230,7 @@ export const SearchResults = () => {
 
 const DisplayResult = (data) => {
      const item = data.data;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
      const { currentSource } = React.useContext(SearchContext);
@@ -478,7 +478,7 @@ const DisplayResult = (data) => {
 
 const FilterBar = ({ navigation }) => {
      const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
      const type = useRoute().params.type ?? 'catalog';
 
@@ -566,7 +566,7 @@ const SearchBox = ({term, navigation}) => {
 const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
      const location = useLibraryLocation();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
 
      const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];

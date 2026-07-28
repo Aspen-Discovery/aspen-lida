@@ -47,7 +47,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
+import { CheckoutsContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
@@ -66,7 +66,7 @@ export const MyCheckouts = () => {
      const updateSortSettings = useUpdateSortSettings();
      const updateUserProfile = useUpdateUserProfile();
      const updateUserCheckoutSortMethod = (v) => updateSortSettings({ userCheckoutSortMethod: v });
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
      const { language } = React.useContext(LanguageContext);
      const [checkoutSource, setCheckoutSource] = React.useState('all');

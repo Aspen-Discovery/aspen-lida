@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon, useToast } from '@gluestack-ui/themed';
 import React from 'react';
-import { HoldsContext, LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { HoldsContext, LanguageContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
@@ -21,7 +22,7 @@ const SelectLinkedAccount = (props) => {
      const { data: accounts } = useAccounts();
      const { data: locations } = useLocations();
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { updateHolds } = React.useContext(HoldsContext);
      const { language } = React.useContext(LanguageContext);
      const toast = useToast();
@@ -172,7 +173,7 @@ const SelectLinkedAccount = (props) => {
                                                   if (result) {
                                                        setResponseIsOpen(true);
                                                        if (result.success) {
-                                                            await refreshProfile(library.baseUrl).then((data) => {
+                                                             await refreshProfile(library.baseUrl).then(async (data) => {
                                                                  if(data.ok) {
                                                                       await updateUserProfile(data.data.result.profile);
                                                                  } else {

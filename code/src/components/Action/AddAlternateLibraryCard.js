@@ -24,7 +24,8 @@ import {
      InputIcon,
      useToast
 } from '@gluestack-ui/themed';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
@@ -33,6 +34,7 @@ import { completeAction } from '../../util/api/userHelper';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { EyeOff, Eye } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
 
 export const AddAlternateLibraryCard = (props) => {
@@ -72,7 +74,7 @@ export const AddAlternateLibraryCard = (props) => {
           isPlacingHold = action.includes('hold');
      }
 
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();

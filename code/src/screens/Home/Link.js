@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 
-import { LanguageContext, LibrarySystemContext, SearchContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SearchContext, ThemeContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
@@ -46,7 +46,7 @@ const HomeScreenLinkGrid = ({links}) => {
 
 const Link = ({link}) => {
      const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { updateCurrentIndex } = React.useContext(SearchContext);
      const toast = useToast();

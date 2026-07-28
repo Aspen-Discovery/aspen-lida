@@ -5,7 +5,7 @@ import React from 'react';
 import { BackHandler } from 'react-native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { BrowseCategoryContext, LanguageContext, ThemeContext } from '../../../context/initialContext';
 
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
 import { getBrowseCategoryListForUser } from '../../../util/api/search';
@@ -16,7 +16,7 @@ import _ from 'lodash';
 export const Settings_BrowseCategories = () => {
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { list, updateBrowseCategoryList } = React.useContext(BrowseCategoryContext);
      const { theme } = React.useContext(ThemeContext);
@@ -96,7 +96,7 @@ const DisplayCategory = (data) => {
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
      const toggleSwitch = () => setToggle((previousState) => !previousState);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { maxNum } = React.useContext(BrowseCategoryContext);
      const { colorMode, textColor, theme} = React.useContext(ThemeContext);

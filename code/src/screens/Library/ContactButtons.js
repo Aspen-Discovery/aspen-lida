@@ -7,14 +7,13 @@ import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
 import { popToast } from '../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 
 const ContactButtons = (data) => {
-     const { library } = React.useContext(LibrarySystemContext);
      const location = data.data;
      const { language } = React.useContext(LanguageContext);
      const { textColor: themeTextColor, colorMode } = React.useContext(ThemeContext);

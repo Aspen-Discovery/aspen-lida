@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import { CheckoutsContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { CheckoutsContext, LanguageContext, ThemeContext } from '../../context/initialContext';
 import { useLibraryLocation, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../../hooks/useUserData';
 import { Box, Button, ButtonGroup, ButtonIcon, ButtonText, Text, Heading, Center, HStack, VStack, Icon, FlatList, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, CloseIcon, ModalCloseButton, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Alert, AlertText } from '@gluestack-ui/themed';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,7 +18,7 @@ export const SelfCheckOut = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
      const route = useRoute();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const location = useLibraryLocation();
      const selfCheckSettings = useSelfCheckSettings();
      const { language } = React.useContext(LanguageContext);

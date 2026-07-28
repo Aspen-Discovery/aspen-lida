@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import {
      Center,
@@ -48,7 +48,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
-      const { library } = React.useContext(LibrarySystemContext);
+      const library = useLibrary();
       const { language } = React.useContext(LanguageContext);
       const { textColor, theme, colorMode } = React.useContext(ThemeContext);
       const [showModal, setShowModal] = React.useState(false);

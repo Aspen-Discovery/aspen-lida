@@ -39,7 +39,8 @@ import { showLocation } from 'react-native-map-link';
 import { loadError, popAlert, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -56,7 +57,7 @@ export const EventScreen = () => {
      const queryClient = useQueryClient();
      const id = route.params.id;
      const source = route.params.source;
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme, colorMode } = React.useContext(ThemeContext);
@@ -563,7 +564,7 @@ const AddToYourEvents = ({ id, source }) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { theme } = React.useContext(ThemeContext);
      const [isLoading, setIsLoading] = React.useState(false);

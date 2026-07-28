@@ -23,7 +23,8 @@ import React from 'react';
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { GroupedWorkContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { GroupedWorkContext, LanguageContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -59,7 +60,7 @@ export const GroupedWorkScreen = () => {
      const updateCards = useUpdateCards();
      const updatePickupLocationPrefs = useUpdatePickupLocationPrefs();
      const { language, updateGroupedWork, updateFormat } = React.useContext(GroupedWorkContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language: userLanguage } = React.useContext(LanguageContext);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, colorMode } = React.useContext(ThemeContext);
@@ -142,7 +143,7 @@ const DisplayGroupedWork = (payload) => {
      const route = useRoute();
      const id = route.params.id;
      const { format } = React.useContext(GroupedWorkContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { colorMode } = React.useContext(ThemeContext);
 
@@ -201,7 +202,7 @@ const Title = ({ title }) => {
 };
 
 const Author = ({ author }) => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { theme, colorMode } = React.useContext(ThemeContext);
      if (author) {
           return (
@@ -295,7 +296,7 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
      const { theme, colorMode } = React.useContext(ThemeContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";
      const toast = useToast();

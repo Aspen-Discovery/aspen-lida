@@ -20,7 +20,7 @@ import {
 } from '@gluestack-ui/themed';
 import React, { useState, useRef } from 'react';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
 import { useUserState, useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
 import { addLinkedAccount, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
 import { formatLinkedAccounts } from '../../../util/api/userHelper';
@@ -31,7 +31,7 @@ import { toArray } from '../../../helpers/helpers';
 // custom components and helper files
 
 const AddLinkedAccount = () => {
-     const { library } = React.useContext(LibrarySystemContext);
+     const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
