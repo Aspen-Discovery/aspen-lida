@@ -98,7 +98,7 @@ export function useTheme() {
 
      const updateColorMode = React.useCallback(async (mode) => {
           await updateColorModeValue(mode);
-          const nextTextColor = mode === 'dark' ? 'textLight50' : 'textLight950';
+          const nextTextColor = mode === 'light' ? '$warmGray600' : '$coolGray200';
           await updateTextColorValue(nextTextColor);
      }, [updateColorModeValue, updateTextColorValue]);
 
@@ -133,6 +133,7 @@ export function useTheme() {
 export function UseColorMode(props) {
      const { showText } = props;
      const { colorMode, theme } = useThemeForDisplay();
+     const updateTextColor = useUpdateThemeTextColor();
      const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
      const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
      const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
@@ -149,6 +150,7 @@ export function UseColorMode(props) {
 
           logDebugMessage("Switching color mode to: " + newColorMode);
           await updateColorMode(newColorMode);
+          await updateTextColor(newColorMode === 'light' ? '$warmGray600' : '$coolGray200');
      };
 
      if (showText) {

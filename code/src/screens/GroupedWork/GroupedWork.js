@@ -126,7 +126,7 @@ export const GroupedWorkScreen = () => {
      return (
           <SafeAreaView style={{ flex: 1 }}>
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner('Fetching data...')
+                    <LoadingSpinner message="Fetching data..." />
                ) : status === 'error' ? (
                     loadError(error, '')
                ) : (

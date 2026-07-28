@@ -140,7 +140,7 @@ export function useThemeState(options) {
      return {
           themeId: data?.themeId ?? null,
           colorMode: data?.colorMode ?? 'light',
-          textColor: data?.textColor ?? 'textLight950',
+          textColor: data?.textColor ?? '$warmGray600',
           themeColors: data?.themeColors ?? null,
           updatedAt: data?.updatedAt ?? 0,
      };
@@ -180,4 +180,3 @@ export function useResetThemeState() {
           notifyThemeChanged(THEME_STATE_KEY);
      }, []);
 }
-

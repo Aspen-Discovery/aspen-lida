@@ -14,7 +14,7 @@ import {
      loadDebugMessages, saveDebugMessages,
      loadNotificationHistory, saveNotificationHistory,
      loadInbox, saveInbox,
-      loadSublocations,
+     loadSublocations, saveSublocations,
      loadSavedSearches, saveSavedSearches,
 } from '../util/db';
 
@@ -358,6 +358,13 @@ export function useUpdateSavedSearches() {
      return React.useCallback(async (data) => {
           await saveSavedSearches(data);
           notifyUserDataChanged(USER_SAVED_SEARCHES_KEY);
+     }, []);
+}
+
+export function useUpdateSublocations() {
+     return React.useCallback(async (data) => {
+          await saveSublocations(data);
+          notifyUserDataChanged(USER_SUBLOCATIONS_KEY);
      }, []);
 }
 
