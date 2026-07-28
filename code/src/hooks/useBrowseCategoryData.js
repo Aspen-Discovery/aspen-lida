@@ -311,8 +311,8 @@ export function useResetBrowseCategoryData() {
 export function useBrowseCategoryExpiration() {
      const { data } = useAllBrowseCategoryData();
      return React.useMemo(() => ({
-          categoriesExpired: data?.categoriesExpired ?? true,
-          listExpired: data?.listExpired ?? true,
+          categoriesExpired: data?.categoriesExpired ?? false,
+          listExpired: data?.listExpired ?? false,
      }), [data?.categoriesExpired, data?.listExpired]);
 }
 
