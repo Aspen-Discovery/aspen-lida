@@ -225,3 +225,14 @@ export function useUpdateAllLanguageData() {
      }, []);
 }
 
+// ─── Pre-hydration (bypass path) ─────────────────────────────────────────────
+
+/**
+ * Pre-populates module-level snapshot caches with language data already loaded from SQLite.
+ */
+export function prehydrateLanguageSnapshotCache(allData) {
+     if (!allData) return;
+     languageSnapshotCache.set(JSON.stringify(LANGUAGE_AVAILABLE_KEY), allData.languages ?? []);
+     languageSnapshotCache.set(JSON.stringify(LANGUAGE_DICTIONARY_KEY), allData.dictionary ?? {});
+     languageSnapshotCache.set(JSON.stringify(LANGUAGE_ALL_KEY), allData);
+}

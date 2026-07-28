@@ -376,3 +376,24 @@ export function useCatalogStatusData(options = {}) {
           }
      );
 }
+
+// ─── Pre-hydration (bypass path) ─────────────────────────────────────────────
+
+/**
+ * Pre-populates module-level snapshot caches with data already loaded from SQLite.
+ * Call this before navigating past the splash screen on the bypass path so that
+ * hook consumers get data on their very first render instead of after an async round-trip.
+ */
+export function prehydrateLibrarySystemSnapshotCache(allData) {
+     if (!allData) return;
+     librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_KEY), allData.library ?? {});
+     librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_MENU_KEY), allData.menu ?? []);
+     librarySystemSnapshotCache.set(JSON.stringify(CATALOG_STATUS_KEY), {
+          status: allData.catalogStatus ?? 0,
+          message: allData.catalogStatusMessage ?? '',
+     });
+     librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_VERSION_KEY), allData.version ?? '');
+     librarySystemSnapshotCache.set(JSON.stringify(HOME_SCREEN_LINKS_KEY), allData.homeScreenLinks ?? []);
+     librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_ALL_SYSTEM_DATA_KEY), allData);
+}
+

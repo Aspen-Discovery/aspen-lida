@@ -368,3 +368,39 @@ export function useUpdateSublocations() {
      }, []);
 }
 
+// ─── Pre-hydration (bypass path) ─────────────────────────────────────────────
+
+/**
+ * Pre-populates module-level snapshot caches with user data already loaded from SQLite.
+ * `allData` is the result of loadAllUserData() which already includes the user_state
+ * row as its base alongside collection fields.
+ */
+export function prehydrateUserDataSnapshotCache(allData) {
+     if (!allData) return;
+     // The user_state shape mirrors the loadUserState() return value
+     const userState = {
+          updatedAt: allData.updatedAt,
+          user: allData.user ?? {},
+          language: allData.language,
+          languageDisplayName: allData.languageDisplayName,
+          notificationOnboard: allData.notificationOnboard,
+          expoToken: allData.expoToken,
+          seenNotificationOnboardPrompt: allData.seenNotificationOnboardPrompt,
+          userCheckoutSortMethod: allData.userCheckoutSortMethod,
+          userHoldPendingSortMethod: allData.userHoldPendingSortMethod,
+          userHoldReadySortMethod: allData.userHoldReadySortMethod,
+          preferredPickupLocationIsValid: allData.preferredPickupLocationIsValid,
+          preferredPickupLocationWarning: allData.preferredPickupLocationWarning,
+     };
+     userDataSnapshotCache.set(JSON.stringify(USER_STATE_KEY), userState);
+     userDataSnapshotCache.set(JSON.stringify(USER_ACCOUNTS_KEY), allData.accounts ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_VIEWERS_KEY), allData.viewers ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_LISTS_KEY), allData.lists ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_LIST_GROUPS_KEY), allData.listGroups ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_LOCATIONS_KEY), allData.locations ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_READING_HISTORY_KEY), allData.readingHistory ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_SAVED_EVENTS_KEY), allData.savedEvents ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_CARDS_KEY), allData.cards ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_NOTIFICATION_HISTORY_KEY), allData.notificationHistory ?? null);
+     userDataSnapshotCache.set(JSON.stringify(USER_INBOX_KEY), allData.inbox ?? null);
+}

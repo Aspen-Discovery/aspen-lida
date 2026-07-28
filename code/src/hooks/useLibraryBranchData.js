@@ -271,3 +271,18 @@ export function useUpdateAllLibraryBranchData() {
           notifyLibraryBranchChanged(LIBRARY_ALL_BRANCH_DATA_KEY);
      }, []);
 }
+
+// ─── Pre-hydration (bypass path) ─────────────────────────────────────────────
+
+/**
+ * Pre-populates module-level snapshot caches with branch data already loaded from SQLite.
+ */
+export function prehydrateLibraryBranchSnapshotCache(allData) {
+     if (!allData) return;
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_LOCATION_KEY), allData.location ?? null);
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SCOPE_KEY), allData.scope ?? '');
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_ENABLED_KEY), allData.enableSelfCheck ?? false);
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_SETTINGS_KEY), allData.selfCheckSettings ?? {});
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_AVAILABLE_LOCATIONS_KEY), allData.locations ?? []);
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_ALL_BRANCH_DATA_KEY), allData);
+}
