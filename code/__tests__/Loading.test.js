@@ -21,7 +21,7 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     LanguageContext, SystemMessagesContext, ThemeContext
+     SystemMessagesContext, ThemeContext
 } from '../src/context/initialContext';
 import { AuthContext } from '../src/context/AuthContext';
 
@@ -155,8 +155,16 @@ jest.mock('../src/util/api/search', () => {
 
 jest.mock('../src/util/db', () => ({
      loadAllUserData: jest.fn(() => Promise.resolve({ user: null, updatedAt: null })),
+     loadUserState: jest.fn(() => Promise.resolve({ user: null, language: 'en', languageDisplayName: 'English' })),
+     saveUserSettings: jest.fn(() => Promise.resolve()),
      loadAllLibraryBranchData: jest.fn(() => Promise.resolve({ location: null, selfCheckSettings: null, updated_at: null })),
      loadAllLibrarySystemData: jest.fn(() => Promise.resolve({ library: null, menu: null, catalogStatus: null, updatedAt: null })),
+      loadAllLanguageData: jest.fn(() => Promise.resolve({ languages: [], dictionary: {}, updatedAt: null })),
+      saveAllLanguageData: jest.fn(() => Promise.resolve()),
+      loadAvailableLanguages: jest.fn(() => Promise.resolve([])),
+      saveAvailableLanguages: jest.fn(() => Promise.resolve()),
+      loadDictionary: jest.fn(() => Promise.resolve({})),
+      saveDictionary: jest.fn(() => Promise.resolve()),
      loadBrowseCategories: jest.fn(() => Promise.resolve({ data: [], updatedAt: Date.now(), isExpired: false })),
      loadBrowseCategoryList: jest.fn(() => Promise.resolve({ data: [], updatedAt: Date.now(), isExpired: false })),
      loadMaxCategories: jest.fn(() => Promise.resolve(5)),
@@ -237,11 +245,9 @@ const AllTheProviders = ({children}) => {
                   <QueryClientProvider client={testQueryClient}>
                        <AuthContext.Provider value={authValue}>
                             <ThemeContext.Provider value={mockContextValues.theme}>
-                                 <LanguageContext.Provider value={mockContextValues.language}>
-                                      <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                           {children}
-                                      </SystemMessagesContext.Provider>
-                                 </LanguageContext.Provider>
+                                 <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                      {children}
+                                 </SystemMessagesContext.Provider>
                             </ThemeContext.Provider>
                        </AuthContext.Provider>
                   </QueryClientProvider>
