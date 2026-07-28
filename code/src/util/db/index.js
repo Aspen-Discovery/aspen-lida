@@ -11,6 +11,14 @@ export {
      saveAllLibraryBranchData, loadAllLibraryBranchData, resetAllLibraryBranchData,
 } from './repositories/libraryBranchRepository';
 export {
+     saveBrowseCategories, loadBrowseCategories,
+     saveBrowseCategoryList, loadBrowseCategoryList,
+     updateBrowseCategoryVisibility,
+     saveMaxCategories, loadMaxCategories,
+     saveAllBrowseCategoryData, loadAllBrowseCategoryData, resetAllBrowseCategoryData,
+     isCacheExpired,
+} from './repositories/browseCategoryRepository';
+export {
      saveLibraryUrl, loadLibraryUrl,
      saveLibraryVersion, loadLibraryVersion,
      saveLibraryMetadata, loadLibraryMetadata,

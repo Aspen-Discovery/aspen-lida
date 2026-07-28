@@ -163,24 +163,37 @@ export async function up(db) {
                 locations_json TEXT
            );
 
-           CREATE TABLE IF NOT EXISTS library_system_state (
-                id INTEGER PRIMARY KEY CHECK (id = 1),
-                updated_at INTEGER NOT NULL,
-                url TEXT,
-                name TEXT,
-                favicon TEXT,
-                library_id INTEGER,
-                version TEXT,
-                languages_json TEXT,
-                local_ill_json TEXT,
-                library_json TEXT,
-                menu_json TEXT,
-                catalog_status INTEGER,
-                catalog_status_message TEXT,
-                home_screen_links_json TEXT,
-                app_settings_json TEXT,
-                app_settings_url_cache TEXT,
-                app_settings_slug_cache TEXT
-           );
-      `);
+            CREATE TABLE IF NOT EXISTS library_system_state (
+                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 updated_at INTEGER NOT NULL,
+                 url TEXT,
+                 name TEXT,
+                 favicon TEXT,
+                 library_id INTEGER,
+                 version TEXT,
+                 languages_json TEXT,
+                 local_ill_json TEXT,
+                 library_json TEXT,
+                 menu_json TEXT,
+                 catalog_status INTEGER,
+                 catalog_status_message TEXT,
+                 home_screen_links_json TEXT,
+                 app_settings_json TEXT,
+                 app_settings_url_cache TEXT,
+                 app_settings_slug_cache TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS browse_category_state (
+                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 updated_at INTEGER NOT NULL,
+                 categories_json TEXT,
+                 max_categories INTEGER
+            );
+
+            CREATE TABLE IF NOT EXISTS browse_category_list (
+                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 updated_at INTEGER NOT NULL,
+                 list_json TEXT
+            );
+       `);
 }
