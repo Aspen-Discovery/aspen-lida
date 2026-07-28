@@ -59,7 +59,7 @@ export async function loadThemeState() {
      return {
           themeId: row.theme_id ?? null,
           colorMode: row.color_mode ?? 'light',
-          textColor: row.text_color ?? 'textLight950',
+          textColor: row.text_color ?? '$warmGray600',
           themeColors: safeParse(row.theme_colors_json),
           updatedAt: row.updated_at ?? 0,
      };
@@ -76,7 +76,7 @@ export async function saveThemeColors(themeColors, themeId) {
 
 export async function saveThemeColorMode(colorMode) {
      const current = await loadThemeState();
-     const nextTextColor = colorMode === 'dark' ? 'textLight50' : 'textLight950';
+     const nextTextColor = colorMode === 'light' ? '$warmGray600' : '$coolGray200';
      await saveThemeState({
           ...current,
           colorMode,
@@ -114,4 +114,3 @@ export async function isStoredThemeIdMatch(themeId) {
      }
      return currentThemeId === incomingThemeId;
 }
-
