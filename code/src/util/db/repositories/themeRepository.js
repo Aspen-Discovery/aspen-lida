@@ -56,10 +56,13 @@ export async function loadThemeState() {
 
      if (!row) return null;
 
+     // Always derive textColor from colorMode so it can never be stale or inconsistent
+     // regardless of what was stored (different code paths used different token formats).
+     const colorMode = row.color_mode ?? 'light';
      return {
           themeId: row.theme_id ?? null,
-          colorMode: row.color_mode ?? 'light',
-          textColor: row.text_color ?? '$warmGray600',
+          colorMode,
+          textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
           themeColors: safeParse(row.theme_colors_json),
           updatedAt: row.updated_at ?? 0,
      };

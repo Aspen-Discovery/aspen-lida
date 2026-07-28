@@ -137,10 +137,14 @@ export const useThemeStateQuery = (options) =>
 
 export function useThemeState(options) {
      const { data } = useThemeStateQuery(options);
+     // Derive textColor from colorMode rather than reading the stored value.
+     // Stored values can be in inconsistent formats ('textLight50', '$warmGray600', etc.)
+     // and may not match the current colorMode if saved by a different code path.
+     const colorMode = data?.colorMode ?? 'light';
      return {
           themeId: data?.themeId ?? null,
-          colorMode: data?.colorMode ?? 'light',
-          textColor: data?.textColor ?? '$warmGray600',
+          colorMode,
+          textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
           themeColors: data?.themeColors ?? null,
           updatedAt: data?.updatedAt ?? 0,
      };
