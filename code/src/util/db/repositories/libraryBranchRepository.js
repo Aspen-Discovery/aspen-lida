@@ -234,6 +234,7 @@ export async function loadAllLibraryBranchData() {
           enableSelfCheck: intToBool(row.self_check_enabled) ?? false,
           selfCheckSettings: safeParse(row.self_check_settings_json) ?? {},
           locations: safeParse(row.locations_json) ?? [],
+          updatedAt: row.updated_at ?? 0,
      };
 }
 
