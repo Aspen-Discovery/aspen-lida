@@ -360,14 +360,19 @@ export function generateSwatches(swatch) {
 export const getColorNumber = (index) => (index === 0 ? 50 : index * 100);
 
 export const getContrastText = (color) => {
+     const WCAG_AA_THRESHOLD = 4.5; // WCAG AA minimum for normal text
      let ratioOnWhite = chroma.contrast(color, '#ffffff');
      let ratioOnBlack = chroma.contrast(color, '#000000');
 
-     if (ratioOnBlack > ratioOnWhite) {
+     if (ratioOnBlack >= WCAG_AA_THRESHOLD) {
           return '#000000';
-     } else {
+     }
+
+     if (ratioOnWhite >= WCAG_AA_THRESHOLD) {
           return '#ffffff';
      }
+
+     return ratioOnBlack > ratioOnWhite ? '#000000' : '#ffffff';
 };
 
 /** *******************************************************************
