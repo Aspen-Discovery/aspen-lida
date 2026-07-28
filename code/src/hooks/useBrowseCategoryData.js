@@ -4,6 +4,7 @@ import {
      saveBrowseCategoryList, loadBrowseCategoryList,
      saveMaxCategories, loadMaxCategories,
      updateBrowseCategoryVisibility,
+     updateBrowseCategoryVisibilityBatch,
      saveAllBrowseCategoryData, loadAllBrowseCategoryData,
      resetAllBrowseCategoryData, isCacheExpired,
 } from '../util/db';
@@ -293,6 +294,29 @@ export function useToggleBrowseCategoryVisibility() {
 }
 
 /**
+ * Optimistic update for toggling multiple categories at once.
+ * Applies all local visibility changes in one SQLite write and refresh event.
+ */
+export function useToggleBrowseCategoryVisibilityBatch() {
+     return React.useCallback(async (categoryKeys, isHidden) => {
+          try {
+               const updated = await updateBrowseCategoryVisibilityBatch(categoryKeys, isHidden);
+               if (!updated) {
+                    return { success: false, error: new Error('No matching categories found for visibility update') };
+               }
+
+               notifyBrowseCategoryChanged(BROWSE_CATEGORY_LIST_KEY);
+               notifyBrowseCategoryChanged(BROWSE_ALL_DATA_KEY);
+
+               return { success: true };
+          } catch (error) {
+               logErrorMessage(`Error toggling category visibility batch: ${error.message}`);
+               return { success: false, error };
+          }
+     }, []);
+}
+
+/**
  * Returns a function that resets all browse category data (typically on logout).
  */
 export function useResetBrowseCategoryData() {
@@ -315,4 +339,3 @@ export function useBrowseCategoryExpiration() {
           listExpired: data?.listExpired ?? false,
      }), [data?.categoriesExpired, data?.listExpired]);
 }
-

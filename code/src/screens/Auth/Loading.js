@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import _, {isUndefined} from 'lodash';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import { SystemMessagesContext } from '../../context/initialContext';
@@ -69,14 +68,14 @@ import {
      useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
-import {stripHTML} from '../../helpers/helpers';
+import {isPlainObject, orderByFields, stripHTML} from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
 const LANGUAGE_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
-const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;
-const LIBRARY_SYSTEM_METADATA_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
-const LIBRARY_SYSTEM_MENU_STALE_MS = 12 * 60 * 60 * 1000; // 12 hours
+const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
+const LIBRARY_SYSTEM_METADATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
+const LIBRARY_SYSTEM_MENU_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -121,7 +120,6 @@ export const LoadingScreen = () => {
        const fetchAndPersistLibrarySystemDataRef = React.useRef(null);
 
        const updateBrowseCategories = useUpdateBrowseCategories();
-       const updateBrowseCategoryList = useUpdateBrowseCategoryList();
        const updateMaxCategories = useUpdateMaxCategories();
        const language = useActiveLanguage();
        const languages = useAvailableLanguages();
@@ -404,7 +402,11 @@ export const LoadingScreen = () => {
                       return false;
                  }
 
-                 const fetchedLanguages = _.sortBy(languageResponse?.data?.result?.languages ?? [], 'weight', 'displayName');
+                 const fetchedLanguages = orderByFields(
+                      languageResponse?.data?.result?.languages ?? [],
+                      ['weight', 'displayName'],
+                      ['asc', 'asc']
+                 );
                  await updateLanguages(fetchedLanguages);
 
                  await getTranslatedTermsForUserPreferredLanguage(activeLanguage, LIBRARY.url);
@@ -640,13 +642,13 @@ export const LoadingScreen = () => {
            const hydrateLanguageCache = async () => {
                 try {
                      const cached = await loadAllLanguageData();
-                     const hasCachedLanguageData = !!cached && (Array.isArray(cached.languages) || _.isObject(cached.dictionary));
+                     const hasCachedLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
 
                      if (cancelled) return;
 
                      if (hasCachedLanguageData) {
                           const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
-                          const cachedDictionary = _.isObject(cached.dictionary) ? cached.dictionary : {};
+                          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
                           await updateLanguages(cachedLanguages);
                           setTranslationsLibrary(cachedDictionary);
                           await updateDictionary(cachedDictionary);
@@ -808,7 +810,7 @@ export const LoadingScreen = () => {
                 }
 
                 setLanguagesQuerySuccess(true);
-                if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
+                if (loadingMessageType === undefined || loadingMessageType === 0) {
                      setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
                 } else if (loadingMessageType === 1) {
                      setLoadingText('Loading Library Information');
@@ -879,8 +881,6 @@ export const LoadingScreen = () => {
            if (hasError || (!isInitialUserDataReady && !hasUsableUserCache) || libraryLinksQuerySuccess) return;
            let cancelled = false;
 
-           // If library system bootstrap already ran from cache or blocking fetch,
-           // menu data is already persisted and we can skip the duplicate link call.
            if (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) {
                 setLibraryLinksQuerySuccess(true);
                 return;
@@ -965,48 +965,6 @@ export const LoadingScreen = () => {
                 cancelled = true;
            };
        }, [hasError, libraryLinksQuerySuccess]);
-
-       React.useEffect(() => {
-            if (hasError || !browseCategoryQuerySuccess) return;
-            let cancelled = false;
-
-            (async () => {
-                 try {
-                      const data = await getBrowseCategoryListForUser(LIBRARY.url);
-                      if (cancelled) return;
-
-                      if (data?.ok) {
-                           const categories = _.sortBy(data.data.result, ['title']);
-                           logDebugMessage("Loaded Browse Category List");
-                           setProgress(prevProgress => prevProgress + (100 / numSteps));
-                           if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
-                                setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_2'));
-                           } else if (loadingMessageType === 1) {
-                                setLoadingText('Loading Branch Information');
-                           }
-                           await updateBrowseCategoryList(categories);
-                      } else {
-                           logDebugMessage("Error loading browse category list");
-                           logDebugMessage(data);
-                           const error = getErrorMessage(data?.code ?? 0, data?.problem);
-                           setHasError(true);
-                           setErrorMessage(error.message);
-                           setErrorTitle("Unable to load browse category list");
-                      }
-                 } catch (error) {
-                      if (cancelled) return;
-                      logDebugMessage("Setting Error to true because loading browse category list failed");
-                      logErrorMessage(error);
-                      setHasError(true);
-                      setErrorTitle(null);
-                      setErrorMessage('Unknown error loading browse category list. Please try again or contact the library.');
-                 }
-            })();
-
-            return () => {
-                 cancelled = true;
-            };
-       }, [hasError, browseCategoryQuerySuccess, language, updateBrowseCategoryList, numSteps]);
 
       React.useEffect(() => {
            if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
@@ -1100,7 +1058,12 @@ export const LoadingScreen = () => {
           onSuccess: (data) => {
                if(data.ok) {
                     logDebugMessage("Loaded System Messages");
-                    const messages = _.castArray(data.data.result?.systemMessages ?? {});
+                    const rawMessages = data.data.result?.systemMessages;
+                    const messages = Array.isArray(rawMessages)
+                         ? rawMessages
+                         : rawMessages
+                              ? [rawMessages]
+                              : [];
                     setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateSystemMessages(messages);
                     setIsReloading(false);

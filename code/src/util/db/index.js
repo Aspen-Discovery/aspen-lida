@@ -14,6 +14,7 @@ export {
      saveBrowseCategories, loadBrowseCategories,
      saveBrowseCategoryList, loadBrowseCategoryList,
      updateBrowseCategoryVisibility,
+     updateBrowseCategoryVisibilityBatch,
      saveMaxCategories, loadMaxCategories,
      saveAllBrowseCategoryData, loadAllBrowseCategoryData, resetAllBrowseCategoryData,
      isCacheExpired,

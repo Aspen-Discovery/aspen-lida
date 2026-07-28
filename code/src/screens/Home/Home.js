@@ -1,7 +1,6 @@
 import { ScanBarcode, SearchIcon, XIcon, Settings, RotateCwIcon, ClockIcon } from 'lucide-react-native';
 import { Center, Box, Button, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner, FormControl, Input, InputField, InputSlot, InputIcon, FlatList } from '@gluestack-ui/themed';
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
-import _ from 'lodash';
 import React from 'react';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
@@ -10,7 +9,7 @@ import { Platform } from 'react-native';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
 import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
-import { useLibrary, useHomeScreenLinks } from '../../hooks/useLibrarySystemData';
+import { useLibrary, useHomeScreenLinks, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import { useBrowseCategories, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
 import { navigateStack } from '../../helpers/RootNavigator';
@@ -39,6 +38,7 @@ export const DiscoverHomeScreen = () => {
      const notificationOnboard = userState?.notificationOnboard ?? 0;
      const library = useLibrary();
      const homeScreenLinks = useHomeScreenLinks();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      const category = useBrowseCategories();
      const maxNum = useMaxCategories();
      const updateBrowseCategories = useUpdateBrowseCategories();
@@ -46,6 +46,8 @@ export const DiscoverHomeScreen = () => {
      const { categoriesExpired } = useBrowseCategoryExpiration();
      const browseRefreshInFlightRef = React.useRef(false);
      const emptyRefreshAttemptedRef = React.useRef(false);
+     const categoryRef = React.useRef(category);
+     const homeScreenLinksRef = React.useRef(homeScreenLinks);
      const language = useActiveLanguage();
 
      const [preliminaryLoadingCheck, setPreliminaryCheck] = React.useState(false);
@@ -61,6 +63,14 @@ export const DiscoverHomeScreen = () => {
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
+
+     React.useEffect(() => {
+          categoryRef.current = category;
+     }, [category]);
+
+     React.useEffect(() => {
+          homeScreenLinksRef.current = homeScreenLinks;
+     }, [homeScreenLinks]);
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
@@ -97,24 +107,16 @@ export const DiscoverHomeScreen = () => {
           }, [language])
      );
 
-     // Check cache on home screen focus and validate with API
+     // Refresh browse/home feed when user navigates to Home and only write if changed.
      useFocusEffect(
           React.useCallback(() => {
-               const validateBrowseCategoriesCache = async () => {
+                const refreshBrowseContentOnHomeFocus = async () => {
                     if (!library.baseUrl) {
                          return;
                     }
 
-                    const isEmpty = !Array.isArray(category) || category.length === 0;
-                    const shouldRefreshForEmpty = isEmpty && !emptyRefreshAttemptedRef.current;
-                    const shouldRefresh = categoriesExpired || shouldRefreshForEmpty;
-
-                    if (!shouldRefresh || browseRefreshInFlightRef.current) {
+                     if (browseRefreshInFlightRef.current) {
                          return;
-                    }
-
-                    if (shouldRefreshForEmpty) {
-                         emptyRefreshAttemptedRef.current = true;
                     }
 
                     browseRefreshInFlightRef.current = true;
@@ -124,30 +126,51 @@ export const DiscoverHomeScreen = () => {
                          await updateMaxCategories(5);
                     }
 
-                    logDebugMessage("Browse categories cache expired or empty, fetching from API");
-                    setLoading(true);
+                     logDebugMessage("Home focus: refreshing browse categories/home links from API");
                     try {
                          const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
                          if (response?.ok) {
                               const result = response.data.result;
-                              await updateBrowseCategories(result.browseCategories);
-                              if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
+                               const nextBrowseCategories = result?.browseCategories ?? [];
+                               const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+
+                               const browseCategoriesChanged = JSON.stringify(categoryRef.current ?? []) !== JSON.stringify(nextBrowseCategories);
+                               const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                               if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                    setLoading(true);
+                                    try {
+                                         if (browseCategoriesChanged) {
+                                              await updateBrowseCategories(nextBrowseCategories);
+                                         }
+                                         if (homeScreenLinksChanged) {
+                                              await updateHomeScreenLinks(nextHomeScreenLinks);
+                                         }
+                                    } finally {
+                                         setLoading(false);
+                                    }
+                               }
+
+                               if (Array.isArray(nextBrowseCategories) && nextBrowseCategories.length > 0) {
                                    emptyRefreshAttemptedRef.current = false;
                               }
-                              logDebugMessage("Browse categories refreshed from API");
+                               if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                    logDebugMessage("Home focus: browse/home content updated");
+                               } else {
+                                    logDebugMessage("Home focus: browse/home content unchanged, skipped SQLite updates");
+                               }
                          } else {
-                              logDebugMessage("Error fetching browse categories from API");
+                               logDebugMessage("Error refreshing browse categories/home links from API");
                          }
                     } catch (error) {
-                         logDebugMessage("Error validating browse categories cache: " + error.message);
+                          logDebugMessage("Error refreshing browse categories/home links on Home focus: " + error.message);
                     } finally {
                          browseRefreshInFlightRef.current = false;
-                         setLoading(false);
                     }
                };
 
-               validateBrowseCategoriesCache();
-          }, [category, categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateMaxCategories])
+                refreshBrowseContentOnHomeFocus();
+           }, [maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks, updateMaxCategories])
      );
 
      const clearText = () => {
@@ -168,42 +191,80 @@ export const DiscoverHomeScreen = () => {
      };
 
      const onRefreshCategories = async () => {
-          setLoading(true);
           try {
                const requestedMax = maxNum > 0 ? maxNum : 5;
                const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
                if (response?.ok) {
                     const result = response.data.result;
-                    await updateBrowseCategories(result.browseCategories);
-                    logDebugMessage("Browse categories refreshed");
+                    const nextBrowseCategories = result?.browseCategories ?? [];
+                    const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+                    const browseCategoriesChanged = JSON.stringify(category ?? []) !== JSON.stringify(nextBrowseCategories);
+                    const homeScreenLinksChanged = JSON.stringify(homeScreenLinks ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         setLoading(true);
+                         try {
+                              if (browseCategoriesChanged) {
+                                   await updateBrowseCategories(nextBrowseCategories);
+                              }
+                              if (homeScreenLinksChanged) {
+                                   await updateHomeScreenLinks(nextHomeScreenLinks);
+                              }
+                         } finally {
+                              setLoading(false);
+                         }
+                    }
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         logDebugMessage("Browse categories/home links refreshed");
+                    } else {
+                         logDebugMessage("Browse categories/home links unchanged, skipped SQLite updates");
+                    }
                } else {
                     logDebugMessage("Error refreshing browse categories");
                     getErrorMessage(response?.code ?? 0, response?.problem);
                }
           } catch (error) {
                logDebugMessage("Error during refresh: " + error.message);
-          } finally {
-               setLoading(false);
           }
      };
 
      const onLoadAllCategories = async () => {
-          setLoading(true);
           try {
                await updateMaxCategories(9999);
                const response = await getHomeScreenFeed(9999, library.baseUrl);
                if (response?.ok) {
                     const result = response.data.result;
-                    await updateBrowseCategories(result.browseCategories);
-                    logDebugMessage("All categories loaded");
+                    const nextBrowseCategories = result?.browseCategories ?? [];
+                    const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+                    const browseCategoriesChanged = JSON.stringify(category ?? []) !== JSON.stringify(nextBrowseCategories);
+                    const homeScreenLinksChanged = JSON.stringify(homeScreenLinks ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         setLoading(true);
+                         try {
+                              if (browseCategoriesChanged) {
+                                   await updateBrowseCategories(nextBrowseCategories);
+                              }
+                              if (homeScreenLinksChanged) {
+                                   await updateHomeScreenLinks(nextHomeScreenLinks);
+                              }
+                         } finally {
+                              setLoading(false);
+                         }
+                    }
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         logDebugMessage("All categories/home links loaded");
+                    } else {
+                         logDebugMessage("Load all returned unchanged browse/home content");
+                    }
                } else {
                     logDebugMessage("Error fetching all browse categories");
                     getErrorMessage(response?.code ?? 0, response?.problem);
                }
           } catch (error) {
                logDebugMessage("Error loading all categories: " + error.message);
-          } finally {
-               setLoading(false);
           }
      };
 
@@ -212,7 +273,7 @@ export const DiscoverHomeScreen = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;

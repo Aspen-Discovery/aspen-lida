@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Center, Image, Spinner, VStack, useToast } from '@gluestack-ui/themed';
-import _ from 'lodash';
 import React from 'react';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { buildThemeForLibrary, THEME_STALE_MS, useTheme } from '../../themes/theme';
@@ -15,6 +14,7 @@ import {
      loadThemeState,
      saveThemeState,
 } from '../../util/db';
+import { isPlainObject } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { prehydrateLibrarySystemSnapshotCache } from '../../hooks/useLibrarySystemData';
@@ -27,9 +27,9 @@ const splashBackgroundColor = Constants.expoConfig.splash.backgroundColor;
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
 const LANGUAGE_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
-const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;
-const LIBRARY_SYSTEM_METADATA_STALE_MS = 6 * 60 * 60 * 1000;
-const LIBRARY_SYSTEM_MENU_STALE_MS = 12 * 60 * 60 * 1000; // 12 hours
+const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;   // 24 hours
+const LIBRARY_SYSTEM_METADATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
+const LIBRARY_SYSTEM_MENU_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
 
 function isCacheStale(updatedAt, thresholdMs) {
      if (!updatedAt) {
@@ -56,7 +56,7 @@ export async function evaluateStartupCache() {
      const hasUsableUserCache = !!cachedUser && matchesLoggedInUser;
      const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && (!!cachedLibraryBranchState.location || !!cachedLibraryBranchState.selfCheckSettings);
      const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
-     const hasUsableLanguageCache = !!cachedLanguageState && (Array.isArray(cachedLanguageState.languages) || _.isObject(cachedLanguageState.dictionary));
+     const hasUsableLanguageCache = !!cachedLanguageState && (Array.isArray(cachedLanguageState.languages) || isPlainObject(cachedLanguageState.dictionary));
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);

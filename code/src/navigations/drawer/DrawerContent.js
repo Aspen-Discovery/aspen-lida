@@ -35,13 +35,10 @@ import {
      useCatalogStatus,
      useLibrary,
      useUpdateCatalogStatus,
-     useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
+} from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups } from '../../hooks/useUserData';
-import {
-     useBrowseCategories, useMaxCategories, useUpdateBrowseCategories,
-     useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
@@ -51,10 +48,9 @@ import { getLocations, getCatalogStatus } from '../../util/api/system';
 import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists } from '../../util/api/list';
-import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../util/api/search';
 
 import { GLOBALS } from '../../util/globals';
-import { stripHTML, orderByFields } from '../../helpers/helpers';
+import { stripHTML } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
@@ -198,16 +194,9 @@ export const DrawerContent = (props) => {
       const library = useLibrary();
       const { status: catalogStatus } = useCatalogStatus();
        const updateCatalogStatus = useUpdateCatalogStatus();
-       const updateHomeScreenLinks = useUpdateHomeScreenLinks();
       // noinspection JSUnusedLocalSymbols
       const [ notifications, setNotifications] = React.useState([]);
       const [messages, setILSMessages] = React.useState([]);
-      const category = useBrowseCategories();
-      const maxNum = useMaxCategories();
-      const updateBrowseCategories = useUpdateBrowseCategories();
-      const { categoriesExpired } = useBrowseCategoryExpiration();
-      const browseRefreshInFlightRef = React.useRef(false);
-      const emptyRefreshAttemptedRef = React.useRef(false);
       const { updateCheckouts } = React.useContext(CheckoutsContext);
       const { updateHolds } = React.useContext(HoldsContext);
        const language = useActiveLanguage();
@@ -263,7 +252,7 @@ export const DrawerContent = (props) => {
      useQueryWithCallbacks({
           queryKey: ['user', library.baseUrl, language],
           queryFn: () => refreshProfile(library.baseUrl),
-          refetchInterval: 60 * 1000 * 5,
+          refetchInterval: 60 * 60 * 1000, // 1 hour
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always' }, {
           onSuccess: async (data) => {
@@ -298,53 +287,6 @@ export const DrawerContent = (props) => {
           }
       });
 
-      useFocusEffect(
-           React.useCallback(() => {
-                const validateBrowseCategoriesCache = async () => {
-                     if (!library.baseUrl) {
-                          return;
-                     }
-
-                     const isEmpty = !Array.isArray(category) || category.length === 0;
-                     const shouldRefreshForEmpty = isEmpty && !emptyRefreshAttemptedRef.current;
-                     const shouldRefresh = categoriesExpired || shouldRefreshForEmpty;
-
-                     if (!shouldRefresh || browseRefreshInFlightRef.current) {
-                          return;
-                     }
-
-                     if (shouldRefreshForEmpty) {
-                          emptyRefreshAttemptedRef.current = true;
-                     }
-
-                     browseRefreshInFlightRef.current = true;
-                     const requestedMax = maxNum > 0 ? maxNum : 5;
-
-                     logDebugMessage("Browse categories cache expired in drawer, fetching from API");
-                     try {
-                          const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
-                          if (response?.ok) {
-                               const result = response.data.result;
-                               await updateBrowseCategories(result.browseCategories);
-                               if (Array.isArray(result.browseCategories) && result.browseCategories.length > 0) {
-                                    emptyRefreshAttemptedRef.current = false;
-                               }
-                               await updateHomeScreenLinks(result.homeScreenLinks ?? []);
-                               logDebugMessage("Browse categories refreshed from API");
-                          } else {
-                               logDebugMessage("Error fetching browse categories from API");
-                               getErrorMessage(response?.code ?? 0, response?.problem);
-                          }
-                     } catch (error) {
-                          logDebugMessage("Error validating browse categories cache: " + error.message);
-                     } finally {
-                          browseRefreshInFlightRef.current = false;
-                     }
-                };
-                
-                validateBrowseCategoriesCache();
-           }, [category, categoriesExpired, maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks])
-      );
 
       useQueryWithCallbacks({
           queryKey: ['holds', user.id, library.baseUrl, language],
@@ -561,28 +503,6 @@ export const DrawerContent = (props) => {
                logErrorMessage(error);
           } });
 
-     useQueryWithCallbacks({
-          queryKey: ['browse_categories_list', library.baseUrl, language],
-          queryFn: () => getBrowseCategoryListForUser(library.baseUrl),
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          placeholderData: [] }, {
-          onSuccess: (data) => {
-               logDebugMessage("Fetched Browse Categories List");
-               if(data.ok){
-                    const categories = orderByFields(data.data.result, ['title']);
-                    updateBrowseCategoryList(categories);
-               } else {
-                    logDebugMessage("Error fetching browse category list for user");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching browse category list for user");
-               logErrorMessage(error);
-          }
-     });
 
      useQueryWithCallbacks({
           queryKey: ['session', library.baseUrl, user.id],

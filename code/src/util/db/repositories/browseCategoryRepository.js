@@ -162,7 +162,10 @@ export async function updateBrowseCategoryVisibility(categoryKey, isHidden) {
      if (!row) return false;
 
      const list = safeParse(row.list_json) ?? [];
-     const categoryIndex = list.findIndex(cat => cat.key === categoryKey);
+     const normalizedCategoryKey = String(categoryKey);
+     const categoryIndex = list.findIndex((cat) =>
+          String(cat?.key) === normalizedCategoryKey || String(cat?.sourceId) === normalizedCategoryKey
+     );
 
      if (categoryIndex === -1) return false;
 
@@ -177,7 +180,53 @@ export async function updateBrowseCategoryVisibility(categoryKey, isHidden) {
      );
 
      return true;
-}
+ }
+
+/**
+ * Updates multiple categories' visibility in one read/write cycle.
+ * This avoids per-item SQLite writes when toggling grouped categories.
+ */
+export async function updateBrowseCategoryVisibilityBatch(categoryKeys = [], isHidden) {
+     const db = await getDb();
+     const row = await db.getFirstAsync(
+          `SELECT list_json FROM browse_category_list WHERE id = ? LIMIT 1;`,
+          [ROW_ID]
+     );
+
+     if (!row) return false;
+
+     const list = safeParse(row.list_json) ?? [];
+     const keySet = new Set((Array.isArray(categoryKeys) ? categoryKeys : []).map((key) => String(key)));
+     if (keySet.size === 0) {
+          return false;
+     }
+
+     let didUpdate = false;
+     const nextList = list.map((cat) => {
+          const matches = keySet.has(String(cat?.key)) || keySet.has(String(cat?.sourceId));
+          if (!matches) {
+               return cat;
+          }
+
+          didUpdate = true;
+          return {
+               ...cat,
+               isHidden,
+          };
+     });
+
+     if (!didUpdate) return false;
+
+     await db.runAsync(
+          `UPDATE browse_category_list SET
+                updated_at = ?,
+                list_json = ?
+           WHERE id = ?;`,
+          [Date.now(), safeStringify(nextList), ROW_ID]
+     );
+
+     return true;
+ }
 
 // ─── Utility functions ─────────────────────────────────────────────────────────
 
@@ -247,4 +296,3 @@ export async function resetAllBrowseCategoryData() {
           [now, ROW_ID]
      );
 }
-

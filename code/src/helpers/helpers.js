@@ -165,6 +165,13 @@ export function toArray(values) {
 }
 
 /**
+ * Returns true when the value is a non-null object and not an array.
+ */
+export function isPlainObject(value) {
+     return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
  * Truncate a string to a maximum length, appending an omission suffix if truncated.
  * Mirrors lodash _.truncate behaviour: the omission counts toward maxLength.
  * @param {string|null|undefined} str
