@@ -1,7 +1,8 @@
 import 'expo-dev-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { GluestackUIProvider, useToast } from '@gluestack-ui/themed';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, dehydrate, hydrate } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
@@ -35,6 +36,46 @@ const queryClient = new QueryClient({
      },
 });
 
+const QUERY_CACHE_STORAGE_KEY = '@react_query_cache_v1';
+const PERSISTED_QUERY_ROOT_KEYS = new Set(['system_messages']);
+
+function shouldPersistQuery(query) {
+     const queryKey = query?.queryKey;
+     if (!Array.isArray(queryKey) || queryKey.length === 0) {
+          return false;
+     }
+     const rootKey = queryKey[0];
+     if (!PERSISTED_QUERY_ROOT_KEYS.has(rootKey)) {
+          return false;
+     }
+     return query?.state?.status === 'success';
+}
+
+async function restorePersistedQueries() {
+     try {
+          const raw = await AsyncStorage.getItem(QUERY_CACHE_STORAGE_KEY);
+          if (!raw) {
+               return;
+          }
+          const persistedState = JSON.parse(raw);
+          hydrate(queryClient, persistedState);
+          logDebugMessage('Hydrated persisted React Query cache');
+     } catch (error) {
+          logErrorMessage('Failed to hydrate persisted React Query cache');
+          logErrorMessage(error);
+     }
+}
+
+async function persistSelectedQueries() {
+     try {
+          const dehydrated = dehydrate(queryClient, { shouldDehydrateQuery: shouldPersistQuery });
+          await AsyncStorage.setItem(QUERY_CACHE_STORAGE_KEY, JSON.stringify(dehydrated));
+     } catch (error) {
+          logErrorMessage('Failed to persist React Query cache');
+          logErrorMessage(error);
+     }
+}
+
 // Hide log error/warning popups in simulator (useful for demoing)
 const IGNORED_LOGS = ['Non-serializable values were found in the navigation state', 'Warning: ...', 'Warn: ...', 'If you do not provide children, you must specify an aria-label for accessibility '];
 LogBox.ignoreLogs(IGNORED_LOGS);
@@ -63,6 +104,16 @@ export default function AppContainer() {
      const toast = useToast();
 
      const [dbReady, setDbReady] = React.useState(false);
+     const persistTimeoutRef = React.useRef(null);
+
+     const schedulePersistedQueryWrite = React.useCallback(() => {
+          if (persistTimeoutRef.current) {
+               clearTimeout(persistTimeoutRef.current);
+          }
+          persistTimeoutRef.current = setTimeout(() => {
+               persistSelectedQueries();
+          }, 250);
+     }, []);
      React.useEffect(() => {
           let active = true;
 
@@ -92,8 +143,9 @@ export default function AppContainer() {
                logDebugMessage('3 Running buildThemeForLibrary...');
                try {
                     const current = await loadThemeState();
+                    await restorePersistedQueries();
                     const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
-                    const textColor = mode === 'dark' ? 'textLight50' : 'textLight950';
+                    const textColor = mode === 'dark' ? '$coolGray200' : '$warmGray600';
                     const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
                     const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
                     const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
@@ -133,6 +185,19 @@ export default function AppContainer() {
                active = false;
           };
      }, [dbReady, toast]);
+
+     React.useEffect(() => {
+          const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+               schedulePersistedQueryWrite();
+          });
+
+          return () => {
+               if (persistTimeoutRef.current) {
+                    clearTimeout(persistTimeoutRef.current);
+               }
+               unsubscribe();
+          };
+     }, [schedulePersistedQueryWrite]);
 
      if (isLoading || !dbReady) {
           logDebugMessage("6 Still loading, showing splash screen");

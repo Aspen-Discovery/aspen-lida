@@ -13,6 +13,7 @@ const Stack = createNativeStackNavigator();
 const LaunchStackNavigator = () => {
      const route = useRoute();
      const refreshUserData = route.params?.refreshUserData ?? false;
+     const startupCache = route.params?.startupCache ?? null;
 
      const { colorMode: mode, updateColorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -51,7 +52,7 @@ const LaunchStackNavigator = () => {
 
      return (
           <Stack.Navigator
-               initialRouteName="LoadingScreen"
+               initialRouteName={refreshUserData ? 'LoadingScreen' : 'DrawerStack'}
                screenOptions={{
                     headerShown: false,
                     headerBackTitleVisible: false,
@@ -68,6 +69,7 @@ const LaunchStackNavigator = () => {
                <Stack.Screen
                     name="DrawerStack"
                     component={AccountDrawer}
+                    initialParams={{ startupCache }}
                     options={{
                          libraryContext: {
                               library,

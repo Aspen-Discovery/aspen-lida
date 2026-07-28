@@ -18,7 +18,7 @@ import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
 import { LoginScreen } from '../screens/Auth/Login';
 import { SelfRegistration } from '../screens/Auth/SelfRegistration';
-import { SplashScreen } from '../screens/Auth/Splash';
+import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
@@ -103,28 +103,32 @@ export function App() {
                               ...prevState,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true };
+                              refreshUserData: action.refreshData ?? true,
+                              startupCache: action.startupCache ?? null };
                     case 'SIGN_IN':
                          return {
                               ...prevState,
                               isSignOut: false,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true };
+                              refreshUserData: action.refreshData ?? true,
+                              startupCache: action.startupCache ?? null };
                     case 'SIGN_OUT':
                          return {
                               ...prevState,
                               isSignOut: true,
                               userToken: null,
                               isLoading: false,
-                              refreshUserData: false };
+                              refreshUserData: false,
+                              startupCache: null };
                }
           },
           {
                isLoading: true,
                isSignOut: false,
                userToken: null,
-               refreshUserData: false }
+               refreshUserData: false,
+               startupCache: null }
      );
 
      React.useEffect(() => {
@@ -204,10 +208,30 @@ export function App() {
                } else {
                     logDebugMessage('No session found. Starting new.');
                }
+
+               let startupCache = null;
+               let refreshData = true;
+               if (userToken) {
+                    try {
+                         startupCache = await evaluateStartupCache();
+                         refreshData = !(startupCache?.canBypassLoading ?? false);
+                         logDebugMessage({
+                              event: 'startupCache:decision',
+                              canBypassLoading: startupCache?.canBypassLoading ?? false,
+                              refreshData,
+                         });
+                    } catch (error) {
+                         logErrorMessage('Failed startup cache evaluation, using Loading screen fallback');
+                         logErrorMessage(error);
+                         refreshData = true;
+                    }
+               }
+
                dispatch({
                     type: 'RESTORE_TOKEN',
                     token: userToken,
-                    refreshData: true });
+                    refreshData,
+                    startupCache });
           };
           bootstrapAsync();
      }, []);
@@ -361,11 +385,13 @@ function AppContent({state}) {
                     },
                     subscribe(listener) {
                          const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
-                              listener(url);
+                              const decodedUrl = decodeURIComponent(url).replace(/\+/g, ' ').replace('aspen-lida://', prefix);
+                              listener(decodedUrl);
                          });
                          const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
                               const url = response.notification.request.content.data.url;
-                              listener(url);
+                              const decodedUrl = decodeURIComponent(url).replace(/\+/g, ' ').replace('aspen-lida://', prefix);
+                              listener(decodedUrl);
                          });
 
                          return () => {
@@ -388,7 +414,14 @@ function AppContent({state}) {
                          />
                     ) : (
                          // User is signed in
-                         <Stack.Screen name="LaunchStack" component={LaunchStackNavigator} initialParams={{ refreshUserData: state.refreshUserData ?? false }} />
+                         <Stack.Screen
+                              name="LaunchStack"
+                              component={LaunchStackNavigator}
+                              initialParams={{
+                                   refreshUserData: state.refreshUserData ?? false,
+                                   startupCache: state.startupCache ?? null,
+                              }}
+                         />
                     )}
                     <Stack.Screen
                          name="LibraryCardScanner"

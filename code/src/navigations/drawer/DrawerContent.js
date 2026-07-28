@@ -1,9 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
-import { useFocusEffect, useLinkTo } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
-import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import {
@@ -68,8 +67,7 @@ Notifications.setNotificationHandler({
           shouldPlaySound: true,
           shouldSetBadge: false }) });
 
-const prefix = Linking.createURL('/');
-const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
+const USER_DATA_STALE_MS = 3 * 60 * 60 * 1000; // 3 hours — drawer background refresh
 
 const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
      const {
@@ -183,7 +181,6 @@ const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
 export const DrawerContent = (props) => {
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
-     const linkTo = useLinkTo();
      const insets = useSafeAreaInsets();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
@@ -200,8 +197,8 @@ export const DrawerContent = (props) => {
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const { status: catalogStatus } = useCatalogStatus();
-      const updateCatalogStatus = useUpdateCatalogStatus();
-      const updateHomeScreenLinks = useUpdateHomeScreenLinks();
+       const updateCatalogStatus = useUpdateCatalogStatus();
+       const updateHomeScreenLinks = useUpdateHomeScreenLinks();
       // noinspection JSUnusedLocalSymbols
       const [ notifications, setNotifications] = React.useState([]);
       const [messages, setILSMessages] = React.useState([]);
@@ -261,6 +258,7 @@ export const DrawerContent = (props) => {
                logErrorMessage(error);
           }
      });
+
 
      useQueryWithCallbacks({
           queryKey: ['user', library.baseUrl, language],
@@ -721,24 +719,6 @@ export const DrawerContent = (props) => {
      const handleNewNotificationResponse = async (response) => {
           logDebugMessage("Handling new notification response");
           await addStoredNotification(response);
-          let url = decodeURIComponent(response.notification.request.content.data.url).replace(/\+/g, ' ');
-          url = url.replace('aspen-lida://', prefix);
-
-          const supported = await Linking.canOpenURL(url);
-          if (supported) {
-               try {
-                    url = url.replace(prefix, '/');
-                    logDebugMessage('Opening url in DrawerContent...');
-                    logDebugMessage(url);
-                    linkTo(url);
-               } catch (e) {
-                    logDebugMessage('Could not open url in DrawerContent');
-                    logDebugMessage(e);
-               }
-          } else {
-               logDebugMessage('Could not open url in DrawerContent');
-               logDebugMessage(url);
-          }
      };
 
      const displayILSMessages = () => {

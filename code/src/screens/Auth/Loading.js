@@ -1,8 +1,7 @@
-import {useLinkTo, useNavigation} from '@react-navigation/native';
-import * as Linking from 'expo-linking';
+import {useNavigation} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import _, {isEmpty, isUndefined} from 'lodash';
+import _, {isUndefined} from 'lodash';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import { SystemMessagesContext } from '../../context/initialContext';
@@ -73,12 +72,11 @@ import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from 
 import {stripHTML} from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const prefix = Linking.createURL('/');
-const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
-const LANGUAGE_DATA_STALE_MS = 12 * 60 * 60 * 1000;
+const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
+const LANGUAGE_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
 const LIBRARY_BRANCH_DATA_STALE_MS = 24 * 60 * 60 * 1000;
 const LIBRARY_SYSTEM_METADATA_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
-const LIBRARY_SYSTEM_MENU_STALE_MS = 5 * 60 * 1000; // 5 minutes
+const LIBRARY_SYSTEM_MENU_STALE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -87,8 +85,6 @@ Notifications.setNotificationHandler({
           shouldSetBadge: false }) });
 
 export const LoadingScreen = () => {
-     const linkingUrl = Linking.useLinkingURL();
-     const linkTo = useLinkTo();
      const queryClient = useQueryClient();
      const navigation = useNavigation();
      const [isFocused, setIsFocused] = React.useState(0);
@@ -97,8 +93,6 @@ export const LoadingScreen = () => {
      const [hasError, setHasError] = React.useState(false);
      const [errorMessage, setErrorMessage] = React.useState(null);
      const [errorTitle, setErrorTitle] = React.useState(null);
-     const [incomingUrl, setIncomingUrl] = React.useState('');
-     const [hasIncomingUrlChanged, setIncomingUrlChanged] = React.useState(false);
      const [hasUsableUserCache, setHasUsableUserCache] = React.useState(false);
      const [shouldBlockUserFetch, setShouldBlockUserFetch] = React.useState(true);
        const [isInitialUserDataReady, setIsInitialUserDataReady] = React.useState(false);
@@ -834,25 +828,6 @@ export const LoadingScreen = () => {
            setLanguagesQuerySuccess(true);
       }, [hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady]);
 
-      React.useEffect(() => {
-           const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-                const url = response?.notification?.request?.content?.data?.url ?? prefix;
-                if (url !== incomingUrl) {
-                     logDebugMessage('Incoming url changed');
-                     logDebugMessage('OLD > ' + incomingUrl);
-                     logDebugMessage('NEW > ' + url);
-                     setIncomingUrl(response?.notification?.request?.content?.data?.url ?? prefix);
-                     setIncomingUrlChanged(true);
-                } else {
-                     setIncomingUrlChanged(false);
-                }
-           });
-
-           return () => {
-                responseListener.remove();
-           };
-      }, []);
-
        let librarySystemQuerySuccess = false;
 
        React.useEffect(() => {
@@ -1161,57 +1136,6 @@ export const LoadingScreen = () => {
                  !hasError &&
                  catalogStatus === 0
             ) {
-               logDebugMessage("Checking incoming url");
-               if (hasIncomingUrlChanged) {
-                    let url = decodeURIComponent(incomingUrl).replace(/\+/g, ' ');
-                    url = url.replace('aspen-lida://', prefix);
-                    logDebugMessage('incomingUrl > ' + url);
-                    setIncomingUrlChanged(false);
-                    try {
-                         logDebugMessage('Trying to open screen based on incomingUrl...');
-                         Linking.openURL(url);
-                    } catch (e) {
-                         logErrorMessage('Error opening incoming url');
-                         logErrorMessage(e);
-                    }
-               } else if (linkingUrl) {
-                    if (linkingUrl !== prefix && linkingUrl !== incomingUrl) {
-                         setIncomingUrl(linkingUrl);
-                         logDebugMessage('Updated incoming url');
-                         const { hostname, path, queryParams, scheme } = Linking.parse(linkingUrl);
-                         logDebugMessage('linkingUrl > ' + linkingUrl);
-                         logDebugMessage(
-                              `Linked to app with hostname: ${hostname}, path: ${path}, scheme: ${scheme} and data: ${JSON.stringify(
-                                   queryParams
-                              )}`
-                         );
-                         try {
-                              if (scheme !== 'exp') {
-                                   logDebugMessage('Trying to open screen based on linkingUrl...');
-                                   const url = linkingUrl.replace('aspen-lida://', prefix);
-                                   logDebugMessage('url > ' + url);
-                                   linkTo('/' + url);
-                              } else {
-                                   if (path) {
-                                        logDebugMessage('Trying to open screen based on linkingUrl to Expo app...');
-                                        let url = '/' + path;
-                                        if (!isEmpty(queryParams)) {
-                                             const params = new URLSearchParams(queryParams);
-                                             const str = params.toString();
-                                             url = url + '?' + str + '&url=' + library.baseUrl;
-                                        }
-                                        logDebugMessage('url > ' + url);
-                                        logDebugMessage('linkingUrl > ' + linkingUrl);
-                                        linkTo('/' + url);
-                                   }
-                              }
-                         } catch (e) {
-                              logErrorMessage('Error resolving deep link');
-                              logErrorMessage(e);
-                         }
-                    }
-               }
-
                setProgress(100);
                navigation.navigate('DrawerStack', {
                     user: user,
@@ -1230,14 +1154,10 @@ export const LoadingScreen = () => {
             hasUsableLanguageCache,
             hasError,
             catalogStatus,
-            hasIncomingUrlChanged,
-            incomingUrl,
-            linkingUrl,
             user,
             library,
             location,
             navigation,
-            linkTo,
        ]);
 
      if (hasError) {
