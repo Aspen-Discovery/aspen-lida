@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useLinkTo, useNavigation} from '@react-navigation/native';
-import {useQuery, useQueryClient} from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
@@ -8,7 +7,6 @@ import _, {isEmpty, isUndefined} from 'lodash';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import {
-     BrowseCategoryContext,
      LanguageContext,
      SystemMessagesContext,
      ThemeContext,
@@ -57,14 +55,21 @@ import {
      saveLibrary,
      saveMenu,
      saveHomeScreenLinks,
+     saveAllBrowseCategoryData,
 } from '../../util/db';
 import {
      useUpdateLibraryVersion,
      useUpdateCatalogStatus,
 } from '../../hooks/useLibrarySystemData';
+import {
+     useUpdateBrowseCategories,
+     useUpdateMaxCategories,
+     useUpdateBrowseCategoryList,
+} from '../../hooks/useBrowseCategoryData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
 import {stripHTML} from '../../helpers/helpers';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const prefix = Linking.createURL('/');
 const USER_DATA_STALE_MS = 12 * 60 * 60 * 1000;
@@ -83,8 +88,8 @@ Notifications.setNotificationHandler({
 export const LoadingScreen = () => {
      const linkingUrl = Linking.useLinkingURL();
      const linkTo = useLinkTo();
-     const navigation = useNavigation();
      const queryClient = useQueryClient();
+     const navigation = useNavigation();
      const [isFocused, setIsFocused] = React.useState(0);
      const [progress, setProgress] = React.useState(0);
      const [isReloading, setIsReloading] = React.useState(false);
@@ -116,8 +121,10 @@ export const LoadingScreen = () => {
        const fetchAndPersistLibraryBranchDataRef = React.useRef(null);
        const fetchAndPersistLibrarySystemDataRef = React.useRef(null);
 
-       const { updateBrowseCategories, updateBrowseCategoryList, updateMaxCategories } = React.useContext(BrowseCategoryContext);
-      const { language, updateLanguage, updateLanguages, updateDictionary, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
+       const updateBrowseCategories = useUpdateBrowseCategories();
+       const updateBrowseCategoryList = useUpdateBrowseCategoryList();
+       const updateMaxCategories = useUpdateMaxCategories();
+       const { language, updateLanguage, updateLanguages, updateDictionary, updateLanguageDisplayName, languages } = React.useContext(LanguageContext);
        const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const { updateTheme, updateColorMode, textColor } = React.useContext(ThemeContext);
 
@@ -131,6 +138,9 @@ export const LoadingScreen = () => {
        const [location, setLocation] = React.useState({});
        const [libraryData, setLibraryData] = React.useState({});
        const library = libraryData ?? {};
+       const appSettings = libraryData?.appSettings ?? LIBRARY?.appSettings ?? {};
+       const loadingMessageType = appSettings?.loadingMessageType;
+       const loadingMessage = appSettings?.loadingMessage;
        const user = loadedUser;
        const hasResolvedLibraryContext = !!libraryData?.libraryId || !!LIBRARY.id;
 
@@ -481,11 +491,12 @@ export const LoadingScreen = () => {
                           setIsInitialLibraryBranchDataReady(true);
                           setLocation(cached?.location || {});
 
-                         const isStale = Date.now() - (cached?.updated_at ?? 0) > LIBRARY_BRANCH_DATA_STALE_MS;
+                         const branchUpdatedAt = cached?.updatedAt ?? cached?.updated_at ?? 0;
+                         const isStale = !branchUpdatedAt || (Date.now() - branchUpdatedAt > LIBRARY_BRANCH_DATA_STALE_MS);
                          logDebugMessage({
                               event: 'hydrateLibraryBranchCache: stale check',
                               isStale,
-                              cacheAgeMs: cached?.updated_at ? Date.now() - cached.updated_at : null,
+                              cacheAgeMs: branchUpdatedAt ? Date.now() - branchUpdatedAt : null,
                               staleThresholdMs: LIBRARY_BRANCH_DATA_STALE_MS,
                          });
                          if (isStale) {
@@ -657,10 +668,10 @@ export const LoadingScreen = () => {
                           await saveCatalogStatus(status, catalogMessage);
                           await updateCatalogStatus(status, catalogMessage);
                           setCatalogStatusState(status);
-                          if (LIBRARY.appSettings?.loadingMessageType === 1) {
+                          if (loadingMessageType === 1) {
                                setLoadingText('Loading catalog...');
-                          }else if (LIBRARY.appSettings?.loadingMessageType === 2) {
-                               setLoadingText(LIBRARY.appSettings.loadingMessage);
+                          }else if (loadingMessageType === 2) {
+                               setLoadingText(loadingMessage);
                           }
                           logDebugMessage("Loaded catalog status");
                           setProgress(prevProgress => prevProgress + (100 / numSteps));
@@ -697,9 +708,9 @@ export const LoadingScreen = () => {
                logDebugMessage("Loaded Translations");
                setProgress(prevProgress => prevProgress + (100 / numSteps));
                updateDictionary(translationsLibrary);
-               if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType === 0) {
+               if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
                     setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_1'));
-               } else if (LIBRARY.appSettings.loadingMessageType === 1) {
+               } else if (loadingMessageType === 1) {
                     setLoadingText('Loading Languages');
                }
           },
@@ -724,7 +735,7 @@ export const LoadingScreen = () => {
                           languages = _.sortBy(data.data.result.languages, 'weight', 'displayName');
                      }
                      updateLanguages(languages);
-                     if (LIBRARY.appSettings?.loadingMessageType === 1) {
+                     if (loadingMessageType === 1) {
                           setLoadingText('Loading Library Information');
                      }
                 } else {
@@ -784,7 +795,7 @@ export const LoadingScreen = () => {
                           if (libraryInfo.discoveryVersion) {
                                await updateLibraryVersion(libraryInfo.discoveryVersion);
                           }
-                           if (LIBRARY.appSettings?.loadingMessageType === 1) {
+                           if (loadingMessageType === 1) {
                                 setLoadingText('Loading User Information');
                            }
                            librarySystemQuerySuccess = true;
@@ -827,7 +838,7 @@ export const LoadingScreen = () => {
                           setProgress(prevProgress => prevProgress + (100 / numSteps));
                           logDebugMessage("Loaded Library Links");
                           await saveMenu(links);
-                          if (LIBRARY.appSettings?.loadingMessageType === 1) {
+                          if (loadingMessageType === 1) {
                                setLoadingText('Loading Home Screen Feed');
                           }
                            libraryLinksQuerySuccess = true;
@@ -872,7 +883,7 @@ export const LoadingScreen = () => {
                           updateBrowseCategories(result.browseCategories);
                           updateMaxCategories(5);
                           await saveHomeScreenLinks(result.homeScreenLinks);
-                          if (LIBRARY.appSettings?.loadingMessageType === 1) {
+                          if (loadingMessageType === 1) {
                                setLoadingText('Loading Browse Category List');
                           }
                            browseCategoryQuerySuccess = true;
@@ -897,38 +908,49 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasError, libraryLinksQuerySuccess]);
+       }, [hasError, libraryLinksQuerySuccess]);
 
-      useQuery(['browse_categories_list', LIBRARY.url, 'en'], () => getBrowseCategoryListForUser(LIBRARY.url), {
-          enabled: hasError === false && browseCategoryQuerySuccess,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const categories = _.sortBy(data.data.result, ['title']);
-                    logDebugMessage("Loaded Browse Category List");
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    if (isUndefined(LIBRARY.appSettings.loadingMessageType) || LIBRARY.appSettings.loadingMessageType === 0) {
-                         setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_2'));
-                    }else if (LIBRARY.appSettings.loadingMessageType === 1) {
-                         setLoadingText('Loading Branch Information');
-                    }
-                    updateBrowseCategoryList(categories);
-               } else {
-                    logDebugMessage("Error loading browse category list");
-                    logDebugMessage(data);
-                    const error = getErrorMessage(data.code ?? 0, data.problem);
-                    setHasError(true);
-                    setErrorMessage(error.message);
-                    setErrorTitle("Unable to load browse category list");
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Setting Error to true because loading browse category list failed");
-               logErrorMessage(error);
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Unknown error loading browse category list. Please try again or contact the library.');
-          }
-     });
+       React.useEffect(() => {
+            if (hasError || !browseCategoryQuerySuccess) return;
+            let cancelled = false;
+
+            (async () => {
+                 try {
+                      const data = await getBrowseCategoryListForUser(LIBRARY.url);
+                      if (cancelled) return;
+
+                      if (data?.ok) {
+                           const categories = _.sortBy(data.data.result, ['title']);
+                           logDebugMessage("Loaded Browse Category List");
+                           setProgress(prevProgress => prevProgress + (100 / numSteps));
+                           if (isUndefined(loadingMessageType) || loadingMessageType === 0) {
+                                setLoadingText(getTermFromDictionary(language ?? 'en', 'loading_2'));
+                           } else if (loadingMessageType === 1) {
+                                setLoadingText('Loading Branch Information');
+                           }
+                           await updateBrowseCategoryList(categories);
+                      } else {
+                           logDebugMessage("Error loading browse category list");
+                           logDebugMessage(data);
+                           const error = getErrorMessage(data?.code ?? 0, data?.problem);
+                           setHasError(true);
+                           setErrorMessage(error.message);
+                           setErrorTitle("Unable to load browse category list");
+                      }
+                 } catch (error) {
+                      if (cancelled) return;
+                      logDebugMessage("Setting Error to true because loading browse category list failed");
+                      logErrorMessage(error);
+                      setHasError(true);
+                      setErrorTitle(null);
+                      setErrorMessage('Unknown error loading browse category list. Please try again or contact the library.');
+                 }
+            })();
+
+            return () => {
+                 cancelled = true;
+            };
+       }, [hasError, browseCategoryQuerySuccess, language, updateBrowseCategoryList, numSteps]);
 
       React.useEffect(() => {
            if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
@@ -1026,7 +1048,7 @@ export const LoadingScreen = () => {
                     setProgress(prevProgress => prevProgress + (100 / numSteps));
                     updateSystemMessages(messages);
                     setIsReloading(false);
-                    if (LIBRARY.appSettings.loadingMessageType === 1) {
+                    if (loadingMessageType === 1) {
                          setLoadingText('Loading App Preferences');
                     }
                } else {

@@ -10,6 +10,7 @@ import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
 import { popAlert } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const HomeScreenLinkGrid = ({links}) => {
      const { width } = Dimensions.get('window');

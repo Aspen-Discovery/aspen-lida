@@ -35,10 +35,11 @@ import {
 import React from 'react';
 import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import { BrowseCategoryContext, LanguageContext, ThemeContext } from '../../context/initialContext';
+import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { saveAllLibraryBranchData } from '../../util/db';
 import { useUpdateUserProfile } from '../../hooks/useUserData';
+import { useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryBranch, getLibrarySystem } from '../../util/api/system';
 import { getUserProfile, resetExpiredPin } from '../../util/api/user';
@@ -54,7 +55,7 @@ export const ResetExpiredPin = (props) => {
      const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      const updateUserProfile = useUpdateUserProfile();
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { updateBrowseCategories } = React.useContext(BrowseCategoryContext);
+     const updateBrowseCategories = useUpdateBrowseCategories();
      const { language } = React.useContext(LanguageContext);
      const { username, resetToken, url, pinValidationRules, setExpiredPin, patronsLibrary } = props;
      const [isOpen, setIsOpen] = React.useState(true);
@@ -148,14 +149,14 @@ export const ResetExpiredPin = (props) => {
 
        const setContext = async () => {
             const library = await getLibrarySystem({ patronsLibrary });
-            updateLibrary(library);
+            await updateLibrary(library);
             const location = await getLibraryBranch({ patronsLibrary });
             await saveAllLibraryBranchData({ location });
            const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
            await updateUserProfile(user);
            const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
-           updateBrowseCategories(homeScreenFeed.browseCategories);
-           updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
+           await updateBrowseCategories(homeScreenFeed.browseCategories);
+           await updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
       };
 
      const setAsyncStorage = async () => {

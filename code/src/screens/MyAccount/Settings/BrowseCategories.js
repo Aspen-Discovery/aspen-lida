@@ -1,85 +1,53 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
-import { Box, FlatList, HStack, Switch, Text, Pressable, ChevronLeftIcon } from '@gluestack-ui/themed';
+import { useNavigation } from '@react-navigation/native';
+import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { BackHandler } from 'react-native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '../../../components/loadError';
-import { BrowseCategoryContext, LanguageContext, ThemeContext } from '../../../context/initialContext';
-
+import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCategoryVisibility, useMaxCategories, useUpdateBrowseCategories } from '../../../hooks/useBrowseCategoryData';
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
-import { getBrowseCategoryListForUser } from '../../../util/api/search';
-
+import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../../util/api/search';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
 import _ from 'lodash';
+import { useToast } from '@gluestack-ui/themed';
 
 export const Settings_BrowseCategories = () => {
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
      const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
-     const { list, updateBrowseCategoryList } = React.useContext(BrowseCategoryContext);
+     const list = useBrowseCategoryList();
+     const updateBrowseCategoryList = useUpdateBrowseCategoryList();
      const { theme } = React.useContext(ThemeContext);
-     const route = useRoute();
 
-     const handleGoBack = () => {
-          if (route?.params?.prevRoute === 'HomeScreen') {
-               navigation.dispatch(CommonActions.setParams({ prevRoute: null }));
-               navigation.goBack();
-          } else if (route?.params?.prevRoute === 'Preferences') {
-               navigation.dispatch(CommonActions.setParams({ prevRoute: null }));
-               navigation.goBack();
-          } else {
-               if (navigation.canGoBack()) {
-                    navigation.goBack();
-               } else {
-                    navigation.dispatch(StackActions.replace('MoreMenu'));
-               }
-          }
-     };
+     const [isFetching, setIsFetching] = React.useState(false);
 
+     // Fetch category list on mount
      React.useEffect(() => {
-          const backAction = () => {
-               handleGoBack();
-               return true;
+          const fetchCategoryList = async () => {
+               setIsFetching(true);
+               try {
+                    const data = await getBrowseCategoryListForUser(library.baseUrl);
+                    if (data?.ok) {
+                         const categories = _.sortBy(data.data.result, ['title']);
+                         await updateBrowseCategoryList(categories);
+                         logDebugMessage("Loaded Browse Category List");
+                    } else {
+                         logDebugMessage("Error fetching browse category list for user");
+                         logDebugMessage(data);
+                         getErrorMessage(data?.code, data?.problem);
+                    }
+               } catch (error) {
+                    logDebugMessage("Error fetching browse category list for user");
+                    logErrorMessage(error);
+               } finally {
+                    setIsFetching(false);
+               }
           };
 
-          const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-          return () => backHandler.remove();
-     }, [route?.params?.prevRoute, navigation]);
-
-     React.useLayoutEffect(() => {
-          navigation.setOptions({
-               headerLeft: () => (
-                    <Pressable onPress={handleGoBack} mr={3} p="$1">
-                         <ChevronLeftIcon size="md" ml={1} color={theme['tokens']['colors']['primary']['baseContrast']} />
-                    </Pressable>
-               ),
-          });
-     }, [navigation, theme]);
-
-     const { isFetching } = useQuery(['browse_categories_list', library.baseUrl, language], () => getBrowseCategoryListForUser(library.baseUrl), {
-          initialData: list,
-          onSuccess: (data) => {
-               if(data.ok){
-                    const categories = _.sortBy(data.data.result, ['title']);
-                    updateBrowseCategoryList(categories);
-               } else {
-                    logDebugMessage("Error fetching browse category list for user");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching browse category list for user");
-               logErrorMessage(error);
-          },
-          onSettle: () => {
-               setLoading(false);
-          },
-          placeholderData: [],
-     });
+          fetchCategoryList();
+     }, [library.baseUrl, updateBrowseCategoryList]);
 
      if (loading || isFetching) {
           return <LoadingSpinner />;
@@ -89,7 +57,7 @@ export const Settings_BrowseCategories = () => {
 };
 
 const DisplayCategory = (data) => {
-     const queryClient = useQueryClient();
+     const toast = useToast();
      const category = data.data;
      const [toggled, setToggle] = React.useState(!category.isHidden);
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
@@ -98,8 +66,10 @@ const DisplayCategory = (data) => {
      const toggleSwitch = () => setToggle((previousState) => !previousState);
      const library = useLibrary();
      const { language } = React.useContext(LanguageContext);
-     const { maxNum } = React.useContext(BrowseCategoryContext);
      const { colorMode, textColor, theme} = React.useContext(ThemeContext);
+     const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
+     const maxNum = useMaxCategories();
+     const updateBrowseCategories = useUpdateBrowseCategories();
 
      React.useEffect(() => {
           setToggle(!category.isHidden);
@@ -107,19 +77,37 @@ const DisplayCategory = (data) => {
 
      const updateToggle = async (category) => {
           const key = category['key'] ?? category['sourceId'];
-          await updateBrowseCategoryStatus(key, library.baseUrl).then(async (response) => {
-               if (!response.ok) {
-                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem });
-                    setErrorTitle(error.title);
-                    setErrorMessage(error.message);
-                    logErrorMessage(response);
-                    setShowErrorDialog(true);
-                    setToggle(!category.isHidden);
-               } else {
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
+          // Optimistic update: toggle visibility immediately
+          const result = await toggleCategoryVisibility(key, !toggled, () =>
+               updateBrowseCategoryStatus(key, library.baseUrl)
+          );
+
+          if (!result.success) {
+               const error = getErrorMessage({ statusCode: result.error?.status, problem: result.error?.problem });
+               setErrorTitle(error.title);
+               setErrorMessage(error.message);
+               logErrorMessage(result.error);
+               setShowErrorDialog(true);
+               setToggle(!toggled); // Revert the toggle
+               toast.show({
+                    placement: "bottom",
+                    duration: 3000,
+                    render: ({ id }) => (
+                         <Box p="$3" bg="$error500" borderRadius="$md">
+                              <Text color="$white" bold>{error.title}</Text>
+                              <Text color="$white">{error.message}</Text>
+                         </Box>
+                    ),
+               });
+          } else {
+               // Keep Home screen in sync by refreshing visible browse categories.
+               const requestedMax = maxNum > 0 ? maxNum : 5;
+               const homeFeed = await getHomeScreenFeed(requestedMax, library.baseUrl);
+               if (homeFeed?.ok) {
+                    const nextCategories = homeFeed.data?.result?.browseCategories ?? [];
+                    await updateBrowseCategories(nextCategories);
                }
-          });
+          }
           logDebugMessage("Finished toggling " + key);
      };
      return (
