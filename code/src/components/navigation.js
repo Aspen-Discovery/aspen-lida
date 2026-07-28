@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -23,6 +23,7 @@ import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
 import { RemoveData } from '../helpers/helpers';
+import { saveLibraryUrl } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
@@ -180,20 +181,21 @@ export function App() {
                     dispatch({ type: 'SIGN_OUT' });
                }
 
-               if (!libraryUrl) {
-                    libraryUrl = LIBRARY.url;
-               }
+                if (!libraryUrl) {
+                     libraryUrl = LIBRARY.url;
+                }
 
-               if (userToken) {
-                    logDebugMessage('Session found');
-                    if (libraryUrl) {
-                         logDebugMessage('Trying to connect to: ', libraryUrl);
-                         await checkCachedUrl(libraryUrl).then(async (result) => {
-                              if (result) {
-                                   LIBRARY.url = libraryUrl;
-                                   logDebugMessage('Connection successful. Continuing...');
-                                   await trackAppLaunches(libraryUrl);
-                              } else {
+                if (userToken) {
+                     logDebugMessage('Session found');
+                     if (libraryUrl) {
+                          logDebugMessage('Trying to connect to: ', libraryUrl);
+                          await checkCachedUrl(libraryUrl).then(async (result) => {
+                               if (result) {
+                                    LIBRARY.url = libraryUrl;
+                                    await saveLibraryUrl(libraryUrl);
+                                    logDebugMessage('Connection successful. Continuing...');
+                                    await trackAppLaunches(libraryUrl);
+                               } else {
                                    logWarnMessage('Connection failed, logging out.');
                                    userToken = null;
                                    dispatch({ type: 'SIGN_OUT' });
@@ -266,20 +268,18 @@ export function App() {
                <ThemeProvider>
                     <SystemMessagesProvider>
                          <LanguageProvider>
-                               <LibrarySystemProvider>
-                                    <SearchProvider>
-                                         <CheckoutsProvider>
-                                              <HoldsProvider>
-                                                   <BrowseCategoryProvider>
-                                                        <GroupedWorkProvider>
-                                                             {/* Pass state safely to the child container */}
-                                                             <AppContent state={state} />
-                                                        </GroupedWorkProvider>
-                                                   </BrowseCategoryProvider>
-                                              </HoldsProvider>
-                                         </CheckoutsProvider>
-                                    </SearchProvider>
-                               </LibrarySystemProvider>
+                               <SearchProvider>
+                                    <CheckoutsProvider>
+                                         <HoldsProvider>
+                                              <BrowseCategoryProvider>
+                                                   <GroupedWorkProvider>
+                                                        {/* Pass state safely to the child container */}
+                                                        <AppContent state={state} />
+                                                   </GroupedWorkProvider>
+                                              </BrowseCategoryProvider>
+                                         </HoldsProvider>
+                                    </CheckoutsProvider>
+                               </SearchProvider>
                          </LanguageProvider>
                     </SystemMessagesProvider>
                </ThemeProvider>

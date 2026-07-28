@@ -3,7 +3,7 @@ import React from 'react';
 import { MyAlternateLibraryCard } from '../../screens/MyAccount/MyLibraryCard/MyAlternateLibraryCard';
 
 import { MyLibraryCard } from '../../screens/MyAccount/MyLibraryCard/MyLibraryCard';
-import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
+import { LanguageContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
@@ -28,9 +28,6 @@ const LibraryCardStackNavigator = () => {
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
                          //title: getTermFromDictionary(language, 'library_card')
-                    }}
-                    initialParams={{
-                         libraryContext: JSON.stringify(React.useContext(LibrarySystemContext)),
                     }}
                />
                <Stack.Screen

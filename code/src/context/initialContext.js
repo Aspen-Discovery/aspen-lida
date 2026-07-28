@@ -13,21 +13,6 @@ export const ThemeContext = React.createContext({
      resetTheme: () => {},
 });
 export const DiscoveryContext = React.createContext();
-export const LibrarySystemContext = React.createContext({
-     updateLibrary: () => {},
-     library: [],
-     version: '',
-     url: '',
-     menu: [],
-     catalogStatus: 0,
-     catalogStatusMessage: '',
-     updateCatalogStatus: () => {},
-     updateCatalogStatusMessage: () => {},
-     updateMenu: () => {},
-     updateHomeScreenLinks: () => {},
-     homeScreenLinks: [],
-      resetLibrary: () => {},
-});
 export const BrowseCategoryContext = React.createContext({
      updateBrowseCategories: () => {},
      category: [],
@@ -160,96 +145,6 @@ export const DiscoveryProvider = ({ children }) => {
                }}>
                {children}
           </DiscoveryContext.Provider>
-     );
-};
-
-export const LibrarySystemProvider = ({ children }) => {
-     const [library, setLibrary] = useState();
-     const [version, setVersion] = useState();
-     const [url, setUrl] = useState();
-     const [menu, setMenu] = useState();
-     const [catalogStatus, setCatalogStatus] = useState();
-     const [catalogStatusMessage, setCatalogStatusMessage] = useState();
-     const [homeScreenLinks, setHomeScreenLinks] = useState();
-
-     const updateLibrary = (data) => {
-          if (!_.isUndefined(data.discoveryVersion)) {
-               logInfoMessage("Setting discovery version to " + data.discoveryVersion);
-               const discovery = formatDiscoveryVersion(data.discoveryVersion);
-               if (version != discovery) {
-                    setVersion(discovery);
-                    logDebugMessage('updated version in LibrarySystemContext');
-               }
-          }else{
-               logInfoMessage("discoveryVersion was undefined");
-               logDebugMessage(data);
-          }
-
-          if (!_.isUndefined(data.baseUrl)) {
-               setUrl(data.baseUrl);
-               logDebugMessage('updated url in LibrarySystemContext');
-          }
-          setLibrary(data);
-          logDebugMessage('updated LibrarySystemContext');
-     };
-
-     const updateHomeScreenLinks = (data) => {
-          setHomeScreenLinks(data);
-          logDebugMessage('updated home screen links in LibrarySystemContext');
-     }
-
-     const resetLibrary = () => {
-          setLibrary({});
-          setVersion({});
-          setUrl({});
-          setMenu({});
-          setCatalogStatus(0);
-          setCatalogStatusMessage('');
-          setHomeScreenLinks([]);
-          logDebugMessage('reset LibrarySystemContext');
-     };
-
-     const updateMenu = (data) => {
-          setMenu(data);
-          logDebugMessage('updated menu in LibrarySystemContext');
-     };
-
-     const updateCatalogStatus = (data) => {
-          logDebugMessage(data);
-
-          if (data.status) {
-               setCatalogStatus(data.status);
-               logDebugMessage('updated catalog status');
-          } else {
-               setCatalogStatus(0);
-          }
-
-          if (data.message) {
-               setCatalogStatusMessage(data.message);
-               logDebugMessage('updated catalog status message');
-          } else {
-               setCatalogStatusMessage('');
-          }
-     };
-
-     return (
-          <LibrarySystemContext.Provider
-               value={{
-                    library,
-                    version,
-                    url,
-                    updateLibrary,
-                    resetLibrary,
-                    menu,
-                    updateMenu,
-                    catalogStatus,
-                    catalogStatusMessage,
-                    updateCatalogStatus,
-                    homeScreenLinks,
-                    updateHomeScreenLinks,
-               }}>
-               {children}
-          </LibrarySystemContext.Provider>
      );
 };
 
