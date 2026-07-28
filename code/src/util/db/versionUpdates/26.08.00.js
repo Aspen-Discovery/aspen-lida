@@ -195,5 +195,12 @@ export async function up(db) {
                  updated_at INTEGER NOT NULL,
                  list_json TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS language_state (
+                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 updated_at INTEGER NOT NULL,
+                 languages_json TEXT,
+                 dictionary_json TEXT
+            );
        `);
 }

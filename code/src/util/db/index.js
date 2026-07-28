@@ -30,6 +30,15 @@ export {
      saveAllLibrarySystemData, loadAllLibrarySystemData, resetAllLibrarySystemData,
 } from './repositories/librarySystemRepository';
 export {
+     saveAvailableLanguages,
+     loadAvailableLanguages,
+     saveDictionary,
+     loadDictionary,
+     saveAllLanguageData,
+     loadAllLanguageData,
+     resetLanguageData,
+} from './repositories/languageRepository';
+export {
      saveUserProfile,
      saveUserSettings,
      savePickupLocationPrefs,
