@@ -13,15 +13,6 @@ export const ThemeContext = React.createContext({
      resetTheme: () => {},
 });
 export const DiscoveryContext = React.createContext();
-export const BrowseCategoryContext = React.createContext({
-     updateBrowseCategories: () => {},
-     category: [],
-     updateBrowseCategoryList: () => {},
-     list: [],
-     updateMaxCategories: () => {},
-     maxNum: 5,
-     resetBrowseCategories: () => {},
-});
 export const CheckoutsContext = React.createContext({
      updateCheckouts: () => {},
      checkouts: [],
@@ -149,47 +140,6 @@ export const DiscoveryProvider = ({ children }) => {
 };
 
 
-export const BrowseCategoryProvider = ({ children }) => {
-     const [category, setCategories] = useState();
-     const [list, setCategoryList] = useState();
-     const [maxNum, setMaxCategories] = useState();
-
-     const updateBrowseCategories = (data) => {
-          setCategories(data);
-          logDebugMessage('updated BrowseCategoryContext');
-     };
-
-     const updateBrowseCategoryList = (data) => {
-          setCategoryList(data);
-          logDebugMessage('updated list in BrowseCategoryContext');
-     };
-
-     const updateMaxCategories = (data) => {
-          setMaxCategories(data);
-          logDebugMessage('updated max categories in BrowseCategoryContext');
-     };
-
-     const resetBrowseCategories = () => {
-          setCategories({});
-          setCategoryList({});
-          logDebugMessage('reset BrowseCategoryContext');
-     };
-
-     return (
-          <BrowseCategoryContext.Provider
-               value={{
-                    category,
-                    list,
-                    maxNum,
-                    updateBrowseCategories,
-                    updateBrowseCategoryList,
-                    updateMaxCategories,
-                    resetBrowseCategories,
-               }}>
-               {children}
-          </BrowseCategoryContext.Provider>
-     );
-};
 
 export const CheckoutsProvider = ({ children }) => {
      const [checkouts, setCheckouts] = useState();

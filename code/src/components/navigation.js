@@ -12,7 +12,7 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, LanguageContext, ThemeContext } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
@@ -267,20 +267,18 @@ export function App() {
           <AuthContext.Provider value={authContext}>
                <ThemeProvider>
                     <SystemMessagesProvider>
-                         <LanguageProvider>
-                               <SearchProvider>
-                                    <CheckoutsProvider>
-                                         <HoldsProvider>
-                                              <BrowseCategoryProvider>
-                                                   <GroupedWorkProvider>
-                                                        {/* Pass state safely to the child container */}
-                                                        <AppContent state={state} />
-                                                   </GroupedWorkProvider>
-                                              </BrowseCategoryProvider>
-                                         </HoldsProvider>
-                                    </CheckoutsProvider>
-                               </SearchProvider>
-                         </LanguageProvider>
+                          <LanguageProvider>
+                                <SearchProvider>
+                                     <CheckoutsProvider>
+                                          <HoldsProvider>
+                                               <GroupedWorkProvider>
+                                                    {/* Pass state safely to the child container */}
+                                                    <AppContent state={state} />
+                                               </GroupedWorkProvider>
+                                          </HoldsProvider>
+                                     </CheckoutsProvider>
+                                </SearchProvider>
+                          </LanguageProvider>
                     </SystemMessagesProvider>
                </ThemeProvider>
           </AuthContext.Provider>

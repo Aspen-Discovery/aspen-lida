@@ -13,7 +13,7 @@ import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider } from './src/context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, SearchProvider, SystemMessagesProvider, ThemeContext, ThemeProvider } from './src/context/initialContext';
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
 import { createTheme, saveTheme } from './src/themes/theme';
@@ -132,20 +132,18 @@ export default function AppContainer() {
                                      <ThemeProvider>
                                           <LanguageProvider>
                                                <SearchProvider>
-                                                    <CheckoutsProvider>
-                                                         <HoldsProvider>
-                                                              <BrowseCategoryProvider>
-                                                                   <SystemMessagesProvider>
-                                                                        <GroupedWorkProvider>
-                                                                             <AuthProvider>
-                                                                                  <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
-                                                                                  <App />
-                                                                             </AuthProvider>
-                                                                        </GroupedWorkProvider>
-                                                                   </SystemMessagesProvider>
-                                                              </BrowseCategoryProvider>
-                                                         </HoldsProvider>
-                                                    </CheckoutsProvider>
+                                                     <CheckoutsProvider>
+                                                          <HoldsProvider>
+                                                               <SystemMessagesProvider>
+                                                                    <GroupedWorkProvider>
+                                                                         <AuthProvider>
+                                                                              <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
+                                                                              <App />
+                                                                         </AuthProvider>
+                                                                    </GroupedWorkProvider>
+                                                               </SystemMessagesProvider>
+                                                          </HoldsProvider>
+                                                     </CheckoutsProvider>
                                                </SearchProvider>
                                           </LanguageProvider>
                                      </ThemeProvider>

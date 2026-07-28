@@ -2,7 +2,6 @@ import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import {
-     BrowseCategoryContext,
      CheckoutsContext,
      HoldsContext,
      LanguageContext,
@@ -31,7 +30,6 @@ const LaunchStackNavigator = () => {
           languageDisplayName,
           updateLanguageDisplayName,
      } = React.useContext(LanguageContext);
-     const { category, list, maxNum, updateMaxCategories } = React.useContext(BrowseCategoryContext);
      const { checkouts } = React.useContext(CheckoutsContext);
      const { holds } = React.useContext(HoldsContext);
      const {
@@ -87,12 +85,6 @@ const LaunchStackNavigator = () => {
                               menu,
                               catalogStatus,
                               catalogStatusMessage,
-                         },
-                         browseCategoriesContext: {
-                              category,
-                              list,
-                              maxNum,
-                              updateMaxCategories,
                          },
                          checkoutsContext: { checkouts },
                          holdsContext: { holds },
