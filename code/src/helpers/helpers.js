@@ -37,8 +37,21 @@ export function formatDiscoveryVersion(payload) {
 
 /**
  * Logout the user and clean up data
+ * @param {object} queryClient - React Query client for invalidating queries
+ * @param {boolean} preserveUsername - If true, keeps @userBarcode for convenience on login screen
  **/
-export async function RemoveData(queryClient) {
+export async function RemoveData(queryClient, preserveUsername = true) {
+     let savedUsername = null;
+
+     // Preserve username for user convenience on next login
+     if (preserveUsername) {
+          try {
+               savedUsername = await AsyncStorage.getItem('@userBarcode');
+          } catch (e) {
+               logWarnMessage('Failed to read @userBarcode before logout');
+          }
+     }
+
      try {
           logDebugMessage('Removing Data in secure storage');
           SecureStore.deleteItemAsync('patronName');
@@ -92,18 +105,29 @@ export async function RemoveData(queryClient) {
           logErrorMessage(e);
      }
 
-     try {
-          const { clearAllUserData, resetAllLibrarySystemData, resetAllLibraryBranchData } = require('../util/db');
-          await clearAllUserData();
-          await resetAllLibrarySystemData();
-          await resetAllLibraryBranchData();
-          logDebugMessage('Cleared all SQLite data');
-     } catch (e) {
-          logErrorMessage('Error clearing data from SQLite');
-          logErrorMessage(e);
-     }
+      try {
+           const { clearAllUserData, resetAllLibrarySystemData, resetAllLibraryBranchData } = require('../util/db');
+           await clearAllUserData();
+           await resetAllLibrarySystemData();
+           await resetAllLibraryBranchData();
+           logDebugMessage('Cleared all SQLite data');
+      } catch (e) {
+           logErrorMessage('Error clearing data from SQLite');
+           logErrorMessage(e);
+      }
 
-     logDebugMessage('Storage data cleansed.');
+      // Restore username if it was preserved for user convenience
+      if (preserveUsername && savedUsername) {
+           try {
+                await AsyncStorage.setItem('@userBarcode', savedUsername);
+                logDebugMessage('Preserved username for next login');
+           } catch (e) {
+                logWarnMessage('Failed to preserve username for next login');
+                logErrorMessage(e);
+           }
+      }
+
+      logDebugMessage('Storage data cleansed.');
 }
 
 /** *******************************************************************

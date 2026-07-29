@@ -67,6 +67,23 @@ export const GetLoginForm = (props) => {
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
+
+     // Pre-fill username from AsyncStorage on mount
+     React.useEffect(() => {
+          const prefillUsername = async () => {
+               try {
+                    const savedBarcode = await AsyncStorage.getItem('@userBarcode');
+                    if (savedBarcode) {
+                         setUsername(savedBarcode);
+                         logDebugMessage('Pre-filled username from saved barcode');
+                    }
+               } catch (e) {
+                    logWarnMessage('Failed to load saved username');
+                    logErrorMessage(e);
+               }
+          };
+          prefillUsername();
+     }, []);
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
@@ -170,10 +187,12 @@ export const GetLoginForm = (props) => {
           navigate('LibraryCardScanner', { allowCode39 });
      };
 
-     const setAsyncStorage = async (userHomeLocationId = null) => {
-          await SecureStore.setItemAsync('userKey', username);
-          await SecureStore.setItemAsync('secretKey', valueSecret);
-          await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
+      const setAsyncStorage = async (userHomeLocationId = null) => {
+           await SecureStore.setItemAsync('userKey', username);
+           await SecureStore.setItemAsync('secretKey', valueSecret);
+           // Save username for convenience on next login
+           await AsyncStorage.setItem('@userBarcode', username);
+           await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
           const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
 
           if (userHomeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {

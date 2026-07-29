@@ -239,10 +239,12 @@ jest.mock('@react-navigation/native', () => {
                     }
                     return unsubscribe;
                }),
+               reset: jest.fn(),
           }),
+          useRoute: () => ({ params: { isSQLiteMigrationNeeded: false } }),
           useIsFocused: () => true,
           useLinkTo: () => jest.fn(),
-     };
+      };
 });
 
 jest.mock('@react-native-aria/overlays', () => {

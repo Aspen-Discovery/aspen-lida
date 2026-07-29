@@ -23,7 +23,7 @@ import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
 import { RemoveData } from '../helpers/helpers';
-import { saveLibraryUrl } from '../util/db';
+import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
@@ -104,7 +104,9 @@ export function App() {
                               userToken: action.token,
                               isLoading: false,
                               refreshUserData: action.refreshData ?? true,
-                              startupCache: action.startupCache ?? null };
+                              startupCache: action.startupCache ?? null,
+                              isSQLiteMigrationNeeded: action.isSQLiteMigrationNeeded ?? false,
+                              migrationError: false };
                     case 'SIGN_IN':
                          return {
                               ...prevState,
@@ -112,7 +114,9 @@ export function App() {
                               userToken: action.token,
                               isLoading: false,
                               refreshUserData: action.refreshData ?? true,
-                              startupCache: action.startupCache ?? null };
+                              startupCache: action.startupCache ?? null,
+                              isSQLiteMigrationNeeded: false,
+                              migrationError: false };
                     case 'SIGN_OUT':
                          return {
                               ...prevState,
@@ -120,7 +124,9 @@ export function App() {
                               userToken: null,
                               isLoading: false,
                               refreshUserData: false,
-                              startupCache: null };
+                              startupCache: null,
+                              isSQLiteMigrationNeeded: false,
+                              migrationError: action.migrationError ?? false };
                }
           },
           {
@@ -128,8 +134,10 @@ export function App() {
                isSignOut: false,
                userToken: null,
                refreshUserData: false,
-               startupCache: null }
-     );
+               startupCache: null,
+               isSQLiteMigrationNeeded: false,
+               migrationError: false }
+      );
 
      React.useEffect(() => {
           const timer = setInterval(async () => {
@@ -159,82 +167,96 @@ export function App() {
           };
      }, []);
 
-     React.useEffect(() => {
-          const bootstrapAsync = async () => {
-               logDebugMessage('Checking existing session...');
-               let userToken;
-               let libraryUrl;
-               let userKey;
-               try {
-                    // Restore token stored in `AsyncStorage`
-                    userToken = await AsyncStorage.getItem('@userToken');
-                    libraryUrl = await AsyncStorage.getItem('@pathUrl');
-                    userKey = await SecureStore.getItemAsync('userKey');
-               } catch (e) {
-                    // Restoring token failed
-                    logErrorMessage("Error restoring token");
-                    logErrorMessage(e);
-                    dispatch({ type: 'SIGN_OUT' });
-               }
-
-               if (!userKey) {
-                    dispatch({ type: 'SIGN_OUT' });
-               }
-
-                if (!libraryUrl) {
-                     libraryUrl = LIBRARY.url;
+      React.useEffect(() => {
+           const bootstrapAsync = async () => {
+                logDebugMessage('Checking existing session...');
+                let userToken;
+                let libraryUrl;
+                let userKey;
+                let isMigrationNeeded = false;
+                try {
+                     // Restore token stored in `AsyncStorage`
+                     userToken = await AsyncStorage.getItem('@userToken');
+                     libraryUrl = await AsyncStorage.getItem('@pathUrl');
+                     userKey = await SecureStore.getItemAsync('userKey');
+                } catch (e) {
+                     // Restoring token failed
+                     logErrorMessage("Error restoring token");
+                     logErrorMessage(e);
+                     dispatch({ type: 'SIGN_OUT' });
                 }
 
+                if (!userKey) {
+                     dispatch({ type: 'SIGN_OUT' });
+                }
+
+                 if (!libraryUrl) {
+                      libraryUrl = LIBRARY.url;
+                 }
+
+                 if (userToken) {
+                      logDebugMessage('Session found');
+                      if (libraryUrl) {
+                           logDebugMessage('Trying to connect to: ', libraryUrl);
+                           await checkCachedUrl(libraryUrl).then(async (result) => {
+                                if (result) {
+                                     LIBRARY.url = libraryUrl;
+                                     await saveLibraryUrl(libraryUrl);
+                                     logDebugMessage('Connection successful. Continuing...');
+
+                                     // Check if SQLite migration is needed
+                                     try {
+                                          isMigrationNeeded = await isSQLiteMigrationNeeded(userToken);
+                                          if (isMigrationNeeded) {
+                                               logDebugMessage('SQLite migration detected for existing user');
+                                          }
+                                     } catch (error) {
+                                          logErrorMessage('Error checking SQLite migration status');
+                                          logErrorMessage(error);
+                                     }
+
+                                     await trackAppLaunches(libraryUrl);
+                                } else {
+                                    logWarnMessage('Connection failed, logging out.');
+                                    userToken = null;
+                                    dispatch({ type: 'SIGN_OUT' });
+                               }
+                          });
+                     } else {
+                          logWarnMessage('No cached library url, logging out.');
+                          dispatch({ type: 'SIGN_OUT' });
+                     }
+                } else {
+                     logDebugMessage('No session found. Starting new.');
+                }
+
+                let startupCache = null;
+                let refreshData = true;
                 if (userToken) {
-                     logDebugMessage('Session found');
-                     if (libraryUrl) {
-                          logDebugMessage('Trying to connect to: ', libraryUrl);
-                          await checkCachedUrl(libraryUrl).then(async (result) => {
-                               if (result) {
-                                    LIBRARY.url = libraryUrl;
-                                    await saveLibraryUrl(libraryUrl);
-                                    logDebugMessage('Connection successful. Continuing...');
-                                    await trackAppLaunches(libraryUrl);
-                               } else {
-                                   logWarnMessage('Connection failed, logging out.');
-                                   userToken = null;
-                                   dispatch({ type: 'SIGN_OUT' });
-                              }
-                         });
-                    } else {
-                         logWarnMessage('No cached library url, logging out.');
-                         dispatch({ type: 'SIGN_OUT' });
-                    }
-               } else {
-                    logDebugMessage('No session found. Starting new.');
-               }
+                     try {
+                          startupCache = await evaluateStartupCache();
+                          refreshData = !(startupCache?.canBypassLoading ?? false);
+                          logDebugMessage({
+                               event: 'startupCache:decision',
+                               canBypassLoading: startupCache?.canBypassLoading ?? false,
+                               refreshData,
+                          });
+                     } catch (error) {
+                          logErrorMessage('Failed startup cache evaluation, using Loading screen fallback');
+                          logErrorMessage(error);
+                          refreshData = true;
+                     }
+                }
 
-               let startupCache = null;
-               let refreshData = true;
-               if (userToken) {
-                    try {
-                         startupCache = await evaluateStartupCache();
-                         refreshData = !(startupCache?.canBypassLoading ?? false);
-                         logDebugMessage({
-                              event: 'startupCache:decision',
-                              canBypassLoading: startupCache?.canBypassLoading ?? false,
-                              refreshData,
-                         });
-                    } catch (error) {
-                         logErrorMessage('Failed startup cache evaluation, using Loading screen fallback');
-                         logErrorMessage(error);
-                         refreshData = true;
-                    }
-               }
-
-               dispatch({
-                    type: 'RESTORE_TOKEN',
-                    token: userToken,
-                    refreshData,
-                    startupCache });
-          };
-          bootstrapAsync();
-     }, []);
+                dispatch({
+                     type: 'RESTORE_TOKEN',
+                     token: userToken,
+                     refreshData,
+                     startupCache,
+                     isSQLiteMigrationNeeded: isMigrationNeeded });
+           };
+           bootstrapAsync();
+      }, []);
 
      React.useEffect(() => {
           const subscription = AppState.addEventListener('change', async (nextAppState) => {
@@ -412,17 +434,18 @@ function AppContent({state}) {
                                    headerShown: false,
                                    animationTypeForReplace: state.isSignOut ? 'pop' : 'push' }}
                          />
-                    ) : (
-                         // User is signed in
-                         <Stack.Screen
-                              name="LaunchStack"
-                              component={LaunchStackNavigator}
-                              initialParams={{
-                                   refreshUserData: state.refreshUserData ?? false,
-                                   startupCache: state.startupCache ?? null,
-                              }}
-                         />
-                    )}
+                     ) : (
+                          // User is signed in
+                          <Stack.Screen
+                               name="LaunchStack"
+                               component={LaunchStackNavigator}
+                               initialParams={{
+                                    refreshUserData: state.refreshUserData ?? false,
+                                    startupCache: state.startupCache ?? null,
+                                    isSQLiteMigrationNeeded: state.isSQLiteMigrationNeeded ?? false,
+                               }}
+                          />
+                     )}
                     <Stack.Screen
                          name="LibraryCardScanner"
                          component={LibraryCardScanner}

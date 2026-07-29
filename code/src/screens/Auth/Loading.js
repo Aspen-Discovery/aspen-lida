@@ -1,8 +1,9 @@
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
+import * as Sentry from '@sentry/react-native';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { buildThemeForLibrary, useTheme } from '../../themes/theme';
 import {
@@ -70,7 +71,7 @@ import {
      useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
-import {isPlainObject, orderByFields, stripHTML} from '../../helpers/helpers';
+import {isPlainObject, orderByFields, stripHTML, RemoveData} from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
@@ -109,6 +110,8 @@ function resolveSelfCheckEnabled(result = {}) {
 export const LoadingScreen = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
+     const route = useRoute();
+     const isSQLiteMigrationNeeded = route.params?.isSQLiteMigrationNeeded ?? false;
      const [isFocused, setIsFocused] = React.useState(0);
      const [progress, setProgress] = React.useState(0);
      const [isReloading, setIsReloading] = React.useState(false);
@@ -176,6 +179,136 @@ export const LoadingScreen = () => {
      const insets = useSafeAreaInsets();
 
      const numSteps = 14;
+
+     /**
+      * Handle silent SQLite migration for users upgrading from Context storage.
+      * Attempts to fetch and populate SQLite tables using stored credentials.
+      * If migration fails, logs user out and asks them to re-authenticate.
+      */
+     React.useEffect(() => {
+          if (!isSQLiteMigrationNeeded || !hasResolvedLibraryContext) {
+               return;
+          }
+
+          let migrationCancelled = false;
+
+          const performSilentMigration = async () => {
+               logDebugMessage('SQLite migration: Starting silent migration for existing user');
+               try {
+                    // Attempt to fetch and populate all critical user data
+                    const profileResp = await refreshProfile(LIBRARY.url);
+                    const validProfile = profileResp?.ok && profileResp?.data?.result?.success !== false && profileResp?.data?.result?.success !== 'false';
+
+                    if (!validProfile) {
+                         logErrorMessage('SQLite migration: Failed to refresh user profile');
+                         throw new Error('Failed to refresh user profile: ' + (profileResp?.problem || 'Unknown error'));
+                    }
+
+                    if (migrationCancelled) return;
+
+                    const profile = profileResp.data.result.profile ?? {};
+                    await saveUserProfile(profile);
+                    logDebugMessage('SQLite migration: Successfully saved user profile');
+
+                    // Attempt to fetch and save library branch data
+                    const locationResp = await getLocationInfo(LIBRARY.url);
+                    if (!locationResp?.ok) {
+                         throw new Error('Failed to load location info');
+                    }
+
+                    if (migrationCancelled) return;
+
+                    const location = locationResp.data.result?.location ?? [];
+                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
+                    const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
+                    const selfCheckResp = await getSelfCheckSettings(LIBRARY.url, selfCheckLocationId);
+
+                    let selfCheckEnabled;
+                    let selfCheckSettings;
+                    if (selfCheckResp?.ok) {
+                         const result = selfCheckResp.data?.result ?? {};
+                         selfCheckEnabled = resolveSelfCheckEnabled(result);
+                         selfCheckSettings = isPlainObject(result?.settings) ? result.settings : {};
+                    }
+
+                    await saveAllLibraryBranchData({
+                         location,
+                         ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
+                         ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
+                    });
+                    logDebugMessage('SQLite migration: Successfully saved library branch data');
+
+                    if (migrationCancelled) return;
+
+                    // Attempt to fetch and save library system data
+                    const catalogResp = await getCatalogStatus(LIBRARY.url);
+                    let catalogStatus = 0;
+                    let catalogStatusMessage = '';
+                    if (catalogResp?.ok) {
+                         catalogStatus = catalogResp.data.result?.catalogStatus ?? 0;
+                         if (catalogResp.data.result?.api?.message) {
+                              catalogStatusMessage = stripHTML(catalogResp.data.result.api.message);
+                         }
+                    }
+
+                    const libraryResp = await getLibraryInfo(LIBRARY.url, LIBRARY.id);
+                    if (!libraryResp?.ok) {
+                         throw new Error('Failed to load library info');
+                    }
+
+                    if (migrationCancelled) return;
+
+                    const libraryInfo = libraryResp.data.result?.library ?? {};
+                    const linksResp = await getLibraryLinks(LIBRARY.url);
+                    const menu = linksResp?.ok ? (linksResp.data.result?.items ?? []) : [];
+
+                    await saveCatalogStatus(catalogStatus, catalogStatusMessage);
+                    await saveLibrary(libraryInfo);
+                    await saveMenu(menu);
+                    logDebugMessage('SQLite migration: Successfully saved library system data');
+
+                    logDebugMessage('SQLite migration: Completed successfully');
+               } catch (error) {
+                    if (migrationCancelled) return;
+
+                    logErrorMessage('SQLite migration: Failed to populate SQLite tables');
+                    logErrorMessage(error);
+
+                    // Log to Sentry for support debugging
+                    if (typeof Sentry !== 'undefined' && Sentry.captureException) {
+                         Sentry.captureException(error, {
+                              tags: { type: 'sqlite_migration_failure' }
+                         });
+                    }
+
+                    // Force logout with migration error flag
+                    logWarnMessage('SQLite migration: Forcing logout due to migration failure');
+                    try {
+                         await RemoveData(queryClient, true);
+                    } catch (logoutError) {
+                         logErrorMessage('SQLite migration: Error during logout cleanup');
+                         logErrorMessage(logoutError);
+                    }
+
+                    // Navigate back to login with migration error
+                    navigation.reset({
+                         index: 0,
+                         routes: [
+                              {
+                                   name: 'Login',
+                                   params: { migrationError: true }
+                              }
+                         ]
+                    });
+               }
+          };
+
+          performSilentMigration();
+
+          return () => {
+               migrationCancelled = true;
+          };
+     }, [isSQLiteMigrationNeeded, hasResolvedLibraryContext, queryClient, navigation]);
 
      const fetchAndPersistUserData = React.useCallback(async ({ runInBackground = false } = {}) => {
           const invocationId = ++userDataFetchInvocationRef.current;
@@ -265,7 +398,7 @@ export const LoadingScreen = () => {
            fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
       }, [fetchAndPersistUserData]);
 
-     const fetchAndPersistLibraryBranchData = React.useCallback(async ({ runInBackground = false } = {}) => {
+      const fetchAndPersistLibraryBranchData = React.useCallback(async ({ runInBackground = false } = {}) => {
           const invocationId = ++libraryBranchFetchInvocationRef.current;
           logDebugMessage({
                event: 'fetchAndPersistLibraryBranchData:start',

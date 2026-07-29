@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
@@ -33,6 +33,7 @@ export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [isThemeInitialized, setIsThemeInitialized] = React.useState(false);
      const insets = useSafeAreaInsets();
+     const route = useRoute();
      const [permissionRequested, setPermissionRequested] = React.useState(false);
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [permissionStatus, setPermissionStatus] = React.useState(null);
@@ -68,9 +69,34 @@ export const LoginScreen = () => {
 
      const logoImage = Constants.expoConfig.extra.loginLogo;
 
-     const handleThemeInitialized = React.useCallback(() => {
-          setIsThemeInitialized(true);
-     }, []);
+      const handleThemeInitialized = React.useCallback(() => {
+           setIsThemeInitialized(true);
+      }, []);
+
+      // Show migration error message if session expired due to SQLite migration failure
+      React.useEffect(() => {
+           if (route.params?.migrationError) {
+                toast.show({
+                     placement: 'top',
+                     duration: 3000,
+                     render: ({ id }) => (
+                          <Box
+                               nativeID={`toast-${id}`}
+                               m="$2"
+                               p="$3"
+                               bg="$error600"
+                               rounded="$md"
+                               flexDirection="row"
+                               alignItems="center">
+                               <Text color="$white" fontWeight="$bold">
+                                    Your session expired, please log in again.
+                               </Text>
+                          </Box>
+                     ),
+                });
+                logDebugMessage('Migration error detected, showing toast to user');
+           }
+      }, [route.params?.migrationError, toast]);
 
       useFocusEffect(
            React.useCallback(() => {
