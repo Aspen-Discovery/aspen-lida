@@ -36,6 +36,7 @@ import {
      useLibrary,
      useUpdateCatalogStatus,
 } from '../../hooks/useLibrarySystemData';
+import { useUpdateAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups } from '../../hooks/useUserData';
@@ -54,7 +55,6 @@ import { stripHTML } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
-import { saveAvailableLocations } from '../../util/db';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 Notifications.setNotificationHandler({
@@ -191,6 +191,7 @@ export const DrawerContent = (props) => {
       const updateCards = useUpdateCards();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
+      const updateAvailableLocations = useUpdateAvailableLocations();
       const library = useLibrary();
       const { status: catalogStatus } = useCatalogStatus();
        const updateCatalogStatus = useUpdateCatalogStatus();
@@ -482,16 +483,17 @@ export const DrawerContent = (props) => {
      useQueryWithCallbacks({
           queryKey: ['locations', library.baseUrl, language, userLatitude, userLongitude],
           queryFn: () => getLocations(library.baseUrl, language, userLatitude, userLongitude),
+          runOnMount: true,
           refetchInterval: 60 * 1000 * 30,
           refetchIntervalInBackground: true,
           refetchOnWindowFocus: 'always',
           placeholderData: [],
-          enabled: !!userLatitude && !!userLongitude && userLatitude !== '0' && userLongitude !== '0' }, {
+          enabled: !!library.baseUrl }, {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
                      logDebugMessage(data);
-                     saveAvailableLocations(data.data.result.locations);
+                     updateAvailableLocations(data?.data?.result?.locations ?? []);
                } else {
                     logDebugMessage("Error fetching locations");
                     logDebugMessage(data);

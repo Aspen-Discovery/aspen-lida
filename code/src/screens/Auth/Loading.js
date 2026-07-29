@@ -20,14 +20,16 @@ import {
      getSelfCheckSettings,
      getSystemMessages
 } from '../../util/api/system';
-import {getBrowseCategoryListForUser, getHomeScreenFeed} from '../../util/api/search';
+import {getHomeScreenFeed} from '../../util/api/search';
 import {
      fetchNotificationHistory,
      getAppPreferencesForUser,
+     getPickupLocations,
+     getPickupSublocations,
      getLinkedAccounts,
      refreshProfile
 } from '../../util/api/user';
-import {formatLinkedAccounts, formatNotificationHistory} from '../../util/api/userHelper';
+import {formatLinkedAccounts, formatNotificationHistory, formatPickupLocations} from '../../util/api/userHelper';
 
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
@@ -38,6 +40,7 @@ import {
      loadAllLibraryBranchData,
      saveUserProfile,
      saveAccounts,
+     saveLocations,
      saveCards,
      saveAppPreferences,
      saveNotificationHistory,
@@ -57,8 +60,7 @@ import {
      useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
 import {
      useUpdateBrowseCategories,
-     useUpdateMaxCategories,
-     useUpdateBrowseCategoryList } from '../../hooks/useBrowseCategoryData';
+     useUpdateMaxCategories } from '../../hooks/useBrowseCategoryData';
 import {
      useActiveLanguage,
      useAvailableLanguages,
@@ -82,6 +84,27 @@ Notifications.setNotificationHandler({
           shouldShowAlert: true,
           shouldPlaySound: true,
           shouldSetBadge: false }) });
+
+function resolveSelfCheckEnabled(result = {}) {
+     const candidates = [
+          result?.settings?.isEnabled,
+          result?.settings?.enableSelfCheck,
+          result?.isEnabled,
+          result?.enableSelfCheck,
+     ];
+
+     for (const candidate of candidates) {
+          if (candidate === true || candidate === 1 || candidate === '1') return true;
+          if (candidate === false || candidate === 0 || candidate === '0') return false;
+          if (typeof candidate === 'string') {
+               const lowered = candidate.toLowerCase();
+               if (lowered === 'true') return true;
+               if (lowered === 'false') return false;
+          }
+     }
+
+     return undefined;
+}
 
 export const LoadingScreen = () => {
      const queryClient = useQueryClient();
@@ -178,36 +201,48 @@ export const LoadingScreen = () => {
                await updateLanguage(profile.interfaceLanguage ?? 'en');
                await updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
 
-               const linkedResp = await getLinkedAccounts(LIBRARY.url, 'en');
-               if (linkedResp?.ok) {
-                    const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
-                    await saveAccounts(linkedAccounts.accounts ?? []);
-                    await saveCards(linkedAccounts.cards ?? []);
+               const pickupResp = typeof getPickupLocations === 'function'
+                    ? await getPickupLocations(LIBRARY.url)
+                    : null;
+               if (pickupResp?.ok) {
+                    const pickupLocations = formatPickupLocations(pickupResp.data?.result ?? {});
+                    await saveLocations(pickupLocations?.locations ?? []);
                }
 
-               const appPrefsResp = await getAppPreferencesForUser(LIBRARY.url, 'en');
-               if (appPrefsResp?.ok) {
-                    await saveAppPreferences(appPrefsResp.data?.result ?? {});
+               if (typeof getPickupSublocations === 'function') {
+                    await getPickupSublocations(LIBRARY.url);
                }
 
-               const notifResp = await fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en');
-               if (notifResp?.ok) {
-                    const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
-                    await saveNotificationHistory(notificationHistory);
-                    await saveInbox(notificationHistory?.inbox ?? []);
-               }
+                const linkedResp = await getLinkedAccounts(LIBRARY.url, 'en');
+                if (linkedResp?.ok) {
+                     const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
+                     await saveAccounts(linkedAccounts.accounts ?? []);
+                     await saveCards(linkedAccounts.cards ?? []);
+                }
 
-               if (!runInBackground) {
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    setIsInitialUserDataReady(true);
-               }
+                const appPrefsResp = await getAppPreferencesForUser(LIBRARY.url, 'en');
+                if (appPrefsResp?.ok) {
+                     await saveAppPreferences(appPrefsResp.data?.result ?? {});
+                }
 
-               logDebugMessage({
-                    event: 'fetchAndPersistUserData:success',
-                    invocationId,
-                    runInBackground });
+                const notifResp = await fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en');
+                if (notifResp?.ok) {
+                     const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
+                     await saveNotificationHistory(notificationHistory);
+                     await saveInbox(notificationHistory?.inbox ?? []);
+                }
 
-               return true;
+                if (!runInBackground) {
+                     setProgress(prevProgress => prevProgress + (100 / numSteps));
+                     setIsInitialUserDataReady(true);
+                }
+
+                logDebugMessage({
+                     event: 'fetchAndPersistUserData:success',
+                     invocationId,
+                     runInBackground });
+
+                return true;
           } catch (error) {
                if (runInBackground) {
                     logWarnMessage('Background user-data refresh failed. Continuing with cached data.');
@@ -254,20 +289,48 @@ export const LoadingScreen = () => {
                const location = locationResp.data.result?.location ?? [];
 
                // Fetch self-check settings
-               const selfCheckResp = await getSelfCheckSettings(LIBRARY.url);
-               let selfCheckEnabled = false;
-               let selfCheckSettings = {};
+               const configuredLocationId = await SecureStore.getItemAsync('locationId');
+               const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
+               logDebugMessage({
+                    event: 'self_check_settings_request',
+                    configuredLocationId,
+                    locationDataLocationId: location?.locationId ?? null,
+                    selfCheckLocationId,
+               });
+               const selfCheckResp = await getSelfCheckSettings(LIBRARY.url, selfCheckLocationId);
+               let selfCheckEnabled;
+               let selfCheckSettings;
 
-               if (selfCheckResp?.ok && selfCheckResp.data.result?.success) {
-                    selfCheckEnabled = selfCheckResp.data.result.settings?.isEnabled ?? false;
-                    selfCheckSettings = selfCheckResp.data.result.settings ?? {};
+               if (selfCheckResp?.ok) {
+                    const result = selfCheckResp.data?.result ?? {};
+                    const rawEnabled = result?.settings?.isEnabled;
+                    const normalizedEnabled = resolveSelfCheckEnabled(result);
+                    const success = result?.success === true || result?.success === 'true';
+                    logDebugMessage({
+                         event: 'self_check_settings_response',
+                         locationId: selfCheckLocationId,
+                         success,
+                         rawEnabled,
+                         normalizedEnabled,
+                    });
+
+                    if (typeof normalizedEnabled === 'boolean') {
+                         selfCheckEnabled = normalizedEnabled;
+                         selfCheckSettings = isPlainObject(result?.settings) ? result.settings : {};
+                    } else if (success) {
+                         logWarnMessage({
+                              event: 'self_check_enabled_unrecognized',
+                              locationId: selfCheckLocationId,
+                              settings: result?.settings ?? null,
+                         });
+                    }
                }
 
                 // Save all library branch data in one transaction
                 await saveAllLibraryBranchData({
                      location,
-                     selfCheckEnabled,
-                     selfCheckSettings
+                     ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
+                     ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
                 });
 
                 if (!runInBackground) {
@@ -1111,6 +1174,8 @@ export const LoadingScreen = () => {
             isSQLiteDataLoaded,
             isInitialUserDataReady,
             hasUsableUserCache,
+            isInitialLibrarySystemDataReady,
+            hasUsableLibrarySystemCache,
             isInitialLibraryBranchDataReady,
             hasUsableLibraryBranchCache,
             isInitialLanguageDataReady,

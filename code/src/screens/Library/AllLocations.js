@@ -13,7 +13,7 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useAvailableLocations, useUpdateAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
@@ -26,6 +26,7 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const AllLocations = () => {
      const library = useLibrary();
      const locations = useAvailableLocations();
+     const updateAvailableLocations = useUpdateAvailableLocations();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
@@ -89,13 +90,13 @@ export const AllLocations = () => {
       React.useEffect(() => {
            const syncLocations = async () => {
                 if (queryData?.ok && queryData?.data?.result?.locations) {
-                     await saveLocations(queryData.data.result.locations);
+                     await updateAvailableLocations(queryData.data.result.locations ?? []);
                 } else if (queryData && !queryData.ok) {
                      getErrorMessage(queryData.code, queryData.problem);
                 }
            };
            syncLocations();
-      }, [queryData]);
+      }, [queryData, updateAvailableLocations]);
 
      // Derive sorted locations automatically from context state
      const sortedLocations = React.useMemo(() => {

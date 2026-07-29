@@ -548,9 +548,10 @@ export async function getPickupLocations(url = null, groupedWorkId = null, recor
 /**
  * Fetch valid pickup sublocations/areas for the patron based on the selected pickup location
  * @param url
+ * @param {{ persist?: boolean }} options - When false, fetches sublocations without writing them to SQLite.
  * @returns {Promise<*[]>}
  */
-export async function getPickupSublocations(url = null) {
+export async function getPickupSublocations(url = null, { persist = true } = {}) {
      const client = userClient(url, GLOBALS.timeoutAverage);
      const response = await client.post('/UserAPI?method=getValidSublocations', {});
 
@@ -561,7 +562,9 @@ export async function getPickupSublocations(url = null) {
           sublocations = typeof data === 'object' && data !== null ? data : [];
      }
 
-     await saveSublocations(sublocations);
+     if (persist) {
+          await saveSublocations(sublocations);
+     }
      return sublocations;
 }
 

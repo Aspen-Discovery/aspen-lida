@@ -37,7 +37,7 @@ import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
-import { saveAllLibraryBranchData } from '../../util/db';
+import { useUpdateLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUpdateUserProfile } from '../../hooks/useUserData';
 import { useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -54,6 +54,7 @@ export const ResetExpiredPin = (props) => {
      const [resetMessage, setResetMessage] = React.useState('');
       const { signIn } = React.useContext(AuthContext);
      const updateLibrary = useUpdateLibrary();
+     const updateLibraryLocation = useUpdateLibraryLocation();
      const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      const updateUserProfile = useUpdateUserProfile();
      const { theme, colorMode, textColor } = useTheme();
@@ -153,7 +154,7 @@ export const ResetExpiredPin = (props) => {
             const library = await getLibrarySystem({ patronsLibrary });
             await updateLibrary(library);
             const location = await getLibraryBranch({ patronsLibrary });
-            await saveAllLibraryBranchData({ location });
+            await updateLibraryLocation(location);
            const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
            await updateUserProfile(user);
            const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
