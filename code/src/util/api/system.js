@@ -211,15 +211,18 @@ export async function getLocationInfo(url = null, locationId = null) {
 /**
  * Return self check settings for the library
  * @param url
+ * @param locationIdOverride
  * @returns {Promise<*|{ok: boolean, status, problem: string, data, config: {}}|undefined>}
  */
-export async function getSelfCheckSettings(url = null) {
-     let locationId;
+export async function getSelfCheckSettings(url = null, locationIdOverride = null) {
+     let locationId = locationIdOverride;
 
-     try {
-          locationId = await AsyncStorage.getItem('@locationId');
-     } catch (e) {
-          logDebugMessage(e);
+     if (locationId === null || typeof locationId === 'undefined' || locationId === '') {
+          try {
+               locationId = await AsyncStorage.getItem('@locationId');
+          } catch (e) {
+               logDebugMessage(e);
+          }
      }
 
      const client = createApiClient({ url, timeout: GLOBALS.timeoutFast });
@@ -227,6 +230,35 @@ export async function getSelfCheckSettings(url = null) {
      return await client.get('/SystemAPI?method=getSelfCheckSettings', {
           locationId,
      });
+}
+
+export function normalizeBooleanLike(value) {
+     if (value === true || value === 1 || value === '1') return true;
+     if (value === false || value === 0 || value === '0') return false;
+     if (typeof value === 'string') {
+          const lowered = value.toLowerCase();
+          if (lowered === 'true') return true;
+          if (lowered === 'false') return false;
+     }
+     return undefined;
+}
+
+export function resolveSelfCheckEnabled(result = {}) {
+     const candidates = [
+          result?.settings?.isEnabled,
+          result?.settings?.enableSelfCheck,
+          result?.isEnabled,
+          result?.enableSelfCheck,
+     ];
+
+     for (const candidate of candidates) {
+          const normalized = normalizeBooleanLike(candidate);
+          if (typeof normalized === 'boolean') {
+               return normalized;
+          }
+     }
+
+     return undefined;
 }
 
 /**

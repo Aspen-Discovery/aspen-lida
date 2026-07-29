@@ -18,9 +18,11 @@ import { isPlainObject } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { prehydrateLibrarySystemSnapshotCache } from '../../hooks/useLibrarySystemData';
-import { prehydrateLibraryBranchSnapshotCache } from '../../hooks/useLibraryBranchData';
+import { prehydrateLibraryBranchSnapshotCache, invalidateSelfCheckSnapshot } from '../../hooks/useLibraryBranchData';
 import { prehydrateLanguageSnapshotCache } from '../../hooks/useLanguageData';
 import { prehydrateUserDataSnapshotCache } from '../../hooks/useUserData';
+import { saveSelfCheckEnabled, saveSelfCheckSettings } from '../../util/db';
+import { getSelfCheckSettings } from '../../util/api/system';
 
 const splashImage = Constants.expoConfig.extra.loginLogo;
 const splashBackgroundColor = Constants.expoConfig.splash.backgroundColor;
@@ -36,6 +38,27 @@ function isCacheStale(updatedAt, thresholdMs) {
           return true;
      }
      return Date.now() - Number(updatedAt) > thresholdMs;
+}
+
+function resolveSelfCheckEnabled(result = {}) {
+     const candidates = [
+          result?.settings?.isEnabled,
+          result?.settings?.enableSelfCheck,
+          result?.isEnabled,
+          result?.enableSelfCheck,
+     ];
+
+     for (const candidate of candidates) {
+          if (candidate === true || candidate === 1 || candidate === '1') return true;
+          if (candidate === false || candidate === 0 || candidate === '0') return false;
+          if (typeof candidate === 'string') {
+               const lowered = candidate.toLowerCase();
+               if (lowered === 'true') return true;
+               if (lowered === 'false') return false;
+          }
+     }
+
+     return undefined;
 }
 
 export async function evaluateStartupCache() {
@@ -70,6 +93,96 @@ export async function evaluateStartupCache() {
           hasUsableLibraryBranchCache &&
           hasUsableLibrarySystemCache &&
           hasUsableLanguageCache;
+
+      try {
+           const persistedLibraryUrl = await loadLibraryUrl();
+           const libraryUrl = LIBRARY.url || persistedLibraryUrl;
+
+           if (libraryUrl && cachedLibraryBranchState?.location?.locationId) {
+                const configuredLocationId = await SecureStore.getItemAsync('locationId');
+                const selfCheckLocationId = configuredLocationId ?? cachedLibraryBranchState.location.locationId;
+
+                logDebugMessage({
+                     event: 'splash_self_check_settings_request',
+                     libraryUrl,
+                     configuredLocationId,
+                     locationDataLocationId: cachedLibraryBranchState.location.locationId,
+                     selfCheckLocationId,
+                });
+
+                if (typeof getSelfCheckSettings === 'function') {
+                     const selfCheckResp = await getSelfCheckSettings(libraryUrl, selfCheckLocationId);
+                     if (selfCheckResp?.ok) {
+                          const result = selfCheckResp.data?.result ?? {};
+                          const rawEnabled = result?.settings?.isEnabled;
+                          const normalizedEnabled = resolveSelfCheckEnabled(result);
+                          const success = result?.success === true || result?.success === 'true';
+
+                          logDebugMessage({
+                               event: 'splash_self_check_settings_response',
+                               locationId: selfCheckLocationId,
+                               success,
+                               rawEnabled,
+                               normalizedEnabled,
+                          });
+
+                          if (typeof normalizedEnabled === 'boolean') {
+                               await saveSelfCheckEnabled(normalizedEnabled);
+                               logDebugMessage({
+                                    event: 'splash_self_check_enabled_saved',
+                                    value: normalizedEnabled,
+                               });
+                          }
+
+                          if (isPlainObject(result?.settings)) {
+                               await saveSelfCheckSettings(result.settings);
+                               logDebugMessage({
+                                    event: 'splash_self_check_settings_saved',
+                                    settingsKeys: Object.keys(result.settings),
+                               });
+                          }
+
+                          if (typeof normalizedEnabled === 'boolean' || isPlainObject(result?.settings)) {
+                               invalidateSelfCheckSnapshot(normalizedEnabled, result?.settings);
+                               logDebugMessage({
+                                    event: 'splash_self_check_snapshot_invalidated',
+                               });
+                          }
+                     }
+                }
+           } else {
+                logDebugMessage({
+                     event: 'splash_self_check_settings_skipped',
+                     reason: 'missing libraryUrl or locationId',
+                     hasLibraryUrl: !!libraryUrl,
+                     hasLocationId: !!cachedLibraryBranchState?.location?.locationId,
+                });
+           }
+      } catch (error) {
+           logErrorMessage('Splash: failed to fetch fresh self-check settings');
+           logErrorMessage(error);
+      }
+
+      // Validate and normalize self-check settings from cache as fallback
+      if (cachedLibraryBranchState && hasUsableLibraryBranchCache) {
+           try {
+                const normalizedEnabled = resolveSelfCheckEnabled(cachedLibraryBranchState);
+                if (typeof normalizedEnabled === 'boolean') {
+                     await saveSelfCheckEnabled(normalizedEnabled);
+                }
+                if (isPlainObject(cachedLibraryBranchState.selfCheckSettings)) {
+                     await saveSelfCheckSettings(cachedLibraryBranchState.selfCheckSettings);
+                }
+                logDebugMessage({
+                     event: 'splash_self_check_cache_validated',
+                     normalizedEnabled,
+                     hasSelfCheckSettings: !!cachedLibraryBranchState.selfCheckSettings,
+                });
+           } catch (error) {
+                logErrorMessage('Splash: failed to validate cached self-check settings');
+                logErrorMessage(error);
+           }
+      }
 
      // Pre-populate module-level snapshot caches so hook consumers receive data
      // on their very first render instead of waiting for an async SQLite round-trip.
