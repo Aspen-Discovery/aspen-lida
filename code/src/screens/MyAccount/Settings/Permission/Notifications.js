@@ -3,7 +3,7 @@ import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
 
 import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
@@ -12,7 +12,7 @@ import { getTermFromDictionary } from '../../../../translations/TranslationServi
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useNotificationPermissions, useNotificationPreferences } from '../../../../hooks/useNotifications';
-import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
+import {logDebugMessage, logErrorMessage} from '../../../../util/logging';
 import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 import { useTheme } from '../../../../themes/theme';
 import { useLibrary } from '../../../../hooks/useLibrarySystemData';
@@ -27,7 +27,7 @@ export const NotificationPermissionStatus = () => {
     const addDebugMessage = useAddDebugMessage();
     const navigation = useNavigation();
 
-    const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
+    const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, addDebugMessage);
 
     // Check permissions on mount
     React.useEffect(() => {
@@ -43,8 +43,8 @@ export const NotificationPermissionStatus = () => {
             checkAndUpdatePermissions('Notifications focus listener');
         });
 
-        return unsubscribe;
-    }, [navigation]);
+        return () => unsubscribe?.();
+    }, [navigation, checkAndUpdatePermissions]);
 
     // Check permissions when tokens change
     React.useEffect(() => {
@@ -78,8 +78,10 @@ export const NotificationPermissionDescription = () => {
     const library = useLibrary();
     const { data: notifSettings } = useNotificationSettings();
     const notificationSettings = notifSettings;
-    const expoToken2 = userState?.expoToken ?? false;
-    const updateExpoToken2 = useUpdateExpoToken();
+    const { data: userState } = useUserState();
+    const expoToken = userState?.expoToken ?? false;
+    const updateExpoToken = useUpdateExpoToken();
+    const addDebugMessage = useAddDebugMessage();
     const toast = useToast();
 
     const {
@@ -87,7 +89,7 @@ export const NotificationPermissionDescription = () => {
         isLoading,
         addNotificationPermissions,
         revokeNotificationPermissions
-    } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
+    } = useNotificationPermissions(library, updateExpoToken, addDebugMessage);
 
     const {
         preferences,
@@ -173,8 +175,8 @@ export const NotificationPermissionDescription = () => {
             checkAndUpdatePermissions('Notifications focus effect');
         });
 
-        return unsubscribe;
-    }, [navigation]);
+        return () => unsubscribe?.();
+    }, [navigation, checkAndUpdatePermissions]);
 
     const checkAndUpdatePermissions = async () => {
         const { status } = await Notifications.getPermissionsAsync();
@@ -223,13 +225,15 @@ export const NotificationPermissionDescription = () => {
 
                     <NotificationPermissionUsage />
 
-                    <Box mb="$5">
-                        <NotificationPreferencesSection
-                            preferences={preferences}
-                            updatePreference={updatePreference}
-                            notificationSettings={settings}
-                        />
-                    </Box>
+                    {permissionStatus && (
+                        <Box mb="$5">
+                            <NotificationPreferencesSection
+                                preferences={preferences}
+                                updatePreference={updatePreference}
+                                notificationSettings={settings}
+                            />
+                        </Box>
+                    )}
                 </Box>
                 <NotificationPermissionUpdate
                     permissionStatus={permissionStatus}
@@ -244,6 +248,7 @@ export const NotificationPermissionDescription = () => {
 const NotificationPreferencesSection = ({ preferences, updatePreference, notificationSettings }) => {
     const { textColor } = useTheme();
 
+    console.log(notificationSettings);
     return (
         <>
             {Object.entries(notificationSettings).map(([key, setting]) => (
