@@ -56,6 +56,8 @@ const Link = ({link}) => {
 
      const navigation = useNavigation();
 
+     const iconColor = colorMode === 'light' ? '#4b5563' : '#d1d5db';
+
      const handleOpenLink = () => {
           // Open external link in web browser based on link.linkUrl
           try {
@@ -165,7 +167,7 @@ const Link = ({link}) => {
                          <MaterialIcons
                               name={link?.materialIcon?.replace(/_/g, '-') || 'link'}
                               size={52}
-                              color={textColor}
+                              color={iconColor}
                               style={{ marginBottom: 8 }}
                          />
                     )}
