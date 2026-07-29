@@ -286,3 +286,22 @@ export function prehydrateLibraryBranchSnapshotCache(allData) {
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_AVAILABLE_LOCATIONS_KEY), allData.locations ?? []);
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_ALL_BRANCH_DATA_KEY), allData);
 }
+
+/**
+ * Updates snapshot cache with fresh self-check data and notifies subscribers.
+ * Call this after fetching fresh self-check settings from API (e.g., in Splash.js)
+ * to ensure hooks read the fresh values instead of stale pre-hydrated cache.
+ */
+export function invalidateSelfCheckSnapshot(enabled, settings) {
+     if (typeof enabled === 'boolean') {
+          libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_ENABLED_KEY), enabled);
+     }
+     if (typeof settings === 'object' && settings !== null) {
+          libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_SETTINGS_KEY), settings);
+     }
+     // Notify subscribers so hooks re-read from the updated cache
+     notifyLibraryBranchChanged(LIBRARY_SELF_CHECK_ENABLED_KEY);
+     notifyLibraryBranchChanged(LIBRARY_SELF_CHECK_SETTINGS_KEY);
+     notifyLibraryBranchChanged(LIBRARY_ALL_BRANCH_DATA_KEY);
+}
+

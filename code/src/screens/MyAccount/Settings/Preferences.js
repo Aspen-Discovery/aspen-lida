@@ -104,9 +104,6 @@ export const PreferencesScreen = () => {
                               </Text>
                               <UseColorMode showText={true} />
                          </HStack>
-                         <HStack mt="$4" justifyContent="center" alignItems="center">
-                              <ThemeRefreshButton size="sm" />
-                         </HStack>
                     </VStack>
                </VStack>
           </Box>

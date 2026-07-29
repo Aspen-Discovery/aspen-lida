@@ -6,8 +6,10 @@ const ROW_ID = 1;
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function boolToInt(value) {
-     if (typeof value !== 'boolean') return null;
-     return value ? 1 : 0;
+     if (typeof value === 'boolean') return value ? 1 : 0;
+     if (value === 1 || value === '1' || value === 'true') return 1;
+     if (value === 0 || value === '0' || value === 'false') return 0;
+     return null;
 }
 
 function intToBool(value) {
@@ -210,8 +212,12 @@ export async function saveAllLibraryBranchData(state = {}) {
      await db.withTransactionAsync(async () => {
           await saveLocation(state.location ?? {});
           await saveScope(state.scope ?? '');
-          await saveSelfCheckEnabled(state.enableSelfCheck ?? false);
-          await saveSelfCheckSettings(state.selfCheckSettings ?? {});
+          if (Object.prototype.hasOwnProperty.call(state, 'enableSelfCheck')) {
+               await saveSelfCheckEnabled(state.enableSelfCheck);
+          }
+          if (Object.prototype.hasOwnProperty.call(state, 'selfCheckSettings')) {
+               await saveSelfCheckSettings(state.selfCheckSettings ?? {});
+          }
           await saveLocations(state.locations ?? []);
      });
 }

@@ -261,17 +261,23 @@ export async function loadAllBrowseCategoryData() {
           [ROW_ID]
      );
 
-     if (!categoryRow && !listRow) return null;
+      if (!categoryRow && !listRow) return null;
 
-     return {
-          categories: safeParse(categoryRow?.categories_json) ?? [],
-          maxCategories: numberOrNull(categoryRow?.max_categories) ?? 5,
-          categoryList: safeParse(listRow?.list_json) ?? [],
-          categoriesUpdatedAt: categoryRow?.updated_at ?? 0,
-          categoriesExpired: isCacheExpired(categoryRow?.updated_at),
-          listUpdatedAt: listRow?.updated_at ?? 0,
-          listExpired: isCacheExpired(listRow?.updated_at),
-     };
+      // Use the most recent update time between categories and list
+      const categoryUpdatedAt = categoryRow?.updated_at ?? 0;
+      const listUpdatedAt = listRow?.updated_at ?? 0;
+      const mostRecentUpdatedAt = Math.max(categoryUpdatedAt, listUpdatedAt);
+
+      return {
+           categories: safeParse(categoryRow?.categories_json) ?? [],
+           maxCategories: numberOrNull(categoryRow?.max_categories) ?? 5,
+           categoryList: safeParse(listRow?.list_json) ?? [],
+           categoriesUpdatedAt: categoryUpdatedAt,
+           categoriesExpired: isCacheExpired(categoryRow?.updated_at),
+           listUpdatedAt: listUpdatedAt,
+           listExpired: isCacheExpired(listRow?.updated_at),
+           updatedAt: mostRecentUpdatedAt,
+      };
 }
 
 /**
