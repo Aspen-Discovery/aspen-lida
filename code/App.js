@@ -118,14 +118,27 @@ export default function AppContainer() {
           let active = true;
 
           (async () => {
-               try {
-                    logDebugMessage('2 Initializing SQLite');
-                    await initDatabase();
-               } catch (error) {
-                    logErrorMessage('Failed to initialize SQLite');
-                    logErrorMessage(error);
-               } finally {
-                    if (active) setDbReady(true);
+               const MAX_INIT_ATTEMPTS = 3;
+
+               for (let attempt = 1; attempt <= MAX_INIT_ATTEMPTS; attempt += 1) {
+                    try {
+                         logDebugMessage(`2 Initializing SQLite (attempt ${attempt}/${MAX_INIT_ATTEMPTS})`);
+                         await initDatabase();
+                         if (active) {
+                              setDbReady(true);
+                         }
+                         return;
+                    } catch (error) {
+                         logErrorMessage(`Failed to initialize SQLite on attempt ${attempt}`);
+                         logErrorMessage(error);
+                         if (attempt < MAX_INIT_ATTEMPTS) {
+                              await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+                         }
+                    }
+               }
+
+               if (active) {
+                    logErrorMessage('SQLite failed to initialize after retries; keeping splash screen active');
                }
           })();
 

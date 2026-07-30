@@ -4,17 +4,185 @@ import { logDebugMessage, logErrorMessage } from '../logging';
 
 const DB_NAME = 'aspen_lida.db';
 let dbInstance = null;
+let openDbPromise = null;
+let recoverDbPromise = null;
+let dbInitialized = false;
+let dbInitPromise = null;
+
+const RETRYABLE_DB_ERROR_FRAGMENTS = [
+     'NativeDatabase.prepareAsync',
+     'NullPointerException',
+];
+
+const RECOVERY_METHODS = [
+     'execAsync',
+     'runAsync',
+     'getFirstAsync',
+     'getAllAsync',
+     'withTransactionAsync',
+];
+
+function isRecoverableDbError(error) {
+     const message = String(error?.message ?? error ?? '');
+     return RETRYABLE_DB_ERROR_FRAGMENTS.some((fragment) => message.includes(fragment));
+}
+
+async function invokeDbMethod(db, methodName, args, hasRetried = false) {
+     const activeDb = db.__aspenForwardDb ?? db;
+     const original = activeDb.__aspenOriginalMethods?.[methodName];
+     if (typeof original !== 'function') {
+          throw new Error(`Missing SQLite method: ${methodName}`);
+     }
+
+     try {
+          return await original(...args);
+     } catch (error) {
+          if (hasRetried || !isRecoverableDbError(error)) {
+               throw error;
+          }
+
+          logDebugMessage(`SQLite ${methodName} failed; reopening DB and retrying once`);
+          const reopenedDb = await recoverDb();
+
+          // If callers keep a stale db reference, forward future calls to the reopened instance.
+          if (db !== reopenedDb) {
+               db.__aspenForwardDb = reopenedDb;
+          }
+
+          return invokeDbMethod(reopenedDb, methodName, args, true);
+     }
+}
+
+function patchDbWithRecovery(db) {
+     if (!db || db.__aspenRecoveryPatched) {
+          return db;
+     }
+
+     const originalMethods = {};
+     for (const methodName of RECOVERY_METHODS) {
+          if (typeof db[methodName] === 'function') {
+               originalMethods[methodName] = db[methodName].bind(db);
+          }
+     }
+
+     Object.defineProperty(db, '__aspenOriginalMethods', {
+          value: originalMethods,
+          enumerable: false,
+          configurable: false,
+          writable: false,
+     });
+
+     for (const methodName of Object.keys(originalMethods)) {
+          db[methodName] = async (...args) => invokeDbMethod(db, methodName, args, false);
+     }
+
+     Object.defineProperty(db, '__aspenRecoveryPatched', {
+          value: true,
+          enumerable: false,
+          configurable: false,
+          writable: false,
+     });
+
+     return db;
+}
+
+async function openPatchedDb() {
+     const db = await SQLite.openDatabaseAsync(DB_NAME);
+     return patchDbWithRecovery(db);
+}
+
+async function recoverDb() {
+     if (!recoverDbPromise) {
+          recoverDbPromise = (async () => {
+               resetDb();
+               return openOrGetDb();
+          })().finally(() => {
+               recoverDbPromise = null;
+          });
+     }
+
+     return recoverDbPromise;
+}
 
 /**
  * Returns a singleton instance of the SQLite database connection.
  * If the connection has not been established yet, it will be created and stored for future use.
  * @returns {Promise<*>}
  */
-export async function getDb() {
-     if (!dbInstance) {
-          dbInstance = await SQLite.openDatabaseAsync(DB_NAME);
+async function openOrGetDb() {
+     if (dbInstance) {
+          if (!dbInstance.__aspenRecoveryPatched) {
+               dbInstance = patchDbWithRecovery(dbInstance);
+          }
+          return dbInstance;
      }
-     return dbInstance;
+
+     if (!openDbPromise) {
+          openDbPromise = (async () => {
+               const db = await openPatchedDb();
+               dbInstance = db;
+               return db;
+          })().finally(() => {
+               openDbPromise = null;
+          });
+     }
+
+     return openDbPromise;
+}
+
+async function runPendingUpdates() {
+     const db = await openOrGetDb();
+
+     await db.execAsync(`
+          PRAGMA journal_mode = WAL;
+          PRAGMA foreign_keys = ON;
+     `);
+
+     await ensureUpdatesTable(db);
+     const applied = await getAppliedKeys(db);
+
+     const ordered = [...versionUpdates].sort(compareReleaseKeys);
+
+     for (const update of ordered) {
+          if (!update?.key || typeof update.up !== 'function') {
+               continue;
+          }
+          if (applied.has(update.key)) {
+               continue;
+          }
+
+          logDebugMessage(`Applying DB update ${update.key}`);
+          await db.withTransactionAsync(async () => {
+               await update.up(db);
+               await recordUpdate(db, update.key);
+          });
+          logDebugMessage(`Applied DB update ${update.key}`);
+     }
+}
+
+async function ensureDbInitialized() {
+     if (dbInitialized) {
+          return;
+     }
+
+     if (!dbInitPromise) {
+          dbInitPromise = (async () => {
+               await runPendingUpdates();
+               dbInitialized = true;
+          })();
+     }
+
+     try {
+          await dbInitPromise;
+     } catch (error) {
+          dbInitPromise = null;
+          throw error;
+     }
+}
+
+export async function getDb() {
+     await ensureDbInitialized();
+     return openOrGetDb();
 }
 
 /**
@@ -70,33 +238,8 @@ async function recordUpdate(db, key) {
  * @returns {Promise<void>}
  */
 export async function runUpdates() {
-     const db = await getDb();
-
-     await db.execAsync(`
-          PRAGMA journal_mode = WAL;
-          PRAGMA foreign_keys = ON;
-     `);
-
-     await ensureUpdatesTable(db);
-     const applied = await getAppliedKeys(db);
-
-     const ordered = [...versionUpdates].sort(compareReleaseKeys);
-
-     for (const update of ordered) {
-          if (!update?.key || typeof update.up !== 'function') {
-               continue;
-          }
-          if (applied.has(update.key)) {
-               continue;
-          }
-
-          logDebugMessage(`Applying DB update ${update.key}`);
-          await db.withTransactionAsync(async () => {
-               await update.up(db);
-               await recordUpdate(db, update.key);
-          });
-          logDebugMessage(`Applied DB update ${update.key}`);
-     }
+     await runPendingUpdates();
+     dbInitialized = true;
 }
 
 /**
@@ -106,7 +249,7 @@ export async function runUpdates() {
  */
 export async function initDatabase() {
      try {
-          await runUpdates();
+          await ensureDbInitialized();
           logDebugMessage('SQLite init complete');
           return true;
      } catch (error) {
@@ -114,6 +257,11 @@ export async function initDatabase() {
           logErrorMessage(error);
           throw error;
      }
+}
+
+export function resetDb() {
+     dbInstance = null;
+     openDbPromise = null;
 }
 
 /**
@@ -142,8 +290,10 @@ export async function resetDatabase() {
                await db.execAsync(`DROP TABLE IF EXISTS "${tableName}";`);
           }
 
-          await db.execAsync(`PRAGMA foreign_keys = ON;`);
-          await runUpdates();
+           await db.execAsync(`PRAGMA foreign_keys = ON;`);
+           dbInitialized = false;
+           dbInitPromise = null;
+           await runUpdates();
           logDebugMessage('Database reset complete');
           return true;
      } catch (error) {
