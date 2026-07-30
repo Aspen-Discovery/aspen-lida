@@ -34,7 +34,7 @@ const LaunchStackNavigator = () => {
                                                                                                                    initialRouteName="LoadingScreen"
                                                                                                                    screenOptions={{
                                                                                                                         headerShown: false,
-                                                                                                                        headerBackTitleVisible: false,
+                                                                                                                         headerBackButtonDisplayMode: 'minimal',
                                                                                                                         gestureEnabled: false,
                                                                                                                    }}>
                                                                                                                    {refreshUserData ? (
@@ -42,7 +42,7 @@ const LaunchStackNavigator = () => {
                                                                                                                              name="LoadingScreen"
                                                                                                                              component={LoadingScreen}
                                                                                                                              options={{
-                                                                                                                                  animationEnabled: false,
+                                                                                                                                   animation: 'none',
                                                                                                                                   header: () => null,
                                                                                                                              }}
                                                                                                                         />
