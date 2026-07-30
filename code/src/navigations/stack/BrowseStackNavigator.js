@@ -25,7 +25,7 @@ import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const BrowseStackNavigator = () => {
      const language = useActiveLanguage();
