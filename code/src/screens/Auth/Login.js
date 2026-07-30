@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
@@ -8,23 +8,22 @@ import _ from 'lodash';
 import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
+import { saveLibrary, saveLibraryUrl } from '../../util/db';
 
 // custom components and helper files
 import { GLOBALS } from '../../util/globals';
 import { fetchAllLibrariesFromGreenhouse, fetchNearbyLibrariesFromGreenhouse } from '../../util/api/greenhouse';
 import { LIBRARY } from '../../util/globals';
-import { PATRON } from '../../util/globals';
 import { ForgotBarcode } from './ForgotBarcode';
 import { GetLoginForm } from './LoginForm';
 import { ResetPassword } from './ResetPassword';
 import { SelectYourLibrary } from './SelectYourLibrary';
 import { SplashScreen } from './Splash';
-import { createGlueTheme } from '../../themes/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../themes/theme';
 import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust path if your file differs
 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +31,9 @@ import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/log
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
+     const [isThemeInitialized, setIsThemeInitialized] = React.useState(false);
      const insets = useSafeAreaInsets();
+     const route = useRoute();
      const [permissionRequested, setPermissionRequested] = React.useState(false);
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [permissionStatus, setPermissionStatus] = React.useState(null);
@@ -58,8 +59,7 @@ export const LoginScreen = () => {
      const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
-     const { updateLibrary } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor, updateTheme, updateColorMode } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const toast = useToast();
 
      let isCommunity = true;
@@ -69,9 +69,38 @@ export const LoginScreen = () => {
 
      const logoImage = Constants.expoConfig.extra.loginLogo;
 
-     useFocusEffect(
-          React.useCallback(() => {
-               const bootstrapAsync = async () => {
+      const handleThemeInitialized = React.useCallback(() => {
+           setIsThemeInitialized(true);
+      }, []);
+
+      // Show migration error message if session expired due to SQLite migration failure
+      React.useEffect(() => {
+           if (route.params?.migrationError) {
+                toast.show({
+                     placement: 'top',
+                     duration: 3000,
+                     render: ({ id }) => (
+                          <Box
+                               nativeID={`toast-${id}`}
+                               m="$2"
+                               p="$3"
+                               bg="$error600"
+                               rounded="$md"
+                               flexDirection="row"
+                               alignItems="center">
+                               <Text color="$white" fontWeight="$bold">
+                                    Your session expired, please log in again.
+                               </Text>
+                          </Box>
+                     ),
+                });
+                logDebugMessage('Migration error detected, showing toast to user');
+           }
+      }, [route.params?.migrationError, toast]);
+
+      useFocusEffect(
+           React.useCallback(() => {
+                const bootstrapAsync = async () => {
                     await getPermissions('statusCheck').then(async (result) => {
                          if (result.success === false && result.status === 'undetermined' && GLOBALS.releaseChannel !== 'DEV' && Platform.OS === 'android') {
                               setShouldRequestPermissions(true);
@@ -103,39 +132,25 @@ export const LoginScreen = () => {
                               }
                          }
                     });
+                     if (isCommunity) {
+                          await fetchAllLibrariesFromGreenhouse().then((response) => {
+                               if(response.success) {
+                                    const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
+                                    setAllLibraries(libraries);
+                               } else {
+                                    setAllLibraries([]);
+                                    logDebugMessage("Error loading libraries from Greenhouse");
+                                    logDebugMessage(response);
+                                    getErrorMessage(response.code ?? 0, response.problem)
+                               }
+                          });
+                     }
 
-                    await AsyncStorage.getItem('@colorMode').then(async (mode) => {
-                         logDebugMessage("Loaded color mode from AsyncStorage got " + mode);
-                         if (mode === 'light' || mode === 'dark') {
-                              updateColorMode(mode);
-                         } else {
-                              updateColorMode('light');
-                         }
-                    });
-
-                    await createGlueTheme(toast, Constants.expoConfig.extra.apiUrl).then((result) => {
-                         updateTheme(result);
-                    });
-
-                    if (isCommunity) {
-                         await fetchAllLibrariesFromGreenhouse().then((response) => {
-                              if(response.success) {
-                                   const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
-                                   setAllLibraries(libraries);
-                              } else {
-                                   setAllLibraries([]);
-                                   logDebugMessage("Error loading libraries from Greenhouse");
-                                   logDebugMessage(response);
-                                   getErrorMessage(response.code ?? 0, response.problem)
-                              }
-                         });
-                    }
-
-                    setIsLoading(false);
-               };
-               bootstrapAsync();
-          }, [])
-     );
+                     setIsLoading(false);
+                };
+                bootstrapAsync();
+          }, [toast, isCommunity])
+      );
 
      const onLogoTap = () => {
           const TAP_WINDOW_MS = 1500; // 5 taps must happen within this window
@@ -166,20 +181,21 @@ export const LoginScreen = () => {
           };
      }, []);
 
-     const updateSelectedLibrary = async (data) => {
-          if (data) {
-               logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
-          }else{
-               logDebugMessage("No data passed to updateSelectedLibrary");
-          }
-          setSelectedLibrary(data);
-          LIBRARY.url = data.baseUrl; // used in some cases before library context is set
-          await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
-               if (_.isObject(result)) {
-                    const library = result.data.result?.library ?? [];
-                    logDebugMessage("Updating library context on Login screen to: " + library.displayName + ' (' + library.libraryId + ')');
-                    updateLibrary(library);
-                    logInfoMessage('Base Url is now: ' + library.baseUrl + ', library is: ' + library.libraryId);
+      const updateSelectedLibrary = async (data) => {
+           if (data) {
+                logDebugMessage('Selected new library on Login screen: ' + data.displayName + ' (' + data.libraryId + ')');
+           }else{
+                logDebugMessage("No data passed to updateSelectedLibrary");
+           }
+           setSelectedLibrary(data);
+           LIBRARY.url = data.baseUrl; // Keep for backwards compatibility until all code migrated
+           await saveLibraryUrl(data.baseUrl); // Save to SQLite
+           await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
+                if (_.isObject(result)) {
+                     const library = result.data.result?.library ?? [];
+                     logDebugMessage("Saving library to SQLite on Login screen: " + library.displayName + ' (' + library.libraryId + ')');
+                     await saveLibrary(library);
+                     logInfoMessage('Base Url is now: ' + library.baseUrl + ', library is: ' + library.libraryId);
                     if (library.barcodeStyle) {
                          setAllowBarcodeScanner(true);
                          if (library.barcodeStyle === 'CODE39') {
@@ -300,8 +316,8 @@ export const LoginScreen = () => {
           </SafeAreaView>
      );
 
-     if (isLoading) {
-          return <SplashScreen />;
+     if (isLoading || !isThemeInitialized) {
+          return <SplashScreen shouldInitializeTheme={true} onThemeInitialized={handleThemeInitialized} />;
      }
 
      logDebugMessage("Loading Login page colorMode = " + colorMode );
@@ -314,24 +330,18 @@ async function getPermissions(kind = 'statusCheck') {
           if (status !== 'granted') {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
                return {
                     success: false,
-                    status: status,
-               };
+                    status: status };
           }
      } else {
           const { status } = await Location.requestForegroundPermissionsAsync();
           if (status !== 'granted') {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
                return {
                     success: false,
-                    status: status,
-               };
+                    status: status };
           }
 
           let location = await Location.getLastKnownPositionAsync({});
@@ -341,21 +351,15 @@ async function getPermissions(kind = 'statusCheck') {
                const longitude = JSON.stringify(location.coords.longitude);
                await SecureStore.setItemAsync('latitude', latitude);
                await SecureStore.setItemAsync('longitude', longitude);
-               PATRON.coords.lat = latitude;
-               PATRON.coords.long = longitude;
           } else {
                await SecureStore.setItemAsync('latitude', '0');
                await SecureStore.setItemAsync('longitude', '0');
-               PATRON.coords.lat = 0;
-               PATRON.coords.long = 0;
           }
           return {
                success: true,
-               status: 'granted',
-          };
+               status: 'granted' };
      }
 
      return {
-          success: false,
-     };
+          success: false };
 }

@@ -6,13 +6,14 @@ import React from 'react';
 import { SearchGlobal } from '../../../util/globals';
 import { logDebugMessage } from '../../../util/logging';
 import { addAppliedFilter, removeAppliedFilter } from '../../../util/api/searchHelper';
-import { ThemeContext } from '../../../context/initialContext';
+import { useTheme } from '../../../themes/theme';
+
 
 export const Facet_RadioGroup = ({ title, data, category, updater, applied }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [value, setValue] = React.useState('');
      const [pending] = React.useState(SearchGlobal.pendingFilters);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
 
      React.useEffect(() => {
           const facets = data;

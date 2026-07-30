@@ -4,8 +4,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
-import { LanguageContext, ThemeContext } from '../context/initialContext';
+
 import { logDebugMessage } from '../util/logging.js';
+import { useActiveLanguage } from '../hooks/useLanguageData';
+import { useTheme } from '../themes/theme';
 
 /**
  * Catch an error and display it to the user
@@ -18,7 +20,7 @@ import { logDebugMessage } from '../util/logging.js';
  **/
 export const LoadError = (props) => {
      const { error, reloadAction } = props;
-     const { theme, textColor } = React.useContext(ThemeContext);
+     const { theme, textColor } = useTheme();
 
      return (
           <Center flex={1}>
@@ -87,8 +89,7 @@ export function popToast(toast, title, description, status) {
                               </VStack>
                          </Toast>
                     );
-               },
-          });
+               } });
      });
 }
 
@@ -131,15 +132,14 @@ export function popAlert(toast, title, description, status) {
                               </VStack>
                          </Toast>
                     );
-               },
-          });
+               } });
      });
 }
 
 export const DisplayErrorAlertDialog = (props) => {
      const { title, message } = props;
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);

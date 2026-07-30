@@ -11,13 +11,15 @@ import {
      Textarea,
      TextareaInput,
      ScrollView,
-     VStack, useToast,
-} from '@gluestack-ui/themed';
+     VStack, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { popAlert } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const CreateLocalIllRequestEmail = () => {
      const route = useRoute();
@@ -33,9 +35,9 @@ export const CreateLocalIllRequestEmail = () => {
 const Request = (payload) => {
      const navigation = useNavigation();
      const { workTitle, author, volumeName, recordId} = payload;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const {theme, textColor, colorMode} = useTheme();
      const toast = useToast();
 
      const [userVolumeName, setUserVolumeName] = React.useState(volumeName);

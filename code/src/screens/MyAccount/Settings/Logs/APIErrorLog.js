@@ -1,8 +1,10 @@
 import React from 'react';
 import { Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon, AccordionContent, AccordionContentText, Box, Button, ButtonText, FlatList, Heading, HStack, Spinner, Text, VStack, ChevronUpIcon, ChevronDownIcon } from '@gluestack-ui/themed';
 import { clearApiErrorLogs, getApiErrorLogsPage } from '../../../../util/db';
-import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
+
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
+import { useTheme } from '../../../../themes/theme';
 
 /* move this to the helpers.js */
 function formatDate(ms) {
@@ -21,13 +23,11 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
           total: 0,
           totalPages: 1,
           hasMore: false,
-          hasPrevious: false,
-     });
+          hasPrevious: false });
 
-     const languageCtx = React.useContext(LanguageContext) ?? {};
-     const language = languageCtx.language ?? 'en';
+     const language = useActiveLanguage();
 
-     const themeCtx = React.useContext(ThemeContext) ?? {};
+     const themeCtx = useTheme() ?? {};
      const theme = themeProp ?? themeCtx.theme ?? {};
      const colorMode = colorModeProp ?? themeCtx.colorMode ?? 'light';
      const textColor = textColorProp ?? themeCtx.textColor ?? '#111827';
@@ -38,8 +38,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                const result = await getApiErrorLogsPage({
                     page: nextPage,
                     pageSize: 25,
-                    last24HoursOnly: true,
-               });
+                    last24HoursOnly: true });
 
                setRows(result.items);
                setPage(result.page);
@@ -47,8 +46,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                     total: result.total,
                     totalPages: result.totalPages,
                     hasMore: result.hasMore,
-                    hasPrevious: result.hasPrevious,
-               });
+                    hasPrevious: result.hasPrevious });
           } finally {
                setLoading(false);
           }
@@ -111,8 +109,7 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                                                        fontFamily: 'Courier New, monospace',
                                                        fontSize: 12,
                                                        whiteSpace: 'pre-wrap',
-                                                       color: textColor,
-                                                  }}>
+                                                       color: textColor }}>
                                                   {(() => {
                                                        try {
                                                             const parsed = JSON.parse(item.response_body);

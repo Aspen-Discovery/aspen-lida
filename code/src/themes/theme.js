@@ -1,103 +1,144 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useToken, Box, createConfig, HStack, Icon, Button, ButtonIcon, ButtonText, Text, useColorMode, ChevronLeftIcon } from '@gluestack-ui/themed';
+import { Box, createConfig, HStack, Button, ButtonIcon, ButtonText, ChevronLeftIcon } from '@gluestack-ui/themed';
 import { config as defaultConfig } from '@gluestack-ui/config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ThemeContext } from '../context/initialContext';
+import { GLOBALS } from '../util/globals';
+import {
+     useThemeState,
+     useUpdateThemeColorMode,
+     useUpdateThemeColors,
+     useUpdateThemeTextColor,
+     useResetThemeState,
+} from '../hooks/useThemeData';
 
-import { logDebugMessage, logInfoMessage, logErrorMessage } from '../util/logging.js';
+import { logDebugMessage } from '../util/logging.js';
 import { getThemeInfo } from '../util/api/system';
 
 export function useColorModeValue(lightValue, darkValue) {
-     const { colorMode } = React.useContext(ThemeContext);
+     const { colorMode } = useThemeState();
      return colorMode === 'dark' ? darkValue : lightValue;
 }
 
 export const BackIcon = (props) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useThemeForDisplay();
      return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['tokens']['colors']['primary']['baseContrast']} />;
 };
 
-export async function createTheme(toast, colorMode) {
-     const response = await getThemeInfo(toast);
-     const theme = createConfig({
+function buildConfigFromColors(colors) {
+     return createConfig({
           ...defaultConfig,
           tokens: {
                ...defaultConfig.tokens,
                colors: {
-                    primary: response[0],
-                    secondary: response[1],
-                    tertiary: response[2],
+                    ...defaultConfig.tokens.colors,
+                    primary: colors?.primary ?? defaultConfig.tokens.colors.primary,
+                    secondary: colors?.secondary ?? defaultConfig.tokens.colors.secondary,
+                    tertiary: colors?.tertiary ?? defaultConfig.tokens.colors.tertiary,
                },
           },
      });
-     logDebugMessage('Theme created and saved.');
-     return theme;
 }
 
-export async function createGlueTheme(toast, url) {
+function normalizeThemeColors(response = []) {
+     return {
+          primary: response?.[0] ?? null,
+          secondary: response?.[1] ?? null,
+          tertiary: response?.[2] ?? null,
+     };
+}
+
+export async function buildThemeForLibrary(toast, url = null) {
      const response = await getThemeInfo(toast, url);
-     const theme = createConfig({
-          ...defaultConfig,
-          tokens: {
-               ...defaultConfig.tokens,
-               colors: {
-                    primary: response[0],
-                    secondary: response[1],
-                    tertiary: response[2],
-               },
-          },
-
-     });
-     return theme;
+     const themeColors = normalizeThemeColors(response);
+     const theme = buildConfigFromColors(themeColors);
+     return {
+          theme,
+          themeColors,
+          themeId: Number(GLOBALS.themeId ?? 1),
+     };
 }
 
-export async function saveTheme(response) {
-     if (response && response.tokens && response.tokens.colors) {
-
-          const primaryColors = ['primaryColors', JSON.stringify(response.tokens.colors.primary)];
-          const secondaryColors = ['secondaryColors', JSON.stringify(response.tokens.colors.secondary)];
-          const tertiaryColors = ['tertiaryColors', JSON.stringify(response.tokens.colors.tertiary)];
-
-          try {
-               await AsyncStorage.multiSet([primaryColors, secondaryColors, tertiaryColors]).then((r) => {
-                    logDebugMessage('Essential colors stored in async storage in theme.js');
-               });
-          } catch (e) {
-               //save error
-               logErrorMessage('Unable to save essential colors to async storage in theme.js');
-               logErrorMessage(e);
+export function useThemeForDisplay() {
+     const { themeColors, colorMode, textColor, themeId } = useThemeState();
+     const theme = React.useMemo(() => {
+          if (!themeColors?.primary || !themeColors?.secondary || !themeColors?.tertiary) {
+               return defaultConfig;
           }
-     }else{
-          logErrorMessage("No response provided for saving theme or invalid structure");
-     }
+          return buildConfigFromColors(themeColors);
+     }, [themeColors]);
+
+     return {
+          theme,
+          themeColors,
+          themeId,
+          colorMode,
+          textColor,
+     };
 }
 
-export async function fetchTheme() {
-     let colors;
-     try {
-          colors = await AsyncStorage.multiGet(['primaryColors', 'secondaryColors', 'tertiaryColors']);
-          const jsonValue = await AsyncStorage.getItem('primaryColors');
-          const parsedJson = JSON.parse(jsonValue);
-          logDebugMessage('Essential colors fetched from async storage.');
-          return colors;
-     } catch (e) {
-          logErrorMessage('Unable to fetch essential colors from async storage.');
-          logErrorMessage(e);
-     }
+export function useTheme() {
+     const { theme, themeColors, themeId, colorMode, textColor } = useThemeForDisplay();
+     const updateThemeColors = useUpdateThemeColors();
+     const updateColorModeValue = useUpdateThemeColorMode();
+     const updateTextColorValue = useUpdateThemeTextColor();
+     const resetThemeState = useResetThemeState();
+
+     const updateTheme = React.useCallback(async (data) => {
+          const primary = data?.tokens?.colors?.primary;
+          const secondary = data?.tokens?.colors?.secondary;
+          const tertiary = data?.tokens?.colors?.tertiary;
+          if (!primary || !secondary || !tertiary) {
+               return;
+          }
+          await updateThemeColors(
+               { primary, secondary, tertiary },
+               Number(GLOBALS.themeId ?? 1)
+          );
+     }, [updateThemeColors]);
+
+     const updateColorMode = React.useCallback(async (mode) => {
+          await updateColorModeValue(mode);
+          const nextTextColor = mode === 'light' ? '$warmGray600' : '$coolGray200';
+          await updateTextColorValue(nextTextColor);
+     }, [updateColorModeValue, updateTextColorValue]);
+
+     const updateTextColor = React.useCallback(async (value) => {
+          await updateTextColorValue(value);
+     }, [updateTextColorValue]);
+
+     const resetTheme = React.useCallback(async () => {
+          await resetThemeState();
+     }, [resetThemeState]);
+
+     const forceRefreshTheme = React.useCallback(async (toast, url = null) => {
+          const builtTheme = await buildThemeForLibrary(toast, url);
+          await updateTheme(builtTheme.theme);
+          return builtTheme;
+     }, [updateTheme]);
+
+     return {
+          theme,
+          themeColors,
+          themeId,
+          colorMode,
+          textColor,
+          updateTheme,
+          updateColorMode,
+          updateTextColor,
+          resetTheme,
+          forceRefreshTheme,
+     };
 }
 
 export function UseColorMode(props) {
      const { showText } = props;
-     const { colorMode } = React.useContext(ThemeContext);
+     const { colorMode, theme } = useThemeForDisplay();
+     const updateTextColor = useUpdateThemeTextColor();
      const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
-     const toggledColorMode = (colorMode === 'dark' ? 'light' : 'dark');
      const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
      const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
-     const darkText = useToken('colors', 'textLight800');
-     const lightText = useToken('colors', 'textLight50');
      const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
-     const { updateColorMode, updateTextColor, theme } = React.useContext(ThemeContext);
+     const updateColorMode = useUpdateThemeColorMode();
 
      const switchColorMode = async () => {
           let newColorMode;
@@ -108,8 +149,8 @@ export function UseColorMode(props) {
           }
 
           logDebugMessage("Switching color mode to: " + newColorMode);
-          updateColorMode(newColorMode);
-          await AsyncStorage.setItem('@colorMode', newColorMode);
+          await updateColorMode(newColorMode);
+          await updateTextColor(newColorMode === 'light' ? '$warmGray600' : '$coolGray200');
      };
 
      if (showText) {
@@ -131,3 +172,5 @@ export function UseColorMode(props) {
           </Box>
      );
 }
+
+export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

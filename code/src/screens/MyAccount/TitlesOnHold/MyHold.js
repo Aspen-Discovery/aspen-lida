@@ -29,7 +29,8 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { popAlert } from '../../../components/loadError';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { HoldsContext } from '../../../context/initialContext';
+import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -39,10 +40,12 @@ import { formatDiscoveryVersion } from '../../../helpers/helpers';
 import { checkoutItem, getPickupLocations } from '../../../util/api/user';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
-import { PATRON } from '../../../util/globals';
 
 import { logDebugMessage } from '../../../util/logging.js';
 import { useQueryClient } from '@tanstack/react-query';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -51,13 +54,14 @@ export const MyHold = (props) => {
      const holdSource = props.holdSource
      const resetGroup = props.resetGroup;
      const [pickupLocations, setPickupLocations] = React.useState([]);
-     const sublocations = PATRON.sublocations;
+     const { data: sublocations } = useSublocations();
      const section = props.section;
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme, colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
      const [cancelling, startCancelling] = React.useState(false);
      const [checkingOut, startCheckingOut] = React.useState(false);
@@ -144,8 +148,7 @@ export const MyHold = (props) => {
                url: library.baseUrl,
                userContext: user,
                libraryContext: library,
-               prevRoute: 'MyHolds',
-          });
+               prevRoute: 'MyHolds' });
      };
 
      const initializeLeftColumn = () => {
@@ -162,8 +165,7 @@ export const MyHold = (props) => {
                               source={url}
                               style={{
                                    width: 100,
-                                   height: 150,
-                              }}
+                                   height: 150 }}
                               borderRadius="$sm"
                               placeholder={blurhash}
                               transition={1000}
@@ -176,9 +178,7 @@ export const MyHold = (props) => {
                                              sx={{
                                                   ':checked': {
                                                        borderColor: theme['tokens']['colors']['primary']['500'],
-                                                       backgroundColor: theme['tokens']['colors']['primary']['500'],
-                                                  },
-                                             }}>
+                                                       backgroundColor: theme['tokens']['colors']['primary']['500'] } }}>
                                              <CheckboxIcon as={CheckIcon} color={theme.tokens.colors.primary['500-text']} />
                                         </CheckboxIndicator>
                                    </Checkbox>
@@ -194,8 +194,7 @@ export const MyHold = (props) => {
                                    <CheckboxIndicator
                                         _checked={{
                                              color: theme['tokens']['colors']['primary']['500'],
-                                             borderColor: theme['tokens']['colors']['primary']['500'],
-                                        }}>
+                                             borderColor: theme['tokens']['colors']['primary']['500'] }}>
                                         <CheckboxIcon as={CheckIcon}  sx={{ color: theme['tokens']['colors']['primary']['500-text'] }}/>
                                    </CheckboxIndicator>
                               </Checkbox>
@@ -400,11 +399,12 @@ export const MyHold = (props) => {
 export const ManageSelectedHolds = (props) => {
      const { selectedValues, onAllDateChange, selectedReactivationDate, resetGroup, context } = props;
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
@@ -433,8 +433,7 @@ export const ManageSelectedHolds = (props) => {
                          recordId: arr[1],
                          cancelId: arr[2],
                          source: arr[3],
-                         patronId: arr[4],
-                    });
+                         patronId: arr[4] });
                }
                if (item.includes('thaw')) {
                     const arr = item.split('|');
@@ -443,8 +442,7 @@ export const ManageSelectedHolds = (props) => {
                          recordId: arr[1],
                          cancelId: arr[2],
                          source: arr[3],
-                         patronId: arr[4],
-                    });
+                         patronId: arr[4] });
                }
 
                const arr = item.split('|');
@@ -453,8 +451,7 @@ export const ManageSelectedHolds = (props) => {
                     recordId: arr[1],
                     cancelId: arr[2],
                     source: arr[3],
-                    patronId: arr[4],
-               });
+                    patronId: arr[4] });
           });
 
           numToCancel = titlesToCancel.length;
@@ -567,11 +564,12 @@ export const ManageSelectedHolds = (props) => {
 export const ManageAllHolds = (props) => {
      const queryClient = useQueryClient();
      const { resetGroup } = props;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { user } = React.useContext(UserContext);
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
@@ -599,15 +597,13 @@ export const ManageAllHolds = (props) => {
                               recordId: record,
                               cancelId: item.cancelId,
                               source: item.source,
-                              patronId: item.userId,
-                         });
+                              patronId: item.userId });
                     } else {
                          titlesToFreeze.push({
                               recordId: record,
                               cancelId: item.cancelId,
                               source: item.source,
-                              patronId: item.userId,
-                         });
+                              patronId: item.userId });
                     }
                }
 
@@ -616,8 +612,7 @@ export const ManageAllHolds = (props) => {
                          recordId: record,
                          cancelId: item.cancelId,
                          source: item.source,
-                         patronId: item.userId,
-                    });
+                         patronId: item.userId });
                }
           });
      }

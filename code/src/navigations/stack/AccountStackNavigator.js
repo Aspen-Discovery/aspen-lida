@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ChevronLeftIcon, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 import { PalaceProjectInstructions } from '../../components/Action/CheckOut/PalaceProjectInstructions';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
 import { EventScreen } from '../../screens/Event/Event';
 import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
 import { CreateLocalIllRequestEmail } from '../../screens/GroupedWork/CreateLocalIllRequestEmail';
@@ -26,17 +25,19 @@ import { MyLinkedAccounts } from '../../screens/MyAccount/LinkedAccounts/LinkedA
 import { Settings_NotificationOptions } from '../../screens/MyAccount/Settings/NotificationOptions';
 import { PreferencesScreen } from '../../screens/MyAccount/Settings/Preferences';
 import { MyHolds } from '../../screens/MyAccount/TitlesOnHold/MyHolds';
-import { BackIcon } from '../../themes/theme';
+import { BackIcon, useTheme } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { EditionsModal } from './BrowseStackNavigator';
 import { MyCampaigns } from '../../screens/MyAccount/Campaigns/Campaigns';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
 
+const Stack = createNativeStackNavigator();
+
 const AccountStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { theme,textColor } = React.useContext(ThemeContext);
-     const Stack = createNativeStackNavigator();
+     const language = useActiveLanguage();
+     const { theme, textColor } = useTheme();
      return (
           <Stack.Navigator
                initialRouteName="MyPreferences"
@@ -379,8 +380,8 @@ const AccountStackNavigator = () => {
 
 const PalaceProjectStack = createNativeStackNavigator();
 export const PalaceProjectInstructionsModal = () => {
-     const { language } = React.useContext(LanguageContext);
-     const {textColor} = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      return (
           <PalaceProjectStack.Navigator
                id="PalaceProjectStack"
@@ -412,8 +413,8 @@ export const PalaceProjectInstructionsModal = () => {
 
 const MyNotificationHistoryMessageStack = createNativeStackNavigator();
 export const MyNotificationHistoryMessageModal = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme } = useTheme();
      return (
           <MyNotificationHistoryMessageStack.Navigator
                id="MyNotificationHistoryMessageStack"

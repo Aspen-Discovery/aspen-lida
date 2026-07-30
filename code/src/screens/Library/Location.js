@@ -7,7 +7,9 @@ import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -16,18 +18,20 @@ import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
 import {logDebugMessage} from "../../util/logging";
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const Location = () => {
      const route = useRoute();
      const location = route.params?.data ?? false;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { locations } = React.useContext(LibraryBranchContext);
+     const library = useLibrary();
+     const locations = useAvailableLocations();
+     const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { colorMode, textColor, theme } = React.useContext(ThemeContext);
+     const { colorMode, textColor, theme } = useTheme();
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -111,8 +115,7 @@ export const Location = () => {
                                              width: '100%',
                                              height: 200,
                                              borderRadius: "$sm",
-                                             zIndex: -1,
-                                        }}
+                                             zIndex: -1 }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"

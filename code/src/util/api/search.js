@@ -1,8 +1,14 @@
-import { GLOBALS, LIBRARY, PATRON, SearchGlobal } from '../globals';
+import { GLOBALS, LIBRARY, SearchGlobal } from '../globals';
 import { logErrorMessage } from '../logging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createApiClient } from './apiFactory';
 import { addAppliedFilter, buildParamsForUrl, setDefaultFacets } from './searchHelper';
+
+const homeScreenFeedInFlight = new Map();
+
+function getHomeScreenFeedRequestKey(maxCategories, url) {
+     return `${url ?? ''}|${maxCategories === 9999 ? 'all' : maxCategories}`;
+}
 
 /** *******************************************************************
  * General
@@ -194,11 +200,28 @@ export async function fetchSearchResultsForList(listId, page = 1, url = null, la
  */
 export async function getHomeScreenFeed(maxCat = 5, url = null) {
      const maxCategories = maxCat ?? 5;
+     const requestKey = getHomeScreenFeedRequestKey(maxCategories, url);
+     const existingRequest = homeScreenFeedInFlight.get(requestKey);
+
+     if (existingRequest) {
+          return existingRequest;
+     }
+
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
 
      const params = maxCategories !== 9999 ? { maxCategories, LiDARequest: true } : { LiDARequest: true };
 
-     return await client.post('/SearchAPI?method=getHomeScreenFeed', {}, { params });
+     const request = client
+          .post('/SearchAPI?method=getHomeScreenFeed', {}, { params })
+          .finally(() => {
+               if (homeScreenFeedInFlight.get(requestKey) === request) {
+                    homeScreenFeedInFlight.delete(requestKey);
+               }
+          });
+
+     homeScreenFeedInFlight.set(requestKey, request);
+
+     return await request;
 }
 
 /** *******************************************************************
@@ -261,13 +284,24 @@ export async function getDefaultFacets(url = null, limit = 5, language = 'en') {
  */
 export async function getSearchResults(searchTerm, pageSize = 25, page, url = null, language = 'en') {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage, language });
+     let solrScope = '';
+     if (GLOBALS.solrScope !== 'unknown') {
+          solrScope = GLOBALS.solrScope;
+     } else {
+          try {
+               solrScope = await AsyncStorage.getItem('@solrScope');
+          } catch (e) {
+               logErrorMessage('Could not get solr scope');
+               logErrorMessage(e);
+          }
+     }
 
      const response = await client.post(
           `/SearchAPI?method=searchLite${SearchGlobal.appendedParams ?? ''}`,
           {},
           {
                params: {
-                    library: PATRON.scope ?? null,
+                    library: solrScope ?? null,
                     lookfor: searchTerm ?? '',
                     pageSize,
                     page,

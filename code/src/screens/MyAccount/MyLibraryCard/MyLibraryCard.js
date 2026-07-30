@@ -1,30 +1,29 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import _ from 'lodash';
-import moment from 'moment';
 import { Box, Button, ButtonText, ButtonIcon, Center, HStack, VStack, Icon, Image, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Text, Heading, ModalBackdrop, CloseIcon, ModalCloseButton, Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@gluestack-ui/themed';
 import React from 'react';
 import { Dimensions } from 'react-native';
 import Barcode from 'react-native-barcode-expo';
-import { Extrapolate, interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
 
 // custom components and helper files
 import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getLinkedAccounts, updateScreenBrightnessStatus } from '../../../util/api/user';
-import { formatLinkedAccounts } from '../../../util/api/userHelper';
+import { refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/user';
 
-import { formatDiscoveryVersion } from '../../../helpers/helpers';
-import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { formatDiscoveryVersion, orderByFields, parseToDate } from '../../../helpers/helpers';
+import { logDebugMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyLibraryCard = () => {
-     const queryClient = useQueryClient();
      const navigation = useNavigation();
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [previousBrightness, setPreviousBrightness] = React.useState();
@@ -37,50 +36,30 @@ export const MyLibraryCard = () => {
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
-     const { user, accounts, updateLinkedAccounts, cards, updateLibraryCards} = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: cards } = useCards();
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme } = useTheme();
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
 
-     useQuery(['linked_accounts', user.id, library.baseUrl, language], () => getLinkedAccounts(library.baseUrl, language), {
-          initialData: accounts,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const linkedAccounts = formatLinkedAccounts(user, cards ?? [], library.barcodeStyle, data.data.result.linkedAccounts);
-                    if (accounts !== linkedAccounts.accounts) {
-                         updateLinkedAccounts(linkedAccounts.accounts);
-                    }
-                    if (cards !== linkedAccounts.cards) {
-                         updateLibraryCards(linkedAccounts.cards);
-                    }
-               } else {
-                    logDebugMessage("Error fetching linked accounts in MyLibraryCard (response was not ok)");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logErrorMessage("Error fetching linked accounts");
-               logErrorMessage(error);
-          },
-          placeholderData: [],
-     });
 
      const updateStatus = async () => {
           await updateScreenBrightnessStatus(false, library.baseUrl, language);
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      React.useEffect(() => {
-          const updateAccounts = navigation.addListener('focus', async () => {
-               queryClient.invalidateQueries({ queryKey: ['linked_accounts', user.id, library.baseUrl, language] });
-          });
           const brightenScreen = navigation.addListener('focus', async () => {
                const { status } = await Brightness.getPermissionsAsync();
                if (status === 'undetermined') {
-                    if (!_.isUndefined(user.shouldAskBrightness) && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
+                    if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
                          setShouldRequestPermissions(true);
                     }
                } else {
@@ -132,12 +111,11 @@ export const MyLibraryCard = () => {
                }
           });
           return () => {
-               updateAccounts();
                brightenScreen();
                updateOrientation();
                changeOrientation.remove();
           };
-     }, [navigation, autoRotate]);
+     }, [navigation, autoRotate, library.baseUrl, language, user, library.barcodeStyle]);
 
      React.useEffect(() => {
           navigation.addListener('blur', () => {
@@ -203,7 +181,7 @@ export const MyLibraryCard = () => {
           await ScreenOrientation.unlockAsync();
      };
 
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
      const drawerBg = colorMode === 'light' ? "$warmGray50" : "$coolGray800";
 
      return (
@@ -239,8 +217,7 @@ export const MyLibraryCard = () => {
                                         onPress={() => {
                                              navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                                                   prevRoute: 'MyLibraryCard',
-                                                  hasPendingChanges: false,
-                                             });
+                                                  hasPendingChanges: false });
                                         }}>
                                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'manage_alternate_library_card')}</ButtonText>
                                    </Button>
@@ -290,8 +267,7 @@ export const MyLibraryCard = () => {
                                                        setShowDrawer(false);
                                                        navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                                                             prevRoute: 'MyLibraryCard',
-                                                            hasPendingChanges: false,
-                                                       });
+                                                            hasPendingChanges: false });
                                                   }}>
                                                   <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                                                        {getTermFromDictionary(language, 'manage_alternate_library_card')}
@@ -313,33 +289,32 @@ const CreateLibraryCard = (data) => {
      const { numCards, hasOpenModalRef, openBarcodeModal } = data ?? 0;
 
      const [expirationText, setExpirationText] = React.useState('');
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
-     const { library } = React.useContext(LibrarySystemContext);
-     const language = data.language || React.useContext(LanguageContext).language;
+     const library = useLibrary();
+     const language = data.language || useActiveLanguage();
 
      let barcodeStyle;
-     if (!_.isUndefined(card.barcodeStyle) && !_.isNull(card.barcodeStyle)) {
-          barcodeStyle = _.toString(card.barcodeStyle);
+     if (card.barcodeStyle != null) {
+          barcodeStyle = String(card.barcodeStyle);
      } else {
-          barcodeStyle = _.toString(library.barcodeStyle);
+          barcodeStyle = String(library.barcodeStyle);
      }
 
      let barcodeValue = 'UNKNOWN';
-     if (!_.isUndefined(card.ils_barcode)) {
+     if (card.ils_barcode !== undefined) {
           barcodeValue = card.ils_barcode;
-     } else if (!_.isUndefined(card.cat_username)) {
+     } else if (card.cat_username !== undefined) {
           barcodeValue = card.cat_username;
      }
 
      let expirationDate = null;
-     if (!_.isUndefined(card.expires)
-          && !_.isNull(card.expires)
-          && (card.expires !== "")
-          && (card.expires !== "Dec 31, 1969")) {
+     if (card.expires != null
+          && card.expires !== ""
+          && card.expires !== "Dec 31, 1969") {
 
-          if (_.isString(card.expires)) {
-               expirationDate = moment(card.expires, 'MMM D, YYYY');
+          if (typeof card.expires === 'string') {
+               expirationDate = parseToDate(card.expires);
           }
 
           React.useEffect(() => {
@@ -354,15 +329,13 @@ const CreateLibraryCard = (data) => {
      }
 
      let cardHasExpired = 0;
-     if (!_.isUndefined(card.expired) && !_.isNull(card.expired) && card.expired !== 0 && card.expired !== '0') {
+     if (card.expired != null && card.expired !== 0 && card.expired !== '0') {
           cardHasExpired = card.expired;
      }
 
      let neverExpires = false;
-     if (cardHasExpired === 0 && !_.isNull(expirationDate)) {
-          const now = moment();
-          const expiration = moment(expirationDate);
-          const hasExpired = moment(expiration).isBefore(now);
+     if (cardHasExpired === 0 && expirationDate !== null) {
+          const hasExpired = expirationDate < new Date();
           if (hasExpired) {
                neverExpires = true;
           }
@@ -382,7 +355,7 @@ const CreateLibraryCard = (data) => {
           barcodeStyle = 'INVALID';
      };
 
-     if (barcodeValue === 'UNKNOWN' || _.isNull(barcodeValue) || _.isNull(barcodeStyle) || _.isEmpty(barcodeValue) || _.isEmpty(barcodeStyle) || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
+     if (barcodeValue === 'UNKNOWN' || barcodeValue === null || barcodeStyle === null || barcodeValue === '' || barcodeStyle === '' || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
           return (
                <VStack maxW="90%" px="$8" py="$5" borderRadius="$lg">
                     <Center>
@@ -464,10 +437,10 @@ const CreateLibraryCard = (data) => {
 };
 
 const CardCarousel = (data) => {
-     const { theme, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { theme, textColor } = useTheme();
+     const language = useActiveLanguage();
      const [internalIndex, setInternalIndex] = React.useState(0);
-     const cards = _.sortBy(data.cards, ['key']);
+     const cards = orderByFields(data.cards ?? [], ['key']);
      const isVertical = data.orientation;
      const toggleOrientation = data.toggleOrientation;
      const hasOpenModalRef = data.hasOpenModalRef;
@@ -483,38 +456,17 @@ const CardCarousel = (data) => {
      let baseOptions = {
           vertical: false,
           width: screenWidth,
-          height: screenWidth * 0.9,
-     };
+          height: screenWidth * 0.9 };
 
      if (isVertical) {
           baseOptions = {
                vertical: true,
                width: screenWidth * 0.5,
-               height: screenWidth * 0.6,
-          };
+               height: screenWidth * 0.6 };
      }
 
      const PaginationItem = (props) => {
           const { animValue, index, length, card, isRotate } = props;
-          const width = 100;
-
-          const animStyle = useAnimatedStyle(() => {
-               let inputRange = [index - 1, index, index + 1];
-               let outputRange = [-width, 0, width];
-
-               if (index === 0 && animValue?.value > length - 1) {
-                    inputRange = [length - 1, length, length + 1];
-                    outputRange = [-width, 0, width];
-               }
-
-               return {
-                    transform: [
-                         {
-                              translateX: interpolate(animValue?.value, inputRange, outputRange, Extrapolate.CLAMP),
-                         },
-                    ],
-               };
-          }, [animValue, index, length]);
 
           return (
                <Button
@@ -529,15 +481,14 @@ const CardCarousel = (data) => {
                          setCurrentIndex(index);
                          ref.current?.scrollTo({
                               index: index,
-                              animated: false,
-                         });
+                              animated: false });
                     }}>
                     <ButtonText color={index === currentIndex ? theme.tokens.colors.tertiary['500-text'] : textColor}>{card.displayName}</ButtonText>
                </Button>
           );
      };
 
-     if (_.size(cards) === 1) {
+     if (cards.length === 1) {
           const card = cards[0];
           return (
                <Box
@@ -545,9 +496,8 @@ const CardCarousel = (data) => {
                     flex={1}
                     alignItems="center"
                     style={{
-                         transform: [{ scale: 0.9 }],
-                    }}>
-                    <CreateLibraryCard key={0} card={card} numCards={_.size(cards)} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />
+                         transform: [{ scale: 0.9 }] }}>
+                    <CreateLibraryCard key={0} card={card} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />
                </Box>
           );
      }
@@ -574,10 +524,9 @@ const CardCarousel = (data) => {
                     onSnapToItem={(index) => setCurrentIndex(index)}
                     modeConfig={{
                          parallaxScrollingScale: 0.9,
-                         parallaxScrollingOffset: 50,
-                    }}
+                         parallaxScrollingOffset: 50 }}
                     data={cards}
-                    renderItem={({ item, index }) => <CreateLibraryCard key={index} card={item} numCards={_.size(cards)} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />}
+                    renderItem={({ item, index }) => <CreateLibraryCard key={index} card={item} numCards={cards.length} language={language} hasOpenModalRef={hasOpenModalRef} openBarcodeModal={openBarcodeModal} />}
                />
                {!!progressValue && (
                     <Box flexDirection="row" flexWrap="wrap" alignContent="center" alignSelf="center" maxWidth="100%" justifyContent="center">
@@ -591,8 +540,8 @@ const CardCarousel = (data) => {
 };
 
 const BarcodeModal = ({ card, showModal, closeModal, language }) => {
-     const { theme } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { theme } = useTheme();
+     const library = useLibrary();
      const [orientation, setOrientation] = React.useState('portrait');
      const [screenDimensions, setScreenDimensions] = React.useState(Dimensions.get('window'));
      const [manuallyRotated, setManuallyRotated] = React.useState(false);
@@ -600,16 +549,16 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
      const barcodeWidthRef = React.useRef(null);
 
      let barcodeStyle;
-     if (!_.isUndefined(card.barcodeStyle) && !_.isNull(card.barcodeStyle)) {
-          barcodeStyle = _.toString(card.barcodeStyle);
+     if (card.barcodeStyle != null) {
+          barcodeStyle = String(card.barcodeStyle);
      } else {
-          barcodeStyle = _.toString(library.barcodeStyle);
+          barcodeStyle = String(library.barcodeStyle);
      }
 
      let barcodeValue = 'UNKNOWN';
-     if (!_.isUndefined(card.ils_barcode)) {
+     if (card.ils_barcode !== undefined) {
           barcodeValue = card.ils_barcode;
-     } else if (!_.isUndefined(card.cat_username)) {
+     } else if (card.cat_username !== undefined) {
           barcodeValue = card.cat_username;
      }
 

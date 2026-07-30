@@ -4,39 +4,51 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Box, Button, ButtonText, ButtonIcon, Menu, MenuItem, MenuItemLabel } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../context/initialContext';
+
 import { saveLanguage } from '../util/api/user';
+import { useLibrary } from '../hooks/useLibrarySystemData';
+import {
+     useActiveLanguage,
+     useAvailableLanguages,
+     useLanguageDisplayName,
+     useUpdateActiveLanguage,
+     useUpdateLanguageDisplayName,
+     useUpdateDictionary } from '../hooks/useLanguageData';
 
 import {decodeHTML } from '../helpers/helpers';
 import { GLOBALS } from '../util/globals';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
 import { createApiClient } from '../util/api/apiFactory';
+import { useTheme } from '../themes/theme';
 
 /** *******************************************************************
  * General
  ******************************************************************* **/
 export const LanguageSwitcher = () => {
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language, updateLanguage, languages, updateDictionary, languageDisplayName, updateLanguageDisplayName } = React.useContext(LanguageContext);
-     const [label, setLabel] = React.useState(getLanguageDisplayName(language, languages));
+     const { theme, colorMode, textColor } = useTheme();
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const languages = useAvailableLanguages();
+     const languageDisplayName = useLanguageDisplayName();
+     const updateLanguage = useUpdateActiveLanguage();
+     const updateDictionary = useUpdateDictionary();
+     const updateLanguageDisplayName = useUpdateLanguageDisplayName();
 
      const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
 
      const changeLanguage = async (val) => {
-          const tmp = val;
-          await saveLanguage(tmp, library.baseUrl).then(async (result) => {
-               if (result) {
-                    updateLanguage(tmp);
-                    updateLanguageDisplayName(getLanguageDisplayName(tmp, languages));
-                    await getTranslatedTermsForUserPreferredLanguage(tmp, library.baseUrl).then(() => {
-                         updateDictionary(translationsLibrary);
-                    });
-               } else {
-                    logErrorMessage('there was an error updating the language...');
-               }
-          });
+          const result = await saveLanguage(val, library?.baseUrl ?? '');
+          if (!result) {
+               logErrorMessage('there was an error updating the language...');
+               return;
+          }
+
+          await updateLanguage(val);
+          const nextDisplayName = getLanguageDisplayName(val, languages);
+          await updateLanguageDisplayName(nextDisplayName);
+          await getTranslatedTermsForUserPreferredLanguage(val, library?.baseUrl ?? '');
+          await updateDictionary(translationsLibrary);
      };
 
      if (_.isArray(languages) && _.size(languages) > 1) {
@@ -94,8 +106,7 @@ export async function getTranslation(term, language, url) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
-          language,
-     });
+          language });
 
      const response = await client.get('/SystemAPI?method=getTranslation', { term, language });
      if (response.ok) {
@@ -121,13 +132,11 @@ export async function getTranslations(terms, language, url) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
-          language,
-     });
+          language });
 
      const response = await client.get('/SystemAPI?method=getTranslation', {
           terms,
-          language,
-     });
+          language });
 
      if (response.ok) {
           return response.data?.result?.translations;
@@ -155,29 +164,24 @@ export async function getTranslationsWithValues(key, values, language, url, addT
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
-          language,
-     });
+          language });
 
      const response = await client.get('/SystemAPI?method=getTranslationWithValues', {
           term,
           values,
-          language,
-     });
+          language });
 
      if (response.ok) {
           if (response.data?.result?.translation) {
                if (Object.values(response.data?.result?.translation) && addToDictionary) {
                     const lastUpdated = {
-                         lastUpdated: moment(),
-                    };
+                         lastUpdated: moment() };
                     translationsLibrary = _.merge(translationsLibrary, lastUpdated);
 
                     const translation = Object.values(response.data?.result?.translation);
                     const obj = {
                          [language]: {
-                              [key]: translation[0],
-                         },
-                    };
+                              [key]: translation[0] } };
                     translationsLibrary = _.merge(translationsLibrary, obj);
                }
                return Object.values(response.data?.result?.translation);
@@ -193,15 +197,23 @@ export async function getTranslationsWithValues(key, values, language, url, addT
  * @param {string} languages
  **/
 export function getLanguageDisplayName(code, languages) {
-     let language = _.filter(languages, ['code', code]);
-     language = _.values(language[0]);
-     return language[3];
+     if (!Array.isArray(languages) || !code) {
+          return '';
+     }
+     const language = _.find(languages, ['code', code]);
+     return language?.displayName ?? '';
 }
 
 /**
  * Local storage for translated terms
  */
 export let translationsLibrary = helperLibrary;
+
+export function setTranslationsLibrary(dictionary) {
+     if (_.isObject(dictionary)) {
+          translationsLibrary = dictionary;
+     }
+}
 
 // Make sure we only load translations once.
 const activeTranslationRequests = {};
@@ -222,8 +234,7 @@ export async function loadTranslationsFromDiscovery(language, url) {
      if (isEmptyDefaults) {
           logInfoMessage("Skipping getBulkTranslations because defaults.json is empty.");
           const obj = {
-               [language]: {},
-          };
+               [language]: {} };
           translationsLibrary = _.merge(translationsLibrary, obj);
           return;
      }
@@ -245,8 +256,7 @@ export async function loadTranslationsFromDiscovery(language, url) {
                const client = createApiClient({
                     url,
                     timeout: GLOBALS.timeoutFast,
-                    language,
-               });
+                    language });
 
                logDebugMessage("Loading bulk translations for " + numDefaultTerms + " terms");
                const response = await client.post(
@@ -254,28 +264,24 @@ export async function loadTranslationsFromDiscovery(language, url) {
                     { terms: defaults },
                     {
                          params: { language },
-                         headers: { 'Content-Type': 'application/json' },
-                    },
+                         headers: { 'Content-Type': 'application/json' } },
                     false
                );
 
                if (response.ok) {
                     const translation = response?.data?.result?.[language] ?? defaults;
                     const lastUpdated = {
-                         lastUpdated: moment(),
-                    };
+                         lastUpdated: moment() };
                     translationsLibrary = _.merge(translationsLibrary, lastUpdated);
 
                     if (_.isObject(translation)) {
                          const obj = {
-                              [language]: translation,
-                         };
+                              [language]: translation };
                          translationsLibrary = _.merge(translationsLibrary, obj);
                     }
                } else {
                     const obj = {
-                         [language]: defaults,
-                    };
+                         [language]: defaults };
                     translationsLibrary = _.merge(translationsLibrary, obj);
                     logDebugMessage('loadTranslationsFromDiscovery failed');
                     logDebugMessage(response);
@@ -285,8 +291,7 @@ export async function loadTranslationsFromDiscovery(language, url) {
                logErrorMessage("Uncaught error inside synchronized loadTranslationsFromDiscovery: " + error.message);
                // Fallback to defaults on catastrophic crash
                const obj = {
-                    [language]: defaults,
-               };
+                    [language]: defaults };
 
                translationsLibrary = _.merge(translationsLibrary, obj);
           } finally {
@@ -324,27 +329,12 @@ export async function getTranslatedTermsForUserPreferredLanguage(language, url) 
 }
 
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false) => {
-     let dictionary = undefined;
-     try {
-          const context = React.useContext(LanguageContext);
-          dictionary = context?.dictionary;
-     } catch (e) {
-          // can't use context in this scenario
-     }
-     return helperGetTermFromDictionary(language, key, ellipsis, dictionary);
+     return helperGetTermFromDictionary(language, key, ellipsis, translationsLibrary);
 };
 
 export const getVariableTermFromDictionary = async (language, key, url) => {
      if (language && key) {
-          let tmpDictionary = translationsLibrary;
-          try {
-               const context = React.useContext(LanguageContext);
-               if (context?.dictionary) {
-                    tmpDictionary = context.dictionary;
-               }
-          } catch (e) {
-               // can't use context in this scenario
-          }
+          const tmpDictionary = translationsLibrary;
           if (tmpDictionary[language]) {
                const thisDictionary = tmpDictionary[language];
                if (thisDictionary[key]) {
@@ -358,9 +348,7 @@ export const getVariableTermFromDictionary = async (language, key, url) => {
                     const term = await getTranslation(key, language, url);
                     const obj = {
                          [language]: {
-                              [key]: term,
-                         },
-                    };
+                              [key]: term } };
                     localDictionary = _.merge(localDictionary, obj);
                     translationsLibrary = _.merge(translationsLibrary, obj);
                     //updateDictionary(localDictionary);

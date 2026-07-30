@@ -26,15 +26,16 @@ import {
      ModalFooter,
      ModalHeader, useToast
 } from '@gluestack-ui/themed';
-import { LanguageContext, ThemeContext } from '../../../context/initialContext';
+
 import { freezeHold, freezeHolds } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import {logDebugMessage, logWarnMessage} from "../../../util/logging";
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
 
 export const SelectThawDate = (props) => {
      const { freezingLabel, freezeLabel, label, libraryContext, onClose, freezeId, recordId, source, userId, resetGroup, theme, textColor, colorMode } = props;
      let data = props.data;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [loading, setLoading] = React.useState(false);
      const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
      const [showIndefiniteWarning, setShowIndefiniteWarning] = React.useState(false);
@@ -133,9 +134,7 @@ export const SelectThawDate = (props) => {
                                              sx={{
                                                   ':checked': {
                                                        borderColor: theme.tokens.colors.primary['500'],
-                                                       backgroundColor: theme.tokens.colors.primary['500'],
-                                                  },
-                                             }}
+                                                       backgroundColor: theme.tokens.colors.primary['500'] } }}
                                         >
                                              <CheckboxIcon
                                                   as={MaterialIcons}

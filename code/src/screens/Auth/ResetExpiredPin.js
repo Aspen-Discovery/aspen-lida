@@ -35,31 +35,31 @@ import {
 import React from 'react';
 import { popAlert } from '../../components/loadError';
 import { AuthContext } from '../../context/AuthContext';
-import {
-     BrowseCategoryContext,
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+
+import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
+import { useUpdateLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useUpdateUserProfile } from '../../hooks/useUserData';
+import { useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryBranch, getLibrarySystem } from '../../util/api/system';
 import { getUserProfile, resetExpiredPin } from '../../util/api/user';
 import { getBrowseCategoriesAndHomeLinks } from '../../util/api/search';
 
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const ResetExpiredPin = (props) => {
      const [resetSuccessful, setResetSuccessful] = React.useState(false);
      const [resetMessage, setResetMessage] = React.useState('');
-     const { signIn } = React.useContext(AuthContext);
-     const { updateLibrary, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const { updateLocation } = React.useContext(LibraryBranchContext);
-     const { updateUser } = React.useContext(UserContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { updateBrowseCategories } = React.useContext(BrowseCategoryContext);
-     const { language } = React.useContext(LanguageContext);
+      const { signIn } = React.useContext(AuthContext);
+     const updateLibrary = useUpdateLibrary();
+     const updateLibraryLocation = useUpdateLibraryLocation();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
+     const updateUserProfile = useUpdateUserProfile();
+     const { theme, colorMode, textColor } = useTheme();
+     const updateBrowseCategories = useUpdateBrowseCategories();
+     const language = useActiveLanguage();
      const { username, resetToken, url, pinValidationRules, setExpiredPin, patronsLibrary } = props;
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {
@@ -150,17 +150,17 @@ export const ResetExpiredPin = (props) => {
           }
      };
 
-     const setContext = async () => {
-          const library = await getLibrarySystem({ patronsLibrary });
-          updateLibrary(library);
-          const location = await getLibraryBranch({ patronsLibrary });
-          updateLocation(location);
-          const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
-          updateUser(user);
-          const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
-          updateBrowseCategories(homeScreenFeed.browseCategories);
-          updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
-     };
+       const setContext = async () => {
+            const library = await getLibrarySystem({ patronsLibrary });
+            await updateLibrary(library);
+            const location = await getLibraryBranch({ patronsLibrary });
+            await updateLibraryLocation(location);
+           const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
+           await updateUserProfile(user);
+           const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
+           await updateBrowseCategories(homeScreenFeed.browseCategories);
+           await updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
+      };
 
      const setAsyncStorage = async () => {
           await SecureStore.setItemAsync('userKey', username);

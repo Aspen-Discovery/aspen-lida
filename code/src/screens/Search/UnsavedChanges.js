@@ -4,11 +4,12 @@ import React from 'react';
 
 import { SearchGlobal } from '../../util/globals';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { ThemeContext } from '../../context/initialContext';
+import { useTheme } from '../../themes/theme';
+
 
 export const UnsavedChangesExit = (props) => {
      const { updateSearch, discardChanges, prevRoute, language } = props;
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const navigation = useNavigation();
      const [isOpen, setIsOpen] = React.useState(false);
      const onClose = () => setIsOpen(false);
@@ -40,9 +41,7 @@ export const UnsavedChangesExit = (props) => {
                navigation.navigate('BrowseTab', {
                     screen: 'SearchResults',
                     params: {
-                         term: SearchGlobal.term,
-                    },
-               });
+                         term: SearchGlobal.term } });
           } else {
                navigation.getParent().pop();
           }

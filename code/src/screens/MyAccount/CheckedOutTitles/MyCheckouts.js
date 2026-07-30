@@ -47,22 +47,31 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { CheckoutsContext, SystemMessagesContext } from '../../../context/initialContext';
+import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, setSortPreferences } from '../../../util/api/user';
+import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
 import { sortCheckouts } from '../../../util/api/userHelper';
 import { stripHTML } from '../../../helpers/helpers';
 import { MyCheckout } from './MyCheckout';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyCheckouts = () => {
      const isFetchingCheckouts = useIsFetching({ queryKey: ['checkouts'] });
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { user, userCheckoutSortMethod, updateUserCheckoutSortMethod } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const userCheckoutSortMethod = userState?.userCheckoutSortMethod ?? 'dueAsc';
+     const updateSortSettings = useUpdateSortSettings();
+     const updateUserProfile = useUpdateUserProfile();
+     const updateUserCheckoutSortMethod = (v) => updateSortSettings({ userCheckoutSortMethod: v });
+     const library = useLibrary();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [checkoutSource, setCheckoutSource] = React.useState('all');
      const [isLoading, setLoading] = React.useState(false);
      const [renewAll, setRenewAll] = React.useState(false);
@@ -75,7 +84,7 @@ export const MyCheckouts = () => {
      const renewConfirmationRef = React.useRef(null);
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      const toast = useToast();
 
@@ -86,8 +95,7 @@ export const MyCheckouts = () => {
           axis_360: 'Checked Out Titles for Boundless',
           cloud_library: 'Checked Out Titles for cloudLibrary',
           palace_project: 'Checked Out Titles for Palace Project',
-          all: 'Checked Out Titles',
-     });
+          all: 'Checked Out Titles' });
 
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort by Title',
@@ -96,13 +104,11 @@ export const MyCheckouts = () => {
           due_desc: 'Sort by Due Date Descending',
           format: 'Sort by Format',
           library_account: 'Sort by Library Account',
-          times_renewed: 'Sort by Times Renewed',
-     });
+          times_renewed: 'Sort by Times Renewed' });
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      useQuery(['checkouts', user.id, library.baseUrl, language], () => getPatronCheckedOutItems('all', library.baseUrl, false, language), {
@@ -281,11 +287,31 @@ export const MyCheckouts = () => {
           );
      };
 
+     const refreshUserAndCheckouts = React.useCallback(async () => {
+          const [profileResponse, checkoutsResponse] = await Promise.all([
+               refreshProfile(library.baseUrl),
+               getPatronCheckedOutItems('all', library.baseUrl, false, language),
+          ]);
+
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+
+          if (checkoutsResponse?.ok) {
+               let latestCheckouts = checkoutsResponse.data?.result?.checkedOutItems ?? [];
+               latestCheckouts = sortCheckouts(latestCheckouts, userCheckoutSortMethod);
+               updateCheckouts(latestCheckouts);
+          } else {
+               logDebugMessage('Error refreshing checkouts after checkout mutation');
+               logDebugMessage(checkoutsResponse);
+               getErrorMessage(checkoutsResponse?.code ?? 0, checkoutsResponse?.problem);
+          }
+     }, [library.baseUrl, language, updateUserProfile, userCheckoutSortMethod, updateCheckouts]);
+
      const reloadCheckouts = async () => {
           setLoading(true);
           updateCheckouts([]);
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+          await refreshUserAndCheckouts();
           setLoading(false);
      };
 
@@ -403,8 +429,7 @@ export const MyCheckouts = () => {
                                                        confirmRenewalFee: result.confirmRenewalFee ?? false,
                                                        recordId: record ?? null,
                                                        action: result.api.action,
-                                                       renewType: 'all',
-                                                  });
+                                                       renewType: 'all' });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -574,16 +599,14 @@ export const MyCheckouts = () => {
 
                                                   if (renewConfirmationResponse.renewType === 'all') {
                                                        await confirmRenewAllCheckouts(toast, library.baseUrl, language).then(async (result) => {
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                            await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
                                                             setConfirmingRenewal(false);
                                                        });
                                                   } else {
                                                        await confirmRenewCheckout(toast, renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
+                                                            await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
                                                             setConfirmingRenewal(false);

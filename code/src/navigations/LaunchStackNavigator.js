@@ -1,98 +1,114 @@
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { BrowseCategoryContext, CheckoutsContext, HoldsContext, LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext, UserContext } from '../context/initialContext';
+import { CheckoutsContext, HoldsContext, SearchContext, SystemMessagesContext } from '../context/initialContext';
+import { useCatalogStatus, useLibrary, useLibraryMenu, useLibraryUrl, useLibraryVersion } from '../hooks/useLibrarySystemData';
+import { useActiveLanguage, useAvailableLanguages, useDictionary, useLanguageDisplayName, useUpdateActiveLanguage, useUpdateAvailableLanguages, useUpdateDictionary, useUpdateLanguageDisplayName } from '../hooks/useLanguageData';
 import { LoadingScreen } from '../screens/Auth/Loading';
 import AccountDrawer from './drawer/DrawerNavigator';
+import { useTheme } from '../themes/theme';
+
+const Stack = createNativeStackNavigator();
 
 const LaunchStackNavigator = () => {
-     const Stack = createNativeStackNavigator();
      const route = useRoute();
      const refreshUserData = route.params?.refreshUserData ?? false;
+     const startupCache = route.params?.startupCache ?? null;
+
+     const { colorMode: mode, updateColorMode } = useTheme();
+     const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
+     const language = useActiveLanguage();
+     const updateLanguage = useUpdateActiveLanguage();
+     const languages = useAvailableLanguages();
+     const updateLanguages = useUpdateAvailableLanguages();
+     const dictionary = useDictionary();
+     const updateDictionary = useUpdateDictionary();
+     const languageDisplayName = useLanguageDisplayName();
+     const updateLanguageDisplayName = useUpdateLanguageDisplayName();
+     const { checkouts } = React.useContext(CheckoutsContext);
+     const { holds } = React.useContext(HoldsContext);
+     const {
+          currentIndex,
+          updateCurrentIndex,
+          currentSource,
+          updateCurrentSource,
+          indexes,
+          updateIndexes,
+          sources,
+          updateSources,
+          facets,
+          updateFacets,
+          query,
+          updateQuery,
+          sort,
+          updateSort,
+          resetSearch } = React.useContext(SearchContext);
+
+     const library = useLibrary();
+     const version = useLibraryVersion();
+     const url = useLibraryUrl();
+     const menu = useLibraryMenu();
+     const { status: catalogStatus, message: catalogStatusMessage } = useCatalogStatus();
+
      return (
-          <ThemeContext.Consumer>
-               {(mode, updateColorMode, textColor, updateTextColor) => (
-                    <SystemMessagesContext.Consumer>
-                         {(systemMessages, updateSystemMessages) => (
-                              <LanguageContext.Consumer>
-                                   {(language, updateLanguage, languages, updateLanguages, dictionary, updateDictionary, languageDisplayName, updateLanguageDisplayName) => (
-                                        <LibrarySystemContext.Consumer>
-                                             {(library, version, url, menu, catalogStatus, catalogStatusMessage) => (
-                                                  <LibraryBranchContext.Consumer>
-                                                       {(location, locations) => (
-                                                            <SearchContext.Consumer>
-                                                                 {(currentIndex, updateCurrentIndex, currentSource, updateCurrentSource, indexes, updateIndexes, sources, updateSources, facets, updateFacets, query, updateQuery, sort, updateSort, resetSearch) => (
-                                                                      <UserContext.Consumer>
-                                                                           {(user, updateUser) => (
-                                                                                <CheckoutsContext.Consumer>
-                                                                                     {(checkouts) => (
-                                                                                          <HoldsContext.Consumer>
-                                                                                               {(holds) => (
-                                                                                                    <BrowseCategoryContext.Consumer>
-                                                                                                         {(category, list, maxNum, updateMaxCategories) => (
-                                                                                                              <Stack.Navigator
-                                                                                                                   initialRouteName="LoadingScreen"
-                                                                                                                   screenOptions={{
-                                                                                                                        headerShown: false,
-                                                                                                                         headerBackButtonDisplayMode: 'minimal',
-                                                                                                                        gestureEnabled: false,
-                                                                                                                   }}>
-                                                                                                                   {refreshUserData ? (
-                                                                                                                        <Stack.Screen
-                                                                                                                             name="LoadingScreen"
-                                                                                                                             component={LoadingScreen}
-                                                                                                                             options={{
-                                                                                                                                   animation: 'none',
-                                                                                                                                  header: () => null,
-                                                                                                                             }}
-                                                                                                                        />
-                                                                                                                   ) : null}
-                                                                                                                   <Stack.Screen
-                                                                                                                        name="DrawerStack"
-                                                                                                                        component={AccountDrawer}
-                                                                                                                        options={{
-                                                                                                                             libraryContext: {
-                                                                                                                                  library,
-                                                                                                                                  version,
-                                                                                                                                  url,
-                                                                                                                                  menu,
-                                                                                                                             },
-                                                                                                                             locationContext: location,
-                                                                                                                             userContext: { user, updateUser },
-                                                                                                                             browseCategoriesContext: {
-                                                                                                                                  category,
-                                                                                                                                  list,
-                                                                                                                                  maxNum,
-                                                                                                                                  updateMaxCategories,
-                                                                                                                             },
-                                                                                                                             checkoutsContext: { checkouts },
-                                                                                                                             holdsContext: { holds },
-                                                                                                                             languageContext: { language, updateLanguage, languages, updateLanguages, dictionary, updateDictionary, languageDisplayName, updateLanguageDisplayName },
-                                                                                                                             systemMessagesContext: { systemMessages, updateSystemMessages },
-                                                                                                                             themeContext: { mode, updateColorMode },
-                                                                                                                        }}
-                                                                                                                   />
-                                                                                                              </Stack.Navigator>
-                                                                                                         )}
-                                                                                                    </BrowseCategoryContext.Consumer>
-                                                                                               )}
-                                                                                          </HoldsContext.Consumer>
-                                                                                     )}
-                                                                                </CheckoutsContext.Consumer>
-                                                                           )}
-                                                                      </UserContext.Consumer>
-                                                                 )}
-                                                            </SearchContext.Consumer>
-                                                       )}
-                                                  </LibraryBranchContext.Consumer>
-                                             )}
-                                        </LibrarySystemContext.Consumer>
-                                   )}
-                              </LanguageContext.Consumer>
-                         )}
-                    </SystemMessagesContext.Consumer>
-               )}
-          </ThemeContext.Consumer>
+          <Stack.Navigator
+               initialRouteName={refreshUserData ? 'LoadingScreen' : 'DrawerStack'}
+               screenOptions={{
+                    headerShown: false,
+                    headerBackTitleVisible: false,
+                    gestureEnabled: false }}>
+               {refreshUserData ? (
+                    <Stack.Screen
+                         name="LoadingScreen"
+                         component={LoadingScreen}
+                         options={{
+                              animationEnabled: false,
+                              header: () => null }}
+                    />
+               ) : null}
+               <Stack.Screen
+                    name="DrawerStack"
+                    component={AccountDrawer}
+                    initialParams={{ startupCache }}
+                    options={{
+                         libraryContext: {
+                              library,
+                              version,
+                              url,
+                              menu,
+                              catalogStatus,
+                              catalogStatusMessage },
+                         checkoutsContext: { checkouts },
+                         holdsContext: { holds },
+                         languageContext: {
+                              language,
+                              updateLanguage,
+                              languages,
+                              updateLanguages,
+                              dictionary,
+                              updateDictionary,
+                              languageDisplayName,
+                              updateLanguageDisplayName },
+                         systemMessagesContext: { systemMessages, updateSystemMessages },
+                         themeContext: { mode, updateColorMode },
+                         searchContext: {
+                              currentIndex,
+                              updateCurrentIndex,
+                              currentSource,
+                              updateCurrentSource,
+                              indexes,
+                              updateIndexes,
+                              sources,
+                              updateSources,
+                              facets,
+                              updateFacets,
+                              query,
+                              updateQuery,
+                              sort,
+                              updateSort,
+                              resetSearch } }}
+               />
+          </Stack.Navigator>
      );
 };
 

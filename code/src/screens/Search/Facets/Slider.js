@@ -7,13 +7,14 @@ import { ScrollView } from 'react-native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { addAppliedFilter } from '../../../util/api/searchHelper';
-import { ThemeContext } from '../../../context/initialContext';
+import { useTheme } from '../../../themes/theme';
+
 
 export const Facet_Slider = ({ data, category, updater, language }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [startValue, setStartValue] = React.useState('*');
      const [endValue, setEndValue] = React.useState('*');
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
 
      React.useEffect(() => {
           appliedStartValue();
