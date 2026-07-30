@@ -1,17 +1,12 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import React from 'react';
-import { Dimensions, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import { Dimensions } from 'react-native';
 import { DrawerContent } from './DrawerContent';
-import { useToken } from '@gluestack-ui/themed';
-import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
+import TabNavigator from '../tab/TabNavigator';
 
 const Drawer = createDrawerNavigator();
 
 const AccountDrawer = () => {
-     const insets = useSafeAreaInsets();
-     const { height: screenHeight } = Dimensions.get('window');
      return (
           <Drawer.Navigator
                initialRouteName="TabsNavigator"
@@ -27,12 +22,11 @@ const AccountDrawer = () => {
                drawerContent={(props) => <DrawerContent {...props} />}>
                <Drawer.Screen
                     name="TabsNavigator"
-                    getComponent={() => require('../tab/TabNavigator').default}
-                    screenOptions={{
+                    component={TabNavigator}
+                    options={{
                          headerShown: false,
-                         lazy: false }}
-                    options={({ props }) => ({
-                         params: { ...props } })}
+                         lazy: false,
+                    }}
                />
           </Drawer.Navigator>
      );

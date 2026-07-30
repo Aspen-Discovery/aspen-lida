@@ -11,9 +11,8 @@ module.exports = function (api) {
                          path: '.env',
                     },
                ],
-               ['react-native-reanimated/plugin'],
-               ['transform-inline-environment-variables'],
-               ['@babel/plugin-transform-class-static-block'],
+               'transform-inline-environment-variables',
+               '@babel/plugin-transform-class-static-block',
           ],
      };
 };

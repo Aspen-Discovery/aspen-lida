@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
@@ -38,7 +37,7 @@ const BrowseStackNavigator = () => {
                screenOptions={() => ({
                     headerShown: true,
                     gestureEnabled: false,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     headerBackImage: () => <BackIcon />,
                })}>
                <Stack.Screen
@@ -58,7 +57,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
@@ -76,7 +75,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -92,7 +91,7 @@ const BrowseStackNavigator = () => {
                          },
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
+                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
                          ),
                     })}
@@ -129,7 +128,7 @@ const BrowseStackNavigator = () => {
                          //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.title,
                          header: () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.title;
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                     })}
                />
@@ -139,7 +138,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
@@ -151,7 +150,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results'),
                     })}
@@ -160,9 +159,9 @@ const BrowseStackNavigator = () => {
                     name="ListResults"
                     component={SearchResultsForList}
                     options={({ route }) => ({
-                          header: () => {
+                         header: () => {
                               const title = route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results'),
                     })}
@@ -173,7 +172,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params?.title ?? getTermFromDictionary(language, 'item_details');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params?.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
@@ -186,7 +185,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.title;
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.title,
                     })}
@@ -197,7 +196,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
@@ -209,9 +208,9 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.term;
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
-                         //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.term,
+                         //                         title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.term,
                          params: {
                               pendingParams: [],
                          },
@@ -239,7 +238,7 @@ const BrowseStackNavigator = () => {
                     options={({ route }) => ({
                          header: () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'event_details');
-                              return <TitleWithLogo title={title} />
+                              return <TitleWithLogo title={title} />;
                          },
                          //title: route.params.title ?? getTermFromDictionary(language, 'event_details'),
                     })}
@@ -249,7 +248,7 @@ const BrowseStackNavigator = () => {
      );
 };
 
-const EditionsStack = createStackNavigator();
+const EditionsStack = createNativeStackNavigator();
 export const EditionsModal = () => {
      const language = useActiveLanguage();
      const { textColor } = useTheme();
@@ -309,8 +308,7 @@ const FilterModal = () => {
                screenOptions={({ navigation }) => ({
                     headerShown: true,
                     animation: 'slide_from_right',
-                    headerBackVisible: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     headerRight: () => (
                          <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
                               <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
@@ -322,7 +320,7 @@ const FilterModal = () => {
                     component={FiltersScreen}
                     options={{
                          title: getTermFromDictionary(language, 'filters'),
-                         headerBackVisible: false,
+                         headerLeft: () => null,
                     }}
                />
                <FilterModalStack.Screen

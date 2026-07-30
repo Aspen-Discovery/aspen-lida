@@ -32,8 +32,9 @@ const SelfCheckOutStackNavigator = () => {
                initialRouteName={defaultRoute}
                screenOptions={({ navigation, route }) => ({
                     headerShown: true,
-                    headerBackTitleVisible: false,
-                    gestureEnabled: false })}>
+                    headerBackButtonDisplayMode: false,
+                    gestureEnabled: false,
+               })}>
                <Stack.Screen
                     name="StartCheckOutSession"
                     component={StartCheckOutSession}

@@ -17,7 +17,7 @@ const LibraryCardStackNavigator = () => {
                initialRouteName={'LibraryCard'}
                screenOptions={{
                     headerShown: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     gestureEnabled: false,
                }}>
                <Stack.Screen
@@ -28,6 +28,7 @@ const LibraryCardStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'library_card');
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
+                         gestureEnabled: false,
                          //title: getTermFromDictionary(language, 'library_card')
                     }}
                />
@@ -39,6 +40,7 @@ const LibraryCardStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'alternate_library_card');
                               return <TitleWithLogo title={title} hideBack={false} />;
                          },
+                         gestureEnabled: false,
                          //title: getTermFromDictionary(language, 'alternate_library_card'),
                     }}
                />

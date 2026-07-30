@@ -30,7 +30,7 @@ const MoreStackNavigator = () => {
                initialRouteName="MoreMenu"
                screenOptions={({ navigation, route }) => ({
                     headerShown: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     gestureEnabled: false,
                     headerBackImage: () => <BackIcon />,
                })}>
@@ -101,16 +101,16 @@ const MoreStackNavigator = () => {
                               //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
-                   <Stack.Screen
-                       name="MyPreferences_ManagePickupLocations"
-                       component={Settings_PickupLocations}
-                       options={{
-                           header: () => {
-                               const title = getTermFromDictionary(language, 'manage_pickup_locations');
-                               return <TitleWithLogo title={title} />;
-                           },
-                       }}
-                   />
+                    <Stack.Screen
+                         name="MyPreferences_ManagePickupLocations"
+                         component={Settings_PickupLocations}
+                         options={{
+                              header: () => {
+                                   const title = getTermFromDictionary(language, 'manage_pickup_locations');
+                                   return <TitleWithLogo title={title} />;
+                              },
+                         }}
+                    />
                     <Stack.Screen
                          name="MyPreferences_Language"
                          component={Settings_LanguageScreen}
@@ -141,6 +141,7 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'support');
                                    return <TitleWithLogo title={title} />;
                               },
+                              gestureEnabled: false,
                               //title: getTermFromDictionary(language, 'support')
                          }}
                     />

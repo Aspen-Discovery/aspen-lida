@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createStackNavigator } from '@react-navigation/stack';
 import { ChevronLeftIcon, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 import { PalaceProjectInstructions } from '../../components/Action/CheckOut/PalaceProjectInstructions';
@@ -44,7 +43,7 @@ const AccountStackNavigator = () => {
                initialRouteName="MyPreferences"
                screenOptions={{
                     headerShown: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     gestureEnabled: false,
                     headerBackImage: () => <BackIcon />,
                }}>
@@ -187,7 +186,7 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title;
                                    return <TitleWithLogo title={title} />;
                               },
-                              title: route.params.title
+                              title: route.params.title,
                          })}
                     />
                     <Stack.Screen
@@ -334,7 +333,7 @@ const AccountStackNavigator = () => {
                               backgroundColor: theme['tokens']['colors']['primary']['500'],
                          },
                          headerTintColor: theme['tokens']['colors']['primary']['baseContrast'],
-                         headerBackVisible: false,
+                         headerBackButtonDisplayMode: 'minimal',
                          headerLeft: () => null,
                          headerRight: () => (
                               <Pressable onPress={() => navigation.goBack()} p="$1">
@@ -347,7 +346,7 @@ const AccountStackNavigator = () => {
                     name="LoadSavedSearch"
                     component={LoadSavedSearch}
                     options={({ route }) => ({
-                         title: route.params.name
+                         title: route.params.name,
                     })}
                />
                <Stack.Screen
@@ -379,7 +378,7 @@ const AccountStackNavigator = () => {
      );
 };
 
-const PalaceProjectStack = createStackNavigator();
+const PalaceProjectStack = createNativeStackNavigator();
 export const PalaceProjectInstructionsModal = () => {
      const language = useActiveLanguage();
      const {textColor} = useTheme();

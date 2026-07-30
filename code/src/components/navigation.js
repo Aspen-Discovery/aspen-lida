@@ -355,7 +355,7 @@ function AppContent({state}) {
                ref={navigationRef}
                fallback={<Spinner />}
                linking={{
-                    prefixes: prefix,
+                    prefixes: [prefix],
                     config: {
                          screens: {
                               Login: 'user/login',
@@ -463,7 +463,8 @@ function AppContent({state}) {
                               headerShown: true,
                               presentation: 'card',
                               gestureEnabled: false,
-                              headerBackTitleVisible: false }}
+                              headerBackButtonDisplayMode: 'minimal',
+                         }}
                     />
                </Stack.Navigator>
           </NavigationContainer>
