@@ -90,7 +90,7 @@ const EnableAccountLinking = () => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await enableAccountLinking(toast, language, library.baseUrl).then(async (r) => {
+                                             await enableAccountLinking(library.baseUrl).then(async (r) => {
                                                   await refreshLinkedAccounts();
                                                   toggle();
                                              });

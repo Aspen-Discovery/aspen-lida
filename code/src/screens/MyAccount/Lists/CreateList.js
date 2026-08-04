@@ -46,7 +46,7 @@ import {
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback/toastService';
 
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';

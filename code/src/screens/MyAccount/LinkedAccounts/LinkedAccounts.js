@@ -168,7 +168,6 @@ const Account = ({ account, type }) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { textColor } = useTheme();
-     const toast = useToast();
 
      const refreshLinkedAccounts = async () => {
           const linkedResponse = await getLinkedAccounts(library.baseUrl, language);
@@ -193,9 +192,9 @@ const Account = ({ account, type }) => {
           setIsRemoving(true);
           try {
                if (type === 'viewer') {
-                    await removeViewerAccount(toast, account.id, library.baseUrl, language);
+                    await removeViewerAccount(account.id, library.baseUrl, language);
                } else {
-                    await removeLinkedAccount(toast, account.id, library.baseUrl, language);
+                    await removeLinkedAccount(account.id, library.baseUrl, language);
                }
                await refreshLinkedAccounts();
           } catch (error) {

@@ -12,6 +12,7 @@ import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
+import { popToast } from '../../components/feedback/toastService';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -94,15 +95,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               toast.show({
-                    placement: "bottom",
-                    duration: 3000,
-                    render: ({ id }) => (
-                         <Box p="$3" bg="$error500" borderRadius="$md">
-                              <Text color="$white" bold>{error.title}</Text>
-                              <Text color="$white">{error.message}</Text>
-                         </Box>
-                    ) });
+               popToast(toast, error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -120,15 +113,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               toast.show({
-                    placement: "bottom",
-                    duration: 3000,
-                    render: ({ id }) => (
-                         <Box p="$3" bg="$error500" borderRadius="$md">
-                              <Text color="$white" bold>{error.title}</Text>
-                              <Text color="$white">{error.message}</Text>
-                         </Box>
-                    ) });
+               popToast(toast, error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -379,15 +364,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               toast.show({
-                    placement: "bottom",
-                    duration: 3000,
-                    render: ({ id }) => (
-                         <Box p="$3" bg="$error500" borderRadius="$md">
-                              <Text color="$white" bold>{error.title}</Text>
-                              <Text color="$white">{error.message}</Text>
-                         </Box>
-                    ) });
+               popToast(toast, error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }

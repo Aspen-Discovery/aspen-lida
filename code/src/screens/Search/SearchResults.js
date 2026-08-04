@@ -26,7 +26,8 @@ import moment from 'moment';
 
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { loadError, popToast } from '../../components/loadError';
+import { loadError } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
