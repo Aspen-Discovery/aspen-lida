@@ -15,6 +15,7 @@ import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
 import { useTheme } from '../../themes/theme';
+import { ModalHeader } from '../../components/Headers/ModalHeader';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,14 +66,20 @@ const SelfCheckOutStackNavigator = () => {
                     options={({ navigation }) => ({
                          presentation: 'modal',
                          title: 'Scanner',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
-                              </Pressable>
-                         ) })}
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'scanner')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) parent.goBack();
+                                        else if (navigation.canGoBack()) navigation.goBack();
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
+                         ),
+                    })}
                />
                {/*
                <Stack.Screen

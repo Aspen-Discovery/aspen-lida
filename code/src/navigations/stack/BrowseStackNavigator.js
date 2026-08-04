@@ -1,11 +1,10 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Pressable, Icon } from '@gluestack-ui/themed';
+import { Pressable, Icon, useToken } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
 import { useTheme } from '../../themes/theme';
-
 import { DiscoverHomeScreen } from '../../screens/Home/Home';
 import { EventScreen } from '../../screens/Event/Event';
 import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
@@ -24,8 +23,9 @@ import { SearchResults } from '../../screens/Search/SearchResults';
 import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { ModalHeader } from '../../components/Headers/ModalHeader';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const BrowseStackNavigator = () => {
      const language = useActiveLanguage();
@@ -70,13 +70,21 @@ const BrowseStackNavigator = () => {
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
                          presentation: 'modal',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
-                              </Pressable>
+                         header: () => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'where_is_it')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
                          ),
                     })}
                />
@@ -86,13 +94,21 @@ const BrowseStackNavigator = () => {
                     options={({ navigation }) => ({
                          title: getTermFromDictionary(language, 'ill_request_title'),
                          presentation: 'modal',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
-                              </Pressable>
+                         header: () => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'ill_request_title')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
                          ),
                     })}
                />
@@ -102,13 +118,21 @@ const BrowseStackNavigator = () => {
                     options={({ navigation }) => ({
                          title: getTermFromDictionary(language, 'ill_request_title'),
                          presentation: 'modal',
-                         headerLeft: () => {
-                              return <></>;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                   <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
-                              </Pressable>
+                         header: () => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'ill_request_title')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
                          ),
                     })}
                />
@@ -259,22 +283,6 @@ export const EditionsModal = () => {
                     headerShown: false,
                     animationTypeForReplace: 'push',
                     gestureEnabled: false,
-                    headerLeft: () => {
-                         if (route.name !== 'Editions') {
-                              return (
-                                   <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
-                                        <Icon as={MaterialIcons} name="chevron-left" size="md" />
-                                   </Pressable>
-                              );
-                         } else {
-                              return null;
-                         }
-                    },
-                    headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" color={textColor}/>
-                         </Pressable>
-                    ),
                })}>
                <EditionsStack.Screen
                     name="Editions"
@@ -283,6 +291,19 @@ export const EditionsModal = () => {
                          title: getTermFromDictionary(language, 'editions'),
                          headerShown: true,
                          presentation: 'card',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'editions')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) parent.goBack();
+                                        else if (navigation.canGoBack()) navigation.goBack();
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
+                         ),
                     }}
                />
                <EditionsStack.Screen
@@ -292,6 +313,19 @@ export const EditionsModal = () => {
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
                          presentation: 'card',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'where_is_it')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) parent.goBack();
+                                        else if (navigation.canGoBack()) navigation.goBack();
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
+                         ),
                     }}
                />
           </EditionsStack.Navigator>
@@ -301,18 +335,29 @@ export const EditionsModal = () => {
 const FilterModalStack = createNativeStackNavigator();
 const FilterModal = () => {
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { colorMode } = useTheme();
+     const iconColor = useToken('colors', colorMode === 'light' ? 'coolGray600' : 'coolGray200');
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"
                screenOptions={({ navigation }) => ({
                     headerShown: true,
                     animation: 'slide_from_right',
-                    headerBackButtonDisplayMode: 'minimal',
-                    headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr="$3" p="$1">
-                              <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
-                         </Pressable>
+                    headerTintColor: iconColor,
+                    header: ({ navigation }) => (
+                         <ModalHeader
+                              onBack={() => navigation.goBack()}
+                              onClose={() => {
+                                   const parent = navigation.getParent();
+                                   if (parent?.canGoBack()) {
+                                        parent.goBack();
+                                   } else if (navigation.canGoBack()) {
+                                        navigation.goBack();
+                                   }
+                              }}
+                              showBack={false}
+                              showClose={true}
+                         />
                     ),
                })}>
                <FilterModalStack.Screen
@@ -320,7 +365,24 @@ const FilterModal = () => {
                     component={FiltersScreen}
                     options={{
                          title: getTermFromDictionary(language, 'filters'),
-                         headerLeft: () => null,
+                         headerBackVisible: false,
+                         headerBackButtonDisplayMode: 'minimal',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'filters')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
+                         ),
                     }}
                />
                <FilterModalStack.Screen
@@ -328,21 +390,75 @@ const FilterModal = () => {
                     component={Facet}
                     options={({ route }) => ({
                          title: route.params.title,
+                         headerBackVisible: false,
+                         headerBackButtonDisplayMode: 'minimal',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={route.params.title}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={true}
+                                   showClose={true}
+                              />
+                         ),
                     })}
                />
                <FilterModalStack.Screen
                     name="SearchSource"
                     component={SearchSourceScreen}
-                    options={{
+                    options={( { route }) => ({
                          title: getTermFromDictionary(language, 'search_in'),
-                    }}
+                         headerBackVisible: true,
+                         headerBackButtonDisplayMode: 'minimal',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={route.params.title}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={true}
+                                   showClose={true}
+                              />
+                         ),
+                    })}
                />
                <FilterModalStack.Screen
                     name="SearchIndex"
                     component={SearchIndexScreen}
-                    options={{
+                    options={( { route } ) => ({
                          title: getTermFromDictionary(language, 'search_by'),
-                    }}
+                         headerBackVisible: true,
+                         headerBackButtonDisplayMode: 'minimal',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={route.params.title}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) {
+                                             parent.goBack();
+                                        } else if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        }
+                                   }}
+                                   showBack={true}
+                                   showClose={true}
+                              />
+                         ),
+                    })}
                />
           </FilterModalStack.Navigator>
      );
