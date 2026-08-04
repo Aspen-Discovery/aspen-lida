@@ -1,6 +1,7 @@
 import React from 'react';
 import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, Button, ButtonText, ButtonIcon, Center } from '@gluestack-ui/themed';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useUserState } from '../../hooks/useUserData';
 import { TrashIcon } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -9,6 +10,9 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { removeTitlesFromList } from '../../util/api/list';
 import AddToList from './AddToList';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -16,11 +20,11 @@ export const DisplayListResult = (props) => {
      const item = props.data;
      const isUserList = props.isUserList;
      const listId = props.listId;
-     const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const language = useActiveLanguage();
+     const library = useLibrary();
      const queryClient = useQueryClient();
 
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -37,16 +41,14 @@ export const DisplayListResult = (props) => {
                          id: item.id,
                          title: item.title_display,
                          url: library.baseUrl,
-                         prevRoute: 'SearchByList',
-                    });
+                         prevRoute: 'SearchByList' });
                } else {
                     navigateStack('BrowseTab', 'ListResultItem', {
                          id: item.id,
                          title: getCleanTitle(item.title_display),
                          url: library.baseUrl,
                          libraryContext: library,
-                         prevRoute: 'SearchByList',
-                    });
+                         prevRoute: 'SearchByList' });
                }
           }
      };
@@ -62,8 +64,7 @@ export const DisplayListResult = (props) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -74,8 +75,7 @@ export const DisplayListResult = (props) => {
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                        }}>
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                         <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
                                              {item.language}
                                         </BadgeText>

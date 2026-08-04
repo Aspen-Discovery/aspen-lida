@@ -30,8 +30,9 @@ import { loadError, popToast } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
+import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import {navigate, navigateStack} from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS, SearchGlobal } from '../../util/globals';
@@ -42,6 +43,9 @@ import { setDefaultFacets } from '../../util/api/searchHelper';
 import AddToList from './AddToList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -50,11 +54,11 @@ export const SearchResults = () => {
      const route = useRoute();
      const [page, setPage] = React.useState(1);
      const [storedTerm, setStoredTerm] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { scope } = React.useContext(LibraryBranchContext);
-     const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+      const library = useLibrary();
+      const language = useActiveLanguage();
+      const scope = useLibraryScope();
+      const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
+     const { theme, textColor, colorMode } = useTheme();
      const url = library.baseUrl;
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
 
@@ -120,8 +124,7 @@ export const SearchResults = () => {
                               id: result.key,
                               title: getCleanTitle(result.title),
                               url: library.baseUrl,
-                              libraryContext: library,
-                         });
+                              libraryContext: library });
                     }
                }
           },
@@ -213,7 +216,7 @@ export const SearchResults = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
@@ -229,9 +232,9 @@ export const SearchResults = () => {
 
 const DisplayResult = (data) => {
      const item = data.data;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const toast = useToast();
@@ -253,16 +256,14 @@ const DisplayResult = (data) => {
                          id: item.key,
                          title: getCleanTitle(item.title),
                          url: library.baseUrl,
-                         source: eventSource,
-                    });
+                         source: eventSource });
                }
           } else {
                navigate('GroupedWorkScreen', {
                     id: item.key,
                     title: getCleanTitle(item.title),
                     url: library.baseUrl,
-                    libraryContext: library,
-               });
+                    libraryContext: library });
           }
      };
 
@@ -291,8 +292,7 @@ const DisplayResult = (data) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     logDebugMessage(res);
@@ -377,8 +377,7 @@ const DisplayResult = (data) => {
                                         style={{
                                              width: '100%',
                                              height: '100%',
-                                             borderRadius: "$sm",
-                                        }}
+                                             borderRadius: "$sm" }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
@@ -431,8 +430,7 @@ const DisplayResult = (data) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -442,13 +440,11 @@ const DisplayResult = (data) => {
                               <Center
                                    mt="$1"
                                    sx={{
-                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                   }}>
+                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                    <Badge
                                         size="$sm"
                                         sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900",
-                                        }}>
+                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
                                         <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
                                              {item.language}
                                         </BadgeText>
@@ -476,9 +472,9 @@ const DisplayResult = (data) => {
 };
 
 const FilterBar = ({ navigation }) => {
-     const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
      const type = useRoute().params.type ?? 'catalog';
 
      if (navigation === undefined) {
@@ -492,8 +488,7 @@ const FilterBar = ({ navigation }) => {
                     paddingBottom="$0"
                     sx={{
                          bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-                         borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
-                    }}
+                         borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600" }}
                     flexWrap="nowrap">
                     <ScrollView horizontal>
                          <Button
@@ -505,9 +500,7 @@ const FilterBar = ({ navigation }) => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
                                         params: {
-                                             pendingUpdates: [],
-                                        },
-                                   });
+                                             pendingUpdates: [] } });
                               }}>
                               <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
                               <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
@@ -520,8 +513,8 @@ const FilterBar = ({ navigation }) => {
 };
 
 const SearchBox = ({term, navigation}) => {
-     const { language } = React.useContext(LanguageContext);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { colorMode, textColor } = useTheme();
      const [searchTerm, setSearchTerm] = React.useState(term);
 
      const openScanner = async () => {
@@ -540,8 +533,7 @@ const SearchBox = ({term, navigation}) => {
      return (
          <Box padding="$2" sx={{
               bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-              borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600",
-         }} borderBottomWidth="$1">
+              borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600" }} borderBottomWidth="$1">
               <FormControl pb="$5">
                    <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
                         <InputSlot>
@@ -564,9 +556,9 @@ const SearchBox = ({term, navigation}) => {
 
 const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
-     const { location } = React.useContext(LibraryBranchContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const location = useLibraryLocation();
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
 
      const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
      const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
@@ -616,8 +608,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                    size="sm"
                                    variant="outline"
                                    sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
-                                   }}
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400" }}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -627,9 +618,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                                   title: obj['label'],
                                                   facets: SearchGlobal.availableFacets[obj['label']].facets,
                                                   pendingUpdates: [],
-                                                  extra: obj,
-                                             },
-                                        });
+                                                  extra: obj } });
                                    }}>
                                    <ButtonText color={textColor}>{label}</ButtonText>
                               </Button>
@@ -642,8 +631,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                               size="sm"
                               variant="outline"
                               sx={{
-                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$warmGray400",
-                              }}
+                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$warmGray400" }}
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Facet',
@@ -653,9 +641,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                              title: obj['label'],
                                              facets: SearchGlobal.availableFacets[obj['label']].facets,
                                              pendingUpdates: [],
-                                             extra: obj,
-                                        },
-                                   });
+                                             extra: obj } });
                               }}>
                               <ButtonText color={textColor}>{obj['label']}</ButtonText>
                          </Button>
@@ -667,12 +653,11 @@ const CreateFilterButtonDefaults = ({navigation}) => {
 
 const CreateFilterButton = ({navigation}) => {
      const { currentSource } = React.useContext(SearchContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const appliedFacets = SearchGlobal.appliedFilters;
      const sort = _.find(appliedFacets['Sort By'], {
           field: 'sort_by',
-          value: 'relevance',
-     });
+          value: 'relevance' });
 
      if ((_.size(appliedFacets) > 0 && _.size(sort) === 0) || (_.size(appliedFacets) >= 1 && _.size(sort) > 1) || (_.size(appliedFacets) >= 1 && currentSource === 'events')) {
           return (
@@ -698,8 +683,7 @@ const CreateFilterButton = ({navigation}) => {
                                    size="sm"
                                    key={index}
                                    sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400",
-                                   }}
+                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400" }}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -711,9 +695,7 @@ const CreateFilterButton = ({navigation}) => {
                                                   title: cluster[0]['label'],
                                                   facets: item[0]['facets'],
                                                   pendingUpdates: [],
-                                                  extra: cluster[0],
-                                             },
-                                        });
+                                                  extra: cluster[0] } });
                                    }}>
                                    <ButtonText color={textColor}>{label}</ButtonText>
                               </Button>
@@ -730,8 +712,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutFast,
-          language,
-     });
+          language });
 
      const params = {
           library: scope ?? null,
@@ -744,8 +725,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
           includeSortList: true,
           source,
           searchIndex: index,
-          barcodeType,
-     };
+          barcodeType };
 
      logDebugMessage('fetchSearchResults: ' + SearchGlobal.appendedParams);
 
@@ -782,8 +762,7 @@ async function fetchSearchResults(term, page, scope, url, type, id, language, in
           index: data?.result?.searchIndex ?? 'Keyword',
           term,
           message: data.data?.message ?? null,
-          error: data.data?.error?.message ?? false,
-     };
+          error: data.data?.error?.message ?? false };
 }
 
 function getSortLabel(payload = '') {

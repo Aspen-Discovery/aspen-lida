@@ -125,20 +125,30 @@ export async function getCatalogStatus(url = null) {
  * @returns {Promise<*|*[]>}
  */
 export async function getAppSettings(toast, url, timeout, slug) {
-     if (LIBRARY.appSettings != null && LIBRARY.appSettings.length > 0 && LIBRARY.appSettingsUrl === url && LIBRARY.appSettingsSlug === slug) {
-          return LIBRARY.appSettings;
-     }
-     logDebugMessage(`Getting App Settings from url: ${url} slug: ${slug}`);
+     const APPSETTINGS_STALE_MS = 48 * 60 * 60 * 1000; // 48 hours
 
      try {
+          // Check SQLite cache first
+          const { loadAppSettings, saveAppSettings } = require('../db');
+          const cached = await loadAppSettings();
+
+          if (cached?.settings && cached.urlCache === url && cached.slugCache === slug) {
+               const cacheAgeMs = Date.now() - (cached?.updatedAt ?? 0);
+               if (cacheAgeMs < APPSETTINGS_STALE_MS) {
+                    logDebugMessage(`Using cached app settings for url: ${url} slug: ${slug} (cache age: ${cacheAgeMs}ms)`);
+                    return cached.settings;
+               }
+          }
+
+          logDebugMessage(`Getting App Settings from url: ${url} slug: ${slug}`);
+
           const client = createApiClient({ url, timeout });
           const response = await client.get('/SystemAPI?method=getAppSettings', { slug });
 
           if (response?.ok) {
-               LIBRARY.appSettings = response.data?.result?.settings ?? [];
-               LIBRARY.appSettingsUrl = url;
-               LIBRARY.appSettingsSlug = slug;
-               return LIBRARY.appSettings;
+               const settings = response.data?.result?.settings ?? [];
+               await saveAppSettings(settings, url, slug);
+               return settings;
           }
 
           logWarnMessage(`Did not get valid response from getAppSettings url: ${url} slug: ${slug}`);
@@ -201,15 +211,18 @@ export async function getLocationInfo(url = null, locationId = null) {
 /**
  * Return self check settings for the library
  * @param url
+ * @param locationIdOverride
  * @returns {Promise<*|{ok: boolean, status, problem: string, data, config: {}}|undefined>}
  */
-export async function getSelfCheckSettings(url = null) {
-     let locationId;
+export async function getSelfCheckSettings(url = null, locationIdOverride = null) {
+     let locationId = locationIdOverride;
 
-     try {
-          locationId = await AsyncStorage.getItem('@locationId');
-     } catch (e) {
-          logDebugMessage(e);
+     if (locationId === null || typeof locationId === 'undefined' || locationId === '') {
+          try {
+               locationId = await AsyncStorage.getItem('@locationId');
+          } catch (e) {
+               logDebugMessage(e);
+          }
      }
 
      const client = createApiClient({ url, timeout: GLOBALS.timeoutFast });
@@ -217,6 +230,35 @@ export async function getSelfCheckSettings(url = null) {
      return await client.get('/SystemAPI?method=getSelfCheckSettings', {
           locationId,
      });
+}
+
+export function normalizeBooleanLike(value) {
+     if (value === true || value === 1 || value === '1') return true;
+     if (value === false || value === 0 || value === '0') return false;
+     if (typeof value === 'string') {
+          const lowered = value.toLowerCase();
+          if (lowered === 'true') return true;
+          if (lowered === 'false') return false;
+     }
+     return undefined;
+}
+
+export function resolveSelfCheckEnabled(result = {}) {
+     const candidates = [
+          result?.settings?.isEnabled,
+          result?.settings?.enableSelfCheck,
+          result?.isEnabled,
+          result?.enableSelfCheck,
+     ];
+
+     for (const candidate of candidates) {
+          const normalized = normalizeBooleanLike(candidate);
+          if (typeof normalized === 'boolean') {
+               return normalized;
+          }
+     }
+
+     return undefined;
 }
 
 /**
@@ -323,7 +365,7 @@ export async function getThemeInfo(toast, url = null) {
      await getAppSettings(toast, libraryUrl, 10000, GLOBALS.slug);
 
      const client = createApiClient({
-          url: GLOBALS.url,
+          url: libraryUrl,
           timeout: 10000,
      });
 

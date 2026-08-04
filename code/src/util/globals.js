@@ -52,39 +52,6 @@ export const LOGIN_DATA = {
      themeSaved: false,
 };
 
-export const PATRON = {
-     userToken: null,
-     scope: null,
-     library: null,
-     location: null,
-     listLastUsed: null,
-     fines: 0,
-     messages: [],
-     num: {
-          checkedOut: 0,
-          holds: 0,
-          lists: 0,
-          overdue: 0,
-          ready: 0,
-          savedSearches: 0,
-          updatedSearches: 0,
-     },
-     promptForOverdriveEmail: 1,
-     rememberHoldPickupLocation: 0,
-     pickupLocations: [],
-     language: 'en',
-     coords: {
-          lat: null,
-          long: null,
-     },
-     linkedAccounts: [],
-     holds: [],
-     lists: [],
-     browseCategories: [],
-     sublocations: [],
-     hideSoftDeleteListUI: false,
-};
-
 
 export const SearchGlobal = {
      term: null,

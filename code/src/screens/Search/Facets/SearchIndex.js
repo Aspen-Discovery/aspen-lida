@@ -1,19 +1,19 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
 import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { ScrollView } from 'react-native';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { SearchContext } from '../../../context/initialContext';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";
+import { useTheme } from '../../../themes/theme';
 
 // custom components and helper files
 
 export const SearchIndexScreen = () => {
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
      const { currentIndex, indexes, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
 
      logDebugMessage('currentIndex: ' + currentIndex);
@@ -23,8 +23,7 @@ export const SearchIndexScreen = () => {
                term: SearchGlobal.term,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
      };
 
      const updateIndex = async (index) => {

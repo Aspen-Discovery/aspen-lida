@@ -1,5 +1,6 @@
 import { createApiClient } from './apiFactory';
-import { GLOBALS, PATRON } from '../globals';
+import { GLOBALS } from '../globals';
+import { saveSublocations } from '../db';
 import { popAlert, popToast } from '../../components/loadError';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import {logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../logging.js';
@@ -547,9 +548,10 @@ export async function getPickupLocations(url = null, groupedWorkId = null, recor
 /**
  * Fetch valid pickup sublocations/areas for the patron based on the selected pickup location
  * @param url
+ * @param {{ persist?: boolean }} options - When false, fetches sublocations without writing them to SQLite.
  * @returns {Promise<*[]>}
  */
-export async function getPickupSublocations(url = null) {
+export async function getPickupSublocations(url = null, { persist = true } = {}) {
      const client = userClient(url, GLOBALS.timeoutAverage);
      const response = await client.post('/UserAPI?method=getValidSublocations', {});
 
@@ -560,7 +562,9 @@ export async function getPickupSublocations(url = null) {
           sublocations = typeof data === 'object' && data !== null ? data : [];
      }
 
-     PATRON.sublocations = sublocations;
+     if (persist) {
+          await saveSublocations(sublocations);
+     }
      return sublocations;
 }
 
@@ -1528,7 +1532,7 @@ export async function saveLanguage(code, url = null, language = 'en') {
      );
 
      if (response.ok) {
-          PATRON.language = code;
+          GLOBALS.language = code;
           return true;
      }
 

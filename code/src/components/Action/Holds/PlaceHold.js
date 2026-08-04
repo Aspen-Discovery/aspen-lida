@@ -4,18 +4,22 @@ import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/theme
 import React from 'react';
 
 // custom components and helper files
-import { HoldsContext, LibraryBranchContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { HoldsContext } from '../../../context/initialContext';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { refreshProfile } from '../../../util/api/user';
 import { completeAction } from '../../../util/api/userHelper';
 import { HoldPrompt } from './HoldPrompt';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
+import { useTheme } from '../../../themes/theme';
 
-export const PlaceHold = (props) => {
+export const PlaceHold = (props = {}) => {
      const queryClient = useQueryClient();
      const {
           id,
           type,
-          volumeInfo,
+          volumeInfo = {},
           volumeId,
           volumeName,
           title,
@@ -45,13 +49,30 @@ export const PlaceHold = (props) => {
           userHasAlternateLibraryCard,
           shouldPromptAlternateLibraryCard
      } = props;
-     const { user, accounts, locations, preferredPickupLocationIsValid} = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
-     const [loading, setLoading] = React.useState(false);
-     const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { theme } = React.useContext(ThemeContext);
-     const toast = useToast();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+      const library = useLibrary();
+      const [loading, setLoading] = React.useState(false);
+     const holdsContext = React.useContext(HoldsContext) ?? {};
+     const holds = holdsContext.holds ?? [];
+     const { theme } = useTheme() ?? {};
+     const primary500 = theme?.tokens?.colors?.primary?.['500'] ?? '$primary500';
+     const primary500Text = theme?.tokens?.colors?.primary?.['500-text'] ?? '$primary500-text';
+      const toast = useToast();
+      const safeLocations = _.isArray(locations) ? locations : [];
+      const safeAccounts = _.isArray(accounts) ? accounts : [];
+      const numItemsWithVolumes = _.toNumber(volumeInfo?.numItemsWithVolumes ?? 0);
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
      if (_.isNumber(user.pickupLocationId)) {
@@ -59,8 +80,8 @@ export const PlaceHold = (props) => {
      }
 
      let pickupLocation = '';
-     if (_.size(locations) > 1) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
+     if (_.size(safeLocations) > 1) {
+          const userPickupLocation = _.filter(safeLocations, { locationId: userPickupLocationId });
           if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
                pickupLocation = userPickupLocation[0];
                if (_.isObject(pickupLocation)) {
@@ -68,7 +89,7 @@ export const PlaceHold = (props) => {
                }
           }
      } else {
-          pickupLocation = locations[0];
+          pickupLocation = safeLocations[0];
           if (_.isObject(pickupLocation)) {
                pickupLocation = pickupLocation.code;
           }
@@ -84,13 +105,13 @@ export const PlaceHold = (props) => {
      if (!preferredPickupLocationIsValid) {
           logDebugMessage("Showing Hold Prompt because the user's preferred pickup location is invalid");
           loadHoldPrompt = true;
-     }else if (volumeInfo.numItemsWithVolumes >= 1 && _.isEmpty(volumeId)) {
+     }else if (numItemsWithVolumes >= 1 && _.isEmpty(volumeId)) {
           logDebugMessage("Showing Hold Prompt to select volume");
           loadHoldPrompt = true;
-     }else if (_.size(accounts) > 0) {
+     }else if (_.size(safeAccounts) > 0) {
           logDebugMessage("Showing Hold Prompt due to linked accounts");
           loadHoldPrompt = true;
-     }else if (_.size(locations) > 1 && user.rememberHoldPickupLocation == 0) {
+     }else if (_.size(safeLocations) > 1 && user.rememberHoldPickupLocation == 0) {
           logDebugMessage("Showing Hold Prompt due to having locations user.rememberHoldPickupLocation = " + user.rememberHoldPickupLocation);
           loadHoldPrompt = true;
      }else if (promptForHoldNotifications) {
@@ -128,7 +149,7 @@ export const PlaceHold = (props) => {
           if (_.isNumber(user.pickupLocationId)) {
                userPickupLocationId = _.toString(user.pickupLocationId);
           }
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
+          const userPickupLocation = _.filter(safeLocations, { locationId: userPickupLocationId });
           let pickupLocation = '';
           if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
                pickupLocation = userPickupLocation[0];
@@ -190,7 +211,7 @@ export const PlaceHold = (props) => {
                <>
                     <Button
                          size="md"
-                         bgColor={theme.tokens.colors.primary['500']}
+                         bgColor={primary500}
                          variant="solid"
                          minWidth="100%"
                          maxWidth="100%"
@@ -205,8 +226,7 @@ export const PlaceHold = (props) => {
                                              title: ilsResponse.api?.title ?? ilsResponse.title,
                                              confirmationNeeded: ilsResponse.confirmationNeeded ?? false,
                                              confirmationId: ilsResponse.confirmationId ?? null,
-                                             recordId: record ?? null,
-                                        });
+                                             recordId: record ?? null });
                                    }
                                    if (ilsResponse?.shouldBeItemHold && ilsResponse.shouldBeItemHold) {
                                         setHoldSelectItemResponse({
@@ -215,19 +235,18 @@ export const PlaceHold = (props) => {
                                              patronId: user.id,
                                              pickupLocation: pickupLocation,
                                              bibId: record ?? null,
-                                             items: ilsResponse.items ?? [],
-                                        });
+                                             items: ilsResponse.items ?? [] });
                                    }
 
                                    if (ilsResponse?.success === true || ilsResponse?.success === 'true') {
                                         //Refresh the hold and user if the hold was successful
                                         queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                        queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                        await refreshAndSaveUserProfile();
 
                                         const timeoutId = setTimeout(() => {
                                              // Also refresh in 45 seconds for Sierra since hold can take a minute to show up on the account
                                              queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                                             queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                             refreshAndSaveUserProfile();
                                         }, 45 * 1000);
                                    }
 
@@ -242,9 +261,9 @@ export const PlaceHold = (props) => {
                               });
                          }}>
                          {loading ? (
-                              <ButtonSpinner color={theme.tokens.colors.primary['500-text']} />
+                              <ButtonSpinner color={primary500Text} />
                          ) : (
-                              <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
+                              <ButtonText color={primary500Text} textAlign="center">
                                    {title}
                               </ButtonText>
                          )}

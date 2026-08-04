@@ -3,27 +3,30 @@ import { Pressable, Icon } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 
-import { LanguageContext, UserContext, ThemeContext } from '../../context/initialContext';
+
+import { useAccounts } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { StartCheckOutSession } from '../../screens/SCO/StartCheckOutSession';
 import { SelfCheckOut } from '../../screens/SCO/SelfCheckOut';
 /*import { FinishCheckOutSession } from '../../screens/SCO/FinishSelfCheckoutSession';*/
 import _ from 'lodash';
 import SelfCheckScanner from '../../screens/SCO/SelfCheckScanner';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
+import { useTheme } from '../../themes/theme';
+
+const Stack = createNativeStackNavigator();
 
 const SelfCheckOutStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { accounts } = React.useContext(UserContext);
-     const {textColor} = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { data: accounts } = useAccounts();
+     const {textColor} = useTheme();
 
      let defaultRoute = 'SelfCheckOut';
      if (_.size(accounts) >= 1) {
           defaultRoute = 'StartCheckOutSession';
      }
-
-     const Stack = createNativeStackNavigator();
      return (
           <Stack.Navigator
                initialRouteName={defaultRoute}
@@ -69,8 +72,7 @@ const SelfCheckOutStackNavigator = () => {
                               <Pressable onPress={() => navigation.goBack()} mr="$3" p="$1">
                                    <Icon as={MaterialIcons} name="close" size="md" color={textColor} />
                               </Pressable>
-                         ),
-                    })}
+                         ) })}
                />
                {/*
                <Stack.Screen

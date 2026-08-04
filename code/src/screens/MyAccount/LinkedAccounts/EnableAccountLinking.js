@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import {
      Button,
      ButtonText,
@@ -16,17 +15,25 @@ import {
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../../context/initialContext';
+
+import { useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { enableAccountLinking } from '../../../util/api/user';
+import { enableAccountLinking, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
+import { formatLinkedAccounts } from '../../../util/api/userHelper';
+import { toArray } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 // custom components and helper files
 
 const EnableAccountLinking = () => {
-     const queryClient = useQueryClient();
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const updateUserProfile = useUpdateUserProfile();
+     const updateAccounts = useUpdateAccounts();
+     const updateViewers = useUpdateViewers();
+     const { textColor, theme, colorMode } = useTheme();
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
      const toast = useToast();
@@ -37,9 +44,22 @@ const EnableAccountLinking = () => {
      };
 
      const refreshLinkedAccounts = async () => {
-          queryClient.invalidateQueries({ queryKey: ['linked_accounts', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['viewer_accounts', library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          const linkedResponse = await getLinkedAccounts(library.baseUrl, language);
+          if (linkedResponse?.ok) {
+               const formatted = formatLinkedAccounts({}, [], library.barcodeStyle, linkedResponse.data.result.linkedAccounts);
+               await updateAccounts(formatted.accounts);
+          }
+
+          const viewerResponse = await getViewerAccounts(library.baseUrl, language);
+          if (viewerResponse?.ok) {
+               const viewerList = toArray(viewerResponse.data?.result?.viewers ?? []);
+               await updateViewers(viewerList);
+          }
+
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
      };
 
      return (

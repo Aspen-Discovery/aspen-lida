@@ -17,22 +17,23 @@ import {
      ModalBody,
      ModalFooter,
      Text,
-     Icon, CloseIcon, ModalCloseButton,
-} from '@gluestack-ui/themed';
+     Icon, CloseIcon, ModalCloseButton } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary, getTranslation, getTranslationsWithValues } from '../../translations/TranslationService';
 import { stripHTML } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { useKeyboard } from '../../hooks/hooks';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { forgotBarcode } from '../../util/api/user';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 export const ForgotBarcode = (props) => {
      const isKeyboardOpen = useKeyboard();
-     const { theme, textColor, colorMode }= React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { theme, textColor, colorMode }= useTheme();
+     const library = useLibrary();
      const { usernameLabel, showForgotBarcodeModal, setShowForgotBarcodeModal } = props;
      const [isProcessing, setIsProcessing] = React.useState(false);
      const language = 'en';

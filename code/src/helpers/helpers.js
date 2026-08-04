@@ -1,5 +1,5 @@
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../util/logging';
-import { LIBRARY, LOGIN_DATA, PATRON, GLOBALS } from '../util/globals';
+import { LIBRARY, LOGIN_DATA, GLOBALS } from '../util/globals';
 import { decode } from 'html-entities';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,8 +37,21 @@ export function formatDiscoveryVersion(payload) {
 
 /**
  * Logout the user and clean up data
+ * @param {object} queryClient - React Query client for invalidating queries
+ * @param {boolean} preserveUsername - If true, keeps @userBarcode for convenience on login screen
  **/
-export async function RemoveData(queryClient, updateUser) {
+export async function RemoveData(queryClient, preserveUsername = true) {
+     let savedUsername = null;
+
+     // Preserve username for user convenience on next login
+     if (preserveUsername) {
+          try {
+               savedUsername = await AsyncStorage.getItem('@userBarcode');
+          } catch (e) {
+               logWarnMessage('Failed to read @userBarcode before logout');
+          }
+     }
+
      try {
           logDebugMessage('Removing Data in secure storage');
           SecureStore.deleteItemAsync('patronName');
@@ -53,50 +66,26 @@ export async function RemoveData(queryClient, updateUser) {
           SecureStore.deleteItemAsync('userToken');
           SecureStore.deleteItemAsync('logo');
           SecureStore.deleteItemAsync('favicon');
+
           logDebugMessage('Removing Data in async storage');
           await AsyncStorage.removeItem('@userToken');
           await AsyncStorage.removeItem('@patronProfile');
           await AsyncStorage.removeItem('@libraryInfo');
           await AsyncStorage.removeItem('@locationInfo');
           await AsyncStorage.removeItem('@pathUrl');
-          logDebugMessage('Invalidating Queries');
      } catch (e) {
           logErrorMessage('Error clearing storage');
           logErrorMessage(e);
      }
 
      logDebugMessage('Clearing Context information');
+     // Keep LIBRARY global clear for backwards compatibility
      LIBRARY.url = null;
      LIBRARY.name = null;
      LIBRARY.favicon = null;
      LIBRARY.version = GLOBALS.appVersion;
      LIBRARY.languages = [];
      LIBRARY.localIll = [];
-     PATRON.userToken = null;
-     PATRON.scope = null;
-     PATRON.library = null;
-     PATRON.location = null;
-     PATRON.listLastUsed = null;
-     PATRON.fines = 0;
-     PATRON.messages = [];
-     PATRON.num.checkedOut = 0;
-     PATRON.num.holds = 0;
-     PATRON.num.lists = 0;
-     PATRON.num.overdue = 0;
-     PATRON.num.ready = 0;
-     PATRON.num.savedSearches = 0;
-     PATRON.num.updatedSearches = 0;
-     PATRON.promptForOverdriveEmail = 1;
-     PATRON.rememberHoldPickupLocation = 0;
-     PATRON.pickupLocations = [];
-     PATRON.sublocations = [];
-     PATRON.language = 'en';
-     PATRON.hideSoftDeleteListUI = false;
-     PATRON.coords.lat = 0;
-     PATRON.coords.long = 0;
-     PATRON.linkedAccounts = [];
-     PATRON.holds = [];
-     PATRON.checkouts = [];
      LOGIN_DATA.showSelectLibrary = true;
      LOGIN_DATA.runGreenhouse = true;
      LOGIN_DATA.num = 0;
@@ -115,16 +104,30 @@ export async function RemoveData(queryClient, updateUser) {
           logErrorMessage('Error invalidating all queries');
           logErrorMessage(e);
      }
-     try {
-          if (updateUser !== null) {
-               updateUser({});
-          }
-     } catch (e) {
-          logErrorMessage('Error clearing user');
-          logErrorMessage(e);
-     }
 
-     logDebugMessage('Storage data cleansed.');
+      try {
+           const { clearAllUserData, resetAllLibrarySystemData, resetAllLibraryBranchData } = require('../util/db');
+           await clearAllUserData();
+           await resetAllLibrarySystemData();
+           await resetAllLibraryBranchData();
+           logDebugMessage('Cleared all SQLite data');
+      } catch (e) {
+           logErrorMessage('Error clearing data from SQLite');
+           logErrorMessage(e);
+      }
+
+      // Restore username if it was preserved for user convenience
+      if (preserveUsername && savedUsername) {
+           try {
+                await AsyncStorage.setItem('@userBarcode', savedUsername);
+                logDebugMessage('Preserved username for next login');
+           } catch (e) {
+                logWarnMessage('Failed to preserve username for next login');
+                logErrorMessage(e);
+           }
+      }
+
+      logDebugMessage('Storage data cleansed.');
 }
 
 /** *******************************************************************
@@ -183,6 +186,27 @@ export function toArray(values) {
      if (Array.isArray(values)) return values;
      if (values && typeof values === 'object') return Object.values(values);
      return [values];
+}
+
+/**
+ * Returns true when the value is a non-null object and not an array.
+ */
+export function isPlainObject(value) {
+     return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Truncate a string to a maximum length, appending an omission suffix if truncated.
+ * Mirrors lodash _.truncate behaviour: the omission counts toward maxLength.
+ * @param {string|null|undefined} str
+ * @param {number} maxLength
+ * @param {string} omission
+ * @returns {string}
+ */
+export function truncate(str, maxLength, omission = '...') {
+     if (str == null) return '';
+     if (str.length <= maxLength) return str;
+     return str.slice(0, maxLength - omission.length) + omission;
 }
 
 /**
@@ -250,6 +274,20 @@ export function orderByFields(items, iteratees = [], orders = []) {
 /** *******************************************************************
  * Manipulate and format dates (replacing moment.js)
  ******************************************************************* **/
+/**
+ * Format a Unix timestamp (seconds) to a "MMM D, YYYY" string, e.g. "Jan 4, 2024".
+ * Returns an empty string for falsy or invalid input.
+ * @param {number|string} unixTimestamp - Unix timestamp in seconds
+ * @returns {string}
+ */
+export function formatUnixDate(unixTimestamp) {
+     if (!unixTimestamp) return '';
+     const date = new Date(Number(unixTimestamp) * 1000);
+     if (isNaN(date.getTime())) return '';
+     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
 /**
  * Format a date as a local YYYY-MM-DD string, ensuring that the month and day are zero-padded to two digits.
  * @param date
@@ -353,14 +391,19 @@ export function generateSwatches(swatch) {
 export const getColorNumber = (index) => (index === 0 ? 50 : index * 100);
 
 export const getContrastText = (color) => {
+     const WCAG_AA_THRESHOLD = 4.5; // WCAG AA minimum for normal text
      let ratioOnWhite = chroma.contrast(color, '#ffffff');
      let ratioOnBlack = chroma.contrast(color, '#000000');
 
-     if (ratioOnBlack > ratioOnWhite) {
+     if (ratioOnBlack >= WCAG_AA_THRESHOLD) {
           return '#000000';
-     } else {
+     }
+
+     if (ratioOnWhite >= WCAG_AA_THRESHOLD) {
           return '#ffffff';
      }
+
+     return ratioOnBlack > ratioOnWhite ? '#000000' : '#ffffff';
 };
 
 /** *******************************************************************

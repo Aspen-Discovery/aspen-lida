@@ -21,9 +21,9 @@ import {config} from '@gluestack-ui/config';
 
 // Import all contexts used by the component to mock them
 import {
-     UserContext, LibrarySystemContext, LibraryBranchContext,
-     BrowseCategoryContext, LanguageContext, SystemMessagesContext, ThemeContext
+     SystemMessagesContext
 } from '../src/context/initialContext';
+import { AuthContext } from '../src/context/AuthContext';
 
 const {act} = require('@testing-library/react-native');
 
@@ -39,40 +39,6 @@ const createTestQueryClient = () => new QueryClient({
 });
 
 const mockContextValues = {
-     user: {
-          user: {},
-          updateUser: jest.fn(),
-          accounts: [],
-          updateLinkedAccounts: jest.fn(),
-          cards: [],
-          updateLibraryCards: jest.fn(),
-          updateAppPreferences: jest.fn(),
-          notificationHistory: [],
-          updateNotificationHistory: jest.fn(),
-          updateInbox: jest.fn()
-     },
-     library: {
-          library: {appSettings: {loadingMessageType: 0}},
-          updateLibrary: jest.fn(),
-          updateMenu: jest.fn(),
-          updateCatalogStatus: jest.fn(),
-          catalogStatus: 0,
-          catalogStatusMessage: '',
-          updateHomeScreenLinks: jest.fn()
-     },
-     branch: {
-          location: {},
-          updateLocation: jest.fn(),
-          updateScope: jest.fn(),
-          updateEnableSelfCheck: jest.fn(),
-          updateSelfCheckSettings: jest.fn()
-     },
-     category: {
-          category: {},
-          updateBrowseCategories: jest.fn(),
-          updateBrowseCategoryList: jest.fn(),
-          updateMaxCategories: jest.fn()
-     },
      language: {
           language: 'en',
           updateLanguage: jest.fn(),
@@ -84,16 +50,73 @@ const mockContextValues = {
           languages: []
      },
      messages: {systemMessages: [], updateSystemMessages: jest.fn()},
-     theme: {theme: {}, updateTheme: jest.fn(), colorMode: 'light', updateColorMode: jest.fn(), textColor: '#000'}
+     theme: {
+          theme: {
+               tokens: {
+                    colors: {
+                         primary: {
+                              500: '#1d4ed8',
+                              '500-text': '#ffffff',
+                         },
+                    },
+               },
+          },
+          updateTheme: jest.fn(),
+          colorMode: 'light',
+          updateColorMode: jest.fn(),
+          textColor: '#000'
+     }
 };
+
+const mockUpdateUserProfile = jest.fn(async () => {});
+const mockUpdateAccounts = jest.fn(async () => {});
+const mockUpdateCards = jest.fn(async () => {});
+const mockUpdateAppPreferences = jest.fn(async () => {});
+const mockUpdateNotificationHistory = jest.fn(async () => {});
+const mockUpdateInbox = jest.fn(async () => {});
+
+jest.mock('../src/hooks/useUserData', () => ({
+     useUpdateUserProfile: () => mockUpdateUserProfile,
+     useUpdateAccounts: () => mockUpdateAccounts,
+     useUpdateCards: () => mockUpdateCards,
+     useUpdateAppPreferences: () => mockUpdateAppPreferences,
+     useUpdateNotificationHistory: () => mockUpdateNotificationHistory,
+     useUpdateInbox: () => mockUpdateInbox,
+}));
 
 // Mock the API endpoints called by useQuery
 jest.mock('../src/themes/theme', () => {
      const {basicThemeObject} = require('../__mocks__/themes');
+     const themeColors = {
+          primary: basicThemeObject.tokens.colors.primary,
+          secondary: basicThemeObject.tokens.colors.secondary,
+          tertiary: basicThemeObject.tokens.colors.tertiary,
+     };
 
      return {
-          createGlueTheme: jest.fn(() => Promise.resolve(basicThemeObject)),
-          createTheme: jest.fn(() => Promise.resolve(basicThemeObject))
+          buildThemeForLibrary: jest.fn(() => Promise.resolve({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+          })),
+          useThemeForDisplay: jest.fn(() => ({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+               colorMode: 'light',
+               textColor: '#000',
+          })),
+          useTheme: jest.fn(() => ({
+               theme: basicThemeObject,
+               themeColors,
+               themeId: 1,
+               colorMode: 'light',
+               textColor: '#000',
+               updateTheme: jest.fn(),
+               updateColorMode: jest.fn(),
+               updateTextColor: jest.fn(),
+               resetTheme: jest.fn(),
+          })),
      };
 });
 
@@ -156,6 +179,47 @@ jest.mock('../src/util/api/search', () => {
      }
 });
 
+jest.mock('../src/util/db', () => ({
+     loadAllUserData: jest.fn(() => Promise.resolve({ user: null, updatedAt: null })),
+     loadUserState: jest.fn(() => Promise.resolve({ user: null, language: 'en', languageDisplayName: 'English' })),
+     saveUserSettings: jest.fn(() => Promise.resolve()),
+     loadAllLibraryBranchData: jest.fn(() => Promise.resolve({ location: null, selfCheckSettings: null, updated_at: null })),
+     loadAllLibrarySystemData: jest.fn(() => Promise.resolve({ library: null, menu: null, catalogStatus: null, updatedAt: null })),
+      loadAllLanguageData: jest.fn(() => Promise.resolve({ languages: [], dictionary: {}, updatedAt: null })),
+      saveAllLanguageData: jest.fn(() => Promise.resolve()),
+      loadAvailableLanguages: jest.fn(() => Promise.resolve([])),
+      saveAvailableLanguages: jest.fn(() => Promise.resolve()),
+      loadDictionary: jest.fn(() => Promise.resolve({})),
+      saveDictionary: jest.fn(() => Promise.resolve()),
+     loadBrowseCategories: jest.fn(() => Promise.resolve({ data: [], updatedAt: Date.now(), isExpired: false })),
+     loadBrowseCategoryList: jest.fn(() => Promise.resolve({ data: [], updatedAt: Date.now(), isExpired: false })),
+     loadMaxCategories: jest.fn(() => Promise.resolve(5)),
+     saveUserProfile: jest.fn(() => Promise.resolve()),
+     saveAccounts: jest.fn(() => Promise.resolve()),
+     saveCards: jest.fn(() => Promise.resolve()),
+     saveAppPreferences: jest.fn(() => Promise.resolve()),
+     saveNotificationHistory: jest.fn(() => Promise.resolve()),
+     saveInbox: jest.fn(() => Promise.resolve()),
+     saveAllLibraryBranchData: jest.fn(() => Promise.resolve()),
+     saveBrowseCategories: jest.fn(() => Promise.resolve(true)),
+     saveBrowseCategoryList: jest.fn(() => Promise.resolve(true)),
+     saveMaxCategories: jest.fn(() => Promise.resolve()),
+     saveCatalogStatus: jest.fn(() => Promise.resolve()),
+     saveLibraryVersion: jest.fn(() => Promise.resolve()),
+     saveLibrary: jest.fn(() => Promise.resolve()),
+     saveMenu: jest.fn(() => Promise.resolve()),
+     saveHomeScreenLinks: jest.fn(() => Promise.resolve()),
+     loadThemeState: jest.fn(() => Promise.resolve({
+          themeId: 1,
+          colorMode: 'light',
+          textColor: 'textLight950',
+          themeColors: null,
+          updatedAt: null,
+     })),
+     saveThemeState: jest.fn(() => Promise.resolve()),
+     isStoredThemeIdMatch: jest.fn(() => Promise.resolve(false)),
+}));
+
 const mockNavigate = jest.fn();
 let triggerFocusEvent = () => { };
 
@@ -175,10 +239,12 @@ jest.mock('@react-navigation/native', () => {
                     }
                     return unsubscribe;
                }),
+               reset: jest.fn(),
           }),
+          useRoute: () => ({ params: { isSQLiteMigrationNeeded: false } }),
           useIsFocused: () => true,
           useLinkTo: () => jest.fn(),
-     };
+      };
 });
 
 jest.mock('@react-native-aria/overlays', () => {
@@ -209,32 +275,29 @@ const jestGluestackConfig = createConfig(config);
 
 const AllTheProviders = ({children}) => {
      const [testQueryClient] = React.useState(() => createTestQueryClient());
+     const authValue = React.useMemo(() => ({ signOut: jest.fn(), signIn: jest.fn(), signUp: jest.fn(), state: {} }), []);
      // noinspection JSValidateTypes
-     return (
-          <GluestackUIProvider config={jestGluestackConfig}>
-               <QueryClientProvider client={testQueryClient}>
-                    <ThemeContext.Provider value={mockContextValues.theme}>
-                         <UserContext.Provider value={mockContextValues.user}>
-                              <LibrarySystemContext.Provider value={mockContextValues.library}>
-                                   <LibraryBranchContext.Provider value={mockContextValues.branch}>
-                                        <BrowseCategoryContext.Provider value={mockContextValues.category}>
-                                             <LanguageContext.Provider value={mockContextValues.language}>
-                                                  <SystemMessagesContext.Provider value={mockContextValues.messages}>
-                                                       {children}
-                                                  </SystemMessagesContext.Provider>
-                                             </LanguageContext.Provider>
-                                        </BrowseCategoryContext.Provider>
-                                   </LibraryBranchContext.Provider>
-                              </LibrarySystemContext.Provider>
-                         </UserContext.Provider>
-                    </ThemeContext.Provider>
-               </QueryClientProvider>
-          </GluestackUIProvider>
-     );
+       return (
+             <GluestackUIProvider config={jestGluestackConfig}>
+                  <QueryClientProvider client={testQueryClient}>
+                       <AuthContext.Provider value={authValue}>
+                            <SystemMessagesContext.Provider value={mockContextValues.messages}>
+                                 {children}
+                            </SystemMessagesContext.Provider>
+                       </AuthContext.Provider>
+                  </QueryClientProvider>
+             </GluestackUIProvider>
+       );
 };
 
 beforeEach(() => {
      mockNavigate.mockClear();
+     mockUpdateUserProfile.mockClear();
+     mockUpdateAccounts.mockClear();
+     mockUpdateCards.mockClear();
+     mockUpdateAppPreferences.mockClear();
+     mockUpdateNotificationHistory.mockClear();
+     mockUpdateInbox.mockClear();
 });
 
 //Finally, import the actual screen to make sure that all the mocks are set up first.

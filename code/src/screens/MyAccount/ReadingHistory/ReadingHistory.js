@@ -1,8 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import _ from 'lodash';
 import {
      Actionsheet,
      ActionsheetContent,
@@ -57,120 +55,72 @@ import { loadError } from '../../../components/loadError';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
+import { useUserState, useReadingHistory, useUpdateReadingHistory, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getAuthor, getCleanTitle, getDateLastUsed, getFormat, getTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { deleteAllReadingHistory, deleteSelectedReadingHistory, fetchReadingHistory, optIntoReadingHistory, optOutOfReadingHistory } from '../../../util/api/user';
+import { deleteAllReadingHistory, deleteSelectedReadingHistory, fetchReadingHistory, optIntoReadingHistory, optOutOfReadingHistory, refreshProfile } from '../../../util/api/user';
 import { formatReadingHistory } from '../../../util/api/userHelper';
 
 import AddToList from '../../Search/AddToList';
 import { ActionsheetIcon } from '@gluestack-ui/themed';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyReadingHistory = () => {
      const navigation = useNavigation();
-     const queryClient = useQueryClient();
      const [isLoading, setLoading] = React.useState(false);
+     const [fetchError, setFetchError] = React.useState(null);
      const [page, setPage] = React.useState(1);
      const [sort, setSort] = React.useState('checkedOut');
      const [searchTerm, setSearchTerm] = React.useState('');
      const [filter, setFilter] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { user, readingHistory, updateReadingHistory } = React.useContext(UserContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const { data: readingHistory } = useReadingHistory();
+     const updateReadingHistory = useUpdateReadingHistory();
      const insets = useSafeAreaInsets();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const pageSize = 20;
-     const systemMessagesForScreen = [];
+     const systemMessagesForScreen = React.useMemo(() => {
+          if (!Array.isArray(systemMessages)) return [];
+          return systemMessages.filter((obj) => obj.showOn === '0');
+     }, [systemMessages]);
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
+     const pageHistory = React.useMemo(() => {
+          if (!Array.isArray(readingHistory?.history)) return [];
+          return readingHistory.history.slice(0, pageSize);
+     }, [readingHistory?.history, pageSize]);
 
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort by Title',
           author: 'Sort by Author',
           format: 'Sort by Format',
-          last_used: 'Sort by Last Used',
-     });
+          last_used: 'Sort by Last Used' });
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
-     const { status, isFetching, isPreviousData } = useQuery(['reading_history', user.id, library.baseUrl, page, sort, searchTerm], () => fetchReadingHistory(page, pageSize, sort, searchTerm, library.baseUrl), {
-          onSuccess: (data) => {
-               logDebugMessage("Reading history fetched ");
-               if(data.ok) {
-                    const tmpReadingHistory = formatReadingHistory(data.data.result);
-                    updateReadingHistory(tmpReadingHistory);
-                    if (tmpReadingHistory.totalPages) {
-                         let tmp = getTermFromDictionary(language, 'page_of_page');
-                         tmp = tmp.replace('%1%', page);
-                         tmp = tmp.replace('%2%', tmpReadingHistory.totalPages);
-                         setPaginationLabel(tmp);
-                    }
-                    setLoading(false);
-               } else {
-                    logDebugMessage("Error fetching reading history for user");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching reading history for user");
-               logErrorMessage(error);
-          }
-     });
-
-     useFocusEffect(
-          React.useCallback(() => {
-               if (_.isArray(systemMessages)) {
-                    systemMessages.map((obj) => {
-                         if (obj.showOn === '0') {
-                              systemMessagesForScreen.push(obj);
-                         }
-                    });
-               }
-               const update = async () => {
-                    let tmp = sortBy;
-                    let term;
-
-                    term = getTermFromDictionary(language, 'sort_by_title');
-                    if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'title', term);
-                         setSortBy(tmp);
-                    }
-
-                    term = getTermFromDictionary(language, 'sort_by_author');
-                    if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'author', term);
-                         setSortBy(tmp);
-                    }
-
-                    term = getTermFromDictionary(language, 'sort_by_format');
-                    if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'format', term);
-                         setSortBy(tmp);
-                    }
-
-                    term = getTermFromDictionary(language, 'sort_by_last_used');
-                    if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'last_used', term);
-                         setSortBy(tmp);
-                    }
-
-                    setLoading(false);
-               };
-               update().then(() => {
-                    return () => update();
-               });
-          }, [language, systemMessages])
-     );
+     React.useEffect(() => {
+          setSortBy((prev) => ({
+               ...prev,
+               title: getTermFromDictionary(language, 'sort_by_title').includes('%1%') ? prev.title : getTermFromDictionary(language, 'sort_by_title'),
+               author: getTermFromDictionary(language, 'sort_by_author').includes('%1%') ? prev.author : getTermFromDictionary(language, 'sort_by_author'),
+               format: getTermFromDictionary(language, 'sort_by_format').includes('%1%') ? prev.format : getTermFromDictionary(language, 'sort_by_format'),
+               last_used: getTermFromDictionary(language, 'sort_by_last_used').includes('%1%') ? prev.last_used : getTermFromDictionary(language, 'sort_by_last_used') }));
+     }, [language]);
 
      const [isOpen, setIsOpen] = React.useState(false);
      const onClose = () => setIsOpen(false);
@@ -184,11 +134,62 @@ export const MyReadingHistory = () => {
 
      const [optingIn, setOptingIn] = React.useState();
 
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
+
+     const refreshReadingHistory = React.useCallback(async (options = {}) => {
+          const targetPage = options.page ?? 1;
+          const targetSort = options.sort ?? 'checkedOut';
+          const targetSearchTerm = options.searchTerm ?? '';
+
+          setLoading(true);
+          setFetchError(null);
+          try {
+               const data = await fetchReadingHistory(targetPage, pageSize, targetSort, targetSearchTerm, library.baseUrl);
+               if (data.ok) {
+                    const tmpReadingHistory = formatReadingHistory(data.data.result);
+                    tmpReadingHistory.history = Array.isArray(tmpReadingHistory.history)
+                         ? tmpReadingHistory.history.slice(0, pageSize)
+                         : [];
+                    await updateReadingHistory(tmpReadingHistory);
+                    let tmp = getTermFromDictionary(language, 'page_of_page');
+                    tmp = tmp.replace('%1%', tmpReadingHistory.curPage || targetPage);
+                    tmp = tmp.replace('%2%', tmpReadingHistory.totalPages || 1);
+                    setPaginationLabel(tmp);
+               } else {
+                    logDebugMessage('Error fetching reading history for user');
+                    logDebugMessage(data);
+                    getErrorMessage(data.code, data.problem);
+               }
+          } catch (error) {
+               logDebugMessage('Error fetching reading history for user');
+               logErrorMessage(error);
+               setFetchError(error);
+          } finally {
+               setLoading(false);
+          }
+     }, [pageSize, library.baseUrl, language, updateReadingHistory]);
+
+     React.useEffect(() => {
+          if (user.trackReadingHistory !== '1') {
+               return;
+          }
+          refreshReadingHistory({ page, sort, searchTerm });
+     }, [user.trackReadingHistory, library.baseUrl, language, refreshReadingHistory]);
+
      const optIn = async () => {
           setOptingIn(true);
           await optIntoReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
-          queryClient.invalidateQueries({ queryKey: ['reading_history'] });
+          await refreshAndSaveUserProfile();
+          setPage(1);
+          setSort('checkedOut');
+          setFilter('');
+          setSearchTerm('');
+          await refreshReadingHistory({ page: 1, sort: 'checkedOut', searchTerm: '' });
           setOptingIn(false);
      };
 
@@ -196,8 +197,8 @@ export const MyReadingHistory = () => {
           setOptingOut(true);
           await optOutOfReadingHistory(library.baseUrl);
           await deleteAllReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
-          queryClient.invalidateQueries({ queryKey: ['reading_history'] });
+          await refreshAndSaveUserProfile();
+          await updateReadingHistory(formatReadingHistory({}));
           setIsOpen(false);
           setOptingOut(false);
      };
@@ -205,36 +206,31 @@ export const MyReadingHistory = () => {
      const deleteAll = async () => {
           setDeleting(true);
           await deleteAllReadingHistory(library.baseUrl);
-          queryClient.invalidateQueries({ queryKey: ['user'] });
-          queryClient.invalidateQueries({ queryKey: ['reading_history'] });
+          await refreshAndSaveUserProfile();
+          setPage(1);
+          await refreshReadingHistory({ page: 1 });
           setDeleteAllIsOpen(false);
           setDeleting(false);
      };
 
      const updateSort = async (value) => {
           logDebugMessage('updateSort for reading history: ' + value);
-          setLoading(true);
-          //await queryClient.invalidateQueries({ queryKey: ['reading_history', user.id, library.baseUrl, page, sort] });
           setSort(value);
-          await queryClient.refetchQueries({ queryKey: ['reading_history', user.id, library.baseUrl, page, value] });
+          setPage(1);
+          await refreshReadingHistory({ page: 1, sort: value, searchTerm });
      };
 
      const updatePage = async (value) => {
           logDebugMessage('updatePage for reading history: ' + value);
-          setLoading(true);
-          //await queryClient.invalidateQueries({ queryKey: ['reading_history', user.id, library.baseUrl, page, sort, searchTerm] });
           setPage(value);
-          await queryClient.refetchQueries({ queryKey: ['reading_history', user.id, library.baseUrl, value, sort, searchTerm] });
+          await refreshReadingHistory({ page: value, sort, searchTerm });
      };
 
      const search = async () => {
           logDebugMessage('updateSearchTerm for reading history: ' + filter);
-          setLoading(true);
           setPage(1);
           setSearchTerm(filter);
-          //await queryClient.invalidateQueries({ queryKey: ['reading_history', user.id, library.baseUrl, 1, sort, searchTerm] });
-          await queryClient.refetchQueries({ queryKey: ['reading_history', user.id, library.baseUrl, 1, sort, filter] });
-          //setLoading(false);
+          await refreshReadingHistory({ page: 1, sort, searchTerm: filter });
      }
 
      const getDisclaimer = () => {
@@ -278,7 +274,7 @@ export const MyReadingHistory = () => {
      };
 
      const getActionButtons = () => {
-          const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+          const { theme, textColor, colorMode } = useTheme();
 
           let sortLength = 8 * sortBy.last_used.length + 80;
           if (sort === 'author') {
@@ -450,7 +446,7 @@ export const MyReadingHistory = () => {
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={async () => {
                                             if (page > 1) {
-                                                 updatePage(page - 1)
+                                                 await updatePage(page - 1)
                                             }
                                         }}
                                         isDisabled={page === 1}>
@@ -462,10 +458,10 @@ export const MyReadingHistory = () => {
                                              if (readingHistory?.hasMore) {
                                                   logDebugMessage('Adding to page');
                                                   let newPage = page + 1;
-                                                  updatePage(newPage);
+                                                  await updatePage(newPage);
                                              }
                                         }}
-                                        isDisabled={isPreviousData || !readingHistory?.hasMore}>
+                                         isDisabled={!readingHistory?.hasMore || isLoading}>
                                         <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
@@ -481,19 +477,34 @@ export const MyReadingHistory = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                });
           }
           return null;
      };
 
+     const handleItemDelete = React.useCallback(async () => {
+          await refreshReadingHistory({ page, sort, searchTerm });
+     }, [refreshReadingHistory, page, sort, searchTerm]);
+
+     const renderReadingHistoryItem = React.useCallback(({ item }) => {
+          return <Item data={item} onDelete={handleItemDelete} />;
+     }, [handleItemDelete]);
+
+     const readingHistoryKeyExtractor = React.useCallback((item, index) => {
+          if (item?.id != null) {
+               return String(item.id);
+          }
+          return index.toString();
+     }, []);
+
      return (
           <Box style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+               {systemMessagesForScreen.length > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                {user.trackReadingHistory !== '1' ? (
                     <Box p="$5">
                          <Button bgColor={theme['tokens']['colors']['primary']['700']} onPress={optIn} isLoading={optingIn} isLoadingText={getTermFromDictionary(language, 'updating', true)}>
@@ -504,13 +515,25 @@ export const MyReadingHistory = () => {
                ) : (
                     <>
                          {getActionButtons()}
-                         {status === 'loading' || isFetching || isLoading ? (
+                          {isLoading ? (
                               loadingSpinner()
-                         ) : status === 'error' ? (
+                          ) : fetchError ? (
                               loadError('Error', '')
                          ) : (
                               <>
-                                   <FlatList data={readingHistory?.history} ListEmptyComponent={Empty} ListFooterComponent={Paging} ListHeaderComponent={getDisclaimer} renderItem={({ item }) => <Item data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
+                                    <FlatList
+                                         data={pageHistory}
+                                         ListEmptyComponent={Empty}
+                                         ListFooterComponent={Paging}
+                                         ListHeaderComponent={getDisclaimer}
+                                         renderItem={renderReadingHistoryItem}
+                                         keyExtractor={readingHistoryKeyExtractor}
+                                         initialNumToRender={8}
+                                         maxToRenderPerBatch={8}
+                                         windowSize={5}
+                                         removeClippedSubviews={Platform.OS !== 'ios'}
+                                         contentContainerStyle={{ paddingBottom: 30 }}
+                                    />
                               </>
                          )}
                     </>
@@ -519,14 +542,14 @@ export const MyReadingHistory = () => {
      );
 };
 
-const Item = (data) => {
-     const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const {textColor, colorMode } = React.useContext(ThemeContext);
+const Item = React.memo(({ data: item, onDelete }) => {
+     const { data: userState2 } = useUserState();
+     const user = userState2?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const {textColor, colorMode } = useTheme();
      const insets = useSafeAreaInsets();
-     const item = data.data;
 
      const [deleting, setDelete] = React.useState(false);
      const [isOpen, setIsOpen] = React.useState(false);
@@ -540,17 +563,23 @@ const Item = (data) => {
                title: getCleanTitle(title),
                url: library.baseUrl,
                userContext: user,
-               libraryContext: library,
-          });
+               libraryContext: library });
      };
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      const deleteFromHistory = async (item) => {
           await deleteSelectedReadingHistory(item, library.baseUrl).then(async (result) => {
                if (result) {
-                    queryClient.invalidateQueries({ queryKey: ['user'] });
-                    queryClient.invalidateQueries({ queryKey: ['reading_history'] });
-                    setLoading(true);
-                    await queryClient.refetchQueries({ queryKey: ['reading_history', user.id, library.baseUrl, page, sort, searchTerm] });
+                    await refreshAndSaveUserProfile();
+                    if (typeof onDelete === 'function') {
+                         await onDelete();
+                    }
                }
           });
      };
@@ -567,8 +596,7 @@ const Item = (data) => {
                                    style={{
                                         width: 100,
                                         height: 150,
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -633,4 +661,6 @@ const Item = (data) => {
                <Text>Unknown title</Text>
          );
      }
-};
+});
+
+Item.displayName = 'ReadingHistoryItem';

@@ -1,23 +1,31 @@
-import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText } from '@gluestack-ui/themed';
+import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText, useToast } from '@gluestack-ui/themed';
 import { ScrollView } from 'react-native';
 import _ from 'lodash';
 import React from 'react';
 
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { navigateStack } from '../../helpers/RootNavigator';
+import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
+
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+
+const loggedEmptyCategoryKeys = new Set();
 
 const DisplayBrowseCategory = ({category}) => {
-     const queryClient = useQueryClient();
-     const { theme, colorMode } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { maxNum } = React.useContext(BrowseCategoryContext);
+     const toast = useToast();
+     const { theme, colorMode } = useTheme();
+     const language = useActiveLanguage();
+     const library = useLibrary();
+     const maxNum = useMaxCategories();
+     const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
+     const updateBrowseCategories = useUpdateBrowseCategories();
 
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');
@@ -30,8 +38,12 @@ const DisplayBrowseCategory = ({category}) => {
      const records = category.records ?? [];
 
      if(records.length === 0 && subCategories.length === 0) {
-          // Nothing to show, probably shouldn't happen in production but just in case
-          logDebugMessage("No records to show");
+          const emptyKey = category.textId ?? category.id ?? category.label ?? 'unknown_category';
+          if (!loggedEmptyCategoryKeys.has(emptyKey)) {
+               // Avoid repeated logs for the same empty category on re-renders.
+               logDebugMessage('No records to show for ' + emptyKey);
+               loggedEmptyCategoryKeys.add(emptyKey);
+          }
           return null;
      }
 
@@ -61,34 +73,65 @@ const DisplayBrowseCategory = ({category}) => {
 
      const id = isListSource ? category.sourceListId : category.textId;
 
+     const refreshHomeFeed = React.useCallback(async () => {
+          const requestedMax = maxNum > 0 ? maxNum : 5;
+          const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+          if (response?.ok) {
+               const result = response.data?.result ?? {};
+               await updateBrowseCategories(result.browseCategories ?? []);
+          }
+     }, [maxNum, library.baseUrl, updateBrowseCategories]);
+
      const onPressHide = async (textId) => {
-          await updateBrowseCategoryStatus(textId, library.baseUrl).then(async (response) => {
-               if (!response.ok) {
-                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
-                    setErrorTitle(error.title);
-                    setErrorMessage(error.message);
-                    logErrorMessage(response);
-                    setShowErrorDialog(true);
-               } else {
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
-               }
-          });
+          // Optimistic update: toggle visibility immediately
+          const result = await toggleCategoryVisibility(textId, true, () =>
+               updateBrowseCategoryStatus(textId, library.baseUrl)
+          );
+
+          if (!result.success) {
+               const error = getErrorMessage({ statusCode: result.error?.status, problem: result.error?.problem });
+               setErrorTitle(error.title);
+               setErrorMessage(error.message);
+               logErrorMessage(result.error);
+               setShowErrorDialog(true);
+               toast.show({
+                    placement: "bottom",
+                    duration: 3000,
+                    render: ({ id }) => (
+                         <Box p="$3" bg="$error500" borderRadius="$md">
+                              <Text color="$white" bold>{error.title}</Text>
+                              <Text color="$white">{error.message}</Text>
+                         </Box>
+                    ) });
+          } else {
+               await refreshHomeFeed();
+          }
      }
 
      const onPressHideAll = async (textId) => {
-          await updateBrowseCategoryStatus(textId, library.baseUrl, 'all').then(async (response) => {
-               if (!response.ok) {
-                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
-                    setErrorTitle(error.title);
-                    setErrorMessage(error.message);
-                    logErrorMessage(response);
-                    setShowErrorDialog(true);
-               } else {
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
-               }
-          });
+          // Optimistic update: toggle visibility immediately
+          const result = await toggleCategoryVisibility(textId, true, () =>
+               updateBrowseCategoryStatus(textId, library.baseUrl, 'all')
+          );
+
+          if (!result.success) {
+               const error = getErrorMessage({ statusCode: result.error?.status, problem: result.error?.problem });
+               setErrorTitle(error.title);
+               setErrorMessage(error.message);
+               logErrorMessage(result.error);
+               setShowErrorDialog(true);
+               toast.show({
+                    placement: "bottom",
+                    duration: 3000,
+                    render: ({ id }) => (
+                         <Box p="$3" bg="$error500" borderRadius="$md">
+                              <Text color="$white" bold>{error.title}</Text>
+                              <Text color="$white">{error.message}</Text>
+                         </Box>
+                    ) });
+          } else {
+               await refreshHomeFeed();
+          }
      }
 
      return (
@@ -124,7 +167,7 @@ const DisplayBrowseCategory = ({category}) => {
 };
 
 const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
-     const { colorMode, theme } = React.useContext(ThemeContext);
+     const { colorMode, theme } = useTheme();
 
      const isSystemCategory = textId === 'system_user_lists' || textId === 'system_saved_searches' || textId === 'system_recommended_for_you';
 
@@ -138,8 +181,7 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 
           navigateStack('BrowseTab', screen, {
                title: label,
-               id: key,
-          });
+               id: key });
      };
 
      return (
@@ -157,9 +199,9 @@ const DisplayBrowseCategoryTitle = ({category, textId, source}) => {
 }
 
 const DisplayBrowseCategoryRecord = ({record}) => {
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const { theme } = useTheme();
+     const language = useActiveLanguage();
 
      let type = 'grouped_work';
      if (!_.isUndefined(record.source)) {
@@ -233,14 +275,12 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                navigateStack('BrowseTab', 'SearchByList', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else if (type === 'SavedSearch' || type === 'savedsearch') {
                navigateStack('BrowseTab', 'SearchBySavedSearch', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else if (type === 'Event' || _.includes(type, '_event')) {
                let eventSource = 'unknown';
                if (type === 'communico_event') {
@@ -259,14 +299,12 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     id: key,
                     title: title,
                     source: eventSource,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           } else {
                navigateStack('BrowseTab', 'GroupedWorkScreen', {
                     id: key,
                     title: title,
-                    prevRoute: 'HomeScreen',
-               });
+                    prevRoute: 'HomeScreen' });
           }
      }
 
@@ -278,21 +316,17 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                sx={{
                     '@base': {
                          width: 100,
-                         height: 150,
-                    },
+                         height: 150 },
                     '@lg': {
                          width: 180,
-                         height: 250,
-                    },
-               }}>
+                         height: 250 } }}>
                <Image
                     alt={getTitle}
                     source={imageUrl}
                     style={{
                          width: '100%',
                          height: '100%',
-                         borderRadius: "$sm",
-                    }}
+                         borderRadius: "$sm" }}
                     placeholder={blurhash}
                     transition={1000}
                     contentFit="cover"
@@ -311,31 +345,52 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 }
 
 const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, isSystemBrowseCategory }) => {
-     const queryClient = useQueryClient();
-
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { maxNum } = React.useContext(BrowseCategoryContext);
+     const toast = useToast();
+     const { theme, textColor, colorMode } = useTheme();
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const maxNum = useMaxCategories();
+     const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
+     const updateBrowseCategories = useUpdateBrowseCategories();
 
      const [showErrorDialog, setShowErrorDialog] = React.useState(false);
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
 
+     const refreshHomeFeed = React.useCallback(async () => {
+          const requestedMax = maxNum > 0 ? maxNum : 5;
+          const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+          if (response?.ok) {
+               const result = response.data?.result ?? {};
+               await updateBrowseCategories(result.browseCategories ?? []);
+          }
+     }, [maxNum, library.baseUrl, updateBrowseCategories]);
+
      const onPressHideSubCategory = async (index) => {
           let activeSubCategory = subCategories[index];
-          await updateBrowseCategoryStatus(activeSubCategory.textId, library.baseUrl).then(async (response) => {
-               if (!response.ok) {
-                    const error = getErrorMessage({ statusCode: response.status, problem: response.problem});
-                    setErrorTitle(error.title);
-                    setErrorMessage(error.message);
-                    logErrorMessage(response);
-                    setShowErrorDialog(true);
-               } else {
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
-                    await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
-               }
-          });
+          // Optimistic update: toggle visibility immediately
+          const result = await toggleCategoryVisibility(activeSubCategory.textId, true, () =>
+               updateBrowseCategoryStatus(activeSubCategory.textId, library.baseUrl)
+          );
+
+          if (!result.success) {
+               const error = getErrorMessage({ statusCode: result.error?.status, problem: result.error?.problem });
+               setErrorTitle(error.title);
+               setErrorMessage(error.message);
+               logErrorMessage(result.error);
+               setShowErrorDialog(true);
+               toast.show({
+                    placement: "bottom",
+                    duration: 3000,
+                    render: ({ id }) => (
+                         <Box p="$3" bg="$error500" borderRadius="$md">
+                              <Text color="$white" bold>{error.title}</Text>
+                              <Text color="$white">{error.message}</Text>
+                         </Box>
+                    ) });
+          } else {
+               await refreshHomeFeed();
+          }
      }
 
      return (
@@ -357,8 +412,8 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
 }
 
 const DisplayMoreResultsButton = ({ category }) => {
-     const { theme } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { theme } = useTheme();
+     const language = useActiveLanguage();
 
      const isListSource = category.source === 'List';
 
@@ -372,8 +427,7 @@ const DisplayMoreResultsButton = ({ category }) => {
 
           navigateStack('BrowseTab', screen, {
                title: label,
-               id: key,
-          });
+               id: key });
      }
 
      return (
@@ -385,18 +439,14 @@ const DisplayMoreResultsButton = ({ category }) => {
                mr="$3"
                bgColor={theme.tokens.colors.primary['500']}
                style={{
-                    borderRadius: "$sm",
-               }}
+                    borderRadius: "$sm" }}
                sx={{
                     '@base': {
                          width: 100,
-                         height: 150,
-                    },
+                         height: 150 },
                     '@lg': {
                          width: 180,
-                         height: 250,
-                    },
-               }}>
+                         height: 250 } }}>
                <Text bold color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_more')}</Text>
           </Pressable>
      )

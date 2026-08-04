@@ -12,21 +12,22 @@ import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 
 import * as Sentry from '@sentry/react-native';
-import { BrowseCategoryProvider, CheckoutsProvider, GroupedWorkProvider, HoldsProvider, LanguageProvider, LibraryBranchProvider, LibrarySystemProvider, SearchProvider, SystemMessagesProvider, ThemeProvider, UserContext, UserProvider, LanguageContext, ThemeContext } from '../context/initialContext';
+import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
 
 import { LoginScreen } from '../screens/Auth/Login';
 import { SelfRegistration } from '../screens/Auth/SelfRegistration';
-import { SplashScreen } from '../screens/Auth/Splash';
+import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
 import { RemoveData } from '../helpers/helpers';
+import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 import { trackAppLaunches, trackAppResume } from '../util/analytics';
@@ -47,6 +48,8 @@ try {
 
 
 import { AuthContext } from '../context/AuthContext';
+import { useActiveLanguage } from '../hooks/useLanguageData';
+import { useTheme } from '../themes/theme';
 export { AuthContext };
 
 const iOSRelease = Constants.expoConfig.ios.bundleIdentifier;
@@ -82,8 +85,7 @@ try {
           release: releaseCode,
           dist: distribution,
           autoInject: false,
-          integrations: integrations,
-     });
+          integrations: integrations });
 
      Sentry.setTag('patch', GLOBALS.appPatch);
      Sentry.setTag('stage', GLOBALS.appStage);
@@ -93,7 +95,6 @@ try {
 
 
 export function App() {
-     const queryClient = useQueryClient();
      const [state, dispatch] = React.useReducer(
           (prevState, action) => {
                switch (action.type) {
@@ -102,16 +103,20 @@ export function App() {
                               ...prevState,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true,
-                         };
+                              refreshUserData: action.refreshData ?? true,
+                              startupCache: action.startupCache ?? null,
+                              isSQLiteMigrationNeeded: action.isSQLiteMigrationNeeded ?? false,
+                              migrationError: false };
                     case 'SIGN_IN':
                          return {
                               ...prevState,
                               isSignOut: false,
                               userToken: action.token,
                               isLoading: false,
-                              refreshUserData: true,
-                         };
+                              refreshUserData: action.refreshData ?? true,
+                              startupCache: action.startupCache ?? null,
+                              isSQLiteMigrationNeeded: false,
+                              migrationError: false };
                     case 'SIGN_OUT':
                          return {
                               ...prevState,
@@ -119,7 +124,9 @@ export function App() {
                               userToken: null,
                               isLoading: false,
                               refreshUserData: false,
-                         };
+                              startupCache: null,
+                              isSQLiteMigrationNeeded: false,
+                              migrationError: action.migrationError ?? false };
                }
           },
           {
@@ -127,8 +134,10 @@ export function App() {
                isSignOut: false,
                userToken: null,
                refreshUserData: false,
-          }
-     );
+               startupCache: null,
+               isSQLiteMigrationNeeded: false,
+               migrationError: false }
+      );
 
      React.useEffect(() => {
           const timer = setInterval(async () => {
@@ -158,62 +167,96 @@ export function App() {
           };
      }, []);
 
-     React.useEffect(() => {
-          const bootstrapAsync = async () => {
-               logDebugMessage('Checking existing session...');
-               let userToken;
-               let libraryUrl;
-               let userKey;
-               try {
-                    // Restore token stored in `AsyncStorage`
-                    userToken = await AsyncStorage.getItem('@userToken');
-                    libraryUrl = await AsyncStorage.getItem('@pathUrl');
-                    userKey = await SecureStore.getItemAsync('userKey');
-               } catch (e) {
-                    // Restoring token failed
-                    logErrorMessage("Error restoring token");
-                    logErrorMessage(e);
-                    dispatch({ type: 'SIGN_OUT' });
-               }
+      React.useEffect(() => {
+           const bootstrapAsync = async () => {
+                logDebugMessage('Checking existing session...');
+                let userToken;
+                let libraryUrl;
+                let userKey;
+                let isMigrationNeeded = false;
+                try {
+                     // Restore token stored in `AsyncStorage`
+                     userToken = await AsyncStorage.getItem('@userToken');
+                     libraryUrl = await AsyncStorage.getItem('@pathUrl');
+                     userKey = await SecureStore.getItemAsync('userKey');
+                } catch (e) {
+                     // Restoring token failed
+                     logErrorMessage("Error restoring token");
+                     logErrorMessage(e);
+                     dispatch({ type: 'SIGN_OUT' });
+                }
 
-               if (!userKey) {
-                    dispatch({ type: 'SIGN_OUT' });
-               }
+                if (!userKey) {
+                     dispatch({ type: 'SIGN_OUT' });
+                }
 
-               if (!libraryUrl) {
-                    libraryUrl = LIBRARY.url;
-               }
+                 if (!libraryUrl) {
+                      libraryUrl = LIBRARY.url;
+                 }
 
-               if (userToken) {
-                    logDebugMessage('Session found');
-                    if (libraryUrl) {
-                         logDebugMessage('Trying to connect to: ', libraryUrl);
-                         await checkCachedUrl(libraryUrl).then(async (result) => {
-                              if (result) {
-                                   LIBRARY.url = libraryUrl;
-                                   logDebugMessage('Connection successful. Continuing...');
-                                   await trackAppLaunches(libraryUrl);
-                              } else {
-                                   logWarnMessage('Connection failed, logging out.');
-                                   userToken = null;
-                                   dispatch({ type: 'SIGN_OUT' });
-                              }
-                         });
-                    } else {
-                         logWarnMessage('No cached library url, logging out.');
-                         dispatch({ type: 'SIGN_OUT' });
-                    }
-               } else {
-                    logDebugMessage('No session found. Starting new.');
-               }
-               dispatch({
-                    type: 'RESTORE_TOKEN',
-                    token: userToken,
-                    refreshData: true,
-               });
-          };
-          bootstrapAsync();
-     }, []);
+                 if (userToken) {
+                      logDebugMessage('Session found');
+                      if (libraryUrl) {
+                           logDebugMessage('Trying to connect to: ', libraryUrl);
+                           await checkCachedUrl(libraryUrl).then(async (result) => {
+                                if (result) {
+                                     LIBRARY.url = libraryUrl;
+                                     await saveLibraryUrl(libraryUrl);
+                                     logDebugMessage('Connection successful. Continuing...');
+
+                                     // Check if SQLite migration is needed
+                                     try {
+                                          isMigrationNeeded = await isSQLiteMigrationNeeded(userToken);
+                                          if (isMigrationNeeded) {
+                                               logDebugMessage('SQLite migration detected for existing user');
+                                          }
+                                     } catch (error) {
+                                          logErrorMessage('Error checking SQLite migration status');
+                                          logErrorMessage(error);
+                                     }
+
+                                     await trackAppLaunches(libraryUrl);
+                                } else {
+                                    logWarnMessage('Connection failed, logging out.');
+                                    userToken = null;
+                                    dispatch({ type: 'SIGN_OUT' });
+                               }
+                          });
+                     } else {
+                          logWarnMessage('No cached library url, logging out.');
+                          dispatch({ type: 'SIGN_OUT' });
+                     }
+                } else {
+                     logDebugMessage('No session found. Starting new.');
+                }
+
+                let startupCache = null;
+                let refreshData = true;
+                if (userToken) {
+                     try {
+                          startupCache = await evaluateStartupCache();
+                          refreshData = !(startupCache?.canBypassLoading ?? false);
+                          logDebugMessage({
+                               event: 'startupCache:decision',
+                               canBypassLoading: startupCache?.canBypassLoading ?? false,
+                               refreshData,
+                          });
+                     } catch (error) {
+                          logErrorMessage('Failed startup cache evaluation, using Loading screen fallback');
+                          logErrorMessage(error);
+                          refreshData = true;
+                     }
+                }
+
+                dispatch({
+                     type: 'RESTORE_TOKEN',
+                     token: userToken,
+                     refreshData,
+                     startupCache,
+                     isSQLiteMigrationNeeded: isMigrationNeeded });
+           };
+           bootstrapAsync();
+      }, []);
 
      React.useEffect(() => {
           const subscription = AppState.addEventListener('change', async (nextAppState) => {
@@ -245,14 +288,12 @@ export function App() {
                     dispatch({
                          type: 'SIGN_IN',
                          token: userToken,
-                         refreshData: true,
-                    });
+                         refreshData: true });
                },
                signOut: async () => {
                     logDebugMessage('Session ended.');
                     dispatch({ type: 'SIGN_OUT' });
-               },
-          }),
+               } }),
           []
      );
 
@@ -263,46 +304,33 @@ export function App() {
 
      return (
           <AuthContext.Provider value={authContext}>
-               <ThemeProvider>
-                    <SystemMessagesProvider>
-                         <LanguageProvider>
-                              <LibrarySystemProvider>
-                                   <LibraryBranchProvider>
-                                        <SearchProvider>
-                                             <UserProvider>
-                                                  <CheckoutsProvider>
-                                                       <HoldsProvider>
-                                                            <BrowseCategoryProvider>
-                                                                 <GroupedWorkProvider>
-                                                                      {/* Pass state safely to the child container */}
-                                                                      <AppContent state={state} />
-                                                                 </GroupedWorkProvider>
-                                                            </BrowseCategoryProvider>
-                                                       </HoldsProvider>
-                                                  </CheckoutsProvider>
-                                             </UserProvider>
-                                        </SearchProvider>
-                                   </LibraryBranchProvider>
-                              </LibrarySystemProvider>
-                         </LanguageProvider>
-                    </SystemMessagesProvider>
-               </ThemeProvider>
+               <SystemMessagesProvider>
+                     <SearchProvider>
+                          <CheckoutsProvider>
+                               <HoldsProvider>
+                                    <GroupedWorkProvider>
+                                         {/* Pass state safely to the child container */}
+                                         <AppContent state={state} />
+                                    </GroupedWorkProvider>
+                               </HoldsProvider>
+                          </CheckoutsProvider>
+                     </SearchProvider>
+               </SystemMessagesProvider>
           </AuthContext.Provider>
      );
 }
 
 function AppContent({state}) {
-     const { updateUser } = React.useContext(UserContext);
      const queryClient = useQueryClient();
 
      React.useEffect(() => {
           if (state.isSignOut) {
-               RemoveData(queryClient, updateUser);
+               RemoveData(queryClient);
           }
      }, [state.isSignOut]);
 
-     const { language } = React.useContext(LanguageContext);
-     const { colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { colorMode } = useTheme();
 
      const primaryColor = useToken('colors', 'primary.base');
      const primaryColorContrast = useToken('colors', 'primary.baseContrast');
@@ -312,18 +340,14 @@ function AppContent({state}) {
                ...DefaultTheme.colors,
                background: '#f5f5f4', // Equivalent to $backgroundLight50
                card: '#ffffff',
-               text: '#171717',
-          },
-     };
+               text: '#171717' } };
      const darkTheme = {
           ...DarkTheme,
           colors: {
                ...DarkTheme.colors,
                background: '#111827', // Equivalent to $backgroundDark900
                card: '#1f2937',
-               text: '#fafafa',
-          },
-     };
+               text: '#fafafa' } };
 
      return (
           <NavigationContainer
@@ -353,36 +377,20 @@ function AppContent({state}) {
                                                                       MyPreferences: 'user/preferences',
                                                                       MyProfile: 'user',
                                                                       MyReadingHistory: 'user/reading_history',
-                                                                      MyCampaigns: 'user/campaigns',
-                                                                 },
-                                                            },
+                                                                      MyCampaigns: 'user/campaigns' } },
                                                             LibraryCardTab: {
                                                                  screens: {
-                                                                      LibraryCard: 'user/library_card',
-                                                                 },
-                                                            },
+                                                                      LibraryCard: 'user/library_card' } },
                                                             SearchTab: {
                                                                  screens: {
                                                                       SearchByCategory: 'search/browse_category',
                                                                       SearchByAuthor: 'search/author',
-                                                                      SearchByList: 'search/list',
-                                                                 },
-                                                            },
+                                                                      SearchByList: 'search/list' } },
                                                             BrowseTab: {
                                                                  screens: {
                                                                       HomeScreen: 'home',
                                                                       GroupedWorkScreen: 'search/grouped_work',
-                                                                      SearchResults: 'search',
-                                                                 },
-                                                            },
-                                                       },
-                                                  },
-                                             },
-                                        },
-                                   },
-                              },
-                         },
-                    },
+                                                                      SearchResults: 'search' } } } } } } } } } },
                     async getInitialURL() {
                          let url = await Linking.getInitialURL();
 
@@ -399,23 +407,23 @@ function AppContent({state}) {
                     },
                     subscribe(listener) {
                          const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
-                              listener(url);
+                              const decodedUrl = decodeURIComponent(url).replace(/\+/g, ' ').replace('aspen-lida://', prefix);
+                              listener(decodedUrl);
                          });
                          const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
                               const url = response.notification.request.content.data.url;
-                              listener(url);
+                              const decodedUrl = decodeURIComponent(url).replace(/\+/g, ' ').replace('aspen-lida://', prefix);
+                              listener(decodedUrl);
                          });
 
                          return () => {
                               subscription.remove();
                               linkingSubscription.remove();
                          };
-                    },
-               }}>
+                    } }}>
                <Stack.Navigator
                     screenOptions={{
-                         headerShown: false,
-                    }}
+                         headerShown: false }}
                     name="RootNavigator">
                     {state.userToken === null ? (
                          // No token found, user isn't signed in
@@ -424,19 +432,25 @@ function AppContent({state}) {
                               component={LoginScreen}
                               options={{
                                    headerShown: false,
-                                   animationTypeForReplace: state.isSignOut ? 'pop' : 'push',
-                              }}
+                                   animationTypeForReplace: state.isSignOut ? 'pop' : 'push' }}
                          />
-                    ) : (
-                         // User is signed in
-                         <Stack.Screen name="LaunchStack" component={LaunchStackNavigator} initialParams={{ refreshUserData: state.refreshUserData ?? false }} />
-                    )}
+                     ) : (
+                          // User is signed in
+                          <Stack.Screen
+                               name="LaunchStack"
+                               component={LaunchStackNavigator}
+                               initialParams={{
+                                    refreshUserData: state.refreshUserData ?? false,
+                                    startupCache: state.startupCache ?? null,
+                                    isSQLiteMigrationNeeded: state.isSQLiteMigrationNeeded ?? false,
+                               }}
+                          />
+                     )}
                     <Stack.Screen
                          name="LibraryCardScanner"
                          component={LibraryCardScanner}
                          options={{
-                              presentation: 'modal',
-                         }}
+                              presentation: 'modal' }}
                     />
                     <Stack.Screen
                          name="SelfRegistration"

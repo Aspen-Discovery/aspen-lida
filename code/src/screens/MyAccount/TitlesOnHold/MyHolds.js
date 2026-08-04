@@ -14,8 +14,7 @@ import {
      ScrollView,
      Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput,
      SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView,
-     Text, AlertIcon, InfoIcon, AlertText, Alert,
-} from '@gluestack-ui/themed';
+     Text, AlertIcon, InfoIcon, AlertText, Alert } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, SectionList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,30 +22,43 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { HoldsContext, LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { HoldsContext, SystemMessagesContext } from '../../../context/initialContext';
+import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { getPatronHolds, setSortPreferences } from '../../../util/api/user';
+import { getPatronHolds, refreshProfile, setSortPreferences } from '../../../util/api/user';
 import { sortHolds, formatHolds, formatPickupLocations } from '../../../util/api/userHelper';
 import { getPickupLocations } from '../../../util/api/user';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyHolds = () => {
      const isFetchingHolds = useIsFetching({ queryKey: ['holds'] });
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { user, userHoldPendingSortMethod, updateUserHoldPendingSortMethod, userHoldReadySortMethod, updateUserHoldReadySortMethod, locations, updatePickupLocations} = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const userHoldPendingSortMethod = userState?.userHoldPendingSortMethod ?? 'sortTitle';
+     const userHoldReadySortMethod = userState?.userHoldReadySortMethod ?? 'expire';
+     const updateUserProfile = useUpdateUserProfile();
+     const updateSortSettings = useUpdateSortSettings();
+     const updateUserHoldPendingSortMethod = (v) => updateSortSettings({ userHoldPendingSortMethod: v });
+     const updateUserHoldReadySortMethod = (v) => updateSortSettings({ userHoldReadySortMethod: v });
+     const { data: locations } = useLocations();
+     const updatePickupLocations = useUpdateLocations();
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [holdSource, setHoldSource] = React.useState('all');
      const [isLoading, setLoading] = React.useState(false);
      const [values, setGroupValues] = React.useState([]);
      const [date, setNewDate] = React.useState();
      const [pickupLocations, setPickupLocations] = React.useState([]);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [sortBy, setSortBy] = React.useState({
@@ -58,16 +70,21 @@ export const MyHolds = () => {
           position: 'Sort by Position',
           pickup_location: 'Sort by Pickup Location',
           library_account: 'Sort by Library Account',
-          expiration: 'Sort by Expiration Date',
-     });
+          expiration: 'Sort by Expiration Date' });
 
      const [filterByLibby, setFilterByLibby] = React.useState(false);
      const [filterByLibbyTitle, setFilterByLibbyTitle] = React.useState(false);
 
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
+
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      useQuery(['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'], () => getPatronHolds(userHoldReadySortMethod, userHoldPendingSortMethod, 'all', library.baseUrl, true, language), {
@@ -244,7 +261,7 @@ export const MyHolds = () => {
           setLoading(true);
           clearGroupValue();
           queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          await refreshAndSaveUserProfile();
           setLoading(false);
      };
 
@@ -252,7 +269,7 @@ export const MyHolds = () => {
           setLoading(true);
           updateHolds([]);
           queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language, userHoldReadySortMethod, userHoldPendingSortMethod, 'all'] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+          await refreshAndSaveUserProfile();
           setLoading(false);
      };
 
@@ -648,12 +665,10 @@ export const MyHolds = () => {
                               maxWidth: '100%',
                               alignItems: 'center',
                               _text: {
-                                   textAlign: 'left',
-                              },
+                                   textAlign: 'left' },
                               padding: 0,
                               margin: 0,
-                              paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30,
-                         }}
+                              paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30 }}
                          name="Holds"
                          value={values}
                          accessibilityLabel={getTermFromDictionary(language, 'multiple_holds')}

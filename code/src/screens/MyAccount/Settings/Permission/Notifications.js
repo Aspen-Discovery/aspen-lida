@@ -3,24 +3,31 @@ import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { loadingSpinner } from '../../../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../../context/initialContext';
+
+import { useUserState, useNotificationSettings, useUpdateExpoToken, useAddDebugMessage } from '../../../../hooks/useUserData';
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { useNotificationPermissions, useNotificationPreferences } from '../../../../hooks/useNotifications';
-import {logDebugMessage, logWarnMessage, getErrorMessage, logErrorMessage} from '../../../../util/logging';
+import {logDebugMessage, logErrorMessage} from '../../../../util/logging';
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
+import { useTheme } from '../../../../themes/theme';
+import { useLibrary } from '../../../../hooks/useLibrarySystemData';
 
 export const NotificationPermissionStatus = () => {
-    const { language } = React.useContext(LanguageContext);
-    const { textColor } = React.useContext(ThemeContext);
-    const { library } = React.useContext(LibrarySystemContext);
-    const { updateExpoToken, expoToken, updateUserDebugMessage } = React.useContext(UserContext);
+    const language = useActiveLanguage();
+    const { textColor } = useTheme();
+    const library = useLibrary();
+    const { data: userState } = useUserState();
+    const expoToken = userState?.expoToken ?? false;
+    const updateExpoToken = useUpdateExpoToken();
+    const addDebugMessage = useAddDebugMessage();
     const navigation = useNavigation();
 
-    const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
+    const { permissionStatus, checkAndUpdatePermissions } = useNotificationPermissions(library, updateExpoToken, addDebugMessage);
 
     // Check permissions on mount
     React.useEffect(() => {
@@ -36,8 +43,8 @@ export const NotificationPermissionStatus = () => {
             checkAndUpdatePermissions('Notifications focus listener');
         });
 
-        return unsubscribe;
-    }, [navigation]);
+        return () => unsubscribe?.();
+    }, [navigation, checkAndUpdatePermissions]);
 
     // Check permissions when tokens change
     React.useEffect(() => {
@@ -66,10 +73,15 @@ export const NotificationPermissionDescription = () => {
     const route = useRoute();
     const prevRoute = route.params?.prevRoute ?? null;
 
-    const { theme, textColor } = React.useContext(ThemeContext);
-    const { language } = React.useContext(LanguageContext);
-    const { library } = React.useContext(LibrarySystemContext);
-    const { updateExpoToken, notificationSettings, expoToken, updateUserDebugMessage } = React.useContext(UserContext);
+    const { theme, textColor } = useTheme();
+    const language = useActiveLanguage();
+    const library = useLibrary();
+    const { data: notifSettings } = useNotificationSettings();
+    const notificationSettings = notifSettings;
+    const { data: userState } = useUserState();
+    const expoToken = userState?.expoToken ?? false;
+    const updateExpoToken = useUpdateExpoToken();
+    const addDebugMessage = useAddDebugMessage();
     const toast = useToast();
 
     const {
@@ -77,7 +89,7 @@ export const NotificationPermissionDescription = () => {
         isLoading,
         addNotificationPermissions,
         revokeNotificationPermissions
-    } = useNotificationPermissions(library, updateExpoToken, updateUserDebugMessage);
+    } = useNotificationPermissions(library, updateExpoToken, addDebugMessage);
 
     const {
         preferences,
@@ -105,8 +117,7 @@ export const NotificationPermissionDescription = () => {
                             as={ChevronLeftIcon}
                         />
                     </Button>
-                ),
-            });
+                ) });
         }
     }, [navigation, prevRoute, theme]);
 
@@ -164,8 +175,8 @@ export const NotificationPermissionDescription = () => {
             checkAndUpdatePermissions('Notifications focus effect');
         });
 
-        return unsubscribe;
-    }, [navigation]);
+        return () => unsubscribe?.();
+    }, [navigation, checkAndUpdatePermissions]);
 
     const checkAndUpdatePermissions = async () => {
         const { status } = await Notifications.getPermissionsAsync();
@@ -214,13 +225,15 @@ export const NotificationPermissionDescription = () => {
 
                     <NotificationPermissionUsage />
 
-                    <Box mb="$5">
-                        <NotificationPreferencesSection
-                            preferences={preferences}
-                            updatePreference={updatePreference}
-                            notificationSettings={settings}
-                        />
-                    </Box>
+                    {permissionStatus && (
+                        <Box mb="$5">
+                            <NotificationPreferencesSection
+                                preferences={preferences}
+                                updatePreference={updatePreference}
+                                notificationSettings={settings}
+                            />
+                        </Box>
+                    )}
                 </Box>
                 <NotificationPermissionUpdate
                     permissionStatus={permissionStatus}
@@ -233,8 +246,9 @@ export const NotificationPermissionDescription = () => {
 };
 
 const NotificationPreferencesSection = ({ preferences, updatePreference, notificationSettings }) => {
-    const { textColor } = React.useContext(ThemeContext);
+    const { textColor } = useTheme();
 
+    console.log(notificationSettings);
     return (
         <>
             {Object.entries(notificationSettings).map(([key, setting]) => (
@@ -251,8 +265,8 @@ const NotificationPreferencesSection = ({ preferences, updatePreference, notific
 };
 
 const NotificationPermissionUsage = () => {
-    const { language } = React.useContext(LanguageContext);
-    const { textColor } = React.useContext(ThemeContext);
+    const language = useActiveLanguage();
+    const { textColor } = useTheme();
 
     return (
         <Accordion variant="unfilled" width="$full" size="sm">
@@ -283,8 +297,8 @@ const NotificationPermissionUsage = () => {
 };
 
 const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermissions, revokeNotificationPermissions }) => {
-    const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-    const { language } = React.useContext(LanguageContext);
+    const { colorMode, theme, textColor } = useTheme();
+    const language = useActiveLanguage();
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [showAlertDialog, setShowAlertDialog] = React.useState(false);
 

@@ -1,22 +1,24 @@
 import React from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+
+import { useUserState } from '../../../hooks/useUserData';
 import { Button, ButtonGroup, ButtonIcon, ButtonText, Center, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroup } from '../../../util/api/list';
 import { navigateStack } from '../../../helpers/RootNavigator';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
-     const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
-     const [showModal, setShowModal] = React.useState(false);
-     const [loading, setLoading] = React.useState(false);
+      const { data: userState } = useUserState();
+      const library = useLibrary();
+      const language = useActiveLanguage();
+      const { textColor, theme, colorMode } = useTheme();
+      const [showModal, setShowModal] = React.useState(false);
+      const [loading, setLoading] = React.useState(false);
 
-     const [title, setTitle] = React.useState(currentTitle);
+      const [title, setTitle] = React.useState(currentTitle);
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -50,24 +52,22 @@ export const EditListGroup = ({currentTitle, id, handleUpdate}) => {
                                    <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
                                         <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']}
-                                           isLoading={loading}
-                                           isLoadingText={getTermFromDictionary(language, 'saving', true)}
-                                           onPress={() => {
-                                                setLoading(true);
-                                                editListGroup(id, title, library.baseUrl).then(async (res) => {
-                                                     setLoading(false);
-                                                     setShowModal(false);
-                                                     handleUpdate(id);
-                                                     queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });
-                                                     navigateStack('AccountScreenTab', 'MyLists', {
-                                                          libraryUrl: library.baseUrl,
-                                                          hasPendingChanges: true,
-                                                     });
-                                                });
-                                           }}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
-                                   </Button>
+                                    <Button bgColor={theme.tokens.colors.primary['500']}
+                                            isLoading={loading}
+                                            isLoadingText={getTermFromDictionary(language, 'saving', true)}
+                                            onPress={() => {
+                                                 setLoading(true);
+                                                 editListGroup(id, title, library.baseUrl).then(async (res) => {
+                                                      setLoading(false);
+                                                      setShowModal(false);
+                                                      handleUpdate(id);
+                                                      navigateStack('AccountScreenTab', 'MyLists', {
+                                                           libraryUrl: library.baseUrl,
+                                                           hasPendingChanges: true });
+                                                 });
+                                            }}>
+                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

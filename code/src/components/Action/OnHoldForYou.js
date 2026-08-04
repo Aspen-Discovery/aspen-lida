@@ -1,12 +1,13 @@
 import { Button, ButtonText } from '@gluestack-ui/themed';
 import React, {useContext} from 'react';
-import { ThemeContext } from '../../context/initialContext';
+
 
 // custom components and helper files
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
+import { useTheme } from '../../themes/theme';
 
 export const OnHoldForYou = (props) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const handleNavigation = () => {
           if (props.prevRoute === 'DiscoveryScreen' || props.prevRoute === 'SearchResults' || props.prevRoute === 'HomeScreen') {
                navigateStack('AccountScreenTab', 'MyHolds', {});

@@ -18,7 +18,8 @@ import { Facet_Slider } from './Facets/Slider';
 import { Facet_Year } from './Facets/Year';
 import { UnsavedChangesExit } from './UnsavedChanges';
 import { logDebugMessage } from '../../util/logging.js';
-import { ThemeContext } from '../../context/initialContext';
+import { useTheme } from '../../themes/theme';
+
 
 export const Facet = ({ route, navigation }) => {
      const _isMounted = React.useRef(false);
@@ -33,7 +34,7 @@ export const Facet = ({ route, navigation }) => {
      const [values, setValues] = React.useState([]);
      const [valuesDefault, setValuesDefault] = React.useState([]);
      const [language] = React.useState(route.params?.language ?? 'en');
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
 
      const preselectValues = () => {
           let newValues = [];
@@ -86,20 +87,17 @@ export const Facet = ({ route, navigation }) => {
                               onPress={() => {
                                    updateGlobal();
                                    navigation.navigate('Filters', {
-                                        pendingFilters: SearchGlobal.pendingFilters,
-                                   });
+                                        pendingFilters: SearchGlobal.pendingFilters });
                               }}
                               p="$1">
                               <ChevronLeftIcon size={5} color={textColor} />
                          </Pressable>
                     ),
-                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} updateGlobal={updateGlobal} prevRoute="Filters" language={language} />,
-               });
+                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} updateGlobal={updateGlobal} prevRoute="Filters" language={language} /> });
           } else {
                navigation.setOptions({
                     headerLeft: () => <Box />,
-                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="Filters" language={language} />,
-               });
+                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="Filters" language={language} /> });
           }
      }, [navigation, language]);
 
@@ -145,13 +143,11 @@ export const Facet = ({ route, navigation }) => {
           SearchGlobal.hasPendingChanges = false;
           if (toFilters) {
                navigation.navigate('Filters', {
-                    term: SearchGlobal.term,
-               });
+                    term: SearchGlobal.term });
           } else {
                navigation.navigate('SearchResults', {
                     term: SearchGlobal.term,
-                    pendingParams: params,
-               });
+                    pendingParams: params });
           }
      };
 

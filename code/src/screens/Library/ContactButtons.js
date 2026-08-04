@@ -1,23 +1,23 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
 import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken, useToast} from '@gluestack-ui/themed';
-import { useColorModeValue } from '../../themes/theme';
+import { useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
 import { popToast } from '../../components/loadError';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
-import { PATRON } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const ContactButtons = (data) => {
-     const { library } = React.useContext(LibrarySystemContext);
      const location = data.data;
-     const { language } = React.useContext(LanguageContext);
-     const { textColor: themeTextColor, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor: themeTextColor, colorMode } = useTheme();
      const toast = useToast();
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
@@ -44,8 +44,7 @@ const ContactButtons = (data) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           if (location.homeLink === '/') {
                await WebBrowser.openBrowserAsync(location.baseUrl, browserParams)
@@ -120,20 +119,20 @@ const ContactButtons = (data) => {
 
      const getDirections = async () => {
           /* location.latitude & location.longitude */
-          if (PATRON.coords.lat && PATRON.coords.long && PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
+          const sourceLatitude = await SecureStore.getItemAsync('latitude');
+          const sourceLongitude = await SecureStore.getItemAsync('longitude');
+          if (sourceLatitude && sourceLongitude && sourceLatitude !== '0' && sourceLongitude !== '0') {
                showLocation({
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    sourceLatitude: PATRON.coords.lat,
-                    sourceLongitude: PATRON.coords.long,
-                    googleForceLatLon: true,
-               });
+                    sourceLatitude,
+                    sourceLongitude,
+                    googleForceLatLon: true });
           } else {
                showLocation({
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    googleForceLatLon: true,
-               });
+                    googleForceLatLon: true });
           }
      };
 
@@ -152,8 +151,7 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
-                                   }}>
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200" }}>
                                    <Center>
                                         <Icon as={MaterialIcons} name="call" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
@@ -171,8 +169,7 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
-                                   }}>
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200" }}>
                                    <Center>
                                         <Icon as={MaterialIcons} name="email" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
@@ -190,8 +187,7 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
-                                   }}>
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200" }}>
                                    <Center>
                                         <Icon as={MaterialIcons} name="map" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>
@@ -209,8 +205,7 @@ const ContactButtons = (data) => {
                                         paddingVertical: 10,
                                         paddingHorizontal: 2,
                                         height: 'auto',
-                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200",
-                                   }}>
+                                        borderColor: colorMode === 'light' ? "$coolGray600" : "$warmGray200" }}>
                                    <Center>
                                         <Icon as={MaterialIcons} name="home" size="md" color={colorMode === 'light' ? "$coolGray600" : "$warmGray200"} />
                                    </Center>

@@ -39,12 +39,14 @@ import {
 import React, { useState } from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getVolumes } from '../../util/api/item';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const SelectVolumeHold = (props) => {
      const { id, title, action, volumeInfo, prevRoute, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef } = props;
@@ -52,9 +54,13 @@ const SelectVolumeHold = (props) => {
      const [showModal, setShowModal] = useState(false);
      const [volume, setVolume] = React.useState('');
 
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const toast = useToast();
 
      const isPlacingHold = action.includes('hold');
@@ -256,9 +262,9 @@ const SelectVolumeHold = (props) => {
                                                   if (result) {
                                                        setResponseIsOpen(true);
                                                        if (result.success) {
-                                                            await refreshProfile(library.baseUrl).then((data) => {
+                                                             await refreshProfile(library.baseUrl).then((data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                       updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                                                                       logDebugMessage(data);

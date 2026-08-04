@@ -4,13 +4,17 @@ import _ from 'lodash';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
+import { saveLastListUsed } from '../../util/db';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getListDetails, getListGroupDetails, getListGroups, getLists, getListTitles } from '../../util/api/list';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useTheme } from '../../themes/theme';
 
-import { PATRON } from '../../util/globals';
 import {
      Box,
      Center,
@@ -55,8 +59,7 @@ import {
      ModalCloseButton,
      ModalHeader,
      ModalBody,
-     ModalFooter, useToast,
-} from '@gluestack-ui/themed';
+     ModalFooter, useToast } from '@gluestack-ui/themed';
 
 const AddToList = (props) => {
      const item = props.itemId;
@@ -67,17 +70,20 @@ const AddToList = (props) => {
      const [open, setOpen] = React.useState(false);
      const [screen, setScreen] = React.useState('add-new');
      const [loading, setLoading] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user, listGroups } = React.useContext(UserContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: userLists } = useLists();
+     const { data: listGroups } = useListGroups();
+     const language = useActiveLanguage();
      const insets = useSafeAreaInsets();
-     const lists = PATRON.lists;
+     const lists = userLists?.lists ?? userLists ?? [];
      const [listId, setListId] = useState();
      const [description, saveDescription] = useState();
      const [title, saveTitle] = useState();
      const [isPublic, saveIsPublic] = useState();
      const queryClient = useQueryClient();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
 
      const [addToGroup, setAddToGroup] = React.useState('no');
      const [newGroupName, setNewGroupName] = React.useState('');
@@ -90,8 +96,7 @@ const AddToList = (props) => {
           () => getListGroups(library.baseUrl),
           {
                refetchInterval: 60 * 1000 * 15,
-               refetchOnWindowFocus: 'always',
-          }
+               refetchOnWindowFocus: 'always' }
      );
 
      const groups = data?.ok ? (data.data?.result?.groups ?? []) : [];
@@ -104,8 +109,7 @@ const AddToList = (props) => {
      const updateLastListUsed = async (itemId) => {
           queryClient.invalidateQueries({ queryKey: ['list', itemId] });
           queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
-          queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
-          PATRON.listLastUsed = itemId;
+          await saveLastListUsed(itemId);
           setListId(itemId);
      };
 
