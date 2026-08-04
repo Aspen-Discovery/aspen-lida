@@ -1,15 +1,16 @@
 import _ from 'lodash';
-import { Box, Button, ButtonGroup, ButtonText, Center, CheckboxGroup, ChevronLeftIcon, Input, InputField, Pressable, VStack } from '@gluestack-ui/themed';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Box, Button, ButtonGroup, ButtonText, Center, CheckboxGroup, Input, InputField, Pressable, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
-
-// custom components and helper files
 import { ScrollView } from 'react-native';
 
 import { LoadingSpinner } from '../../components/loadingSpinner';
+import { useTheme } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { LIBRARY, SearchGlobal } from '../../util/globals';
 import { searchAvailableFacets } from '../../util/api/search';
 import { addAppliedFilter, buildParamsForUrl, removeAppliedFilter } from '../../util/api/searchHelper';
+import { logDebugMessage } from '../../util/logging.js';
 import { Facet_Checkbox } from './Facets/Checkbox';
 import { Facet_Date } from './Facets/Date';
 import { Facet_RadioGroup } from './Facets/RadioGroup';
@@ -17,9 +18,6 @@ import { Facet_Rating } from './Facets/Rating';
 import { Facet_Slider } from './Facets/Slider';
 import { Facet_Year } from './Facets/Year';
 import { UnsavedChangesExit } from './UnsavedChanges';
-import { logDebugMessage } from '../../util/logging.js';
-import { useTheme } from '../../themes/theme';
-
 
 export const Facet = ({ route, navigation }) => {
      const _isMounted = React.useRef(false);
@@ -34,7 +32,8 @@ export const Facet = ({ route, navigation }) => {
      const [values, setValues] = React.useState([]);
      const [valuesDefault, setValuesDefault] = React.useState([]);
      const [language] = React.useState(route.params?.language ?? 'en');
-     const {theme, textColor, colorMode } = useTheme();
+     const { theme, textColor, colorMode } = useTheme();
+     const headerIconColor = useToken('colors', colorMode === 'light' ? 'coolGray600' : 'coolGray200');
 
      const preselectValues = () => {
           let newValues = [];
@@ -76,30 +75,58 @@ export const Facet = ({ route, navigation }) => {
           };
      }, []);
 
-     React.useEffect(() => {
+     const hasPendingChanges = React.useCallback(() => {
+          const normalizedValues = Array.isArray(values) ? [...values].sort() : values;
+          const normalizedDefaults = Array.isArray(valuesDefault) ? [...valuesDefault].sort() : valuesDefault;
+          const hasLocalPendingChanges = !_.isEqual(normalizedValues, normalizedDefaults);
+          return SearchGlobal.hasPendingChanges || hasLocalPendingChanges;
+     }, [values, valuesDefault]);
+
+     React.useLayoutEffect(() => {
           const routes = navigation.getState()?.routes;
           const prevRoute = routes[routes.length - 2];
           if (prevRoute) {
                navigation.setOptions({
+                    headerBackVisible: false,
                     headerLeft: () => (
                          <Pressable
                               mr={3}
                               onPress={() => {
                                    updateGlobal();
-                                   navigation.navigate('Filters', {
-                                        pendingFilters: SearchGlobal.pendingFilters });
+                                   navigation.goBack();
                               }}
                               p="$1">
-                              <ChevronLeftIcon size={5} color={textColor} />
+                              <Box>
+                                   <MaterialIcons name="chevron-left" size={28} color={headerIconColor} />
+                              </Box>
                          </Pressable>
                     ),
-                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} updateGlobal={updateGlobal} prevRoute="Filters" language={language} /> });
+                    headerRight: () => (
+                         <UnsavedChangesExit
+                              updateSearch={updateSearch}
+                              discardChanges={discardChanges}
+                              prevRoute="Filters"
+                              language={language}
+                              hasPendingChanges={hasPendingChanges}
+                         />
+                    ),
+               });
           } else {
                navigation.setOptions({
+                    headerBackVisible: false,
                     headerLeft: () => <Box />,
-                    headerRight: () => <UnsavedChangesExit updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="Filters" language={language} /> });
+                    headerRight: () => (
+                         <UnsavedChangesExit
+                              updateSearch={updateSearch}
+                              discardChanges={discardChanges}
+                              prevRoute="Filters"
+                              language={language}
+                              hasPendingChanges={hasPendingChanges}
+                         />
+                    ),
+               });
           }
-     }, [navigation, language]);
+     }, [navigation, language, headerIconColor, hasPendingChanges]);
 
      const filterFacets = async () => {
           await searchAvailableFacets(category, title, filterByQuery, LIBRARY.url, language).then((result) => {
@@ -117,7 +144,7 @@ export const Facet = ({ route, navigation }) => {
           <Box p="$5">
                <Input
                     size="lg"
-                    borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                    borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}
                     variant="outline"
                >
                     <InputField
@@ -141,30 +168,30 @@ export const Facet = ({ route, navigation }) => {
      const updateSearch = (resetFacetGroup = false, toFilters = false) => {
           const params = buildParamsForUrl();
           SearchGlobal.hasPendingChanges = false;
+          SearchGlobal.pendingParams = params;
           if (toFilters) {
                navigation.navigate('Filters', {
-                    term: SearchGlobal.term });
-          } else {
-               navigation.navigate('SearchResults', {
                     term: SearchGlobal.term,
-                    pendingParams: params });
+               });
+          } else {
+               navigation.getParent()?.goBack();
           }
      };
 
      const updateCheckboxFacet = (group, value, newValue) => {
-          logDebugMessage("Updating facet " + group + " with value " + value + " to " + newValue);
+          logDebugMessage('Updating facet ' + group + ' with value ' + value + ' to ' + newValue);
           if (values) {
-               logDebugMessage("Existing values are " + values);
-          }else{
-               logDebugMessage("No existing values");
+               logDebugMessage('Existing values are ' + values);
+          } else {
+               logDebugMessage('No existing values');
           }
           let newValues = values;
           if (newValue) {
                newValues = [...values, value];
-          }else{
-               newValues = newValues.filter(n=>n !== value)
+          } else {
+               newValues = newValues.filter((n) => n !== value);
           }
-          logDebugMessage("Updated values are " + newValues);
+          logDebugMessage('Updated values are ' + newValues);
           setValues(newValues);
           SearchGlobal.hasPendingChanges = true;
           updateGlobal(group, newValues);
@@ -172,16 +199,16 @@ export const Facet = ({ route, navigation }) => {
 
      const updateLocalValues = (group, newValues) => {
           setValues(newValues);
-          logDebugMessage("Updating local values for " + group + " with values " + newValues);
+          logDebugMessage('Updating local values for ' + group + ' with values ' + newValues);
           SearchGlobal.hasPendingChanges = true;
           updateGlobal(group, newValues);
      };
 
      const updateGlobal = (group, newValues) => {
-          logDebugMessage("Updating global values for " + group + " with values " + newValues);
+          logDebugMessage('Updating global values for ' + group + ' with values ' + newValues);
           if (group === 'sort_by') {
                SearchGlobal.sortMethod = newValues;
-          }else{
+          } else {
                const prevSelections = values;
                addAppliedFilter(group, newValues, multiSelect);
                if (multiSelect) {
@@ -210,7 +237,7 @@ export const Facet = ({ route, navigation }) => {
      };
 
      const actionButtons = (
-          <Box p="$3" bgColor={colorMode === 'light' ? "$coolGray50" : "$coolGray700"} shadowOpacity={0.1} shadowRadius={1}>
+          <Box p="$3" bgColor={colorMode === 'light' ? '$coolGray50' : '$coolGray700'} shadowOpacity={0.1} shadowRadius={1}>
                <Center>
                     <ButtonGroup size="lg">
                          <Button variant="link" onPress={resetCluster}>
@@ -298,7 +325,7 @@ export const Facet = ({ route, navigation }) => {
                                              updateCheckboxFacet={updateCheckboxFacet}
                                              category={category}
                                              values={values}
-                                             />;
+                                        />;
                                    })}
                               </CheckboxGroup>
                          </Box>
@@ -306,17 +333,17 @@ export const Facet = ({ route, navigation }) => {
                     {actionButtons}
                </VStack>
           );
-     } else {
-          return (
-               <VStack flex={1}>
-                    {searchBar}
-                    <ScrollView>
-                         <Box px="$5">
-                              <Facet_RadioGroup data={facets} category={category} title={title} applied={values} updater={updateLocalValues} language={language} />
-                         </Box>
-                    </ScrollView>
-                    {actionButtons}
-               </VStack>
-          );
      }
+
+     return (
+          <VStack flex={1}>
+               {searchBar}
+               <ScrollView>
+                    <Box px="$5">
+                         <Facet_RadioGroup data={facets} category={category} title={title} applied={values} updater={updateLocalValues} language={language} />
+                    </Box>
+               </ScrollView>
+               {actionButtons}
+          </VStack>
+     );
 };

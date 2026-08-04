@@ -1,28 +1,31 @@
 import { useNavigation } from '@react-navigation/native';
-import { AlertDialog, Button, ButtonText, ButtonGroup, Text, Heading, Center, CloseIcon, Pressable } from '@gluestack-ui/themed';
+import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, Button, ButtonText, ButtonGroup, Text, Heading, Center, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 
 import { SearchGlobal } from '../../util/globals';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useTheme } from '../../themes/theme';
 
-
 export const UnsavedChangesExit = (props) => {
-     const { updateSearch, discardChanges, prevRoute, language } = props;
+     const { updateSearch, discardChanges, language, hasPendingChanges } = props;
      const { theme, colorMode, textColor } = useTheme();
      const navigation = useNavigation();
      const [isOpen, setIsOpen] = React.useState(false);
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);
 
+     const closeModal = () => {
+          navigation.getParent()?.goBack();
+     };
+
      function getStatus() {
-          const hasPendingChanges = SearchGlobal.hasPendingChanges;
-          if (hasPendingChanges) {
+          const pendingChanges = typeof hasPendingChanges === 'function' ? hasPendingChanges() : SearchGlobal.hasPendingChanges;
+          if (pendingChanges) {
                // if pending changes found, pop alert to confirm close
                setIsOpen(true);
           } else {
                // if no pending changes, just close it
-               navigation.getParent().pop();
+               closeModal();
           }
      }
 
@@ -30,6 +33,7 @@ export const UnsavedChangesExit = (props) => {
      const updateClose = () => {
           updateSearch(false);
           SearchGlobal.hasPendingChanges = false;
+          setIsOpen(false);
      };
 
      // remove pending parameters, then go back to original search results screen
@@ -37,31 +41,24 @@ export const UnsavedChangesExit = (props) => {
           discardChanges();
           setIsOpen(false);
           SearchGlobal.hasPendingChanges = false;
-          if (prevRoute === 'SearchScreen') {
-               navigation.navigate('BrowseTab', {
-                    screen: 'SearchResults',
-                    params: {
-                         term: SearchGlobal.term } });
-          } else {
-               navigation.getParent().pop();
-          }
+          closeModal();
      };
 
      return (
           <Center>
-               <Pressable onPress={() => getStatus()} p="$1" ml="$3">
-                    <CloseIcon size="md" color={textColor} />
+               <Pressable onPress={() => getStatus()}>
+                    <CloseIcon size="lg" color={textColor} />
                </Pressable>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                    <AlertDialog.Backdrop/>
-                    <AlertDialog.Content bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                         <AlertDialog.Header>
+               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
+                    <AlertDialogBackdrop/>
+                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogHeader>
                               <Heading color={textColor}>{getTermFromDictionary(language, 'discard_changes')}</Heading>
-                         </AlertDialog.Header>
-                         <AlertDialog.Body>
+                         </AlertDialogHeader>
+                         <AlertDialogBody>
                               <Text color={textColor}>{getTermFromDictionary(language, 'unsaved_changes_warning')}</Text>
-                         </AlertDialog.Body>
-                         <AlertDialog.Footer>
+                         </AlertDialogBody>
+                         <AlertDialogFooter>
                               <ButtonGroup space="sm">
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={updateClose} ref={cancelRef}>
                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
@@ -70,8 +67,8 @@ export const UnsavedChangesExit = (props) => {
                                         <ButtonText color="$error500">{getTermFromDictionary(language, 'discard')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialog.Footer>
-                    </AlertDialog.Content>
+                         </AlertDialogFooter>
+                    </AlertDialogContent>
                </AlertDialog>
           </Center>
      );
