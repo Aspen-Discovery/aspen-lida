@@ -354,15 +354,10 @@ export function generateSwatches(swatch) {
                return saturationDelta >= 0 ? color.saturate(saturationDelta) : color.desaturate(saturationDelta * -1);
           });
 
-     const colorsHueUp = colors.map((color, i) => {
-          const hueDelta = HUE_MAP[i] - HUE_MAP[baseColorIndex];
-          return hueDelta >= 0 ? color.set('hsl.h', `+${hueDelta}`) : color.set('hsl.h', `+${(hueDelta * -1) / 2}`);
-     });
+     const rawApiColor = chroma(primaryColor);
+     const BASE_500_INDEX = 5;
 
-     const colorsHueDown = colors.map((color, i) => {
-          const hueDelta = HUE_MAP[i] - HUE_MAP[baseColorIndex];
-          return hueDelta >= 0 ? color.set('hsl.h', `-${hueDelta}`) : color.set('hsl.h', `-${(hueDelta * -1) / 2}`);
-     });
+     colors[BASE_500_INDEX] = rawApiColor;
 
      const object = {};
      let baseColor;
