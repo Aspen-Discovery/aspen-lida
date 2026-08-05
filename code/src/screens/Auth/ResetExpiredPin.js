@@ -33,7 +33,7 @@ import {
 } from '@gluestack-ui/themed';
 
 import React from 'react';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback/toastService';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';

@@ -8,7 +8,8 @@ import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack, useToast } from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
-import { loadError, popAlert, popToast } from '../../../components/loadError';
+import { loadError } from '../../../components/loadError';
+import { popAlert, popToast } from '../../../components/feedback/toastService';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';

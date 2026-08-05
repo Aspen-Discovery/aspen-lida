@@ -136,7 +136,7 @@ const AddLinkedAccount = () => {
                                         onPress={async () => {
                                              setLoading(true);
                                              try {
-                                                  await addLinkedAccount(toast, newUser, password, library.baseUrl);
+                                                  await addLinkedAccount(newUser, password, library.baseUrl);
                                                   await refreshLinkedAccounts();
                                              }catch (e) {
                                                   logErrorMessage("Error adding linked account");

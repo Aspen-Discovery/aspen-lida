@@ -2,9 +2,10 @@ import { LIBRARY } from '../globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
 import { GLOBALS } from '../globals';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 import { createApiClient } from './apiFactory';
 import { generateSwatches } from '../../helpers/helpers';
+import { getTermFromDictionary } from '../../translations/TranslationHelper';
 
 /**
  * Return basic information about the library
@@ -118,13 +119,12 @@ export async function getCatalogStatus(url = null) {
 
 /**
  * Fetch settings for app that are maintained by the library
- * @param {object} toast - The instance returned by useToast()
  * @param url
  * @param timeout
  * @param slug
  * @returns {Promise<*|*[]>}
  */
-export async function getAppSettings(toast, url, timeout, slug) {
+export async function getAppSettings(url, timeout, slug) {
      const APPSETTINGS_STALE_MS = 48 * 60 * 60 * 1000; // 48 hours
 
      try {
@@ -155,7 +155,7 @@ export async function getAppSettings(toast, url, timeout, slug) {
           logWarnMessage(response);
           return [];
      } catch (err) {
-          popToast(toast, getTermFromDictionary(toast, 'en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
+          popToast(getTermFromDictionary('en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
           logErrorMessage(`Exception in getAppSettings ${err}`);
           return [];
      }
@@ -362,7 +362,7 @@ export async function getThemeInfo(toast, url = null) {
           return COLOR_SCHEMES.map(generateSwatches);
      }
 
-     await getAppSettings(toast, libraryUrl, 10000, GLOBALS.slug);
+     await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
 
      const client = createApiClient({
           url: libraryUrl,

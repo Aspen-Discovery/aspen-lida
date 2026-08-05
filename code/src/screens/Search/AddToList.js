@@ -226,7 +226,7 @@ const AddToList = (props) => {
                                                             isLoading={loading}
                                                             onPress={() => {
                                                                  setLoading(true);
-                                                                 addTitlesToList(toast, listId, item, library.baseUrl, source, language).then(() => {
+                                                                 addTitlesToList(listId, item, library.baseUrl, source, language).then(() => {
                                                                       updateLastListUsed(listId);
                                                                       queryClient.invalidateQueries({ queryKey: ['list', listId] });
                                                                       setLoading(false);
@@ -420,7 +420,7 @@ const AddToList = (props) => {
                                                        isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                                        onPress={() => {
                                                             setLoading(true);
-                                                            createListFromTitle(toast, title, description, isPublic, item, library.baseUrl, source, addToGroup, nestedGroup, newGroupName).then((res) => {
+                                                            createListFromTitle(title, description, isPublic, item, library.baseUrl, source, addToGroup, nestedGroup, newGroupName).then((res) => {
                                                                  updateLastListUsed(res.listId);
                                                                  queryClient.invalidateQueries({ queryKey: ['lists', user.id, library.baseUrl, language] });
                                                                  queryClient.invalidateQueries({ queryKey: ['list_groups', user.id, library.baseUrl, language] });

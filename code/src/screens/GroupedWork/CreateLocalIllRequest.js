@@ -150,7 +150,7 @@ const Request = (payload) => {
                catalogKey: workId ?? null,
                pickupLocation: pickupLocation ?? null,
                volumeId: volumeId };
-          await submitLocalIllRequest(toast, library.baseUrl, request).then(async (result) => {
+          await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {
                     setErrorMessage('');

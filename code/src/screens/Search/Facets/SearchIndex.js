@@ -1,29 +1,26 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import _ from 'lodash';
+import { useNavigation } from '@react-navigation/native';
 import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { ScrollView } from 'react-native';
 
 import { SearchContext } from '../../../context/initialContext';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { SearchGlobal } from '../../../util/globals';
 import {logDebugMessage} from "../../../util/logging";
 import { useTheme } from '../../../themes/theme';
 
 // custom components and helper files
 
 export const SearchIndexScreen = () => {
+     const navigation = useNavigation();
      const {theme, textColor, colorMode } = useTheme();
      const { currentIndex, indexes, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
 
      logDebugMessage('currentIndex: ' + currentIndex);
 
      const search = async () => {
-          navigateStack('BrowseTab', 'SearchResults', {
-               term: SearchGlobal.term,
-               type: 'catalog',
-               prevRoute: 'DiscoveryScreen',
-               scannerSearch: false });
+          // Dismiss modal so existing SearchResults screen refreshes with updated context/global state.
+          navigation.getParent()?.goBack();
      };
 
      const updateIndex = async (index) => {
