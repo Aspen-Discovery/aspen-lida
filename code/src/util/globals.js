@@ -64,6 +64,7 @@ export const SearchGlobal = {
      defaultFacets: [],
      pendingFilters: [],
      appendedParams: '',
+     pendingParams: [],
      searchSource: 'local',
      searchIndex: 'Keyword',
 };
@@ -78,6 +79,7 @@ export function resetSearchGlobals() {
      SearchGlobal.availableFacets = [];
      SearchGlobal.pendingFilters = [];
      SearchGlobal.appendedParams = '';
+     SearchGlobal.pendingParams = [];
      //logDebugMessage('Reset global search variables'); // this creates a require cycle even though we aren't even using it
 }
 
