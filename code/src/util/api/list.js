@@ -1,4 +1,4 @@
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { GLOBALS } from '../globals';
 import { saveLastListUsed } from '../db';
@@ -88,7 +88,6 @@ export async function createList(title, description, isPublic = false, url = nul
 
 /**
  * Create a new list for a user based on a title, and optionally add to a list group
- * @param {object} toast - The instance returned by useToast()
  * @param title
  * @param description
  * @param access
@@ -100,7 +99,7 @@ export async function createList(title, description, isPublic = false, url = nul
  * @param addToListGroupNewName
  * @returns {Promise<*|boolean>}
  */
-export async function createListFromTitle(toast, title, description, access, items, url = null, source = 'GroupedWork', addToListGroup, addToListGroupNestedId, addToListGroupNewName) {
+export async function createListFromTitle(title, description, access, items, url = null, source = 'GroupedWork', addToListGroup, addToListGroupNestedId, addToListGroupNewName) {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
 
      const response = await client.post(
@@ -131,7 +130,7 @@ export async function createListFromTitle(toast, title, description, access, ite
           const alertTitle = result?.success ? 'Success' : 'Error';
           const alertMessage = result?.numAdded ? `${result.numAdded} added to ${title}` : `Title added to ${title}`;
 
-          popAlert(toast, alertTitle, alertMessage, status);
+          popAlert(alertTitle, alertMessage, status);
           return result;
      }
 
@@ -167,7 +166,6 @@ export async function editList(listId, title, description, access, url = null, l
 
 /**
  * Add titles to an existing list for a user
- * @param {object} toast - The instance returned by useToast()
  * @param id
  * @param itemId
  * @param url
@@ -175,7 +173,7 @@ export async function editList(listId, title, description, access, url = null, l
  * @param language
  * @returns {Promise<*>}
  */
-export async function addTitlesToList(toast, id, itemId, url = null, source = 'GroupedWork', language = 'en') {
+export async function addTitlesToList(id, itemId, url = null, source = 'GroupedWork', language = 'en') {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
 
      const response = await client.post(
@@ -191,9 +189,9 @@ export async function addTitlesToList(toast, id, itemId, url = null, source = 'G
           const result = response.data?.result;
 
           if (result?.success) {
-               popAlert(toast, getTermFromDictionary(language, 'added_successfully'), `${result.numAdded} added to list`, 'success');
+               popAlert(getTermFromDictionary(language, 'added_successfully'), `${result.numAdded} added to list`, 'success');
           } else {
-               popAlert(toast, getTermFromDictionary(language, 'error'), 'Unable to add item to list', 'error');
+               popAlert(getTermFromDictionary(language, 'error'), 'Unable to add item to list', 'error');
           }
 
           return result;

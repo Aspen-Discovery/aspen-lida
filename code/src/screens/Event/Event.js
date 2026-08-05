@@ -15,8 +15,6 @@ import {
      ScrollView,
      VStack,
      Text,
-     Alert,
-     AlertIcon,
      Button,
      ButtonGroup,
      ButtonText,
@@ -35,7 +33,8 @@ import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
-import { loadError, popAlert, popToast } from '../../components/loadError';
+import { loadError } from '../../components/loadError';
+import { popAlert, popToast } from '../../components/feedback/toastService';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
@@ -407,32 +406,13 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          id: event.id,
                          location: eventLocation,
                          allDay: event.isAllDay ?? false,
-                         url: event.url }).then(async (result) => {
-                         return toast.show({
-                              duration: 5000,
-                              accessibilityAnnouncement: getTermFromDictionary(language, 'event_added_to_calendar'),
-                              avoidKeyboard: true,
-                              render: () => {
-                                   return (
-                                        <Center>
-                                             <Alert maxW="400" status="success" colorScheme="success">
-                                                  <VStack space="sm" flexShrink={1} width="$full">
-                                                       <HStack flexShrink={1} space="sm" alignItems="center" justifyContent="space-between">
-                                                            <HStack flexShrink={1} space="sm">
-                                                                 <AlertIcon />
-                                                                 <Text size="md" fontWeight="$bold" color={textColor}>
-                                                                      {getTermFromDictionary(language, 'added_successfully')}
-                                                                 </Text>
-                                                            </HStack>
-                                                       </HStack>
-                                                       <Box pl="$6">
-                                                            <Text color={textColor}>{getTermFromDictionary(language, 'event_added_to_calendar')}</Text>
-                                                       </Box>
-                                                  </VStack>
-                                             </Alert>
-                                        </Center>
-                                   );
-                              } });
+                         url: event.url }).then(async () => {
+                         return popAlert(
+                              toast,
+                              getTermFromDictionary(language, 'added_successfully'),
+                              getTermFromDictionary(language, 'event_added_to_calendar'),
+                              'success'
+                         );
                     });
                } catch (e) {
                    logDebugMessage(e);

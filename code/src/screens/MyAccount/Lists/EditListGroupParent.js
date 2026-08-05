@@ -38,7 +38,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroupParent, getLists, getListGroups } from '../../../util/api/list';
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback/toastService';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';

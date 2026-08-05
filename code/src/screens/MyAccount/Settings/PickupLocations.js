@@ -411,7 +411,7 @@ export const Settings_PickupLocations = () => {
 					<Checkbox
 						size="sm"
 						name="rememberHoldPickupLocation"
-						isChecked={Boolean(rememberPickupLocation)}
+						isChecked={Boolean(rememberHoldPickupLocation)}
 						onChange={(value) => {
 							setIsDirty(true);
 							setRememberPickupLocation(value);
@@ -432,7 +432,7 @@ export const Settings_PickupLocations = () => {
 
 															  setLoading(true);
 															  try {
-																   await updateHoldPickupPreferences(toast, location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl);
+																   await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl);
 																																		   const profileResponse = await refreshProfile(library.baseUrl);
 																																		   const refreshedProfile = profileResponse?.data?.result?.profile;
 																																		   if (profileResponse?.ok && refreshedProfile) {

@@ -92,7 +92,7 @@ const DisableAccountLinking = () => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await disableAccountLinking(toast, language, library.baseUrl).then(async (r) => {
+                                             await disableAccountLinking(library.baseUrl).then(async (r) => {
                                                   await refreshLinkedAccounts();
                                                   toggle();
                                              });

@@ -1,11 +1,10 @@
 import React from 'react';
-import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup, Toast, ToastTitle, ToastDescription, VStack } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center, Heading, HStack, Icon, Text, ButtonIcon, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, ButtonGroup } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../translations/TranslationHelper';
 
-import { logDebugMessage } from '../util/logging.js';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
 
@@ -50,91 +49,6 @@ export function loadError(error, reloadAction = '') {
      return <LoadError error={error} reloadAction={reloadAction} />;
 }
 
-/**
- * <b>Toast: low priority messages</b>
- *
- * <ul>
- * <li>Use Case: A brief error or update regarding an app process</li>
- * <li>User Action: Optional and minimal</li>
- * <li>Closes On: Disappears automatically, should be brief</li>
- * <li>Example Use: Bad API fetches or server connection troubles/timeouts</li>
- * </ul>
- * - - - -
- * Available statuses:
- * <ul>
- * <li>Success</li>
- * <li>Error</li>
- * <li>Info</li>
- * <li>Warning</li>
- * </ul>
- * @param {object} toast - The instance returned by useToast()
- * @param {string} title
- * @param {string} description
- * @param {string} status
- **/
-export function popToast(toast, title, description, status) {
-     requestAnimationFrame(() => {
-          logDebugMessage("Popping a toast");
-          const actionType = status?.toLowerCase();
-          toast.show({
-               placement: 'bottom',
-               duration: 3000,
-               render: ({ id }) => {
-                    const uniqueToastId = 'toast-' + id;
-                    return (
-                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                              <VStack space="xs">
-                                   <ToastTitle>{title}</ToastTitle>
-                                   {description && <ToastDescription>{description}</ToastDescription>}
-                              </VStack>
-                         </Toast>
-                    );
-               } });
-     });
-}
-
-/**
- * <b>Alert: prominent, medium priority messages</b>
- *
- * <ul>
- * <li>Use Case: An error or notice occurs because of an action that a user has taken</li>
- * <li>User Action: Optional, buttons do not need to be displayed</li>
- * <li>Closes On: When dismissed or the state that caused the alert is resolved</li>
- * <li>Example Use: Checkout renewal, freeze or thaw hold, or hold cancelled</li>
- * </ul>
- * - - - -
- * Available statuses:
- * <ul>
- * <li>Success</li>
- * <li>Error</li>
- * <li>Info</li>
- * </ul>
- * @param {object} toast - The instance returned by useToast()
- * @param {string} title
- * @param {string} description
- * @param {string} status
- **/
-export function popAlert(toast, title, description, status) {
-     requestAnimationFrame(() => {
-          logDebugMessage("Popping an alert");
-          const actionType = status?.toLowerCase();
-          toast.show({
-               placement: 'bottom',
-               // Medium priority alerts typically persist longer or require closing
-               duration: 5000,
-               render: ({id}) => {
-                    const uniqueToastId = 'alert-' + id;
-                    return (
-                         <Toast nativeID={uniqueToastId} action={actionType} variant="solid">
-                              <VStack space="xs">
-                                   <ToastTitle>{title}</ToastTitle>
-                                   {description && <ToastDescription>{description}</ToastDescription>}
-                              </VStack>
-                         </Toast>
-                    );
-               } });
-     });
-}
 
 export const DisplayErrorAlertDialog = (props) => {
      const { title, message } = props;

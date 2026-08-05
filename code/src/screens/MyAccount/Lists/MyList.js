@@ -30,7 +30,8 @@ import {
      VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { loadError, popToast } from '../../../components/loadError';
+import { loadError } from '../../../components/loadError';
+import { popToast } from '../../../components/feedback/toastService';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';

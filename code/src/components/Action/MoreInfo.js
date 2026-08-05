@@ -26,7 +26,7 @@ export const MoreInfo = (props) => {
             variant="link"
             bgColor={backgroundColor}
             onPress={async () => {
-                passUserToDiscovery(toast, library?.baseUrl ?? '', props.module, user.id, backgroundColor, textColor, props.recordId)
+                passUserToDiscovery(library?.baseUrl ?? '', props.module, user.id, backgroundColor, textColor, props.recordId)
             }}>
             <ButtonText color={textColor}>{props.title}</ButtonText>
         </Button>

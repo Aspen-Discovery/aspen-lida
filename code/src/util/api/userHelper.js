@@ -1,5 +1,5 @@
 import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback';
 import * as WebBrowser from 'expo-web-browser';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { checkoutItem, overDriveSample, placeHold } from './user';
@@ -78,7 +78,7 @@ export async function completeAction(toast, id, actionType, patronId, formatId =
                return await placeHold(url, itemId, source, patronId, pickupBranch, sublocation, rememberPickupLocation, volumeId, holdType, id, holdNotificationPreferences, variationId);
           }
      } else if (actionType.includes('sample')) {
-          return await overDriveSample(toast, url, formatId, itemId, sampleNumber);
+          return await overDriveSample(url, formatId, itemId, sampleNumber);
      }
 }
 

@@ -30,13 +30,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { showILSMessage } from '../../components/Notifications';
-import { CheckoutsContext, HoldsContext } from '../../context/initialContext';
+import { CheckoutsContext, HoldsContext, SystemMessagesContext } from '../../context/initialContext';
 import {
      useCatalogStatus,
      useLibrary,
      useUpdateCatalogStatus,
 } from '../../hooks/useLibrarySystemData';
-import { useUpdateAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useUpdateAvailableLocations, useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useUserState, useCards,
      useUpdateUserProfile, useUpdatePickupLocationPrefs,
      useUpdateAccounts, useUpdateCards, useUpdateLists, useUpdateListGroups } from '../../hooks/useUserData';
@@ -45,7 +45,7 @@ import { CatalogOffline } from '../../screens/Auth/CatalogOffline';
 import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
 import { getTermFromDictionary, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
-import { getLocations, getCatalogStatus } from '../../util/api/system';
+import { getLocations, getCatalogStatus, getSystemMessages } from '../../util/api/system';
 import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists } from '../../util/api/list';
@@ -193,6 +193,7 @@ export const DrawerContent = (props) => {
       const updateListGroups = useUpdateListGroups();
       const updateAvailableLocations = useUpdateAvailableLocations();
       const library = useLibrary();
+      const location = useLibraryLocation();
       const { status: catalogStatus } = useCatalogStatus();
        const updateCatalogStatus = useUpdateCatalogStatus();
       // noinspection JSUnusedLocalSymbols
@@ -200,6 +201,7 @@ export const DrawerContent = (props) => {
       const [messages, setILSMessages] = React.useState([]);
       const { updateCheckouts } = React.useContext(CheckoutsContext);
       const { updateHolds } = React.useContext(HoldsContext);
+      const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const language = useActiveLanguage();
        const [invalidSession, setInvalidSession] = React.useState(false);
 
@@ -506,32 +508,61 @@ export const DrawerContent = (props) => {
           } });
 
 
-     useQueryWithCallbacks({
-          queryKey: ['session', library.baseUrl, user.id],
-          queryFn: () => validateSession(library.baseUrl),
-          initialData: GLOBALS.appSessionId,
-          refetchInterval: 86400000,
-          refetchIntervalInBackground: true,
-          retry: 5 }, {
-          onSuccess: (data) => {
-               if(data.ok) {
-                    if (typeof data.data.result?.session !== 'undefined') {
-                         logDebugMessage("Got session data");
-                         GLOBALS.appSessionId = data.data.result.session;
-                    } else {
-                         logWarnMessage("No session returned when validating session");
-                    }
-               } else {
-                    logDebugMessage("Error validating session");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code, data.problem)
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error validating session");
-               logErrorMessage(error);
-          }
-     });
+      useQueryWithCallbacks({
+           queryKey: ['session', library.baseUrl, user.id],
+           queryFn: () => validateSession(library.baseUrl),
+           initialData: GLOBALS.appSessionId,
+           refetchInterval: 86400000,
+           refetchIntervalInBackground: true,
+           retry: 5 }, {
+           onSuccess: (data) => {
+                if(data.ok) {
+                     if (typeof data.data.result?.session !== 'undefined') {
+                          logDebugMessage("Got session data");
+                          GLOBALS.appSessionId = data.data.result.session;
+                     } else {
+                          logWarnMessage("No session returned when validating session");
+                     }
+                } else {
+                     logDebugMessage("Error validating session");
+                     logDebugMessage(data);
+                     getErrorMessage(data.code, data.problem)
+                }
+           },
+           onError: (error) => {
+                logDebugMessage("Error validating session");
+                logErrorMessage(error);
+           }
+      });
+
+      useQueryWithCallbacks({
+           queryKey: ['system_messages', library.baseUrl],
+           queryFn: () => getSystemMessages(library.libraryId ?? null, location?.locationId ?? null, library.baseUrl),
+           enabled: !!library.baseUrl,
+           refetchInterval: 60 * 1000 * 30,
+           refetchIntervalInBackground: true,
+           refetchOnWindowFocus: 'always' }, {
+           onSuccess: (data) => {
+                if (data.ok) {
+                     logDebugMessage("Loaded System Messages in DrawerContent");
+                     const rawMessages = data.data.result?.systemMessages;
+                     const parsedMessages = Array.isArray(rawMessages)
+                          ? rawMessages
+                          : rawMessages
+                               ? [rawMessages]
+                               : [];
+                     updateSystemMessages(parsedMessages);
+                } else {
+                     logDebugMessage("Error loading system messages in DrawerContent");
+                     logDebugMessage(data);
+                     getErrorMessage(data.code ?? 0, data.problem);
+                }
+           },
+           onError: (error) => {
+                logDebugMessage("Error fetching system messages in DrawerContent");
+                logErrorMessage(error);
+           }
+      });
 
      const reloadProfileStartedRef = React.useRef(false);
      const userRef = React.useRef(user);
@@ -1062,7 +1093,7 @@ const Fines = () => {
 
      if (shouldShowFines) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
@@ -1135,7 +1166,7 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
