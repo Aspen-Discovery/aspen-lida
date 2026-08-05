@@ -1,84 +1,82 @@
 import React from 'react';
 import { ChevronRight, Dot } from 'lucide-react-native';
-import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadError } from '../../../components/loadError';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
+import { useNotificationHistory, useUpdateNotificationHistory, useInbox, useUpdateInbox } from '../../../hooks/useUserData';
 import { Heading, Box, Button, ButtonText, ButtonGroup, Center, FlatList, HStack, Icon, Pressable, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import { navigate } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { stripHTML } from '../../../helpers/helpers';
+import { stripHTML, truncate } from '../../../helpers/helpers';
 import { fetchNotificationHistory } from '../../../util/api/user';
 import { formatNotificationHistory } from '../../../util/api/userHelper';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyNotificationHistory = () => {
      const navigation = useNavigation();
-     const queryClient = useQueryClient();
-     const [isLoading, setLoading] = React.useState(false);
+     const [isFetching, setIsFetching] = React.useState(false);
+     const [fetchError, setFetchError] = React.useState(null);
      const [page, setPage] = React.useState(1);
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-     const { user, notificationHistory, updateNotificationHistory, inbox, updateInbox } = React.useContext(UserContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { colorMode, theme, textColor } = useTheme();
+     const { data: notificationHistory } = useNotificationHistory();
+     const updateNotificationHistory = useUpdateNotificationHistory();
+     const { data: inbox } = useInbox();
+     const updateInbox = useUpdateInbox();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const url = library.baseUrl;
-     const pageSize = 25;
-     const systemMessagesForScreen = [];
+     const systemMessagesForScreen = React.useMemo(() => {
+          if (!Array.isArray(systemMessages)) return [];
+          return systemMessages.filter((obj) => obj.showOn === '0' || obj.showOn === '1');
+     }, [systemMessages]);
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
-               systemMessages.map((obj, index, collection) => {
-                    if (obj.showOn === '0' || obj.showOn === '1') {
-                         systemMessagesForScreen.push(obj);
-                    }
-               });
-          }
-     }, [systemMessages]);
+          const loadHistory = async () => {
+               setIsFetching(true);
+               setFetchError(null);
+               try {
+                    const data = await fetchNotificationHistory(page, 20, true, library.baseUrl, language);
+                    if (data.ok) {
+                         const history = formatNotificationHistory(data.data.result);
+                         await updateInbox(history.inbox ?? []);
+                         await updateNotificationHistory(history);
 
-     const { status, data, error, isFetching, isPreviousData } = useQuery(['notification_history', user.id, library.baseUrl, page], () => fetchNotificationHistory(1, 20, false, library.baseUrl, language), {
-          initialData: notificationHistory,
-          keepPreviousData: true,
-          staleTime: 1000,
-          onSuccess: (data) => {
-               if(data.ok) {
-                    const notificationHistory = formatNotificationHistory(data.data.result);
-                    updateInbox(notificationHistory.inbox ?? []);
-                    updateNotificationHistory(notificationHistory);
-                    if (notificationHistory.totalPages) {
                          let tmp = getTermFromDictionary(language, 'page_of_page');
-                         tmp = tmp.replace('%1%', page);
-                         tmp = tmp.replace('%2%', notificationHistory.totalPages);
+                         tmp = tmp.replace('%1%', history.curPage || page);
+                         tmp = tmp.replace('%2%', history.totalPages || 1);
                          setPaginationLabel(tmp);
+                    } else {
+                         logDebugMessage("Error fetching notification history");
+                         logDebugMessage(data);
+                         getErrorMessage(data.code ?? 0, data.problem);
                     }
-               } else {
+               } catch (error) {
                     logDebugMessage("Error fetching notification history");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
+                    logErrorMessage(error);
+                    setFetchError(error);
+               } finally {
+                    setIsFetching(false);
                }
-          },
-          onSettle: (data) => setLoading(false),
-          onError: (error) => {
-               logDebugMessage("Error fetching notification history");
-               logErrorMessage(error);
-          }
-     });
+          };
+          loadHistory();
+     }, [library.baseUrl, language, page, updateInbox, updateNotificationHistory]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+          if (Array.isArray(systemMessages)) {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                });
           }
@@ -88,7 +86,7 @@ export const MyNotificationHistory = () => {
      const Empty = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                    {systemMessagesForScreen.length > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                     <Center flex={1} p="$5">
                          <Heading pt="$5" color={textColor}>{getTermFromDictionary(language, 'notification_history_empty')}</Heading>
                     </Center>
@@ -97,7 +95,7 @@ export const MyNotificationHistory = () => {
      };
 
      const Paging = () => {
-          if (data?.totalResults > 0) {
+          if (notificationHistory?.totalResults > 0) {
                return (
                     <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" alignItems="center">
                          <ScrollView horizontal>
@@ -108,12 +106,13 @@ export const MyNotificationHistory = () => {
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
-                                             if (!isPreviousData && data.hasMore) {
+                                             const totalPages = notificationHistory?.totalPages ?? 1;
+                                             if (page < totalPages) {
                                                   logDebugMessage('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}
-                                        isDisabled={isPreviousData || !data?.hasMore}
+                                        isDisabled={isFetching || page >= (notificationHistory?.totalPages ?? 1)}
                                         size="sm">
                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
@@ -130,16 +129,15 @@ export const MyNotificationHistory = () => {
 
      const handleOpenMyMessage = (item) => {
           navigate('MyNotificationHistoryMessageModal', {
-               message: item,
-          });
+               message: item });
      };
 
      return (
           <Box style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box safeArea="$2">{showSystemMessage()}</Box> : null}
-               {status === 'loading' || isFetching ? (
+               {systemMessagesForScreen.length > 0 ? <Box safeArea="$2">{showSystemMessage()}</Box> : null}
+               {isFetching && !inbox?.length ? (
                     loadingSpinner()
-               ) : status === 'error' ? (
+               ) : fetchError ? (
                     loadError('Error', '')
                ) : (
                     <>
@@ -151,11 +149,11 @@ export const MyNotificationHistory = () => {
 };
 
 const Item = (data) => {
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const message = data.data;
      const handleOpenMyMessage = data.handleOpenMyMessage;
      let content = stripHTML(message.content);
-     content = _.truncate(content, { length: 35 });
+     content = truncate(content, 35);
      return (
           <Pressable onPress={() => handleOpenMyMessage(message)} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"} pl="$4" pr="$5" py="$2">
                <HStack alignItems="start">

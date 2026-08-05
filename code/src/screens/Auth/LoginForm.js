@@ -12,28 +12,30 @@ import {
      FormControlLabelText,
      Input,
      InputField, InputIcon,
-     InputSlot,
-} from '@gluestack-ui/themed';
+     InputSlot } from '@gluestack-ui/themed';
 import React, { useRef } from 'react';
 
 // custom components and helper files
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
+import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
+import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocationInfo, getCatalogStatus } from '../../util/api/system';
 import { loginToLiDA } from '../../util/api/user';
 import { stripHTML } from '../../helpers/helpers';
-import { GLOBALS, LIBRARY, PATRON } from '../../util/globals';
+import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
+import { useTheme } from '../../themes/theme';
 
 export const GetLoginForm = (props) => {
-     const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode} = useTheme();
      const navigation = useNavigation();
      const barcode = useRoute().params?.barcode ?? null;
      const [loading, setLoading] = React.useState(false);
@@ -58,20 +60,36 @@ export const GetLoginForm = (props) => {
      // make ref to move the user to next input field
      const passwordRef = useRef();
      const { signIn } = React.useContext(AuthContext);
-     const { updateCatalogStatus, catalogStatus, updateLibrary   } = React.useContext(LibrarySystemContext);
-     const { updateLanguage } = React.useContext(LanguageContext);
+      const updateCatalogStatus = useUpdateCatalogStatus();
+      const { status: catalogStatus } = useCatalogStatus();
+      const updateLibrary = useUpdateLibrary();
+     const updateLanguage = useUpdateActiveLanguage();
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
+
+     // Pre-fill username from AsyncStorage on mount
+     React.useEffect(() => {
+          const prefillUsername = async () => {
+               try {
+                    const savedBarcode = await AsyncStorage.getItem('@userBarcode');
+                    if (savedBarcode) {
+                         setUsername(savedBarcode);
+                         logDebugMessage('Pre-filled username from saved barcode');
+                    }
+               } catch (e) {
+                    logWarnMessage('Failed to load saved username');
+                    logErrorMessage(e);
+               }
+          };
+          prefillUsername();
+     }, []);
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
-          updateCatalogStatus({
-               message: null,
-               status: 0,
-          });
-          logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
-          const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
+           updateCatalogStatus(0, null);
+           logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
+           const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
           if (result.ok) {
                const libraryInfo = result.data?.result?.library;
                updateLibrary(libraryInfo);
@@ -94,8 +112,8 @@ export const GetLoginForm = (props) => {
                          message: catalogMessage
                     }
                     logDebugMessage('Catalog status: ' + JSON.stringify(currentStatus));
-                    updateCatalogStatus(currentStatus);
-                    if (currentStatus.status >= 1) {
+                     updateCatalogStatus(currentStatus.status, currentStatus.message);
+                     if (currentStatus.status >= 1) {
                          // catalog is offline
                          logInfoMessage('catalog is offline');
                          setLoading(false);
@@ -110,11 +128,8 @@ export const GetLoginForm = (props) => {
                          return;
                     } else {
                          logInfoMessage('Catalog online');
-                         logDebugMessage(catalogStatus);
-                         updateCatalogStatus({
-                              status: 0,
-                              message: null,
-                         });
+                          logDebugMessage(catalogStatus);
+                          updateCatalogStatus(0, null);
                     }
                }else{
                     logDebugMessage('Could not get catalog status');
@@ -128,11 +143,11 @@ export const GetLoginForm = (props) => {
                     if(validatedUser) {
                          logInfoMessage("Successfully logged in");
                          GLOBALS.appSessionId = validatedUser.session ?? '';
-                         PATRON.language = validatedUser.lang ?? 'en';
-                         PATRON.homeLocationId = validatedUser.homeLocationId ?? null;
-                         updateLanguage(validatedUser.lang ?? 'en');
+                         GLOBALS.language = validatedUser.lang ?? 'en';
+                         const userHomeLocationId = validatedUser.homeLocationId ?? null;
+                         await updateLanguage(validatedUser.lang ?? 'en');
                          if (validatedUser.success) {
-                              await setAsyncStorage();
+                              await setAsyncStorage(userHomeLocationId);
                               signIn();
                               setLoading(false);
                          } else {
@@ -172,15 +187,17 @@ export const GetLoginForm = (props) => {
           navigate('LibraryCardScanner', { allowCode39 });
      };
 
-     const setAsyncStorage = async () => {
-          await SecureStore.setItemAsync('userKey', username);
-          await SecureStore.setItemAsync('secretKey', valueSecret);
-          await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
+      const setAsyncStorage = async (userHomeLocationId = null) => {
+           await SecureStore.setItemAsync('userKey', username);
+           await SecureStore.setItemAsync('secretKey', valueSecret);
+           // Save username for convenience on next login
+           await AsyncStorage.setItem('@userBarcode', username);
+           await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
           const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
 
-          if (PATRON.homeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
-               logDebugMessage('User has a home location set (' + PATRON.homeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
-               await getLocationInfo(LIBRARY.url, PATRON.homeLocationId).then(async (response) => {
+          if (userHomeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
+               logDebugMessage('User has a home location set (' + userHomeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
+               await getLocationInfo(LIBRARY.url, userHomeLocationId).then(async (response) => {
                     const patronHomeLocation = response.data.result.location;
                     if (typeof patronHomeLocation.baseUrl !== 'undefined') {
                          logDebugMessage('Successfully retrieved location info for user home location while logging in, setting asyncStorage library and location to: ' + patronHomeLocation.displayName + ' (' + patronHomeLocation.libraryId + ')');
@@ -331,7 +348,6 @@ export const GetLoginForm = (props) => {
 async function checkAspenDiscovery(url, id) {
      const client = createApiClient({
           url,
-          timeout: GLOBALS.timeoutFast,
-     });
+          timeout: GLOBALS.timeoutFast });
      return await client.get('/SystemAPI?method=getLibraryInfo', { id });
 }

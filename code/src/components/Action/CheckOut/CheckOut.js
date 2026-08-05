@@ -33,29 +33,42 @@ import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { decodeHTML } from '../../../helpers/helpers';
 import { completeAction } from '../../../util/api/userHelper';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { HoldPrompt } from '../Holds/HoldPrompt';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const CheckOut = (props) => {
      const queryClient = useQueryClient();
      const { id, title, type, record, prevRoute, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef, holdConfirmationResponse, setHoldConfirmationResponse, holdConfirmationIsOpen, setHoldConfirmationIsOpen, onHoldConfirmationClose, cancelHoldConfirmationRef, userHasAlternateLibraryCard, shouldPromptAlternateLibraryCard } = props;
-     const { user, updateUser, accounts } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const [loading, setLoading] = React.useState(false);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
 
      const volumeInfo = {
           numItemsWithVolumes: 0,
           numItemsWithoutVolumes: 1,
           hasItemsWithoutVolumes: true,
-          majorityOfItemsHaveVolumes: false,
-     };
+          majorityOfItemsHaveVolumes: false };
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      if (_.size(accounts) > 0) {
           return (
@@ -118,24 +131,20 @@ export const CheckOut = (props) => {
 
           const source = {
                baseUrl: library.baseUrl,
-               html: formMessage,
-          };
+               html: formMessage };
 
           const tagsStyles = {
                body: {
-                    color: textColor,
-               },
+                    color: textColor },
                a: {
                     color: textColor,
-                    textDecorationColor: textColor,
-               },
-          };
+                    textDecorationColor: textColor } };
 
           const updateCard = async () => {
                await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-               await refreshProfile(library.baseUrl).then((data) => {
+               await refreshProfile(library.baseUrl).then(async (data) => {
                     if(data.ok) {
-                         updateUser(data.data.result.profile);
+                         await updateUserProfile(data.data.result.profile);
                     } else {
                          logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                          logDebugMessage(data);
@@ -211,7 +220,7 @@ export const CheckOut = (props) => {
                                                        setResponse(response);
                                                        if (response.success) {
                                                             queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                                            queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                            await refreshAndSaveUserProfile();
                                                        }
                                                        setLoading(false);
                                                        setResponseIsOpen(true);
@@ -241,7 +250,7 @@ export const CheckOut = (props) => {
                                    logDebugMessage("Completed Action - Checkout");
                                    if (eContentResponse.success) {
                                         queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
-                                        queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                        await refreshAndSaveUserProfile();
                                    }
                                    setLoading(false);
                                    setResponseIsOpen(true);

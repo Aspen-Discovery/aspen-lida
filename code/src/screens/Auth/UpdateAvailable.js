@@ -1,11 +1,11 @@
 import { AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Button, ButtonText, ButtonGroup, Center, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import * as Linking from 'expo-linking';
-import {LanguageContext} from '../../context/initialContext';
 import {getTermFromDictionary} from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 export const UpdateAvailable = (props) => {
-	const { language } = React.useContext(LanguageContext);
+	const language = useActiveLanguage();
 	const { url, latest, setHasUpdate } = props;
 	const [isOpen, setIsOpen] = React.useState(true);
 	const onClose = () => {

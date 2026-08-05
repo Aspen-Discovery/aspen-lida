@@ -1,14 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
-import { colorMode, useColorModeValue } from '../../themes/theme';
+import { colorMode, useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -17,16 +18,18 @@ import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
 import {logDebugMessage} from "../../util/logging";
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location, locations } = React.useContext(LibraryBranchContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const location = useLibraryLocation();
+     const locations = useAvailableLocations();
+     const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme } = React.useContext(ThemeContext);
+     const { textColor, theme } = useTheme();
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {
@@ -105,8 +108,7 @@ export const MyLibrary = () => {
                                    width: '100%',
                                    height: 200,
                                    borderRadius: "$sm",
-                                   zIndex: -1,
-                              }}
+                                   zIndex: -1 }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"

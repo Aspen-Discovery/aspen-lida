@@ -1,42 +1,61 @@
 import { useRoute } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import _ from 'lodash';
 import { Badge, BadgeText, Box, Center, FlatList, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { loadError } from '../../../components/loadError';
 
 // custom components and helper files
 import { DisplaySystemMessage } from '../../../components/Notifications';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { SystemMessagesContext } from '../../../context/initialContext';
+import { uniquePrimitiveArray } from '../../../helpers/helpers';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { getSavedSearch } from '../../../util/api/list';
 import AddToList from '../../Search/AddToList';
+import { logErrorMessage } from '../../../util/logging';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MySavedSearch = () => {
      const route = useRoute();
      const id = route.params.id;
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const queryClient = useQueryClient();
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const {colorMode} = React.useContext(ThemeContext);
+     const {colorMode} = useTheme();
+     const [status, setStatus] = React.useState('loading');
+     const [data, setData] = React.useState([]);
 
-     const { status, data } = useQuery(['saved_search', id, user.id], () => getSavedSearch(id, language, library.baseUrl), {
-          staleTime: 1000,
-          placeholderData: [],
-     });
+     React.useEffect(() => {
+          let isMounted = true;
+          const loadSavedSearch = async () => {
+               setStatus('loading');
+               try {
+                    const response = await getSavedSearch(id, language, library.baseUrl);
+                    if (!isMounted) return;
+                    setData(Array.isArray(response) ? response : []);
+                    setStatus('success');
+               } catch (error) {
+                    logErrorMessage(error);
+                    if (!isMounted) return;
+                    setStatus('error');
+               }
+          };
+          loadSavedSearch();
+          return () => {
+               isMounted = false;
+          };
+     }, [id, language, library.baseUrl]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                });
           }
@@ -46,7 +65,7 @@ export const MySavedSearch = () => {
      const Empty = () => {
           return (
                <>
-                    {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+                    {(systemMessages?.length ?? 0) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                     <Center mt={5} mb={5}>
                          <Text bold fontSize="$lg" color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
                               {getTermFromDictionary(language, 'no_results_found')}
@@ -58,7 +77,7 @@ export const MySavedSearch = () => {
 
      return (
           <Box style={{ flex: 1 }}>
-               {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+               {(systemMessages?.length ?? 0) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                <Box safeArea={2}>{status === 'error' ? loadError('Error', '') : <FlatList data={data} ListEmptyComponent={Empty} renderItem={({ item }) => <SavedSearch data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />}</Box>
           </Box>
      );
@@ -66,9 +85,9 @@ export const MySavedSearch = () => {
 
 const SavedSearch = (data) => {
      const item = data.data;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const {colorMode} = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const {colorMode} = useTheme();
 
      const imageUrl = library.baseUrl + item.image;
 
@@ -84,8 +103,7 @@ const SavedSearch = (data) => {
      const openGroupedWork = () => {
           navigateStack('AccountScreenTab', 'SavedSearchItem', {
                id: item.id,
-               title: getCleanTitle(item.title),
-          });
+               title: getCleanTitle(item.title) });
      };
 
      return (
@@ -107,8 +125,7 @@ const SavedSearch = (data) => {
                               style={{
                                    width: 100,
                                    height: 150,
-                                   borderRadius: "$sm",
-                              }}
+                                   borderRadius: "$sm" }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"
@@ -164,6 +181,6 @@ function getFormats(data) {
           thisFormat = thisFormat[thisFormat.length - 1];
           formats.push(thisFormat);
      });
-     formats = _.uniq(formats);
+     formats = uniquePrimitiveArray(formats);
      return formats;
 }

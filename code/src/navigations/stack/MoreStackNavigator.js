@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { LanguageContext } from '../../context/initialContext';
 import { BackIcon } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import TitleWithLogo from '../../components/TitleWithLogo';
@@ -20,16 +19,18 @@ import { PreferencesScreen } from '../../screens/MyAccount/Settings/Preferences'
 import { SupportScreen } from '../../screens/MyAccount/Settings/Support';
 import {Settings_PickupLocations} from "../../screens/MyAccount/Settings/PickupLocations";
 import { APIErrorLog } from '../../screens/MyAccount/Settings/Logs/APIErrorLog';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+
+const Stack = createNativeStackNavigator();
 
 const MoreStackNavigator = () => {
-     const { language } = React.useContext(LanguageContext);
-     const Stack = createNativeStackNavigator();
+     const language = useActiveLanguage();
      return (
           <Stack.Navigator
                initialRouteName="MoreMenu"
                screenOptions={({ navigation, route }) => ({
                     headerShown: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     gestureEnabled: false,
                     headerBackImage: () => <BackIcon />,
                })}>
@@ -100,16 +101,16 @@ const MoreStackNavigator = () => {
                               //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
-                   <Stack.Screen
-                       name="MyPreferences_ManagePickupLocations"
-                       component={Settings_PickupLocations}
-                       options={{
-                           header: () => {
-                               const title = getTermFromDictionary(language, 'manage_pickup_locations');
-                               return <TitleWithLogo title={title} />;
-                           },
-                       }}
-                   />
+                    <Stack.Screen
+                         name="MyPreferences_ManagePickupLocations"
+                         component={Settings_PickupLocations}
+                         options={{
+                              header: () => {
+                                   const title = getTermFromDictionary(language, 'manage_pickup_locations');
+                                   return <TitleWithLogo title={title} />;
+                              },
+                         }}
+                    />
                     <Stack.Screen
                          name="MyPreferences_Language"
                          component={Settings_LanguageScreen}
@@ -140,6 +141,7 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'support');
                                    return <TitleWithLogo title={title} />;
                               },
+                              gestureEnabled: false,
                               //title: getTermFromDictionary(language, 'support')
                          }}
                     />

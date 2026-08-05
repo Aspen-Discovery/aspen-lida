@@ -8,14 +8,15 @@ import { ScrollView } from 'react-native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { addAppliedFilter } from '../../../util/api/searchHelper';
-import { ThemeContext } from '../../../context/initialContext';
+import { useTheme } from '../../../themes/theme';
+
 
 export const Facet_Year = ({ data, category, updater, language }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [yearFrom, setYearFrom] = React.useState('');
      const [yearTo, setYearTo] = React.useState('');
      const [value, setValue] = React.useState('');
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
 
      React.useEffect(() => {
           setIsLoading(false);

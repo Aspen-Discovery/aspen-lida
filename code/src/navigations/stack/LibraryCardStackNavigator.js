@@ -3,20 +3,21 @@ import React from 'react';
 import { MyAlternateLibraryCard } from '../../screens/MyAccount/MyLibraryCard/MyAlternateLibraryCard';
 
 import { MyLibraryCard } from '../../screens/MyAccount/MyLibraryCard/MyLibraryCard';
-import { LanguageContext, LibrarySystemContext } from '../../context/initialContext';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
 
+const Stack = createNativeStackNavigator();
+
 const LibraryCardStackNavigator = () => {
-     const Stack = createNativeStackNavigator();
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      return (
           <Stack.Navigator
                initialRouteName={'LibraryCard'}
                screenOptions={{
                     headerShown: true,
-                    headerBackTitleVisible: false,
+                    headerBackButtonDisplayMode: 'minimal',
                     gestureEnabled: false,
                }}>
                <Stack.Screen
@@ -27,10 +28,8 @@ const LibraryCardStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'library_card');
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
+                         gestureEnabled: false,
                          //title: getTermFromDictionary(language, 'library_card')
-                    }}
-                    initialParams={{
-                         libraryContext: JSON.stringify(React.useContext(LibrarySystemContext)),
                     }}
                />
                <Stack.Screen
@@ -41,6 +40,7 @@ const LibraryCardStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'alternate_library_card');
                               return <TitleWithLogo title={title} hideBack={false} />;
                          },
+                         gestureEnabled: false,
                          //title: getTermFromDictionary(language, 'alternate_library_card'),
                     }}
                />

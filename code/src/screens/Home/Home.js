@@ -1,8 +1,6 @@
 import { ScanBarcode, SearchIcon, XIcon, Settings, RotateCwIcon, ClockIcon } from 'lucide-react-native';
 import { Center, Box, Button, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner, FormControl, Input, InputField, InputSlot, InputIcon, FlatList } from '@gluestack-ui/themed';
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
-import { useIsFetching, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React from 'react';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
@@ -10,7 +8,10 @@ import { Platform } from 'react-native';
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
-import { BrowseCategoryContext, LanguageContext, LibrarySystemContext, SearchContext, SystemMessagesContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary, useHomeScreenLinks, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
+import { useUserState } from '../../hooks/useUserData';
+import { useBrowseCategories, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getHomeScreenFeed } from '../../util/api/search';
@@ -20,24 +21,34 @@ import DisplayBrowseCategory from './Category';
 import { DisplayErrorAlertDialog } from '../../components/loadError';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import HomeScreenLinkGrid from './Link';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const DiscoverHomeScreen = () => {
-     const isQueryFetching = useIsFetching();
-     const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const isFetchingBrowseCategories = useIsFetching({ queryKey: ['browse_categories'] });
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
 
-     const { textColor, colorMode } = React.useContext(ThemeContext);
+     const { textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
-     const { notificationOnboard } = React.useContext(UserContext);
-     const { library, homeScreenLinks } = React.useContext(LibrarySystemContext);
-     const { category, updateMaxCategories, maxNum, updateBrowseCategories } = React.useContext(BrowseCategoryContext);
-     const { language } = React.useContext(LanguageContext);
+     const { data: userState } = useUserState();
+     const notificationOnboard = userState?.notificationOnboard ?? 0;
+     const library = useLibrary();
+     const homeScreenLinks = useHomeScreenLinks();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
+     const category = useBrowseCategories();
+     const maxNum = useMaxCategories();
+     const updateBrowseCategories = useUpdateBrowseCategories();
+     const updateMaxCategories = useUpdateMaxCategories();
+     const { categoriesExpired } = useBrowseCategoryExpiration();
+     const browseRefreshInFlightRef = React.useRef(false);
+     const emptyRefreshAttemptedRef = React.useRef(false);
+     const categoryRef = React.useRef(category);
+     const homeScreenLinksRef = React.useRef(homeScreenLinks);
+     const language = useActiveLanguage();
 
      const [preliminaryLoadingCheck, setPreliminaryCheck] = React.useState(false);
 
@@ -53,12 +64,19 @@ export const DiscoverHomeScreen = () => {
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
 
+     React.useEffect(() => {
+          categoryRef.current = category;
+     }, [category]);
+
+     React.useEffect(() => {
+          homeScreenLinksRef.current = homeScreenLinks;
+     }, [homeScreenLinks]);
+
      React.useLayoutEffect(() => {
           navigation.setOptions({
                headerLeft: () => {
                     return null;
-               },
-          });
+               } });
      }, [navigation]);
 
      useFocusEffect(
@@ -89,6 +107,72 @@ export const DiscoverHomeScreen = () => {
           }, [language])
      );
 
+     // Refresh browse/home feed when user navigates to Home and only write if changed.
+     useFocusEffect(
+          React.useCallback(() => {
+                const refreshBrowseContentOnHomeFocus = async () => {
+                    if (!library.baseUrl) {
+                         return;
+                    }
+
+                     if (browseRefreshInFlightRef.current) {
+                         return;
+                    }
+
+                    browseRefreshInFlightRef.current = true;
+                    const requestedMax = maxNum > 0 ? maxNum : 5;
+
+                    if (maxNum <= 0) {
+                         await updateMaxCategories(5);
+                    }
+
+                     logDebugMessage("Home focus: refreshing browse categories/home links from API");
+                    try {
+                         const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+                         if (response?.ok) {
+                              const result = response.data.result;
+                               const nextBrowseCategories = result?.browseCategories ?? [];
+                               const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+
+                               const browseCategoriesChanged = JSON.stringify(categoryRef.current ?? []) !== JSON.stringify(nextBrowseCategories);
+                               const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                               if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                    setLoading(true);
+                                    try {
+                                         if (browseCategoriesChanged) {
+                                              await updateBrowseCategories(nextBrowseCategories);
+                                         }
+                                         if (homeScreenLinksChanged) {
+                                              await updateHomeScreenLinks(nextHomeScreenLinks);
+                                         }
+                                    } finally {
+                                         setLoading(false);
+                                    }
+                               }
+
+                               if (Array.isArray(nextBrowseCategories) && nextBrowseCategories.length > 0) {
+                                   emptyRefreshAttemptedRef.current = false;
+                              }
+                               if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                    logDebugMessage("Home focus: browse/home content updated");
+                               } else {
+                                    logDebugMessage("Home focus: browse/home content unchanged, skipped SQLite updates");
+                               }
+                         } else {
+                               logDebugMessage("Error refreshing browse categories/home links from API");
+                         }
+                    } catch (error) {
+                          logDebugMessage("Error refreshing browse categories/home links on Home focus: " + error.message);
+                    } finally {
+                         browseRefreshInFlightRef.current = false;
+                    }
+               };
+
+                refreshBrowseContentOnHomeFocus();
+           }, [maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks, updateMaxCategories])
+     );
+
      const clearText = () => {
           setSearchTerm('');
      };
@@ -98,8 +182,7 @@ export const DiscoverHomeScreen = () => {
                term: searchTerm,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
           clearText();
      };
 
@@ -108,28 +191,81 @@ export const DiscoverHomeScreen = () => {
      };
 
      const onRefreshCategories = async () => {
-          setLoading(true);
-          await queryClient.invalidateQueries({ queryKey: ['browse_categories', library.baseUrl, language, maxNum] });
-          await queryClient.invalidateQueries({ queryKey: ['browse_categories_list', library.baseUrl, language] });
-          setLoading(false);
+          try {
+               const requestedMax = maxNum > 0 ? maxNum : 5;
+               const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+               if (response?.ok) {
+                    const result = response.data.result;
+                    const nextBrowseCategories = result?.browseCategories ?? [];
+                    const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+                    const browseCategoriesChanged = JSON.stringify(category ?? []) !== JSON.stringify(nextBrowseCategories);
+                    const homeScreenLinksChanged = JSON.stringify(homeScreenLinks ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         setLoading(true);
+                         try {
+                              if (browseCategoriesChanged) {
+                                   await updateBrowseCategories(nextBrowseCategories);
+                              }
+                              if (homeScreenLinksChanged) {
+                                   await updateHomeScreenLinks(nextHomeScreenLinks);
+                              }
+                         } finally {
+                              setLoading(false);
+                         }
+                    }
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         logDebugMessage("Browse categories/home links refreshed");
+                    } else {
+                         logDebugMessage("Browse categories/home links unchanged, skipped SQLite updates");
+                    }
+               } else {
+                    logDebugMessage("Error refreshing browse categories");
+                    getErrorMessage(response?.code ?? 0, response?.problem);
+               }
+          } catch (error) {
+               logDebugMessage("Error during refresh: " + error.message);
+          }
      };
 
      const onLoadAllCategories = async () => {
-          updateMaxCategories(9999);
-          setLoading(true);
-          await getHomeScreenFeed(9999, library.baseUrl).then((response) => {
-               if(response.ok) {
+          try {
+               await updateMaxCategories(9999);
+               const response = await getHomeScreenFeed(9999, library.baseUrl);
+               if (response?.ok) {
                     const result = response.data.result;
-                    updateBrowseCategories(result.browseCategories);
-                    queryClient.setQueryData(['browse_categories', library.baseUrl, language, maxNum], result);
-                    queryClient.setQueryData(['browse_categories', library.baseUrl, language, 9999], result);
+                    const nextBrowseCategories = result?.browseCategories ?? [];
+                    const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+                    const browseCategoriesChanged = JSON.stringify(category ?? []) !== JSON.stringify(nextBrowseCategories);
+                    const homeScreenLinksChanged = JSON.stringify(homeScreenLinks ?? []) !== JSON.stringify(nextHomeScreenLinks);
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         setLoading(true);
+                         try {
+                              if (browseCategoriesChanged) {
+                                   await updateBrowseCategories(nextBrowseCategories);
+                              }
+                              if (homeScreenLinksChanged) {
+                                   await updateHomeScreenLinks(nextHomeScreenLinks);
+                              }
+                         } finally {
+                              setLoading(false);
+                         }
+                    }
+
+                    if (browseCategoriesChanged || homeScreenLinksChanged) {
+                         logDebugMessage("All categories/home links loaded");
+                    } else {
+                         logDebugMessage("Load all returned unchanged browse/home content");
+                    }
                } else {
-                    logDebugMessage("Error fetching browse categories");
-                    logDebugMessage(response);
-                    getErrorMessage(response.code ?? 0, response.problem);
+                    logDebugMessage("Error fetching all browse categories");
+                    getErrorMessage(response?.code ?? 0, response?.problem);
                }
-          });
-          setLoading(false);
+          } catch (error) {
+               logDebugMessage("Error loading all categories: " + error.message);
+          }
      };
 
      const showManageCategories = () => {
@@ -137,10 +273,10 @@ export const DiscoverHomeScreen = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                     return null;
                });
@@ -155,7 +291,7 @@ export const DiscoverHomeScreen = () => {
           }
      };
 
-     if (loading === true || isFetchingBrowseCategories) {
+     if (loading === true) {
           return loadingSpinner();
      }
 
@@ -192,7 +328,10 @@ export const DiscoverHomeScreen = () => {
                          </Box>
                     }
                     data={category}
-                    keyExtractor={(item, index) => item.id || index.toString()}
+                    keyExtractor={(item, index) => {
+                         const baseKey = item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? 'browse-category';
+                         return `${baseKey}-${index}`;
+                    }}
                     renderItem={({ item }) => (
                          <Box px="$5">
                               <DisplayBrowseCategory category={item} />
@@ -212,7 +351,7 @@ export const DiscoverHomeScreen = () => {
 };
 
 const ButtonOptions = (props) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
      const { language, showManageCategories, onRefreshCategories, maxNum, onLoadAllCategories } = props;
@@ -222,12 +361,9 @@ const ButtonOptions = (props) => {
                <ButtonGroup
                     sx={{
                          '@base': {
-                              flexDirection: 'column',
-                         },
+                              flexDirection: 'column' },
                          '@lg': {
-                              flexDirection: 'row',
-                         },
-                    }}>
+                              flexDirection: 'row' } }}>
                     <Button
                          isDisabled={maxNum === 9999}
                          bg={theme.tokens.colors.primary['500']}

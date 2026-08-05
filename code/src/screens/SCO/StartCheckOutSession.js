@@ -1,11 +1,8 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-     LanguageContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+
+import { useUserState, useAccounts } from '../../hooks/useUserData';
 import {
      AlertDialog,
      AlertDialogBackdrop,
@@ -32,19 +29,22 @@ import {
      SelectPortal, SelectContent, SelectScrollView,
      SelectBackdrop,
      SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-} from '@gluestack-ui/themed';
+     SelectDragIndicator } from '@gluestack-ui/themed';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import _ from 'lodash';
 import {logDebugMessage} from "../../util/logging";
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const StartCheckOutSession = () => {
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
-     const { user, accounts } = React.useContext(UserContext);
-     const { textColor, colorMode, theme } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { textColor, colorMode, theme } = useTheme();
      const insets = useSafeAreaInsets();
 
      let startNew = useRoute().params?.startNew ?? false;
@@ -60,8 +60,7 @@ export const StartCheckOutSession = () => {
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
-               headerLeft: () => <Box />,
-          });
+               headerLeft: () => <Box /> });
      }, [navigation]);
 
      React.useEffect(() => {
@@ -83,8 +82,7 @@ export const StartCheckOutSession = () => {
      const StartNewSession = () => {
           setIsOpen(false);
           navigateStack('SelfCheckTab', 'SelfCheckOut', {
-               activeAccount: activeAccount,
-          });
+               activeAccount: activeAccount });
      };
 
      /*useFocusEffect(

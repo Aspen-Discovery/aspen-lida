@@ -1,15 +1,17 @@
 import { Box, Divider, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { LanguageContext, ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 // custom components and helper files
 import { decodeHTML, stripHTML } from '../../helpers/helpers';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const AdditionalInformation = (data) => {
      const location = data.data;
-     const { language } = React.useContext(LanguageContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor } = useTheme();
 
      if (location.description) {
           return (

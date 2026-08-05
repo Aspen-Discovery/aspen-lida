@@ -1,13 +1,14 @@
 import {Button, ButtonText, ButtonSpinner, useToast} from '@gluestack-ui/themed';
 import React from 'react';
-import { ThemeContext } from '../../context/initialContext';
+
 import { openSideLoad } from '../../util/api/userHelper';
+import { useTheme } from '../../themes/theme';
 
 // custom components and helper files
 
 export const OpenSideLoad = (props) => {
      const [loading, setLoading] = React.useState(false);
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      const toast = useToast();
 
      return (

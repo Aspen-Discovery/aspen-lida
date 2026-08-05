@@ -1,6 +1,5 @@
-import { PATRON } from '../globals';
 import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback';
 import * as WebBrowser from 'expo-web-browser';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { checkoutItem, overDriveSample, placeHold } from './user';
@@ -18,7 +17,6 @@ export function formatPickupLocations(data) {
                name: displayName,
           }));
      }
-     PATRON.pickupLocations = locations;
      data.locations = locations;
      return data;
 }
@@ -80,7 +78,7 @@ export async function completeAction(toast, id, actionType, patronId, formatId =
                return await placeHold(url, itemId, source, patronId, pickupBranch, sublocation, rememberPickupLocation, volumeId, holdType, id, holdNotificationPreferences, variationId);
           }
      } else if (actionType.includes('sample')) {
-          return await overDriveSample(toast, url, formatId, itemId, sampleNumber);
+          return await overDriveSample(url, formatId, itemId, sampleNumber);
      }
 }
 
@@ -240,7 +238,6 @@ export function formatLinkedAccounts(primaryUser, cards, barcodeStyle, data) {
      cardStack.push(primaryCard);
      if (data !== undefined) {
           accounts = Object.values(data ?? {});
-          PATRON.linkedAccounts = accounts;
           if (accounts.length >= 1) {
                accounts.forEach((account) => {
                     if (!cards.includes(account.ils_barcode)) {

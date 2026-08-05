@@ -8,7 +8,8 @@ import Stars from 'react-native-stars';
 // custom components and helper files
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { addAppliedFilter, removeAppliedFilter } from '../../../util/api/searchHelper';
-import { ThemeContext } from '../../../context/initialContext';
+import { useTheme } from '../../../themes/theme';
+
 
 export const Facet_Rating = ({ data, category, updater }) => {
      const [isLoading, setIsLoading] = React.useState(true);
@@ -16,30 +17,24 @@ export const Facet_Rating = ({ data, category, updater }) => {
      const [stars] = React.useState([
           {
                label: 'fiveStar',
-               value: '5',
-          },
+               value: '5' },
           {
                label: 'fourStar',
-               value: '4',
-          },
+               value: '4' },
           {
                label: 'threeStar',
-               value: '3',
-          },
+               value: '3' },
           {
                label: 'twoStar',
-               value: '2',
-          },
+               value: '2' },
           {
                label: 'oneStar',
-               value: '1',
-          },
+               value: '1' },
           {
                label: 'Unrated',
-               value: '0',
-          },
+               value: '0' },
      ]);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
 
      React.useEffect(() => {
           setIsLoading(false);

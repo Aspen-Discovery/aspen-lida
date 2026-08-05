@@ -1,10 +1,11 @@
 {
   "cli": {
-	"version": "20.1.0"
+	"version": "20.1.0",
+  "appVersionSource": "local"
   },
   "build": {
 	"production": {
-	  "yarn": "1.22.19",
+	  "yarn": "1.22.22",
 	  "distribution": "store",
 	  "channel": "production",
 	  "env": {
@@ -55,6 +56,15 @@
 	"internal": {
 	  "extends": "production",
 	  "channel": "internal"
+	},
+	"development-local": {
+		"extends": "development",
+		"ios": {
+			"simulator": true
+		},
+		"android": {
+			"buildType": "apk"
+		}
 	}
   },
   "submit": {

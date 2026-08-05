@@ -7,22 +7,28 @@ import RenderHtml from 'react-native-render-html';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRoute, useNavigation, CommonActions, StackActions } from '@react-navigation/native';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
+import { SystemMessagesContext } from '../../../context/initialContext';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext, UserContext } from '../../../context/initialContext';
+import { useUserState, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
 import { decodeHTML } from '../../../helpers/helpers';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../../util/logging';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const MyAlternateLibraryCard = () => {
      const navigation = useNavigation();
      const route = useRoute();
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user, updateUser } = React.useContext(UserContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { width } = useWindowDimensions();
@@ -90,26 +96,22 @@ export const MyAlternateLibraryCard = () => {
 
      const source = {
           baseUrl: library.baseUrl,
-          html: formMessage,
-     };
+          html: formMessage };
 
      const tagsStyles = {
           body: {
-               color: textColor,
-          },
+               color: textColor },
           a: {
                color: textColor,
-               textDecorationColor: textColor,
-          },
-     };
+               textDecorationColor: textColor } };
 
      const deleteCard = async () => {
           await updateAlternateLibraryCard('', '', true, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then((data) => {
+          await refreshProfile(library.baseUrl).then(async (data) => {
                if(data.ok) {
-                    updateUser(data.data.result.profile);
+                    await updateUserProfile(data.data.result.profile);
                } else {
-                    logWarnMessage('Could not refresh profile after placing hold from volume selection.');
+                    logWarnMessage('Could not refresh profile after deleting alternate library card.');
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
@@ -118,11 +120,11 @@ export const MyAlternateLibraryCard = () => {
 
      const updateCard = async () => {
           await updateAlternateLibraryCard(card, password, false, library.baseUrl, language);
-          await refreshProfile(library.baseUrl).then((data) => {
+          await refreshProfile(library.baseUrl).then(async (data) => {
                if(data.ok) {
-                    updateUser(data.data.result.profile);
+                    await updateUserProfile(data.data.result.profile);
                } else {
-                    logWarnMessage('Could not refresh profile after placing hold from volume selection.');
+                    logWarnMessage('Could not refresh profile after updating alternate library card.');
                     logDebugMessage(data);
                     getErrorMessage(data.code ?? 0, data.problem);
                }
@@ -132,7 +134,7 @@ export const MyAlternateLibraryCard = () => {
      return (
           <ScrollView>
                {isLoading ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : (
                     <Box p="$5">
                          {showSystemMessage()}
