@@ -5,15 +5,17 @@ import { useRoute } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { AppState, Platform } from 'react-native';
 
-import { LanguageContext, ThemeContext } from '../../../../context/initialContext';
+
 import { navigate } from '../../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../../translations/TranslationService';
 import { ChevronRight, ChevronUp, ChevronDown } from 'lucide-react-native';
 import Constants from 'expo-constants';
+import { useActiveLanguage } from '../../../../hooks/useLanguageData';
+import { useTheme } from '../../../../themes/theme';
 
 export const CameraPermissionStatus = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { colorMode, textColor } = useTheme();
      const [permissionStatus, setPermissionStatus] = React.useState(false);
 
      const appState = React.useRef(AppState.currentState);
@@ -56,9 +58,9 @@ export const CameraPermissionStatus = () => {
 };
 
 export const CameraPermissionDescription = () => {
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const [permissionStatus, setPermissionStatus] = React.useState(useRoute().params?.permissionStatus ?? false);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
 
      return (
           <ScrollView p="$5">
@@ -85,8 +87,8 @@ export const CameraPermissionDescription = () => {
 };
 
 const CameraPermissionUsage = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor } = useTheme();
 
      return (
           <Accordion variant="unfilled" width="$full" size="sm">
@@ -114,8 +116,8 @@ const CameraPermissionUsage = () => {
 };
 
 const CameraPermissionUpdate = (payload) => {
-     const { colorMode, theme, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { colorMode, theme, textColor } = useTheme();
+     const language = useActiveLanguage();
      const [showAlertDialog, setShowAlertDialog] = React.useState(false);
      const [manuallyPromptPermission, setManuallyPromptPermission] = React.useState(false);
      const setPermissionStatus = payload.setPermissionStatus;
@@ -150,7 +152,7 @@ const CameraPermissionUpdate = (payload) => {
                          }
                     }}
                     bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
                </Button>
                <AlertDialog
                     isOpen={showAlertDialog}
@@ -173,7 +175,7 @@ const CameraPermissionUpdate = (payload) => {
                                              setShowAlertDialog(false);
                                         }}
                                         bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'open_device_settings')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={() => setShowAlertDialog(false)}>
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'not_now')}</ButtonText>

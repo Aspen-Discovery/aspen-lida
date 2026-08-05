@@ -29,37 +29,37 @@ import {
      FormControlErrorText,
      CloseIcon,
      AlertCircleIcon,
-     Spinner
+     Spinner, useToast
 } from '@gluestack-ui/themed';
 
 import React from 'react';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback/toastService';
 import { AuthContext } from '../../context/AuthContext';
-import {
-     BrowseCategoryContext,
-     LanguageContext,
-     LibraryBranchContext,
-     LibrarySystemContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+
+import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
+import { useUpdateLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useUpdateUserProfile } from '../../hooks/useUserData';
+import { useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryBranch, getLibrarySystem } from '../../util/api/system';
 import { getUserProfile, resetExpiredPin } from '../../util/api/user';
 import { getBrowseCategoriesAndHomeLinks } from '../../util/api/search';
 
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const ResetExpiredPin = (props) => {
      const [resetSuccessful, setResetSuccessful] = React.useState(false);
      const [resetMessage, setResetMessage] = React.useState('');
-     const { signIn } = React.useContext(AuthContext);
-     const { updateLibrary, updateHomeScreenLinks } = React.useContext(LibrarySystemContext);
-     const { updateLocation } = React.useContext(LibraryBranchContext);
-     const { updateUser } = React.useContext(UserContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { updateBrowseCategories } = React.useContext(BrowseCategoryContext);
-     const { language } = React.useContext(LanguageContext);
+      const { signIn } = React.useContext(AuthContext);
+     const updateLibrary = useUpdateLibrary();
+     const updateLibraryLocation = useUpdateLibraryLocation();
+     const updateHomeScreenLinks = useUpdateHomeScreenLinks();
+     const updateUserProfile = useUpdateUserProfile();
+     const { theme, colorMode, textColor } = useTheme();
+     const updateBrowseCategories = useUpdateBrowseCategories();
+     const language = useActiveLanguage();
      const { username, resetToken, url, pinValidationRules, setExpiredPin, patronsLibrary } = props;
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {
@@ -72,6 +72,7 @@ export const ResetExpiredPin = (props) => {
      const [pinConfirmed, setPinConfirmed] = React.useState('');
      const [errors, setErrors] = React.useState({});
      const [hasError, setHasError] = React.useState(false);
+     const toast = useToast();
 
      // show:hide data from password fields
      const [showPin, setShowPin] = React.useState(false);
@@ -134,14 +135,14 @@ export const ResetExpiredPin = (props) => {
                               setIsOpen(false);
                               setHasError(false);
                          } else {
-                              popAlert(getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
+                              popAlert(toast, getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
                          }
                     } else {
                          logDebugMessage("Error resetting expired pin");
                          logDebugMessage(result);
                          const error = getErrorMessage(result.code ?? 0, result.problem);
                          setHasError(true);
-                         popAlert(error.title, error.message, 'error');
+                         popAlert(toast, error.title, error.message, 'error');
                     }
                });
           } else {
@@ -149,17 +150,17 @@ export const ResetExpiredPin = (props) => {
           }
      };
 
-     const setContext = async () => {
-          const library = await getLibrarySystem({ patronsLibrary });
-          updateLibrary(library);
-          const location = await getLibraryBranch({ patronsLibrary });
-          updateLocation(location);
-          const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
-          updateUser(user);
-          const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
-          updateBrowseCategories(homeScreenFeed.browseCategories);
-          updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
-     };
+       const setContext = async () => {
+            const library = await getLibrarySystem({ patronsLibrary });
+            await updateLibrary(library);
+            const location = await getLibraryBranch({ patronsLibrary });
+            await updateLibraryLocation(location);
+           const user = await getUserProfile({ patronsLibrary }, { valueUser }, { valueSecret });
+           await updateUserProfile(user);
+           const homeScreenFeed = await getBrowseCategoriesAndHomeLinks({ patronsLibrary }, { valueUser }, { valueSecret });
+           await updateBrowseCategories(homeScreenFeed.browseCategories);
+           await updateHomeScreenLinks(homeScreenFeed.homeScreenLinks);
+      };
 
      const setAsyncStorage = async () => {
           await SecureStore.setItemAsync('userKey', username);
@@ -272,7 +273,7 @@ export const ResetExpiredPin = (props) => {
                                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
                                              <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => updatePIN()}>
-                                                  <ButtonText color="$textLight200">{getTermFromDictionary(language, 'update')}</ButtonText>
+                                                  <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
                                    </AlertDialogFooter>

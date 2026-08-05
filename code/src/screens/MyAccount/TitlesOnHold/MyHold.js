@@ -2,12 +2,35 @@ import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import { Image } from 'expo-image';
 import _ from 'lodash';
-import { Actionsheet, ActionsheetItem, ActionsheetBackdrop, ActionsheetContent, ActionsheetItemText, ActionsheetDragIndicatorWrapper, ActionsheetDragIndicator, Box, Button, ButtonText, Center, Checkbox, CheckboxIndicator, CheckboxIcon, CheckIcon, HStack, Icon, Pressable, ActionsheetIcon, VStack } from '@gluestack-ui/themed';
+import {
+     Actionsheet,
+     ActionsheetItem,
+     ActionsheetBackdrop,
+     ActionsheetContent,
+     ActionsheetItemText,
+     ActionsheetDragIndicatorWrapper,
+     ActionsheetDragIndicator,
+     Box,
+     Button,
+     ButtonText,
+     Center,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckIcon,
+     HStack,
+     Icon,
+     Pressable,
+     ActionsheetIcon,
+     VStack,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { popAlert } from '../../../components/loadError';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext, ThemeContext } from '../../../context/initialContext';
+import { popAlert } from '../../../components/feedback/toastService';
+import { HoldsContext } from '../../../context/initialContext';
+import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -17,10 +40,12 @@ import { formatDiscoveryVersion } from '../../../helpers/helpers';
 import { checkoutItem, getPickupLocations } from '../../../util/api/user';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
-import { PATRON } from '../../../util/globals';
 
 import { logDebugMessage } from '../../../util/logging.js';
 import { useQueryClient } from '@tanstack/react-query';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -29,25 +54,27 @@ export const MyHold = (props) => {
      const holdSource = props.holdSource
      const resetGroup = props.resetGroup;
      const [pickupLocations, setPickupLocations] = React.useState([]);
-     const sublocations = PATRON.sublocations;
+     const { data: sublocations } = useSublocations();
      const section = props.section;
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme, colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
      const [cancelling, startCancelling] = React.useState(false);
      const [checkingOut, startCheckingOut] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
      const [freezing, startFreezing] = React.useState(false);
      let label, method, icon, canCancel;
-     const version = formatDiscoveryVersion(library.discoveryVersion);
      const [usesHoldPosition, setUsesHoldPosition] = React.useState(false);
      const [holdPosition, setHoldPosition] = React.useState(null);
+     const toast = useToast();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
-     const handleClose = () => setShowActionsheet(!showActionsheet);
+     const handleOpen = () => setShowActionsheet(true);
+     const handleClose = () => setShowActionsheet(false);
 
      React.useEffect(() => {
           if (hold.holdQueueLength) {
@@ -122,8 +149,7 @@ export const MyHold = (props) => {
                url: library.baseUrl,
                userContext: user,
                libraryContext: library,
-               prevRoute: 'MyHolds',
-          });
+               prevRoute: 'MyHolds' });
      };
 
      const initializeLeftColumn = () => {
@@ -140,8 +166,7 @@ export const MyHold = (props) => {
                               source={url}
                               style={{
                                    width: 100,
-                                   height: 150,
-                              }}
+                                   height: 150 }}
                               borderRadius="$sm"
                               placeholder={blurhash}
                               transition={1000}
@@ -154,10 +179,8 @@ export const MyHold = (props) => {
                                              sx={{
                                                   ':checked': {
                                                        borderColor: theme['tokens']['colors']['primary']['500'],
-                                                       backgroundColor: theme['tokens']['colors']['primary']['500'],
-                                                  },
-                                             }}>
-                                             <CheckboxIcon as={CheckIcon} color="$textLight200" />
+                                                       backgroundColor: theme['tokens']['colors']['primary']['500'] } }}>
+                                             <CheckboxIcon as={CheckIcon} color={theme.tokens.colors.primary['500-text']} />
                                         </CheckboxIndicator>
                                    </Checkbox>
                               </Center>
@@ -172,8 +195,7 @@ export const MyHold = (props) => {
                                    <CheckboxIndicator
                                         _checked={{
                                              color: theme['tokens']['colors']['primary']['500'],
-                                             borderColor: theme['tokens']['colors']['primary']['500'],
-                                        }}>
+                                             borderColor: theme['tokens']['colors']['primary']['500'] }}>
                                         <CheckboxIcon as={CheckIcon}  sx={{ color: theme['tokens']['colors']['primary']['500-text'] }}/>
                                    </CheckboxIndicator>
                               </Checkbox>
@@ -211,11 +233,11 @@ export const MyHold = (props) => {
                          isLoading={checkingOut}
                          isLoadingText={getTermFromDictionary(language, 'checking_out', true)}
                          onPress={async () => {
+                              handleClose();
                               startCheckingOut(true);
                               await checkoutItem(library.baseUrl, hold.sourceId, hold.source, hold.userId, '', '', '', language).then((result) => {
-                                   popAlert(result.title, result.message, result.success ? 'success' : 'error');
+                                   popAlert(toast, result.title, result.message, result.success ? 'success' : 'error');
                                    resetGroup();
-                                   handleClose();
                                    startCheckingOut(false);
                               });
                          }}>
@@ -247,10 +269,10 @@ export const MyHold = (props) => {
                          isLoading={cancelling}
                          isLoadingText={getTermFromDictionary(language, 'canceling', true)}
                          onPress={() => {
+                              handleClose();
                               startCancelling(true);
                               cancelHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, language).then((r) => {
                                    resetGroup();
-                                   handleClose();
                                    startCancelling(false);
                               });
                          }}>
@@ -279,10 +301,10 @@ export const MyHold = (props) => {
                               isLoading={thawing}
                               isLoadingText={getTermFromDictionary(language, 'thawing_hold', true)}
                               onPress={() => {
+                                   handleClose();
                                    startThawing(true);
                                    thawHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, language).then((r) => {
                                         resetGroup();
-                                        handleClose();
                                         startThawing(false);
                                    });
                               }}>
@@ -294,17 +316,17 @@ export const MyHold = (props) => {
                     );
                } else {
                     if (library.showDateWhenSuspending) {
-                         return <SelectThawDate isOpen={showActionsheet} label={null} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} libraryContext={library} holdsContext={updateHolds} onClose={handleClose} freezeId={hold.cancelId} recordId={record} source={hold.source} libraryUrl={library.baseUrl} userId={hold.userId} resetGroup={resetGroup} textColor={textColor} colorMode={colorMode} theme={theme}/>;
+                         return <SelectThawDate label={null} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} libraryContext={library} holdsContext={updateHolds} onClose={handleClose} freezeId={hold.cancelId} recordId={record} source={hold.source} libraryUrl={library.baseUrl} userId={hold.userId} resetGroup={resetGroup} theme={theme} textColor={textColor} colorMode={colorMode} />;
                     }else{
                          return (
                               <ActionsheetItem
                                    isLoading={freezing}
                                    isLoadingText={getTermFromDictionary(language, 'freezing_hold', true)}
                                    onPress={() => {
+                                        handleClose();
                                         startFreezing(true);
-                                        freezeHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, language, library.reactivateDateNotRequired ?? false).then((r) => {
+                                        freezeHold(hold.cancelId, record, hold.source, library.baseUrl, hold.userId, null, language, library.reactivateDateNotRequired ?? false).then((r) => {
                                              resetGroup();
-                                             handleClose();
                                              startFreezing(false);
                                         });
                                    }}>
@@ -329,14 +351,13 @@ export const MyHold = (props) => {
           }
      };
 
-     if (holdSource != 'all' && holdSource != hold.source) {
-          logDebugMessage("Hiding hold that is the wrong source " + holdSource);
+     if (holdSource !== 'all' && holdSource !== hold.source) {
           return null;
      }
 
      return (
           <>
-               <Pressable onPress={handleClose} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$warmGray400"} pl="$4" pr="$20" py="$2">
+               <Pressable onPress={handleOpen} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$warmGray400"} pl="$4" pr="$20" py="$2">
                     <HStack space="sm" maxW="95%">
                          {initializeLeftColumn()}
                          <VStack>
@@ -379,18 +400,22 @@ export const MyHold = (props) => {
 export const ManageSelectedHolds = (props) => {
      const { selectedValues, onAllDateChange, selectedReactivationDate, resetGroup, context } = props;
      const navigation = useNavigation();
-     const { language } = React.useContext(LanguageContext);
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const { theme, colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
-     const handleClose = () => setShowActionsheet(!showActionsheet);
+     const handleOpen = () => setShowActionsheet(true);
+     const handleClose = () => setShowActionsheet(false);
      const [cancelling, startCancelling] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
      const [freezing, startFreezing] = React.useState(false);
+
+     const toast = useToast();
 
      let titlesToFreeze = [];
      let titlesToThaw = [];
@@ -410,8 +435,7 @@ export const ManageSelectedHolds = (props) => {
                          recordId: arr[1],
                          cancelId: arr[2],
                          source: arr[3],
-                         patronId: arr[4],
-                    });
+                         patronId: arr[4] });
                }
                if (item.includes('thaw')) {
                     const arr = item.split('|');
@@ -420,8 +444,7 @@ export const ManageSelectedHolds = (props) => {
                          recordId: arr[1],
                          cancelId: arr[2],
                          source: arr[3],
-                         patronId: arr[4],
-                    });
+                         patronId: arr[4] });
                }
 
                const arr = item.split('|');
@@ -430,8 +453,7 @@ export const ManageSelectedHolds = (props) => {
                     recordId: arr[1],
                     cancelId: arr[2],
                     source: arr[3],
-                    patronId: arr[4],
-               });
+                    patronId: arr[4] });
           });
 
           numToCancel = titlesToCancel.length;
@@ -452,10 +474,10 @@ export const ManageSelectedHolds = (props) => {
                return (
                     <ActionsheetItem
                          onPress={() => {
+                              handleClose();
                               startCancelling(true);
                               cancelHolds(titlesToCancel, library.baseUrl, language).then((r) => {
                                    resetGroup();
-                                   handleClose();
                                    startCancelling(false);
                               });
                          }}
@@ -474,10 +496,10 @@ export const ManageSelectedHolds = (props) => {
                return (
                     <ActionsheetItem
                          onPress={() => {
+                              handleClose();
                               startThawing(true);
                               thawHolds(titlesToThaw, library.baseUrl, language).then((r) => {
                                    resetGroup();
-                                   handleClose();
                                    startThawing(false);
                               });
                          }}
@@ -494,17 +516,17 @@ export const ManageSelectedHolds = (props) => {
      const freezeActionItem = () => {
           if (numToFreeze > 0) {
                if (library.showDateWhenSuspending) {
-                    return <SelectThawDate isOpen={showActionsheet} label={numToFreezeLabel} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} holdsContext={updateHolds} libraryContext={library} resetGroup={resetGroup} onClose={handleClose} count={numToFreeze} numSelected={numSelected} data={titlesToFreeze} colorMode={colorMode} textColor={textColor} theme={theme}/>;
+                    return <SelectThawDate label={numToFreezeLabel} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} holdsContext={updateHolds} libraryContext={library} resetGroup={resetGroup} onClose={handleClose} count={numToFreeze} numSelected={numSelected} data={titlesToFreeze} theme={theme} textColor={textColor} colorMode={colorMode} />;
                }else{
                     return (
                          <ActionsheetItem
                               isLoading={freezing}
                               isLoadingText={getTermFromDictionary(language, 'freezing_hold', true)}
                               onPress={() => {
+                                   handleClose();
                                    startFreezing(true);
                                    freezeHolds(titlesToFreeze, library.baseUrl, null,'en', library.reactivateDateNotRequired ?? false).then((r) => {
                                         resetGroup();
-                                        handleClose();
                                         startFreezing(false);
                                    });
                               }}>
@@ -519,8 +541,8 @@ export const ManageSelectedHolds = (props) => {
 
      return (
           <Center>
-               <Button bgColor={theme.tokens.colors.primary['500']} onPress={handleClose} size="sm" variant="solid" mr="$1">
-                    <ButtonText color="$textLight200">{numSelectedLabel}</ButtonText>
+               <Button bgColor={theme.tokens.colors.primary['500']} onPress={handleOpen} size="sm" variant="solid" mr="$1">
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{numSelectedLabel}</ButtonText>
                </Button>
                <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                     <ActionsheetBackdrop />
@@ -544,17 +566,22 @@ export const ManageSelectedHolds = (props) => {
 export const ManageAllHolds = (props) => {
      const queryClient = useQueryClient();
      const { resetGroup } = props;
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const { holds, updateHolds } = React.useContext(HoldsContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { user } = React.useContext(UserContext);
+     const library = useLibrary();
+     const { theme, colorMode, textColor } = useTheme();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const insets = useSafeAreaInsets();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
-     const handleClose = () => setShowActionsheet(!showActionsheet);     const [cancelling, startCancelling] = React.useState(false);
+     const handleOpen = () => setShowActionsheet(true);
+     const handleClose = () => setShowActionsheet(false);
+     const [cancelling, startCancelling] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
      const [freezing, startFreezing] = React.useState(false);
+
+     const toast = useToast();
 
      let titlesToFreeze = [];
      let titlesToThaw = [];
@@ -574,15 +601,13 @@ export const ManageAllHolds = (props) => {
                               recordId: record,
                               cancelId: item.cancelId,
                               source: item.source,
-                              patronId: item.userId,
-                         });
+                              patronId: item.userId });
                     } else {
                          titlesToFreeze.push({
                               recordId: record,
                               cancelId: item.cancelId,
                               source: item.source,
-                              patronId: item.userId,
-                         });
+                              patronId: item.userId });
                     }
                }
 
@@ -591,8 +616,7 @@ export const ManageAllHolds = (props) => {
                          recordId: record,
                          cancelId: item.cancelId,
                          source: item.source,
-                         patronId: item.userId,
-                    });
+                         patronId: item.userId });
                }
           });
      }
@@ -612,17 +636,17 @@ export const ManageAllHolds = (props) => {
      const freezeAllActionItem = () => {
           if (numToFreeze > 0) {
                if (library.showDateWhenSuspending) {
-                    return <SelectThawDate label={numToFreezeLabel} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} holdsContext={updateHolds} libraryContext={library} resetGroup={resetGroup} onClose={handleClose} count={numToFreeze} numSelected={numToManage} data={titlesToFreeze} textColor={textColor} colorMode={colorMode} theme={theme}/>;
+                    return <SelectThawDate label={numToFreezeLabel} freezeLabel={freezeHoldLabel} freezingLabel={freezingHoldLabel} language={language} holdsContext={updateHolds} libraryContext={library} resetGroup={resetGroup} onClose={handleClose} count={numToFreeze} numSelected={numToManage} data={titlesToFreeze} theme={theme} textColor={textColor} colorMode={colorMode} />;
                }else{
                     return (
                          <ActionsheetItem
                               isLoading={freezing}
                               isLoadingText={getTermFromDictionary(language, 'freezing_hold', true)}
                               onPress={() => {
+                                   handleClose();
                                    startFreezing(true);
                                    freezeHolds(titlesToFreeze, library.baseUrl, null,'en', library.reactivateDateNotRequired ?? false).then((r) => {
                                         resetGroup();
-                                        onClose(onClose);
                                         startFreezing(false);
                                    });
                                    queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
@@ -639,8 +663,8 @@ export const ManageAllHolds = (props) => {
      if (numToManage >= 1) {
           return (
                <Center>
-                    <Button bgColor={theme.tokens.colors.primary['500']} size="sm" variant="solid" mr={1} onPress={handleClose}>
-                         <ButtonText color="$textLight200">{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
+                    <Button bgColor={theme.tokens.colors.primary['500']} size="sm" variant="solid" mr={1} onPress={handleOpen}>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'hold_manage_all')}</ButtonText>
                     </Button>
                     <Actionsheet isOpen={showActionsheet} onClose={handleClose} zIndex={999}>
                          <ActionsheetBackdrop />
@@ -656,10 +680,10 @@ export const ManageAllHolds = (props) => {
                                    isLoading={cancelling}
                                    isLoadingText={getTermFromDictionary(language, 'canceling', true)}
                                    onPress={() => {
+                                        handleClose();
                                         startCancelling(true);
                                         cancelHolds(titlesToCancel, library.baseUrl, language).then((r) => {
                                              resetGroup();
-                                             handleClose();
                                              startCancelling(false);
                                         });
                                         queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
@@ -673,10 +697,10 @@ export const ManageAllHolds = (props) => {
                                    isLoading={thawing}
                                    isLoadingText={getTermFromDictionary(language, 'thaw_hold', true)}
                                    onPress={() => {
+                                        handleClose();
                                         startThawing(true);
                                         thawHolds(titlesToThaw, library.baseUrl, language).then((r) => {
                                              resetGroup();
-                                             handleClose();
                                              startThawing(false);
                                         });
                                         queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });

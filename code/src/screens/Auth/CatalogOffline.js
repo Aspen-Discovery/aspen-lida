@@ -2,15 +2,18 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, Al
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import _ from 'lodash';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
+import { useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { logInfoMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const CatalogOffline = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { catalogStatus, catalogStatusMessage } = React.useContext(LibrarySystemContext);
+      const language = useActiveLanguage();
+     const { status: catalogStatus, message: catalogStatusMessage } = useCatalogStatus();
      const { signOut } = React.useContext(AuthContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => setIsOpen(false);
      const cancelRef = React.useRef(null);
@@ -33,7 +36,7 @@ export const CatalogOffline = () => {
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
                                         <Button onPress={signOut} bgColor={theme.tokens.colors.primary['500']} ref={cancelRef}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>

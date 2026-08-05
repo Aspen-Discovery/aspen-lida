@@ -1,9 +1,8 @@
-import _ from 'lodash';
 import { Box } from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { Platform } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { AppleMaps, GoogleMaps } from 'expo-maps';
 
 const mapStyle = [
      {
@@ -220,120 +219,93 @@ const mapStyleDark = [
 ];
 
 const DisplayMap = (data) => {
-     const location = data.data;
+     const location = data?.data ?? {};
 
      const mapColorMode = useColorModeValue('light', 'dark');
-
-     const markerRef = React.useRef(null);
      const mapRef = React.useRef(null);
+     const hasCoordinates =
+          Number.isFinite(location.latitude) &&
+          Number.isFinite(location.longitude) &&
+          location.latitude !== 0 &&
+          location.longitude !== 0;
 
-     const onRegionChangeComplete = () => {
-          if (markerRef && markerRef.current && markerRef.current.showCallout) {
-               markerRef.current.showCallout();
-          }
-     };
-
-     const onMapReadyHandler = React.useCallback(() => {
-          if (Platform.OS !== 'android') {
-               mapRef?.current?.fitToElements(false);
-          } else {
-               mapRef?.current?.fitToSuppliedMarkers(['library'], {
-                    edgePadding: {
-                         top: 50,
-                         right: 50,
-                         bottom: 50,
-                         left: 50,
-                    },
-                    animated: true,
-               });
-          }
-     }, [mapRef]);
-
-     if (_.isNumber(location.latitude) && location.latitude !== 0 && location.longitude !== 0) {
-          if (Platform.OS === 'ios') {
-               return (
-                    <Box pt={2} pb={2}>
-                         <MapView
-                              onRegionChangeComplete={onRegionChangeComplete}
-                              ref={mapRef}
-                              onMapReady={onMapReadyHandler}
-                              provider={PROVIDER_GOOGLE}
-                              camera={{
-                                   center: {
-                                        latitude: location.latitude,
-                                        longitude: location.longitude,
-                                   },
-                                   pitch: 1,
-                                   zoom: 16,
-                              }}
-                              paddingAdjustmentBehavior="never"
-                              loadingEnabled={true}
-                              scrollEnabled={false}
-                              showsPointsOfInterest={false}
-                              customMapStyle={mapColorMode === 'light' ? mapStyle : mapStyleDark}
-                              style={{ height: 180, width: '100%' }}>
-                              <Marker
-                                   coordinate={{
-                                        latitude: location.latitude,
-                                        longitude: location.longitude,
-                                   }}
-                                   title={location.displayName}
-                                   description={location.address}
-                                   ref={markerRef}
-                                   identifier="library"
-                                   anchor={{ x: 0.5, y: 0.25 }}
-                                   centerOffset={{ x: 0.5, y: 0.25 }}
-                              />
-                         </MapView>
-                    </Box>
-               );
-          } else {
-               return (
-                    <Box pt={2} pb={2}>
-                         <MapView
-                              onRegionChangeComplete={onRegionChangeComplete}
-                              ref={mapRef}
-                              onMapReady={onMapReadyHandler}
-                              provider={PROVIDER_GOOGLE}
-                              initialRegion={{
-                                   latitude: location.latitude,
-                                   longitude: location.longitude,
-                                   latitudeDelta: 0.005,
-                                   longitudeDelta: 0,
-                              }}
-                              region={{
-                                   latitude: location.latitude,
-                                   longitude: location.longitude,
-                                   latitudeDelta: 0.005,
-                                   longitudeDelta: 0,
-                              }}
-                              paddingAdjustmentBehavior="never"
-                              loadingEnabled={true}
-                              scrollEnabled={false}
-                              zoomEnabled={false}
-                              pitchEnabled={false}
-                              showsPointsOfInterest={false}
-                              customMapStyle={mapColorMode === 'light' ? mapStyle : mapStyleDark}
-                              style={{ height: 180, width: '100%' }}>
-                              <Marker
-                                   coordinate={{
-                                        latitude: location.latitude,
-                                        longitude: location.longitude,
-                                   }}
-                                   title={location.displayName}
-                                   description={location.address}
-                                   ref={markerRef}
-                                   identifier="library"
-                                   anchor={{ x: 0.5, y: 0.25 }}
-                                   centerOffset={{ x: 0.5, y: 0.25 }}
-                              />
-                         </MapView>
-                    </Box>
-               );
-          }
+     if (!hasCoordinates) {
+          return null;
      }
 
-     return null;
+     const coordinates = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+     };
+
+     const cameraPosition = {
+          coordinates,
+          zoom: 16,
+     };
+
+     if (Platform.OS === 'ios') {
+          return (
+               <Box pt={2} pb={2}>
+                    <AppleMaps.View
+                         ref={mapRef}
+                         style={{ height: 180, width: '100%' }}
+                         cameraPosition={cameraPosition}
+                         colorScheme={
+                              mapColorMode === 'light'
+                                   ? AppleMaps.MapColorScheme.LIGHT
+                                   : AppleMaps.MapColorScheme.DARK
+                         }
+                         markers={[
+                              {
+                                   id: 'library',
+                                   coordinates,
+                                   title: location.displayName,
+                              },
+                         ]}
+                         properties={{
+                              pointsOfInterest: {
+                                   including: [],
+                              },
+                         }}
+                    />
+               </Box>
+          );
+     }
+
+     return (
+          <Box pt={2} pb={2}>
+               <GoogleMaps.View
+                    ref={mapRef}
+                    style={{ height: 180, width: '100%' }}
+                    cameraPosition={cameraPosition}
+                    colorScheme={
+                         mapColorMode === 'light' ? GoogleMaps.MapColorScheme.LIGHT : GoogleMaps.MapColorScheme.DARK
+                    }
+                    markers={[
+                         {
+                              id: 'library',
+                              coordinates,
+                              title: location.displayName,
+                              snippet: location.address,
+                              showCallout: true,
+                              anchor: { x: 0.5, y: 0.25 },
+                         },
+                    ]}
+                    uiSettings={{
+                         scrollGesturesEnabled: false,
+                         zoomGesturesEnabled: false,
+                         rotationGesturesEnabled: false,
+                         tiltGesturesEnabled: false,
+                    }}
+                    properties={{
+                         mapStyleOptions: {
+                              json: JSON.stringify(mapColorMode === 'light' ? mapStyle : mapStyleDark),
+                         },
+                    }}
+               />
+          </Box>
+     );
+
 };
 
 export default DisplayMap;

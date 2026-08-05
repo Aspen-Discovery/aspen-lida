@@ -8,17 +8,20 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LibrarySystemContext, LanguageContext, ThemeContext, SystemMessagesContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { fetchSearchResultsForSavedSearch } from '../../util/api/search';
 import { DisplayResult } from './DisplayResult';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const SearchResultsForSavedSearch = () => {
      const [page, setPage] = React.useState(1);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const searchId = useRoute().params.id ?? '';
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
@@ -33,7 +36,6 @@ export const SearchResultsForSavedSearch = () => {
                     let tmp = getTermFromDictionary(language, 'page_of_page');
                     tmp = tmp.replace('%1%', page);
                     tmp = tmp.replace('%2%', data.totalPages);
-                    console.log(tmp);
                     setPaginationLabel(tmp);
                }
           },
@@ -62,19 +64,18 @@ export const SearchResultsForSavedSearch = () => {
                          <ScrollView horizontal>
                               <ButtonGroup>
                                    <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
-                                                  console.log('Adding to page');
                                                   setPage(page + 1);
                                              }
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>

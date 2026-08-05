@@ -1,6 +1,7 @@
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { GLOBALS, PATRON } from '../globals';
+import { GLOBALS } from '../globals';
+import { saveLastListUsed } from '../db';
 import { createApiClient } from './apiFactory';
 
 /** *******************************************************************
@@ -69,7 +70,7 @@ export async function createList(title, description, isPublic = false, url = nul
                     description,
                     isPublic,
                     addToListGroupOption: addToListGroup,
-                    addToListGroupNested: addToListGroupNestedId === '' ? existingListId : addToListGroupNestedId,
+                    addToListGroupNested: addToListGroup === 'no' ? null : addToListGroupNestedId === '' ? existingListId : addToListGroupNestedId,
                     addToListGroupNewName,
                },
           }
@@ -77,7 +78,7 @@ export async function createList(title, description, isPublic = false, url = nul
 
      if (response.ok) {
           if (response.data?.result?.listId) {
-               PATRON.listLastUsed = response.data.result.listId;
+               await saveLastListUsed(response.data.result.listId);
           }
           return response.data?.result;
      }
@@ -122,7 +123,7 @@ export async function createListFromTitle(title, description, access, items, url
           const result = response.data?.result;
 
           if (result?.listId) {
-               PATRON.listLastUsed = result.listId;
+               await saveLastListUsed(result.listId);
           }
 
           const status = result?.success ? 'success' : 'danger';
@@ -158,7 +159,7 @@ export async function editList(listId, title, description, access, url = null, l
      );
 
      if (response.ok) {
-          PATRON.listLastUsed = listId;
+          await saveLastListUsed(listId);
           return response.data;
      }
 }
@@ -184,7 +185,7 @@ export async function addTitlesToList(id, itemId, url = null, source = 'GroupedW
      );
 
      if (response.ok) {
-          PATRON.listLastUsed = id;
+          await saveLastListUsed(id);
           const result = response.data?.result;
 
           if (result?.success) {
@@ -262,7 +263,7 @@ export async function removeTitlesFromList(listId, title, url = null, source) {
      );
 
      if (response.ok) {
-          PATRON.listLastUsed = listId;
+          await saveLastListUsed(listId);
           return response.data?.result;
      }
 }

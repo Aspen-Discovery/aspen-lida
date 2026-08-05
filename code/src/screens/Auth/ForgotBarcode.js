@@ -11,27 +11,29 @@ import {
      Input,
      InputField,
      Modal,
+     ModalBackdrop,
      ModalContent,
      ModalHeader,
      ModalBody,
      ModalFooter,
      Text,
-     ModalBackdrop, Icon, CloseIcon, ModalCloseButton,
-} from '@gluestack-ui/themed';
+     Icon, CloseIcon, ModalCloseButton } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
 import { getTermFromDictionary, getTranslation, getTranslationsWithValues } from '../../translations/TranslationService';
 import { stripHTML } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { useKeyboard } from '../../hooks/hooks';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { forgotBarcode } from '../../util/api/user';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 export const ForgotBarcode = (props) => {
      const isKeyboardOpen = useKeyboard();
-     const { theme, textColor, colorMode }= React.useContext(ThemeContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { theme, textColor, colorMode }= useTheme();
+     const library = useLibrary();
      const { usernameLabel, showForgotBarcodeModal, setShowForgotBarcodeModal } = props;
      const [isProcessing, setIsProcessing] = React.useState(false);
      const language = 'en';
@@ -146,7 +148,7 @@ export const ForgotBarcode = (props) => {
 
      const FooterButtons = (showResults && !results.success) || hasError ? (
           <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-               <ButtonText color="$textLight200">{getTermFromDictionary('en', 'try_again')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
           </Button>
      ) : showResults ? (
           <Button variant="link" onPress={closeWindow}>
@@ -162,7 +164,7 @@ export const ForgotBarcode = (props) => {
                     isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
                     bgColor={theme.tokens.colors.primary['500']}
                     onPress={initiateForgotBarcode}>
-                    <ButtonText color="$textLight200">{modalButtonLabel}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
                </Button>
           </>
      );
@@ -177,7 +179,7 @@ export const ForgotBarcode = (props) => {
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                          <ModalHeader>
                               <Heading size="md" color={textColor}>{modalTitle}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowForgotBarcodeModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>

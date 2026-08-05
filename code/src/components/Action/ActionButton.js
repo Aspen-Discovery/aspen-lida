@@ -20,18 +20,21 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text,
-} from '@gluestack-ui/themed';
+     Text, useToast } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
-import { LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
-import { passUserToDiscovery } from '../../util/api/user';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState } from '../../hooks/useUserData';
 import * as WebBrowser from 'expo-web-browser';
+import { useTheme } from '../../themes/theme';
 
 export const ActionButton = (data) => {
-     const {theme, textColor, backgroundColor, colorMode} = useContext(ThemeContext);
-     const { library } = useContext(LibrarySystemContext);
-     const { user } = useContext(UserContext);
+     const {theme, textColor, backgroundColor, colorMode} = useTheme();
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
+     const toast = useToast();
 
      const action = data.actions;
      const {
@@ -67,8 +70,7 @@ export const ActionButton = (data) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           userHasAlternateLibraryCard,
-          shouldPromptAlternateLibraryCard,
-     } = data;
+          shouldPromptAlternateLibraryCard } = data;
      if (_.isObject(action)) {
           if (action.type === 'overdrive_sample') {
                return <LoadOverDriveSample title={action.title} prevRoute={prevRoute} id={fullRecordId} type={action.type} sampleNumber={action.sampleNumber} formatId={action.formatId} />;
@@ -152,10 +154,10 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(library.baseUrl, 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_material_request_ils') {
@@ -168,10 +170,10 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(library.baseUrl, 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_external_request') {
@@ -192,13 +194,12 @@ export const ActionButton = (data) => {
                                         showTitle: false,
                                         toolbarColor: backgroundColor,
                                         controlsColor: textColor,
-                                        secondaryToolbarColor: backgroundColor,
-                                   };
+                                        secondaryToolbarColor: backgroundColor };
                                    await WebBrowser.openBrowserAsync(action.redirectParams.url, browserParams);
                               }
                          }
                     >
-                         <ButtonText color="$textLight200">{action.title}</ButtonText>
+                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_email') {
@@ -226,14 +227,14 @@ export const ActionButton = (data) => {
                               maxWidth="100%"
                               onPress={async () => {setShowIllUnavailableModal(true)}}
                          >
-                              <ButtonText color="$textLight200">{action.title}</ButtonText>
+                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
                          </Button>
                          <Modal isOpen={showIllUnavailableModal} size="lg" avoidKeyboard={true} onClose={() => setShowIllUnavailableModal(false)}>
                               <ModalBackdrop />
                               <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                                    <ModalHeader>
                                         <Heading size="md" color={textColor}>{action.title}</Heading>
-                                        <ModalCloseButton p="$3">
+                                        <ModalCloseButton p="$3" onPress={() => { setShowIllUnavailableModal(false); }}>
                                              <Icon as={CloseIcon} color={textColor} />
                                         </ModalCloseButton>
                                    </ModalHeader>

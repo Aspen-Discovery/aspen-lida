@@ -1,8 +1,9 @@
 import { createApiClient } from './apiFactory';
-import { GLOBALS, PATRON } from '../globals';
-import { popAlert, popToast } from '../../components/loadError';
+import { GLOBALS } from '../globals';
+import { saveSublocations } from '../db';
+import { popAlert, popToast } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
-import { logDebugMessage, logErrorMessage, logWarnMessage } from '../logging.js';
+import {logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../logging.js';
 import * as WebBrowser from 'expo-web-browser';
 import { problemCodeMap, stripHTML } from '../../helpers/helpers';
 import { addDays, formatLocalDateYYYYMMDD, parseToDate } from '../../helpers/helpers';
@@ -480,9 +481,9 @@ export async function passUserToDiscovery(url, redirectTo, userId, backgroundCol
                }
                await WebBrowser.openBrowserAsync(accessUrl, browserParams)
                     .then((res) => {
-                         console.log(res);
+                         logDebugMessage(res);
                          if (res.type === 'cancel' || res.type === 'dismiss') {
-                              console.log('User closed or dismissed window.');
+                              logDebugMessage('User closed or dismissed window.');
                               WebBrowser.dismissBrowser();
                               WebBrowser.coolDownAsync();
                          }
@@ -494,30 +495,30 @@ export async function passUserToDiscovery(url, redirectTo, userId, backgroundCol
                                    WebBrowser.coolDownAsync();
                                    await WebBrowser.openBrowserAsync(accessUrl, browserParams)
                                         .then((response) => {
-                                             console.log(response);
+                                             logDebugMessage(response);
                                              if (response.type === 'cancel') {
-                                                  console.log('User closed window.');
+                                                  logDebugMessage('User closed window.');
                                              }
                                         })
                                         .catch(async (error) => {
-                                             console.log('Unable to close previous browser session.');
+                                             logInfoMessage('Unable to close previous browser session.');
                                         });
                               } catch (error) {
-                                   console.log('Really borked.');
+                                   logErrorMessage('Really borked.');
                               }
                          } else {
                               popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-                              console.log(err);
+                              logErrorMessage(err);
                          }
                     });
           } else {
                // unable to validate the user
                popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-               console.log('unable to validate user');
+               logErrorMessage('unable to validate user');
           }
      } else {
           popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
-          console.log(response);
+          logErrorMessage(response);
      }
 }
 
@@ -546,9 +547,10 @@ export async function getPickupLocations(url = null, groupedWorkId = null, recor
 /**
  * Fetch valid pickup sublocations/areas for the patron based on the selected pickup location
  * @param url
+ * @param {{ persist?: boolean }} options - When false, fetches sublocations without writing them to SQLite.
  * @returns {Promise<*[]>}
  */
-export async function getPickupSublocations(url = null) {
+export async function getPickupSublocations(url = null, { persist = true } = {}) {
      const client = userClient(url, GLOBALS.timeoutAverage);
      const response = await client.post('/UserAPI?method=getValidSublocations', {});
 
@@ -559,7 +561,9 @@ export async function getPickupSublocations(url = null) {
           sublocations = typeof data === 'object' && data !== null ? data : [];
      }
 
-     PATRON.sublocations = sublocations;
+     if (persist) {
+          await saveSublocations(sublocations);
+     }
      return sublocations;
 }
 
@@ -703,6 +707,8 @@ export async function freezeHold(cancelId, recordId, source, url = null, patronI
           } else {
                popAlert(result.title ?? getTermFromDictionary(language, 'unable_freeze_hold'), result.message, 'error');
           }
+     }else{
+          popAlert('Error', 'Unknown error freezing hold', 'error');
      }
 }
 
@@ -843,7 +849,7 @@ export async function thawHolds(data, url = null, language = 'en') {
      }
 
      if (numFailed > 0) {
-          status = 'warning';
+          status = 'error';
           message += ` Unable to thaw ${numFailed} holds.`;
      }
 
@@ -928,7 +934,7 @@ export async function cancelHolds(data, url = null, language = 'en') {
      }
 
      if (numFailed > 0) {
-          status = 'warning';
+          status = 'error';
           message += ` Unable to cancel ${numFailed} holds.`;
      }
 
@@ -1507,7 +1513,7 @@ export async function saveLanguage(code, url = null, language = 'en') {
      );
 
      if (response.ok) {
-          PATRON.language = code;
+          GLOBALS.language = code;
           return true;
      }
 
@@ -1753,67 +1759,26 @@ export async function markMessageAsUnread(id, url = null, language = 'en') {
 }
 
 /**
- * Fetch the user's notification preferences
- * @param libraryUrl
- * @param pushToken
- * @returns {Promise<*|boolean>}
- */
-export async function getNotificationPreferences(libraryUrl, pushToken) {
-     const client = createApiClient({
-          url: libraryUrl,
-          timeout: GLOBALS.timeoutAverage,
-     });
-
-     logDebugMessage('Loading notification preferences ' + pushToken);
-     const response = await client.post('/UserAPI?method=getNotificationPreferences', {
-          pushToken,
-     });
-
-     if (response.ok) {
-          try {
-               await createChannelsAndCategories();
-          } catch (e) {
-               logErrorMessage('Could not create channels and categories');
-               logErrorMessage(e);
-          }
-          return response.data?.result ?? false;
-     } else {
-          const problem = problemCodeMap(response.problem);
-          popToast(problem.title, problem.message, 'error');
-          logWarnMessage('Could not retrieve notification preferences');
-          logWarnMessage(response);
-          return false;
-     }
-}
-
-/**
  * Fetch the user's notification preference for a specific type of notification
  * @param url
  * @param pushToken
- * @param type
  * @returns {Promise<*|boolean>}
  */
-export async function getNotificationPreference(url, pushToken, type) {
+export async function getNotificationPreferences(url, pushToken) {
      const client = createApiClient({
           url,
           timeout: GLOBALS.timeoutAverage,
      });
 
-     logDebugMessage('Getting notification preference for type ' + type);
+     logDebugMessage('Getting notification preferences');
      const response = await client.post(
-          '/UserAPI?method=getNotificationPreference',
+          '/UserAPI?method=getNotificationPreferences',
           {
                pushToken,
-               type,
           },
-          {
-               params: { type },
-          }
      );
-
      if (response.ok) {
           if (response.data?.result?.success === true) {
-               logDebugMessage(response.data.result);
                return response.data.result;
           } else {
                popAlert(response.data?.result?.title ?? 'Unknown Error', response.data?.result?.message, 'error');
@@ -1841,6 +1806,7 @@ export async function setNotificationPreference(url, pushToken, type, value, sho
           timeout: GLOBALS.timeoutAverage,
      });
 
+     logDebugMessage("Setting Notification Preference for " + type + " to " + value + " (push token is " + pushToken + ")");
      const response = await client.post(
           '/UserAPI?method=setNotificationPreference',
           {
@@ -1852,6 +1818,21 @@ export async function setNotificationPreference(url, pushToken, type, value, sho
                params: { type, value },
           }
      );
+     logDebugMessage(response);
+     if (response.ok) {
+          if (response.data.result.success) {
+               return true;
+          }else{
+               if (showToast) {
+                    popAlert(response.data.result.title, response.data.result.message, 'error');
+               }
+          }
+     }else{
+          if (showToast) {
+               popAlert('Error', 'Could not save notification preference', 'error');
+          }
+          return false;
+     }
 
      return response.ok;
 }

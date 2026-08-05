@@ -1,12 +1,13 @@
 import {Button, ButtonText} from '@gluestack-ui/themed';
 import React from 'react';
 import {navigate} from '../../../helpers/RootNavigator';
-import { ThemeContext } from '../../../context/initialContext';
+
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
+import { useTheme } from '../../../themes/theme';
 
 export const StartLocalIllRequestEmail = (props) => {
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
      //logDebugMessage("Props for StartLocalIllRequest");
      //logDebugMessage(props);
      const openLocalIllRequestEmail = () => {
@@ -27,7 +28,7 @@ export const StartLocalIllRequestEmail = (props) => {
                minWidth="100%"
                maxWidth="100%"
                onPress={openLocalIllRequestEmail}>
-               <ButtonText color="$textLight200" textAlign="center">
+               <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
                     {props.title}
                </ButtonText>
           </Button>

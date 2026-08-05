@@ -1,11 +1,10 @@
 import {Button, ButtonText} from '@gluestack-ui/themed';
 import React from 'react';
 import {navigate} from '../../../helpers/RootNavigator';
-import { ThemeContext } from '../../../context/initialContext';
+import { useTheme } from '../../../themes/theme';
+
 
 export const StartLocalIllRequest = (props) => {
-     //console.log("Props for StartLocalIllRequest");
-     //console.log(props);
      const openLocalIllRequest = () => {
           navigate('CreateLocalIllRequest', {
                id: props.record,
@@ -14,7 +13,7 @@ export const StartLocalIllRequest = (props) => {
                volumeName: props.volumeName ?? null
           });
      };
-     const { theme } = React.useContext(ThemeContext);
+     const { theme } = useTheme();
 
      return (
           <Button
@@ -24,7 +23,7 @@ export const StartLocalIllRequest = (props) => {
                minWidth="100%"
                maxWidth="100%"
                onPress={openLocalIllRequest}>
-               <ButtonText color="$textLight200" textAlign="center">
+               <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
                     {props.title}
                </ButtonText>
           </Button>

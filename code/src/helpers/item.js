@@ -1,15 +1,20 @@
 import moment from 'moment';
-import { Badge, BadgeText, Box, HStack, Text } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/themed';
 import React from 'react';
+import _ from 'lodash';
 
-import { LanguageContext, LibrarySystemContext, UserContext } from '../context/initialContext';
-import { getTermFromDictionary } from '../translations/TranslationService';
+
+import { useUserState } from '../hooks/useUserData';
+import { useLibrary } from '../hooks/useLibrarySystemData';
+import { getTermFromDictionary, getTranslationsWithValues } from '../translations/TranslationService';
+import { useActiveLanguage } from '../hooks/useLanguageData';
+import { useTheme } from '../themes/theme';
 
 export const isOverdue = (overdue) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (overdue) {
           return (
-               <Badge action="error" borderRadius="$sm" mt={-2}>
+               <Badge action="error" borderRadius="$sm" mt={-2} alignSelf="flex-start">
                     <BadgeText>
                          {getTermFromDictionary(language, 'checkout_overdue')}
                     </BadgeText>
@@ -21,6 +26,7 @@ export const isOverdue = (overdue) => {
 };
 
 export const getTitle = (title) => {
+     const {textColor} = useTheme();
      if (title) {
           let displayTitle = title;
           const countSlash = displayTitle.split('/').length - 1;
@@ -33,6 +39,7 @@ export const getTitle = (title) => {
                     mb="$1"
                     pr="$3"
                     fontSize="$sm"
+                    color={textColor}
                     maxwidth="$full">
                     {displayTitle}
                </Text>
@@ -44,6 +51,7 @@ export const getTitle = (title) => {
                     mb="$1"
                     pr="$3"
                     fontSize='$sm'
+                    color={textColor}
                     maxwidth="$full">
                     Title Not Available
                </Text>
@@ -64,41 +72,40 @@ export function getCleanTitle(title) {
 }
 
 export const getCallNumber = (callNumber) => {
-     const { language } = React.useContext(LanguageContext);
+     const {textColor} = useTheme();
+     const language = useActiveLanguage();
      if (callNumber) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'call_number')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {callNumber}
-                    </Text>
-               </HStack>
+                    {' '}{callNumber}
+               </Text>
           );
      }
      return null;
 }
 
 export const getVolume = (volume) => {
-     const { language } = React.useContext(LanguageContext);
+     const {textColor} = useTheme();
+     const language = useActiveLanguage();
      if (volume) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'volume')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {volume}
-                    </Text>
-               </HStack>
+                    {' '}{volume}
+               </Text>
           );
      }
      return null;
 }
 
 export const getAuthor = (author) => {
-     const { language } = React.useContext(LanguageContext);
+     const {textColor} = useTheme();
+     const language = useActiveLanguage();
      if (author) {
           let displayAuthor = author;
           const countComma = displayAuthor.split(',').length - 1;
@@ -107,22 +114,21 @@ export const getAuthor = (author) => {
           }
 
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'author')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {displayAuthor}
-                    </Text>
-               </HStack>
+                    {' '}{displayAuthor}
+               </Text>
           );
      }
      return null;
 };
 
 export const getFormat = (format, source = null) => {
-     const { language } = React.useContext(LanguageContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const language = useActiveLanguage();
+     const library = useLibrary();
+     const {textColor} = useTheme();
      if (format && format !== 'Unknown') {
           if (source) {
                if (source !== 'ils') {
@@ -144,29 +150,22 @@ export const getFormat = (format, source = null) => {
                          source = getTermFromDictionary(language, 'palace_project');
                     }
                     return (
-                         <HStack
-                              space="xs"
-                              maxW="$full"
-                              flexWrap="wrap">
-                              <Text bold fontSize="$xs">
+                         <Text fontSize="$xs" color={textColor}>
+                              <Text bold fontSize="$xs" color={textColor}>
                                    {getTermFromDictionary(language, 'format')}:
                               </Text>
-                              <Text fontSize="$xs">
-                                   {format !== '' ? format : 'Unknown'} - {source}
-                              </Text>
-                         </HStack>
+                              {' '}{format !== '' ? format : 'Unknown'} - {source}
+                         </Text>
                     );
                }
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {format}
-                    </Text>
-               </HStack>
+                    {' '}{format}
+               </Text>
           );
      } else {
           return null;
@@ -174,11 +173,11 @@ export const getFormat = (format, source = null) => {
 };
 
 export const getBadge = (status, frozen, available, source, statusMessage) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      if (frozen) {
           if (statusMessage) {
                return (
-                    <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5}>
+                    <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
                          <BadgeText>
                               {statusMessage}
                          </BadgeText>
@@ -186,7 +185,7 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
                );
           }
           return (
-               <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5}>
+               <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
                     <BadgeText>
                          {status}
                     </BadgeText>
@@ -198,7 +197,7 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
                message = status;
           }
           return (
-               <Badge colorScheme="green" borderRadius="$sm" mt={-0.5}>
+               <Badge colorScheme="green" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
                     <BadgeText>
                          {message}
                     </BadgeText>
@@ -207,7 +206,7 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
      } else {
           if (status) {
                return (
-                    <Badge colorScheme="orange" borderRadius="$sm" mt={-0.5}>
+                    <Badge colorScheme="orange" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
                          <BadgeText>
                               {status}
                          </BadgeText>
@@ -219,7 +218,8 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
 };
 
 export const getType = (type) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (type && type !== 'ils') {
           if (type === 'interlibrary_loan') {
                type = getTermFromDictionary(language, 'interlibrary_loan');
@@ -236,14 +236,12 @@ export const getType = (type) => {
           }
 
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_source')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {type}
-                    </Text>
-               </HStack>
+                    {' '}{type}
+               </Text>
           );
      } else {
           return null;
@@ -251,36 +249,35 @@ export const getType = (type) => {
 };
 
 export const getOnHoldFor = (user) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (user) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'on_hold_for')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {user}
-                    </Text>
-               </HStack>
+                    {' '}{user}
+               </Text>
           );
      }
      return null;
 };
 
 export const getCheckedOutTo = (props) => {
-     const { language } = React.useContext(LanguageContext);
-     const { user } = React.useContext(UserContext);
-     const [checkedOutTo, setCheckedOutTo] = React.useState();
+     const language = useActiveLanguage();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const [checkedOutTo] = React.useState();
+     const {textColor} = useTheme();
      if (user.id !== checkedOutTo) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checked_out_to')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {props}
-                    </Text>
-               </HStack>
+                    {' '}{props}
+               </Text>
           );
      } else {
           return null;
@@ -288,21 +285,20 @@ export const getCheckedOutTo = (props) => {
 };
 
 export const getDueDate = (date) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (date && date !== 0) {
-          //offset is in minutes we multiple 60 to get seconds
+          //offset is in minutes we multiply 60 to get seconds
           const timezoneOffset = new Date().getTimezoneOffset() * 60;
           const dueDate = moment.unix(date - timezoneOffset);
           const itemDueOn = moment(dueDate).format('MMM D, YYYY');
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checkout_due')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {itemDueOn}
-                    </Text>
-               </HStack>
+                    {' '}{itemDueOn}
+               </Text>
           );
      }
 
@@ -310,7 +306,8 @@ export const getDueDate = (date) => {
 };
 
 export const getDateLastUsed = (date, checkedOut) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (date && date !== 0) {
           const dateLastUsed = moment.unix(date);
           let itemLastUsedOn = moment(dateLastUsed).format('MMM D, YYYY');
@@ -318,14 +315,12 @@ export const getDateLastUsed = (date, checkedOut) => {
                itemLastUsedOn = getTermFromDictionary(language, 'in_use');
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'last_used')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {itemLastUsedOn}
-                    </Text>
-               </HStack>
+                    {' '}{itemLastUsedOn}
+               </Text>
           );
      }
 
@@ -333,21 +328,17 @@ export const getDateLastUsed = (date, checkedOut) => {
 };
 
 export const willAutoRenew = (props) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
                <Box mt={1} p={0.5} bgColor="muted.100">
-                    <HStack space="xs" maxW="$full" flexWrap="wrap">
-                         <Text
-                              bold
-                              fontSize="$xs">
+                    <Text fontSize="$xs" color={textColor}>
+                         <Text bold fontSize="$xs" color={textColor}>
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:
                          </Text>
-                         <Text
-                              fontSize="$xs">
-                              {props.renewalDate}
-                         </Text>
-                    </HStack>
+                         {' '}{props.renewalDate}
+                    </Text>
                </Box>
           );
      } else {
@@ -356,17 +347,16 @@ export const willAutoRenew = (props) => {
 };
 
 export const getPickupLocation = (location, source) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (location && source === 'ils') {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_pickup_at')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {location}
-                    </Text>
-               </HStack>
+                    {' '}{location}
+               </Text>
           );
      } else {
           return null;
@@ -374,18 +364,16 @@ export const getPickupLocation = (location, source) => {
 };
 
 export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
-     const { language } = React.useContext(LanguageContext);
-     //console.log("Out of hold group message is " + outOfHoldGroupMessage);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (outOfHoldGroupMessage) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'interlibrary_loan')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {outOfHoldGroupMessage}
-                    </Text>
-               </HStack>
+                    {' '}{outOfHoldGroupMessage}
+               </Text>
           );
      } else {
           return null;
@@ -393,32 +381,26 @@ export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
 }
 
 export const getPosition = (position, available, length, holdPosition, usesHoldPosition, outOfHoldGroupMessage) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (!outOfHoldGroupMessage && position && !available && position !== 0 && position !== '0') {
           if (length && usesHoldPosition) {
                return (
-                    <HStack space="xs" maxW="$full" flexWrap="wrap">
-                         <Text
-                              bold
-                              fontSize="$xs">
+                    <Text fontSize="$xs" color={textColor}>
+                         <Text bold fontSize="$xs" color={textColor}>
                               {getTermFromDictionary(language, 'hold_position')}:
                          </Text>
-                         <Text
-                              fontSize="$xs">
-                              {holdPosition}
-                         </Text>
-                    </HStack>
+                         {' '}{holdPosition}
+                    </Text>
                );
           }
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_position')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {position}
-                    </Text>
-               </HStack>
+                    {' '}{position}
+               </Text>
           );
      } else {
           return null;
@@ -426,19 +408,18 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
 };
 
 export const getExpirationDate = (expiration, available) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (expiration && available) {
           const expirationDateUnix = moment.unix(expiration);
           let expirationDate = moment(expirationDateUnix).format('MMM D, YYYY');
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'hold_pickup_by')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {expirationDate}
-                    </Text>
-               </HStack>
+                    {' '}{expirationDate}
+               </Text>
           );
      } else {
           return null;
@@ -446,17 +427,16 @@ export const getExpirationDate = (expiration, available) => {
 };
 
 export const getRenewalCount = (count, available = null) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      if (available) {
           return (
-               <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text fontSize="$xs" bold>
+               <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'checkout_renewed')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {count} of {available} times
-                    </Text>
-               </HStack>
+                    {' '}{count} of {available} times
+               </Text>
           );
      } else {
           return null;
@@ -464,19 +444,64 @@ export const getRenewalCount = (count, available = null) => {
 };
 
 export const getCollectionName = (source, collectionName = null) => {
-	const { language } = React.useContext(LanguageContext);
+	const language = useActiveLanguage();
+     const {textColor} = useTheme();
 	if (source === 'overdrive' && collectionName) {
 		return (
-		     <HStack space="xs" maxW="$full" flexWrap="wrap">
-                    <Text bold fontSize="$xs">
+		     <Text fontSize="$xs" color={textColor}>
+                    <Text bold fontSize="$xs" color={textColor}>
                          {getTermFromDictionary(language, 'collection')}:
                     </Text>
-                    <Text fontSize="$xs">
-                         {collectionName}
-                    </Text>
-               </HStack>
+                    {' '}{collectionName}
+               </Text>
 		);
 	} else {
 		return null;
 	}
 }
+
+export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderName, color }) => {
+     const [label, setLabel] = React.useState('...'); // Fallback / temporary loading text
+
+     React.useEffect(() => {
+          let active = true;
+
+          async function fetchLabel() {
+               if (!checkout?.checkoutSource) return;
+
+               let translationKey = 'checkout_access_online';
+               let dynamicValue = checkout.checkoutSource === 'Axis360' ? 'Boundless' : checkout.checkoutSource;
+
+               if (checkout.checkoutSource === 'OverDrive') {
+                    dynamicValue = libbyReaderName;
+                    if (checkout.overdriveRead === 1) {
+                         translationKey = 'checkout_read_online';
+                    } else if (checkout.overdriveListen === 1) {
+                         translationKey = 'checkout_listen_online';
+                    } else if (checkout.overdriveVideo === 1) {
+                         translationKey = 'checkout_watch_online';
+                    } else if (checkout.overdriveMagazine === 1) {
+                         translationKey = 'checkout_read_online';
+                    }
+               }
+
+               try {
+                    const term = await getTranslationsWithValues(translationKey, dynamicValue, language, baseUrl);
+                    if (active) {
+                         setLabel(_.toString(term));
+                    }
+               } catch (error) {
+                    console.error("Failed to fetch checkout translation:", error);
+               }
+          }
+
+          fetchLabel();
+
+          // Cleanup function to prevent setting state on unmounted components
+          return () => {
+               active = false;
+          };
+     }, [checkout, language, baseUrl, libbyReaderName]);
+
+     return <ActionsheetItemText color={color} >{label}</ActionsheetItemText>;
+};

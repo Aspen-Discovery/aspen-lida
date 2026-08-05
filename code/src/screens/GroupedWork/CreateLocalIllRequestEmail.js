@@ -3,25 +3,23 @@ import {
      Button,
      ButtonGroup,
      ButtonText,
-     Checkbox,
-     CheckIcon,
      FormControl,
      FormControlLabel,
      FormControlLabelText,
      Input,
      InputField,
-     Select,
-     Text,
      Textarea,
      TextareaInput,
      ScrollView,
-     VStack,
-} from '@gluestack-ui/themed';
+     VStack, useToast } from '@gluestack-ui/themed';
 import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
-import { popAlert } from '../../components/loadError';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { popAlert } from '../../components/feedback/toastService';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const CreateLocalIllRequestEmail = () => {
      const route = useRoute();
@@ -37,9 +35,10 @@ export const CreateLocalIllRequestEmail = () => {
 const Request = (payload) => {
      const navigation = useNavigation();
      const { workTitle, author, volumeName, recordId} = payload;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const {theme, textColor, colorMode} = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const {theme, textColor, colorMode} = useTheme();
+     const toast = useToast();
 
      const [userVolumeName, setUserVolumeName] = React.useState(volumeName);
      const [userNote, setUserNote] = React.useState('');
@@ -63,7 +62,7 @@ const Request = (payload) => {
                if (result.success) {
                     navigation.goBack();
                } else {
-                    popAlert(result.api.title, result.api.message, 'error');
+                    popAlert(toast, result.api.title, result.api.message, 'error');
                }
           });
      };

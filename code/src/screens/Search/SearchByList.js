@@ -8,12 +8,15 @@ import { loadError } from '../../components/loadError';
 
 // custom components and helper files
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { LanguageContext, LibrarySystemContext, SystemMessagesContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import { DisplayResult } from './DisplayResult';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { fetchSearchResultsForList } from '../../util/api/search';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -24,10 +27,10 @@ export const SearchResultsForList = () => {
      const prevRoute = useRoute().params?.prevRoute ?? 'HomeScreen';
      const screenTitle = useRoute().params?.title ?? '';
      const [page, setPage] = React.useState(1);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const url = library.baseUrl;
 
@@ -56,8 +59,7 @@ export const SearchResultsForList = () => {
           onError: (error) => {
                logDebugMessage('Error searching by list');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
@@ -85,7 +87,7 @@ export const SearchResultsForList = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner()
+                    <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (

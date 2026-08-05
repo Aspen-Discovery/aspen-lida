@@ -1,22 +1,62 @@
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Box, Button, ButtonText, ButtonSpinner, Checkbox, CheckboxIndicator, CheckboxIcon, CheckboxLabel, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Text, Textarea, TextareaInput, ScrollView, HStack, ChevronDownIcon, Alert, AlertText } from '@gluestack-ui/themed';
+import {
+     Box,
+     Button,
+     ButtonText,
+     ButtonSpinner,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckboxLabel,
+     CheckIcon,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Input,
+     InputField,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     Text,
+     Textarea,
+     TextareaInput,
+     ScrollView,
+     HStack,
+     ChevronDownIcon,
+     Alert,
+     AlertText,
+     useToast
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
-import { submitLocalIllRequest } from '../../util/api/user';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
+
+import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { stripHTML } from '../../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
-     const [hasError, setHasError] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
+      const [hasError, setHasError] = React.useState(false);
+     const library = useLibrary();
+     const location = useLibraryLocation();
      const route = useRoute();
 
      const id = route.params.id;
@@ -51,8 +91,7 @@ export const CreateLocalIllRequest = () => {
           onError: (error) => {
                logDebugMessage('Error fetching local ILL form configuration');
                logErrorMessage(error);
-          },
-     });
+          } });
 
      useFocusEffect(
           React.useCallback(() => {
@@ -74,17 +113,27 @@ const Request = (payload) => {
      const [note, setNote] = React.useState('');
      const [acceptFee, setAcceptFee] = React.useState(false);
      const [pickupLocation, setPickupLocation] = React.useState();
-     const [isSubmitting, setIsSubmitting] = React.useState(false);
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
      const [errorMessage, setErrorMessage] = React.useState('');
-     const { library } = React.useContext(LibrarySystemContext);
-     const { user } = React.useContext(UserContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const language = useActiveLanguage();
+     const { theme, colorMode, textColor } = useTheme();
      const navigation = useNavigation();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
+     const toast = useToast();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
+
+     const refreshAndSaveUserProfile = React.useCallback(async () => {
+          const profileResponse = await refreshProfile(library.baseUrl);
+          if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+               await updateUserProfile(profileResponse.data.result.profile);
+          }
+     }, [library.baseUrl, updateUserProfile]);
 
      // Make sure we have a valid config object before trying to render the form
      if (!config || !config.fields || typeof config.fields !== 'object') {
@@ -100,15 +149,14 @@ const Request = (payload) => {
                note: note ?? null,
                catalogKey: workId ?? null,
                pickupLocation: pickupLocation ?? null,
-               volumeId: volumeId,
-          };
+               volumeId: volumeId };
           await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {
                     setErrorMessage('');
                     navigation.goBack();
                     queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
-                    queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                    await refreshAndSaveUserProfile();
                } else {
                     setErrorMessage(result.message);
                }
@@ -235,11 +283,11 @@ const Request = (payload) => {
                                    {pickupLocation ? (
                                         locations.map((location, index) => {
                                              if (location.code === pickupLocation) {
-                                                  return <SelectInput key={index} value={location.displayName} color={textColor} />;
+                                                  return <SelectInput py={0} key={index} value={location.displayName} color={textColor} />;
                                              }
                                         })
                                    ) : (
-                                        <SelectInput placeholder="Select a pickup location" color={textColor} />
+                                        <SelectInput py={0} placeholder="Select a pickup location" color={textColor} />
                                    )}
                                    <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>
@@ -251,7 +299,7 @@ const Request = (payload) => {
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {locations.map((location, index) => {
-                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme['tokens']['colors']['tertiary']['500-text'] : textColor } }} />;
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>
@@ -319,7 +367,7 @@ const Request = (payload) => {
                          </ButtonText>
                     </Button>
                     <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <ButtonText color={colorMode === 'light' ? "warmGray500" : "$coolGray300"}>Cancel</ButtonText>
+                         <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );

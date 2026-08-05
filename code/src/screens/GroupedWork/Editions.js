@@ -15,19 +15,25 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const Editions = () => {
      // 1. Hooks
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { library } = useContext(LibrarySystemContext);
-     const { user } = useContext(UserContext);
-     const { language } = useContext(LanguageContext);
-     const { colorMode, theme, textColor } = useContext(ThemeContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const language = useActiveLanguage();
+     const { colorMode, theme, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [isLoading, setLoading] = useState(false);
@@ -54,8 +60,7 @@ export const Editions = () => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['records', id, source, format, language, library.baseUrl],
           queryFn: () => getRecords(id, format, source, language, library.baseUrl),
-          enabled: !!id && !!format && !!source,
-     });
+          enabled: !!id && !!format && !!source });
 
      // 3. Helper Functions
      const onResponseClose = () => setResponseIsOpen(false);
@@ -182,7 +187,7 @@ export const Editions = () => {
                                    <ButtonGroup space="sm">
                                         {response?.action ? (
                                              <Button onPress={() => handleNavigation(response.action)} variant="solid" bgColor={theme.tokens.colors.primary['500']}>
-                                                  <ButtonText color="$textLight200">{response.action}</ButtonText>
+                                                  <ButtonText color={theme.tokens.colors.primary['500-text']}>{response.action}</ButtonText>
                                              </Button>
                                         ) : null}
                                         <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} ref={cancelResponseRef} onPress={() => setResponseIsOpen(false)}>
@@ -218,7 +223,7 @@ export const Editions = () => {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
                                                        await refreshProfile(library.baseUrl).then((data) => {
                                                             if(data.ok) {
-                                                                 updateUser(data.data.result.profile);
+                                                                 updateUserProfile(data.data.result.profile);
                                                             } else {
                                                                  logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                                                                  logDebugMessage(data);
@@ -233,7 +238,7 @@ export const Editions = () => {
                                                        }
                                                   });
                                              }}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>
@@ -250,12 +255,12 @@ export const Editions = () => {
                                    {holdSelectItemResponse?.items ? (
                                         <Select name="itemForHold" minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} mt="$1" mb="$2" onValueChange={(itemValue) => setSelectedItem(itemValue)}>
                                              <SelectTrigger>
-                                                  <SelectInput placeholder="Select option" color={textColor} />
+                                                  <SelectInput py={0} placeholder="Select option" color={textColor} />
                                                   <SelectIcon mr="$3">
                                                        <Icon as={ChevronDownIcon} color={textColor} />
                                                   </SelectIcon>
                                              </SelectTrigger>
-                                             <SelectPortal useRNModal={true}>
+                                             <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent
                                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -297,7 +302,15 @@ export const Editions = () => {
                                                   await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
                                                        setResponse(result);
                                                        queryClient.invalidateQueries({ queryKey: ['holds', holdSelectItemResponse.patronId, library.baseUrl, language] });
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                       await refreshProfile(library.baseUrl).then(async (data) => {
+                                                            if (data.ok) {
+                                                                 await updateUserProfile(data.data.result.profile);
+                                                            } else {
+                                                                 logWarnMessage('Could not refresh profile after placing item hold from edition selection.');
+                                                                 logDebugMessage(data);
+                                                                 getErrorMessage(data.code ?? 0, data.problem);
+                                                            }
+                                                       });
                                                        setHoldItemSelectIsOpen(false);
                                                        setPlacingItemHold(false);
                                                        if (result) {
@@ -305,7 +318,7 @@ export const Editions = () => {
                                                        }
                                                   });
                                              }}>
-                                             <ButtonText color="$textLight200">{getTermFromDictionary(language, 'place_hold')}</ButtonText>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'place_hold')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
                               </AlertDialogFooter>
@@ -318,8 +331,8 @@ export const Editions = () => {
 
 const Edition = (props) => {
      // 1. Hooks
-     const { language } = useContext(LanguageContext);
-     const { theme, textColor, colorMode } = useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
 
      // 2. Props
      const {

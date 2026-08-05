@@ -1,15 +1,16 @@
 import React from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Heading, Box, ScrollView, Text, VStack } from '@gluestack-ui/themed';
+import { useTheme } from '../../../themes/theme';
+
 
 export const NotificationHistoryMessageModal = () => {
-     const navigation = useNavigation();
+     const { textColor } = useTheme();
      const defaultMessage = {
           title: '',
           content: '',
           isRead: 0,
-          dateSent: null,
-     };
+          dateSent: null };
 
      const route = useRoute();
      const message = route.params?.message ?? defaultMessage;
@@ -31,10 +32,10 @@ export const NotificationHistoryMessageModal = () => {
           <ScrollView>
                <Box p="$5">
                     <VStack space="md">
-                         <Heading size="lg">{message.title}</Heading>
-                         <Text>{message.content}</Text>
+                         <Heading size="lg" color={textColor}>{message.title}</Heading>
+                         <Text color={textColor}>{message.content}</Text>
                          {message.dateSent && (
-                              <Text size="sm" opacity={0.7}>
+                              <Text size="sm" opacity={0.7} color={textColor}>
                                    {formatDate(message.dateSent)}
                               </Text>
                          )}

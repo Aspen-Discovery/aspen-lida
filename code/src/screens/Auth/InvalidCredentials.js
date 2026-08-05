@@ -3,14 +3,16 @@ import { Center, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDial
 import React from 'react';
 
 import { AuthContext } from '../../context/AuthContext';
-import {LanguageContext, ThemeContext} from '../../context/initialContext';
+
 import {getTermFromDictionary} from '../../translations/TranslationService';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const InvalidCredentials = () => {
-     const { theme, colorMode, textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { theme, colorMode, textColor } = useTheme();
+     const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => setIsOpen(false);
@@ -27,7 +29,7 @@ export const InvalidCredentials = () => {
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut} ref={cancelRef}>
-                                        <ButtonText color="$textLight200">{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

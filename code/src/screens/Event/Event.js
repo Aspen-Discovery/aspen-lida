@@ -3,6 +3,7 @@ import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as Calendar from 'expo-calendar';
+import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
@@ -14,8 +15,6 @@ import {
      ScrollView,
      VStack,
      Text,
-     Alert,
-     AlertIcon,
      Button,
      ButtonGroup,
      ButtonText,
@@ -28,30 +27,28 @@ import {
      ModalBody,
      ModalFooter,
      HStack,
-     CloseIcon, ModalCloseButton, ModalBackdrop,
-} from '@gluestack-ui/themed';
+     CloseIcon, ModalCloseButton, ModalBackdrop } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
-import { loadError, popAlert, popToast } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { loadError } from '../../components/loadError';
+import { popAlert, popToast } from '../../components/feedback/toastService';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import {
-     LanguageContext,
-     LibrarySystemContext,
-     SystemMessagesContext,
-     ThemeContext,
-     UserContext,
-} from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getEventDetails, saveEvent } from '../../util/api/event';
+import { refreshProfile } from '../../util/api/user';
 import { decodeHTML, stripHTML } from '../../helpers/helpers';
-import { PATRON } from '../../util/globals';
 import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -60,11 +57,10 @@ export const EventScreen = () => {
      const queryClient = useQueryClient();
      const id = route.params.id;
      const source = route.params.source;
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const [hasValidImage, setHasValidImage] = React.useState(false);
      const [eventData, setEventData] = React.useState([]);
      const [errorMessage, setErrorMessage] = React.useState('');
@@ -136,8 +132,9 @@ const DisplayEvent = (payload) => {
      const hasValidImage = payload.hasValidImage;
      const route = useRoute();
      const source = route.params.source;
-     const { language } = React.useContext(LanguageContext);
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { textColor, theme, colorMode } = useTheme();
+     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
@@ -146,8 +143,7 @@ const DisplayEvent = (payload) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           await WebBrowser.openBrowserAsync(event.url, browserParams)
                .then((res) => {
@@ -176,7 +172,7 @@ const DisplayEvent = (payload) => {
                               logDebugMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      };
@@ -193,8 +189,7 @@ const DisplayEvent = (payload) => {
                                    style={{
                                         width: '100%',
                                         height: 150,
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -226,7 +221,7 @@ const DisplayEvent = (payload) => {
 };
 
 const EventTitle = ({ title, hasCoverImage }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      if (title) {
           return (
                <>
@@ -241,8 +236,8 @@ const EventTitle = ({ title, hasCoverImage }) => {
 };
 
 const EventDescription = ({ description }) => {
-     const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { textColor } = useTheme();
+     const language = useActiveLanguage();
      if (description) {
           return (
                <Box mt={5}>
@@ -260,8 +255,8 @@ const EventDescription = ({ description }) => {
 };
 
 const EventAudiences = ({ audiences }) => {
-     const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { textColor } = useTheme();
+     const language = useActiveLanguage();
      if (audiences) {
           return (
                <Box>
@@ -279,8 +274,8 @@ const EventAudiences = ({ audiences }) => {
 };
 
 const EventCategories = ({ categories }) => {
-     const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { textColor } = useTheme();
+     const language = useActiveLanguage();
      if (categories) {
           return (
                <Box>
@@ -298,8 +293,8 @@ const EventCategories = ({ categories }) => {
 };
 
 const EventProgramTypes = ({ programTypes }) => {
-     const { textColor } = React.useContext(ThemeContext);
-     const { language } = React.useContext(LanguageContext);
+     const { textColor } = useTheme();
+     const language = useActiveLanguage();
      if (programTypes) {
           return (
                <Box>
@@ -317,13 +312,13 @@ const EventProgramTypes = ({ programTypes }) => {
 };
 
 const AddToCalendar = ({ start, end, location, event }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [showModal, setShowModal] = React.useState(false);
      const [modalBodyText, setModalBodyText] = React.useState('');
      const [modalBodyHeading, setModalBodyHeading] = React.useState('');
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const toast = useToast();
 
      let displayDay = false;
@@ -362,8 +357,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          ? await Calendar.getDefaultCalendarAsync()
                          : {
                                 isLocalAccount: true,
-                                name: location.name + ' Events',
-                           };
+                                name: location.name + ' Events' };
 
                const calendars = await Calendar.getCalendarsAsync();
 
@@ -380,8 +374,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          source: defaultCalendarSource,
                          name: 'libraryCalendarEvents',
                          ownerAccount: 'personal',
-                         accessLevel: Calendar.CalendarAccessLevel.OWNER,
-                    });
+                         accessLevel: Calendar.CalendarAccessLevel.OWNER });
                }
 
                logInfoMessage('calendarId: ' + calendarId);
@@ -413,34 +406,13 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          id: event.id,
                          location: eventLocation,
                          allDay: event.isAllDay ?? false,
-                         url: event.url,
-                    }).then(async (result) => {
-                         return toast.show({
-                              duration: 5000,
-                              accessibilityAnnouncement: getTermFromDictionary(language, 'event_added_to_calendar'),
-                              avoidKeyboard: true,
-                              render: () => {
-                                   return (
-                                        <Center>
-                                             <Alert maxW="400" status="success" colorScheme="success">
-                                                  <VStack space="sm" flexShrink={1} width="$full">
-                                                       <HStack flexShrink={1} space="sm" alignItems="center" justifyContent="space-between">
-                                                            <HStack flexShrink={1} space="sm">
-                                                                 <AlertIcon />
-                                                                 <Text size="md" fontWeight="$bold" color={textColor}>
-                                                                      {getTermFromDictionary(language, 'added_successfully')}
-                                                                 </Text>
-                                                            </HStack>
-                                                       </HStack>
-                                                       <Box pl="$6">
-                                                            <Text color={textColor}>{getTermFromDictionary(language, 'event_added_to_calendar')}</Text>
-                                                       </Box>
-                                                  </VStack>
-                                             </Alert>
-                                        </Center>
-                                   );
-                              },
-                         });
+                         url: event.url }).then(async () => {
+                         return popAlert(
+                              toast,
+                              getTermFromDictionary(language, 'added_successfully'),
+                              getTermFromDictionary(language, 'event_added_to_calendar'),
+                              'success'
+                         );
                     });
                } catch (e) {
                    logDebugMessage(e);
@@ -469,7 +441,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
                     <ModalContent maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
                          <ModalHeader>
                               <Heading size="$md">{modalBodyHeading}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -509,7 +481,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
 };
 
 const Directions = ({ location, room }) => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      let hasCoordinates = false;
      if (location) {
           if (!_.isUndefined(location.coordinates) && _.isObject(location.coordinates)) {
@@ -521,20 +493,20 @@ const Directions = ({ location, room }) => {
 
      const handleGetDirections = async () => {
           if (hasCoordinates) {
-               if (PATRON.coords.lat && PATRON.coords.long && PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
+               const sourceLatitude = await SecureStore.getItemAsync('latitude');
+               const sourceLongitude = await SecureStore.getItemAsync('longitude');
+               if (sourceLatitude && sourceLongitude && sourceLatitude !== '0' && sourceLongitude !== '0') {
                     showLocation({
                          latitude: location.coordinates.latitude,
                          longitude: location.coordinates.longitude,
-                         sourceLatitude: PATRON.coords.lat,
-                         sourceLongitude: PATRON.coords.long,
-                         googleForceLatLon: true,
-                    });
+                         sourceLatitude,
+                         sourceLongitude,
+                         googleForceLatLon: true });
                } else {
                     showLocation({
                          latitude: location.coordinates.latitude,
                          longitude: location.coordinates.longitude,
-                         googleForceLatLon: true,
-                    });
+                         googleForceLatLon: true });
                }
           }
      };
@@ -562,51 +534,57 @@ const Directions = ({ location, room }) => {
 
 const AddToYourEvents = ({ id, source }) => {
      const queryClient = useQueryClient();
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme } = useTheme();
      const [isLoading, setIsLoading] = React.useState(false);
+     const toast = useToast();
 
      const addToEvents = async () => {
           setIsLoading(true);
-          await saveEvent(id, language, library.baseUrl).then((result) => {
+          await saveEvent(id, language, library.baseUrl).then(async (result) => {
                setIsLoading(false);
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'upcoming'] });
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'all'] });
                queryClient.invalidateQueries({ queryKey: ['saved_events', user.id, library.baseUrl, 1, 'past'] });
-               queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
                queryClient.invalidateQueries({ queryKey: ['event', id, source, language, library.baseUrl] });
+               const profileResponse = await refreshProfile(library.baseUrl);
+               if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                    await updateUserProfile(profileResponse.data.result.profile);
+               }
                if (result.success || result.success === 'true') {
-                    popAlert(getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
+                    popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {
-                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };
 
      return (
           <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
           </Button>
      );
 };
 
 const InYourEvents = () => {
-     const { language } = React.useContext(LanguageContext);
-     const { theme } = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme } = useTheme();
      return (
           <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
-               <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
+               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
           </Button>
      );
 };
 
 const RegistrationModal = ({ event }) => {
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
      const [showRegistrationModal, setShowRegistrationModal] = React.useState(false);
 
-     const { textColor, theme, colorMode } = React.useContext(ThemeContext);
+     const { textColor, theme, colorMode } = useTheme();
      const backgroundColor= colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const openLink = async () => {
@@ -618,8 +596,7 @@ const RegistrationModal = ({ event }) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
 
           setShowRegistrationModal(false);
           WebBrowser.openBrowserAsync(event.url, browserParams);
@@ -628,18 +605,18 @@ const RegistrationModal = ({ event }) => {
      return (
           <>
                <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
-                    <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
+                    <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
                </Button>
                <Modal isOpen={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
                     <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
                          <ModalHeader>
-                              <Heading size="$md">{getTermFromDictionary(language, 'registration_information')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <Heading size="$md" color={textColor}>{getTermFromDictionary(language, 'registration_information')}</Heading>
+                              <ModalCloseButton p="$3" onPress={() => { setShowRegistrationModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody>{stripHTML(decodeHTML(event.registrationBody))}</ModalBody>
+                         <ModalBody><Text color={textColor}>{stripHTML(decodeHTML(event.registrationBody))}</Text></ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="sm" size="md">
                                    <Button
@@ -650,7 +627,7 @@ const RegistrationModal = ({ event }) => {
                                         }}>
                                         <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color="$textLight200">{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>

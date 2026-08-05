@@ -1,9 +1,36 @@
 import _ from 'lodash';
-import { Button, ButtonText, ButtonGroup, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
+import {
+     Button,
+     ButtonText,
+     ButtonGroup,
+     CheckIcon,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
+     ModalCloseButton,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     Icon,
+     ChevronDownIcon,
+     useToast
+} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HoldsContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
@@ -15,10 +42,13 @@ const SelectPickupLocation = (props) => {
      const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = useState(false);
      const [volume, setVolume] = React.useState(null);
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
-     const { updateHolds } = React.useContext(HoldsContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const insets = useSafeAreaInsets();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
+     const toast = useToast();
 
      const isPlacingHold = action.includes('hold');
 
@@ -64,8 +94,6 @@ const SelectPickupLocation = (props) => {
           }
      }
 
-     //console.log(pickupLocation);
-
      const [location, setLocation] = React.useState(pickupLocation);
 
      const [activeAccount, setActiveAccount] = React.useState(user.id);
@@ -87,9 +115,9 @@ const SelectPickupLocation = (props) => {
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="lg">
                     <ModalBackdrop />
                     <ModalContent maxWidth="90%">
-                         <ModalCloseButton />
                          <ModalHeader borderBottomWidth="$0">
                               <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                              <ModalCloseButton />
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
@@ -102,7 +130,7 @@ const SelectPickupLocation = (props) => {
                                              selectedValue={activeAccount}
                                              onValueChange={(itemValue) => setActiveAccount(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
-                                                  <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                                  <SelectInput py={0} placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
                                                   <Icon as={ChevronDownIcon} mr="$3" />
                                              </SelectTrigger>
                                              <SelectPortal>
@@ -128,7 +156,7 @@ const SelectPickupLocation = (props) => {
                                         selectedValue={location}
                                         onValueChange={(itemValue) => setLocation(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                             <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
                                              <Icon as={ChevronDownIcon} mr="$3" />
                                         </SelectTrigger>
                                         <SelectPortal>
@@ -154,15 +182,15 @@ const SelectPickupLocation = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {
                                                        setResponseIsOpen(true);
                                                        if (result.success) {
-                                                            await refreshProfile(library.baseUrl).then((data) => {
+                                                            await refreshProfile(library.baseUrl).then(async (data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                      await updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold from pickup location selection.');
                                                                       logDebugMessage(data);

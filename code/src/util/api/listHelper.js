@@ -1,5 +1,3 @@
-import { PATRON } from '../globals';
-
 export function formatLists(data) {
      let lists = [];
 
@@ -8,6 +6,5 @@ export function formatLists(data) {
           lists = Array.isArray(raw) ? [...raw].sort((a, b) => (a.title ?? '').localeCompare(b.title ?? '')) : [];
      }
 
-     PATRON.lists = lists;
      return lists;
 }

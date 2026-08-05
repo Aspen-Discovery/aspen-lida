@@ -61,14 +61,14 @@ export const SelectItemHold = (props) => {
                                         let copy = copies[item];
                                         if (copy.id === defaultItem) {
                                              setItem(defaultItem);
-                                             return <SelectInput value={copy.location} color={textColor} />;
+                                             return <SelectInput py={0} value={copy.location} color={textColor} />;
                                         }
                                    })}
                                    <SelectIcon mr="$3">
                                         <Icon as={ChevronDownIcon} color={textColor} />
                                    </SelectIcon>
                               </SelectTrigger>
-                              <SelectPortal useRNModal={true}>
+                              <SelectPortal>
                                    <SelectBackdrop />
                                    <SelectContent
                                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
@@ -81,7 +81,7 @@ export const SelectItemHold = (props) => {
                                              {_.map(Object.keys(copies), function (item, index, array) {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme['tokens']['colors']['tertiary']['300']}  sx={{ _text: { color: theme['tokens']['colors']['tertiary']['500-text']} }}/>;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']}  sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }}/>;
                                                   }
                                                   return <SelectItem label={copy.location} value={copy.id} key={copy.id} sx={{ _text: { color: textColor } }} />;
                                              })}

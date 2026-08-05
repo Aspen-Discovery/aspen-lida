@@ -19,23 +19,22 @@ import {
      Pressable,
      Text,
      Heading,
-     VStack, ModalBackdrop, CloseIcon, ModalBody, InputIcon, InputSlot,
-} from '@gluestack-ui/themed';
+     VStack, ModalBackdrop, CloseIcon, ModalBody, InputIcon, InputSlot } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform, Dimensions } from 'react-native';
+import { Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionsPrompt } from '../../components/PermissionsPrompt';
 
 // custom components and helper files
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { PATRON } from '../../util/globals';
 import { useKeyboard } from '../../hooks/hooks';
-import { ThemeContext } from '../../context/initialContext';
+
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
+import { useTheme } from '../../themes/theme';
 
 export const SelectYourLibrary = (payload) => {
      const isKeyboardOpen = useKeyboard();
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const { theme, textColor, colorMode } = useTheme();
      const { isCommunity, showModal, setShowModal, updateSelectedLibrary, selectedLibrary, shouldRequestPermissions, permissionRequested, libraries, allLibraries, setShouldRequestPermissions } = payload;
      const [query, setQuery] = React.useState('');
      const screenHeight = Dimensions.get('window').height;
@@ -48,12 +47,7 @@ export const SelectYourLibrary = (payload) => {
      };
 
      function FilteredLibraries() {
-          let haystack = [];
-
-          // we were able to get coordinates from the device
-          if (PATRON.coords.lat !== 0 && PATRON.coords.long !== 0) {
-               haystack = libraries;
-          }
+          let haystack = libraries;
 
           if (!_.isEmpty(query) && query !== ' ') {
                haystack = allLibraries;
@@ -93,8 +87,8 @@ export const SelectYourLibrary = (payload) => {
      return (
           <Center>
                <Button onPress={() => setShowModal(true)} m="$5" size="md" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon as={MaterialIcons} name="place" mr="$1" color="$textLight200" />
-                    <ButtonText color="$textLight200">{selectedLibrary?.name ? selectedLibrary.name : getTermFromDictionary('en', 'select_your_library')}</ButtonText>
+                    <ButtonIcon as={MaterialIcons} name="place" mr="$1" color={theme.tokens.colors.primary['500-text']} />
+                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{selectedLibrary?.name ? selectedLibrary.name : getTermFromDictionary('en', 'select_your_library')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} size="lg" avoidKeyboard onClose={() => setShowModal(false)}>
                     <ModalBackdrop />
@@ -107,7 +101,7 @@ export const SelectYourLibrary = (payload) => {
                     >
                          <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
                               <Heading size="md" color={textColor}>{getTermFromDictionary('en', 'find_your_library')}</Heading>
-                              <ModalCloseButton p="$3">
+                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -144,7 +138,7 @@ export const SelectYourLibrary = (payload) => {
                               </VStack>
                          </ModalBody>
                     </ModalContent>
-               </Modal>
+                </Modal>
           </Center>
      );
 };

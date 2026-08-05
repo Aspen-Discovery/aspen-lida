@@ -1,27 +1,31 @@
-import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, useToast } from '@gluestack-ui/themed';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import React from 'react';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, ThemeContext } from '../../context/initialContext';
+
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { decodeHTML } from '../../helpers/helpers';
 import AddToList from './AddToList';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const DisplayEventResult = (props) => {
      const item = props.data;
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
-     const { theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const library = useLibrary();
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
+     const toast = useToast();
 
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -69,6 +73,10 @@ export const DisplayEventResult = (props) => {
                eventSource = 'assabet';
           }
 
+          if (item.source === 'aspenEvent') {
+               eventSource = 'aspenEvent';
+          }
+
           if (item.bypass) {
                openURL(item.url);
           } else {
@@ -76,8 +84,7 @@ export const DisplayEventResult = (props) => {
                     id: id,
                     title: getCleanTitle(item.title),
                     url: library.baseUrl,
-                    source: eventSource,
-               });
+                    source: eventSource });
           }
      };
 
@@ -88,8 +95,7 @@ export const DisplayEventResult = (props) => {
                showTitle: false,
                toolbarColor: backgroundColor,
                controlsColor: textColor,
-               secondaryToolbarColor: backgroundColor,
-          };
+               secondaryToolbarColor: backgroundColor };
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
                     if (res.type === 'cancel' || res.type === 'dismiss') {
@@ -119,7 +125,7 @@ export const DisplayEventResult = (props) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -136,8 +142,7 @@ export const DisplayEventResult = (props) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm",
-                                   }}
+                                        borderRadius: "$sm" }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"

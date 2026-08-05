@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/react-native';
  */
 export function logDebugMessage(message) {
      if (__DEV__) {
-          if (GLOBALS.logLevel == 1) {
+          if (GLOBALS.logLevel === 1) {
                logMessage("DEBUG", message);
           }
      }
@@ -20,7 +20,7 @@ export function logDebugMessage(message) {
 
 export function logInfoMessage(message) {
      if (__DEV__) {
-          if (GLOBALS.logLevel == 1 || GLOBALS.logLevel == 2) {
+          if (GLOBALS.logLevel === 1 || GLOBALS.logLevel === 2) {
                logMessage("INFO", message);
           }
      }
@@ -76,7 +76,12 @@ export function logSentryMessage(message, level = 'error') {
      }
 }
 
-export function getErrorMessage({ statusCode = null, problem, sendToSentry = false }) {
+export function getErrorMessage(arg1, arg2, arg3 = false) {
+     const isObjectArg = arg1 !== null && typeof arg1 === 'object' && !Array.isArray(arg1);
+     const statusCode = isObjectArg ? (arg1.statusCode ?? null) : (arg1 ?? null);
+     const problem = isObjectArg ? arg1.problem : arg2;
+     const sendToSentry = isObjectArg ? (arg1.sendToSentry ?? false) : arg3;
+
      let errorDetails;
      if (problem) {
           switch (problem) {
@@ -254,7 +259,7 @@ export function getErrorMessage({ statusCode = null, problem, sendToSentry = fal
           }
      }
 
-     // Always send to Sentry unless in DEV environment
+     // Always send the error to Sentry unless in DEV environment
      if (!__DEV__ || (__DEV__ && sendToSentry)) {
           Sentry.captureMessage(`[${errorDetails.title}] ${errorDetails.message}`, {
                level: 'error',

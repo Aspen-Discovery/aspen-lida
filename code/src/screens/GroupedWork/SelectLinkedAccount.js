@@ -1,13 +1,15 @@
 import _ from 'lodash';
-import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
+import { Button, ButtonText, ButtonGroup, Center, CheckIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Icon, ChevronDownIcon, useToast } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import { HoldsContext, LanguageContext, LibrarySystemContext, UserContext } from '../../context/initialContext';
+import { HoldsContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
 import { SelectVolume } from './SelectVolume';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const SelectLinkedAccount = (props) => {
      const { id, action, title, volumeInfo, prevRoute, isEContent, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef } = props;
@@ -16,10 +18,15 @@ const SelectLinkedAccount = (props) => {
 
      const isPlacingHold = action.includes('hold');
 
-     const { user, updateUser, accounts, locations } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const { data: accounts } = useAccounts();
+     const { data: locations } = useLocations();
+     const updateUserProfile = useUpdateUserProfile();
+     const library = useLibrary();
      const { updateHolds } = React.useContext(HoldsContext);
-     const { language } = React.useContext(LanguageContext);
+     const language = useActiveLanguage();
+     const toast = useToast();
 
      let shouldDisplayVolumes = false;
      let typeOfHold = 'default';
@@ -84,9 +91,9 @@ const SelectLinkedAccount = (props) => {
                <Modal isOpen={showPrompt} onClose={() => setShowPrompt(false)} size="lg">
                     <ModalBackdrop />
                     <ModalContent maxWidth="90%">
-                         <ModalCloseButton />
                          <ModalHeader borderBottomWidth="$0">
                               <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                              <ModalCloseButton />
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
@@ -99,7 +106,7 @@ const SelectLinkedAccount = (props) => {
                                              selectedValue={location}
                                              onValueChange={(itemValue) => setLocation(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
-                                                  <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
+                                                  <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
                                                   <Icon as={ChevronDownIcon} mr="$3" />
                                              </SelectTrigger>
                                              <SelectPortal>
@@ -126,7 +133,7 @@ const SelectLinkedAccount = (props) => {
                                         selectedValue={activeAccount}
                                         onValueChange={(itemValue) => setActiveAccount(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
+                                             <SelectInput py={0} placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
                                              <Icon as={ChevronDownIcon} mr="$3" />
                                         </SelectTrigger>
                                         <SelectPortal>
@@ -161,15 +168,15 @@ const SelectLinkedAccount = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setResponseLoading(true);
-                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(toast, id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowPrompt(false);
                                                   if (result) {
                                                        setResponseIsOpen(true);
                                                        if (result.success) {
-                                                            await refreshProfile(library.baseUrl).then((data) => {
+                                                             await refreshProfile(library.baseUrl).then(async (data) => {
                                                                  if(data.ok) {
-                                                                      updateUser(data.data.result.profile);
+                                                                      await updateUserProfile(data.data.result.profile);
                                                                  } else {
                                                                       logWarnMessage('Could not refresh profile after placing hold or checkout from linked account');
                                                                       logDebugMessage(data);

@@ -9,36 +9,40 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * @param {Object} entry
  */
 export async function insertApiErrorLog(entry = {}) {
-     const db = await getDb();
      const now = Date.now();
-
-     await db.runAsync(
-          `INSERT INTO api_error_logs (
-               created_at,
-               method,
-               endpoint,
-               status,
-               problem,
-               message,
-               request_url,
-               request_params,
-               request_body,
-               response_body
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-          `,
-          [
-               now,
-               entry.method ?? null,
-               entry.endpoint ?? null,
-               entry.status ?? null,
-               entry.problem ?? null,
-               entry.message ?? null,
-               entry.requestUrl ?? null,
-               safeStringify(entry.requestParams),
-               safeStringify(entry.requestBody),
-               safeStringify(entry.responseBody),
-          ]
-     );
+     let db;
+     try {
+          db = await getDb();
+          await db.runAsync(
+               `INSERT INTO api_error_logs (
+                    created_at,
+                    method,
+                    endpoint,
+                    status,
+                    problem,
+                    message,
+                    request_url,
+                    request_params,
+                    request_body,
+                    response_body
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+               `,
+               [
+                    now,
+                    entry.method ?? null,
+                    entry.endpoint ?? null,
+                    entry.status ?? null,
+                    entry.problem ?? null,
+                    entry.message ?? null,
+                    entry.requestUrl ?? null,
+                    safeStringify(entry.requestParams),
+                    safeStringify(entry.requestBody),
+                    safeStringify(entry.responseBody),
+               ]
+          );
+     } catch (error) {
+          // Logging failures should never break API calls.
+     }
 }
 
 /**
