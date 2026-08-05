@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import React from 'react';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 
 // custom components and helper files
 

@@ -25,7 +25,6 @@ import React, { useContext, useState } from 'react';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
-import { passUserToDiscovery } from '../../util/api/user';
 import * as WebBrowser from 'expo-web-browser';
 import { useTheme } from '../../themes/theme';
 
@@ -155,7 +154,7 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(toast, library?.baseUrl ?? '', 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
@@ -171,7 +170,7 @@ export const ActionButton = (data) => {
                          minWidth="100%"
                          maxWidth="100%"
                          onPress={async () =>
-                           await passUserToDiscovery(toast, library?.baseUrl ?? '', 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
+                           await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>

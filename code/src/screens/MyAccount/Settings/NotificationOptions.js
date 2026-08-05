@@ -36,7 +36,7 @@ export const Settings_NotificationOptions = () => {
 
           setLoading(true);
           try {
-               const result = await getNotificationPreferences(toast, library.baseUrl, expoToken);
+               const result = await getNotificationPreferences(library.baseUrl, expoToken);
                // noinspection JSUnresolvedReference
                if (result && result.savedPreferences) {
                     setNotifySavedSearch(Boolean(result.savedPreferences.notifySavedSearch));
@@ -136,9 +136,9 @@ const EnableAllNotifications = (data) => {
                allowAllNotifications = false;
           }
           if (expoToken) {
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
                setNotifySavedSearch(allowAllNotifications);
                setNotifyCustom(allowAllNotifications);
                setNotifyAccount(allowAllNotifications);
@@ -202,7 +202,7 @@ const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, noti
                if (prefOption === 'notifyAccount') setNotifyAccount(newValue);
 
                // Pass `toast` as the 1st parameter to match setNotificationPreference signature
-               await setNotificationPreference(toast, library.baseUrl, expoToken, prefOption, newValue);
+               await setNotificationPreference(library.baseUrl, expoToken, prefOption, newValue);
 
                logDebugMessage("Reloading Profile as part of updatePreference");
                const result = await refreshProfile(library.baseUrl);
