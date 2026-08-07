@@ -14,7 +14,7 @@ import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
 import { logDebugMessage, logErrorMessage } from '../../../util/logging';
 import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
+import { buildThemeForLibrary, useTheme } from '../../../themes/theme';
 import { useAllLibrarySystemData, useLibraryQuery } from '../../../hooks/useLibrarySystemData';
 import { useAllLibraryBranchData, useLibraryLocationQuery } from '../../../hooks/useLibraryBranchData';
 import { useThemeStateQuery } from '../../../hooks/useThemeData';
@@ -22,19 +22,7 @@ import { useAllBrowseCategoryData } from '../../../hooks/useBrowseCategoryData';
 import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '../../../util/api/user';
 import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings } from '../../../util/api/system';
 import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
-import {
-     saveAccounts,
-     saveAllLibraryBranchData,
-     saveAllBrowseCategoryData,
-     saveAppPreferences,
-     saveCards,
-     saveCatalogStatus,
-     saveLibrary,
-     saveLocations,
-     saveMenu,
-     saveNotificationHistory,
-     saveUserProfile,
-} from '../../../util/db';
+import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
 import { orderByFields, stripHTML } from '../../../helpers/helpers';
 
 function formatCachedDateTime(updatedAt) {
@@ -192,6 +180,15 @@ export const SupportScreen = () => {
 
                if (cacheKey === 'theme') {
                     logDebugMessage('Theme cache refresh triggered from Support screen');
+                    const themeResponse = await buildThemeForLibrary(null, libraryUrl);
+                    if (themeResponse) {
+                         await saveThemeState({
+                              themeId: themeResponse.themeId,
+                              colorMode: colorMode === 'dark' ? 'dark' : 'light',
+                              textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
+                              themeColors: themeResponse.themeColors,
+                         });
+                    }
                }
 
                if (cacheKey === 'browse_categories') {
