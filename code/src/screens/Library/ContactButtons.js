@@ -6,7 +6,7 @@ import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken
 import { useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 
 import { getTermFromDictionary } from '../../translations/TranslationService';
 

@@ -178,7 +178,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'renewing', true)}
                                    onPress={() => {
                                         setRenew(true);
-                                        renewCheckout(toast, checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
+                                        renewCheckout(checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
                                              setRenew(false);
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -217,7 +217,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                    onPress={() => {
                                         setAccess(true);
-                                        viewOverDriveItem(toast, checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
+                                        viewOverDriveItem(checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
                                              setAccess(false);
                                              toggle();
                                         });
@@ -244,7 +244,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                         onPress={() => {
                                              setAccess(true);
-                                             viewOnlineItem(toast, checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
+                                             viewOnlineItem(checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
                                                   setAccess(false);
                                                   toggle();
                                              });
@@ -260,7 +260,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();
@@ -282,7 +282,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();

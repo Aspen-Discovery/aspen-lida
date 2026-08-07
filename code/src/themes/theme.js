@@ -24,6 +24,27 @@ export const BackIcon = (props) => {
      return <ChevronLeftIcon size="md" ml={1} {...props} color={theme['tokens']['colors']['primary']['baseContrast']} />;
 };
 
+function buildAlertTheme(actionType) {
+     const actionColors = {
+          error: { bg: '#fecaca', icon: '#dc2625', text: '#000000' },
+          warning: { bg: '#ffd7aa', icon: '#ea580b', text: '#000000' },
+          success: { bg: '#bbf7d0', icon: '#17a34a', text: '#000000' },
+          info: { bg: '#bae6fe', icon: '#0084c7', text: '#000000' },
+     };
+
+     const colors = actionColors[actionType] || actionColors.info;
+
+     return {
+          backgroundColor: colors.bg,
+          '_icon': {
+               color: colors.icon,
+          },
+          '_text': {
+               color: colors.text,
+          },
+     };
+}
+
 function buildConfigFromColors(colors) {
      return createConfig({
           ...defaultConfig,
@@ -34,6 +55,21 @@ function buildConfigFromColors(colors) {
                     primary: colors?.primary ?? defaultConfig.tokens.colors.primary,
                     secondary: colors?.secondary ?? defaultConfig.tokens.colors.secondary,
                     tertiary: colors?.tertiary ?? defaultConfig.tokens.colors.tertiary,
+               },
+          },
+          components: {
+               ...defaultConfig.components,
+               Alert: {
+                    theme: {
+                         variants: {
+                              action: {
+                                   error: buildAlertTheme('error'),
+                                   warning: buildAlertTheme('warning'),
+                                   success: buildAlertTheme('success'),
+                                   info: buildAlertTheme('info'),
+                              },
+                         },
+                    },
                },
           },
      });

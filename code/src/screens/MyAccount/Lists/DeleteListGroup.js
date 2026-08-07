@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { deleteListGroup, getLists, getListGroups } from '../../../util/api/list';
 import { refreshProfile } from '../../../util/api/user';
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback/toastService';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';

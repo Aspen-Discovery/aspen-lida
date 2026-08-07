@@ -7,7 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createListGroup, getListGroups } from '../../../util/api/list';
 import { refreshProfile } from '../../../util/api/user';
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback/toastService';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';

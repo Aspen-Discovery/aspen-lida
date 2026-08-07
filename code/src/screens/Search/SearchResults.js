@@ -16,7 +16,7 @@ import {
      VStack,
      Input, InputSlot, InputIcon, InputField, FormControl, useToast
 } from '@gluestack-ui/themed';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
@@ -26,7 +26,8 @@ import moment from 'moment';
 
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { loadError, popToast } from '../../components/loadError';
+import { loadError } from '../../components/loadError';
+import { popToast } from '../../components/feedback/toastService';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 
@@ -53,7 +54,7 @@ export const SearchResults = () => {
      const navigation = useNavigation();
      const route = useRoute();
      const [page, setPage] = React.useState(1);
-     const [storedTerm, setStoredTerm] = React.useState('');
+     const [storedTerm, setStoredTerm] = React.useState(SearchGlobal.term);
       const library = useLibrary();
       const language = useActiveLanguage();
       const scope = useLibraryScope();
@@ -132,9 +133,26 @@ export const SearchResults = () => {
                logDebugMessage("Error searching");
                logErrorMessage(error);
           }
-     });
+      });
 
-     const Header = () => {
+      // When the filter modal closes, check if filters were updated and refetch
+      useFocusEffect(
+           React.useCallback(() => {
+                // Check if SearchGlobal has pending params that differ from current route params
+                if (SearchGlobal.pendingParams && !_.isEqual(SearchGlobal.pendingParams, params)) {
+                     logDebugMessage('Filters were updated in modal, invalidating query to refetch');
+                     // Invalidate the query to force a refetch
+                     queryClient.invalidateQueries({
+                          queryKey: ['searchResults', url, page, term, scope, params, type, id, language, currentIndex, currentSource],
+                          exact: false
+                     });
+                     // Reset pending params after handling
+                     SearchGlobal.pendingParams = [];
+                }
+           }, [queryClient, url, page, term, scope, params, type, id, language, currentIndex, currentSource])
+      );
+
+      const Header = () => {
           const num = _.toInteger(data?.totalResults);
           if (num > 0) {
                let label = num + ' ' + getTermFromDictionary(language, 'results');

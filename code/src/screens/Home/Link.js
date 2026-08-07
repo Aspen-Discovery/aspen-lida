@@ -8,7 +8,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback/toastService';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';

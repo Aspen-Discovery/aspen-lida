@@ -247,8 +247,7 @@ export const NotificationPermissionDescription = () => {
 
 const NotificationPreferencesSection = ({ preferences, updatePreference, notificationSettings }) => {
     const { textColor } = useTheme();
-
-    console.log(notificationSettings);
+    logDebugMessage(notificationSettings);
     return (
         <>
             {Object.entries(notificationSettings).map(([key, setting]) => (

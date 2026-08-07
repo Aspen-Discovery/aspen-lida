@@ -297,7 +297,6 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
      const library = useLibrary();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";
-     const toast = useToast();
 
      let showMoreInfoBtn = false;
      if(library?.showMoreInfoBtn) {
@@ -306,7 +305,7 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
 
      if (groupedWorkId && showMoreInfoBtn) {
           return (
-          <Button onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
+          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
                <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
                     {getTermFromDictionary(language, 'more_information')}
                </ButtonText>

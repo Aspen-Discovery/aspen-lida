@@ -16,7 +16,7 @@ import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback/toastService';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -55,7 +55,7 @@ const Request = (payload) => {
           };
           //logDebugMessage("Submitting local ill request email");
           //logDebugMessage(request);
-          await submitLocalIllRequestEmail(toast, library.baseUrl, request).then(async (result) => {
+          await submitLocalIllRequestEmail(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                //logDebugMessage("Result from submitting local ill request email");
                //logDebugMessage(result);

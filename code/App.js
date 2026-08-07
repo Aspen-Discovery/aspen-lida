@@ -1,7 +1,7 @@
 import 'expo-dev-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { GluestackUIProvider, useToast } from '@gluestack-ui/themed';
+import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { QueryClient, QueryClientProvider, dehydrate, hydrate } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, 
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
 import { buildThemeForLibrary, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
+import { ToastRegistrar } from './src/components/feedback/ToastRegistrar';
 
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db';
@@ -101,7 +102,6 @@ if (__DEV__) {
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
      const { colorMode, theme } = useThemeForDisplay();
-     const toast = useToast();
 
      const [dbReady, setDbReady] = React.useState(false);
      const persistTimeoutRef = React.useRef(null);
@@ -171,7 +171,7 @@ export default function AppContainer() {
                          if (!themeUrl) {
                               logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
                          } else {
-                              const builtTheme = await buildThemeForLibrary(toast, themeUrl);
+                               const builtTheme = await buildThemeForLibrary(null, themeUrl);
                               await saveThemeState({
                                    themeId: builtTheme.themeId,
                                    colorMode: mode,
@@ -197,7 +197,7 @@ export default function AppContainer() {
           return () => {
                active = false;
           };
-     }, [dbReady, toast]);
+     }, [dbReady]);
 
      React.useEffect(() => {
           const unsubscribe = queryClient.getQueryCache().subscribe(() => {
@@ -222,6 +222,7 @@ export default function AppContainer() {
                     <QueryClientProvider client={queryClient}>
                           <Sentry.TouchEventBoundary>
                                 <GluestackUIProvider config={theme} colorMode={colorMode}>
+                                      <ToastRegistrar />
                                      <SearchProvider>
                                            <CheckoutsProvider>
                                                 <HoldsProvider>
