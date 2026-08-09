@@ -706,6 +706,13 @@ export const LoadingScreen = () => {
         }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision, hasHydratedLibrarySystemCacheDecision, hasHydratedLanguageCacheDecision]);
 
      React.useEffect(() => {
+          if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError) {
+               logDebugMessage('All data ready from cache, clearing isReloading');
+               setIsReloading(false);
+          }
+     }, [isSQLiteDataLoaded, isInitialUserDataReady, hasUsableUserCache, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache, isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache, isInitialLanguageDataReady, hasUsableLanguageCache, hasError]);
+
+     React.useEffect(() => {
           if (!hasResolvedLibraryContext || hasError) return;
           let cancelled = false;
 
@@ -1284,42 +1291,17 @@ export const LoadingScreen = () => {
           }
      });
 
-       React.useEffect(() => {
-            if (
-                 !isReloading &&
-                 isSQLiteDataLoaded &&
-                 (isInitialUserDataReady || hasUsableUserCache) &&
-                 (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) &&
-                 (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) &&
-                 (isInitialLanguageDataReady || hasUsableLanguageCache) &&
-                 !hasError &&
-                 catalogStatus === 0
-            ) {
+     React.useEffect(() => {
+          if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError && catalogStatus === 0) {
                setProgress(100);
                navigation.navigate('DrawerStack', {
                     user: user,
                     library: library,
                     location: location,
-                    prevRoute: 'LoadingScreen' });
-           }
-       }, [
-            isReloading,
-            isSQLiteDataLoaded,
-            isInitialUserDataReady,
-            hasUsableUserCache,
-            isInitialLibrarySystemDataReady,
-            hasUsableLibrarySystemCache,
-            isInitialLibraryBranchDataReady,
-            hasUsableLibraryBranchCache,
-            isInitialLanguageDataReady,
-            hasUsableLanguageCache,
-            hasError,
-            catalogStatus,
-            user,
-            library,
-            location,
-            navigation,
-       ]);
+                    prevRoute: 'LoadingScreen',
+               });
+          }
+     }, [isSQLiteDataLoaded, isInitialUserDataReady, hasUsableUserCache, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache, isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache, isInitialLanguageDataReady, hasUsableLanguageCache, hasError, catalogStatus, user, library, location, navigation]);
 
      if (hasError) {
           return <ForceLogout title={errorTitle} reason={errorMessage} />;
