@@ -1,6 +1,6 @@
 import { Box, Button, ButtonGroup, ButtonText, Center, FlatList, Heading, SafeAreaView, ScrollView, Text } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import React from 'react';
 import { Image } from 'expo-image';
@@ -21,6 +21,7 @@ import { useTheme } from '../../themes/theme';
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const SearchResultsForBrowseCategory = () => {
+     const queryClient = useQueryClient();
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
      const language = useActiveLanguage();
@@ -119,7 +120,7 @@ export const SearchResultsForBrowseCategory = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner('Fetching results...')
+                    loadingSpinner('Fetching results...')
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
