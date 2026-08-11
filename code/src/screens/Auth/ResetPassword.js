@@ -24,7 +24,7 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationWithValuesText } from '../../translations/TranslationService';
-import { stripHTML } from '../../helpers/helpers';
+import { normalizeDisplayText } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
@@ -173,7 +173,7 @@ const AspenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -191,7 +191,7 @@ const AspenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -225,7 +225,7 @@ const AspenResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -288,6 +288,7 @@ const KohaResetPassword = (props) => {
           setIsProcessing(true);
           await resetPassword(username, email, resend, 'koha', libraryUrl).then((response) => {
                if(response.ok) {
+                    console.log(response.data.result);
                     setResults(response.data.result);
                     setShowResults(true);
                     setHasError(false);
@@ -314,7 +315,7 @@ const KohaResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -332,7 +333,7 @@ const KohaResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -377,7 +378,7 @@ const KohaResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -466,7 +467,7 @@ const SirsiResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -484,7 +485,7 @@ const SirsiResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -518,7 +519,7 @@ const SirsiResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -605,7 +606,7 @@ const EvergreenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -623,7 +624,7 @@ const EvergreenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -668,7 +669,7 @@ const EvergreenResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -757,7 +758,7 @@ const SymphonyResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -775,7 +776,7 @@ const SymphonyResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -809,7 +810,7 @@ const SymphonyResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -891,7 +892,7 @@ const MillenniumResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results.message)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -913,7 +914,7 @@ const MillenniumResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
