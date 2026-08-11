@@ -1,12 +1,11 @@
 import moment from 'moment';
 import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/themed';
 import React from 'react';
-import _ from 'lodash';
 
 
 import { useUserState } from '../hooks/useUserData';
 import { useLibrary } from '../hooks/useLibrarySystemData';
-import { getTermFromDictionary, getTranslationsWithValues } from '../translations/TranslationService';
+import { getTermFromDictionary, getTranslationWithValuesText } from '../translations/TranslationService';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
 
@@ -486,9 +485,9 @@ export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderNa
                }
 
                try {
-                    const term = await getTranslationsWithValues(translationKey, dynamicValue, language, baseUrl);
+                    const term = await getTranslationWithValuesText(translationKey, dynamicValue, language, baseUrl, true);
                     if (active) {
-                         setLabel(_.toString(term));
+                         setLabel(term);
                     }
                } catch (error) {
                     console.error("Failed to fetch checkout translation:", error);

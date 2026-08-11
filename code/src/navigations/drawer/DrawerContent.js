@@ -56,6 +56,7 @@ import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTranslationWithValues } from '../../hooks/useTranslationWithValues';
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -897,6 +898,8 @@ const SavedSearches = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { textColor } = useTheme();
+     const updatesCount = user.numSavedSearchesNew ?? 0;
+     const { text: savedSearchSummary } = useTranslationWithValues('num_saved_searches_with_updates', updatesCount, { enabled: updatesCount > 0, addToDictionary: true });
 
      return (
           <Pressable
@@ -919,7 +922,7 @@ const SavedSearches = () => {
                          </HStack>
                          {user.numSavedSearchesNew > 0 ? (
                               <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_searches_with_updates', user.numSavedSearchesNew)}</BadgeText>
+                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>

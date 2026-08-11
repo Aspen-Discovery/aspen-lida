@@ -3,7 +3,6 @@ import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import React from 'react';
-import { Image } from 'expo-image';
 
 // custom components and helper files
 import { loadError } from '../../components/loadError';
@@ -11,7 +10,7 @@ import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner'
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../translations/TranslationService';
+import { getTermFromDictionary } from '../../translations/TranslationService';
 import { fetchSearchResultsForBrowseCategory } from '../../util/api/search';
 import { DisplayResult } from './DisplayResult';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
