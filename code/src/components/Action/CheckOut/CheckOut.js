@@ -49,6 +49,7 @@ export const CheckOut = (props) => {
      const { language } = React.useContext(LanguageContext);
      const [loading, setLoading] = React.useState(false);
      const { theme, colorMode, textColor } = React.useContext(ThemeContext);
+     const toast = useToast();
 
      const volumeInfo = {
           numItemsWithVolumes: 0,
@@ -114,7 +115,6 @@ export const CheckOut = (props) => {
           const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
           const [showPassword, setShowPassword] = React.useState(false);
           const toggleShowPassword = () => setShowPassword(!showPassword);
-          const toast = useToast();
 
           const source = {
                baseUrl: library.baseUrl,
