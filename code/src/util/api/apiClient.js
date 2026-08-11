@@ -229,7 +229,6 @@ export class ApiClient {
                          logErrorMessage("Raw body causing error: " + rawText);
 
                          data = null;
-                         isResponseOk = false;
                     }
                } else if (contentType?.includes('text')) {
                     data = await response.text();

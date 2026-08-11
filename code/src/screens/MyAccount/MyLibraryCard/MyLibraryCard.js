@@ -15,13 +15,14 @@ import { PermissionsPrompt } from '../../../components/PermissionsPrompt';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile, updateScreenBrightnessStatus } from '../../../util/api/user';
 
 import { formatDiscoveryVersion, orderByFields, parseToDate } from '../../../helpers/helpers';
 import { logDebugMessage } from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
+import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 
 export const MyLibraryCard = () => {
      const navigation = useNavigation();
@@ -288,7 +289,6 @@ const CreateLibraryCard = (data) => {
      const card = data.card ?? [];
      const { numCards, hasOpenModalRef, openBarcodeModal } = data ?? 0;
 
-     const [expirationText, setExpirationText] = React.useState('');
      const { theme, textColor, colorMode } = useTheme();
 
      const library = useLibrary();
@@ -316,17 +316,16 @@ const CreateLibraryCard = (data) => {
           if (typeof card.expires === 'string') {
                expirationDate = parseToDate(card.expires);
           }
-
-          React.useEffect(() => {
-               async function fetchTranslations() {
-                    await getTranslationsWithValues('library_card_expires_on', card.expires, language, library.baseUrl).then((result) => {
-                         setExpirationText(result);
-                    });
-               }
-
-               fetchTranslations();
-          }, [language]);
      }
+
+     const shouldTranslateExpiration = card.expires != null
+          && card.expires !== ''
+          && card.expires !== 'Dec 31, 1969';
+     const { text: expirationText } = useTranslationWithValues(
+          'library_card_expires_on',
+          card.expires,
+          { enabled: shouldTranslateExpiration, addToDictionary: true, initialValue: '' }
+     );
 
      let cardHasExpired = 0;
      if (card.expired != null && card.expired !== 0 && card.expired !== '0') {

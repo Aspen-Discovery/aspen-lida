@@ -222,6 +222,7 @@ jest.mock('../src/util/db', () => ({
 
 const mockNavigate = jest.fn();
 let triggerFocusEvent = () => { };
+let mockIsFocused = true;
 
 jest.mock('@react-navigation/native', () => {
      const actualNav = jest.requireActual('@react-navigation/native');
@@ -242,7 +243,7 @@ jest.mock('@react-navigation/native', () => {
                reset: jest.fn(),
           }),
           useRoute: () => ({ params: { isSQLiteMigrationNeeded: false } }),
-          useIsFocused: () => true,
+          useIsFocused: () => mockIsFocused,
           useLinkTo: () => jest.fn(),
       };
 });
@@ -291,6 +292,7 @@ const AllTheProviders = ({children}) => {
 };
 
 beforeEach(() => {
+     mockIsFocused = true;
      mockNavigate.mockClear();
      mockUpdateUserProfile.mockClear();
      mockUpdateAccounts.mockClear();
@@ -298,6 +300,8 @@ beforeEach(() => {
      mockUpdateAppPreferences.mockClear();
      mockUpdateNotificationHistory.mockClear();
      mockUpdateInbox.mockClear();
+     triggerFocusEvent = () => { };
+     jest.clearAllMocks();
 });
 
 //Finally, import the actual screen to make sure that all the mocks are set up first.
@@ -349,3 +353,28 @@ it('completes the sequential loading happy path and navigates to DrawerStack', a
 
      await unmount();
 });
+
+it('does not start loading side effects while the screen is not focused', async () => {
+     mockIsFocused = false;
+
+     const systemApi = require('../src/util/api/system');
+     const userApi = require('../src/util/api/user');
+     const searchApi = require('../src/util/api/search');
+
+     const {unmount} = await render(<LoadingScreen/>, {wrapper: AllTheProviders});
+
+     // Give effects a tick; focused-only effects should remain gated.
+     await act(async () => {
+          await Promise.resolve();
+     });
+
+     expect(systemApi.getCatalogStatus).not.toHaveBeenCalled();
+     expect(systemApi.getLibraryInfo).not.toHaveBeenCalled();
+     expect(systemApi.getLocationInfo).not.toHaveBeenCalled();
+     expect(userApi.refreshProfile).not.toHaveBeenCalled();
+     expect(searchApi.getHomeScreenFeed).not.toHaveBeenCalled();
+     expect(mockNavigate).not.toHaveBeenCalled();
+
+     await unmount();
+});
+

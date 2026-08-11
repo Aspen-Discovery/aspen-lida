@@ -141,12 +141,12 @@ export const GetLoginForm = (props) => {
                if (loginResults.ok) {
                     const validatedUser = loginResults.data.result;
                     if(validatedUser) {
-                         logInfoMessage("Successfully logged in");
                          GLOBALS.appSessionId = validatedUser.session ?? '';
                          GLOBALS.language = validatedUser.lang ?? 'en';
                          const userHomeLocationId = validatedUser.homeLocationId ?? null;
                          await updateLanguage(validatedUser.lang ?? 'en');
                          if (validatedUser.success) {
+                              logInfoMessage('Successfully logged in');
                               await setAsyncStorage(userHomeLocationId);
                               signIn();
                               setLoading(false);

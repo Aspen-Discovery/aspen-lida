@@ -20,6 +20,7 @@ import { GLOBALS } from '../util/globals';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
 import { createApiClient } from '../util/api/apiFactory';
+import { loadDictionary, saveDictionary } from '../util/db';
 import { useTheme } from '../themes/theme';
 
 /** *******************************************************************
@@ -158,8 +159,31 @@ export async function getTranslations(terms, language, url) {
  * @returns {Promise<unknown[]|string>}
  */
 export async function getTranslationsWithValues(key, values, language, url, addToDictionary = false) {
+     await ensureTranslationsLibraryHydrated();
+
      const defaults = require('../translations/defaults.json');
      const term = defaults[key];
+     const normalizedValues = normalizeTranslationValues(values);
+     const valuesCacheKey = `${key}::${JSON.stringify(normalizedValues)}`;
+
+     const cachedDictionary = translationsLibrary?.[language] ?? {};
+     const cachedValueTranslation = cachedDictionary[valuesCacheKey];
+     if (cachedValueTranslation) {
+          return [formatTranslationWithValues(cachedValueTranslation, normalizedValues)];
+     }
+
+     const cachedTermTranslation = cachedDictionary[key];
+     if (cachedTermTranslation) {
+          const cachedTermText = String(cachedTermTranslation ?? '');
+          const canUseBaseTermCache = normalizedValues.length === 0 || cachedTermText.includes('%');
+
+          if (canUseBaseTermCache) {
+               const resolvedCachedTerm = formatTranslationWithValues(cachedTermText, normalizedValues);
+               if (!resolvedCachedTerm.includes('%')) {
+                    return [resolvedCachedTerm];
+               }
+          }
+     }
 
      const client = createApiClient({
           url,
@@ -173,22 +197,63 @@ export async function getTranslationsWithValues(key, values, language, url, addT
 
      if (response.ok) {
           if (response.data?.result?.translation) {
+               const translation = Object.values(response.data?.result?.translation);
                if (Object.values(response.data?.result?.translation) && addToDictionary) {
                     const lastUpdated = {
                          lastUpdated: moment() };
                     translationsLibrary = _.merge(translationsLibrary, lastUpdated);
 
-                    const translation = Object.values(response.data?.result?.translation);
+                    const resolvedTranslation = formatTranslationWithValues(translation[0], normalizedValues);
                     const obj = {
                          [language]: {
-                              [key]: translation[0] } };
+                              [key]: translation[0],
+                              [valuesCacheKey]: resolvedTranslation } };
                     translationsLibrary = _.merge(translationsLibrary, obj);
+
+                    try {
+                         await saveDictionary(translationsLibrary);
+                    } catch (error) {
+                         logWarnMessage('Failed to persist value translation to SQLite dictionary');
+                         logErrorMessage(error);
+                    }
                }
-               return Object.values(response.data?.result?.translation);
+               return translation;
           }
      }
 
      return decodeHTML(term);
+}
+
+function normalizeTranslationValues(values) {
+     if (Array.isArray(values)) {
+          return values;
+     }
+     return typeof values === 'undefined' || values === null ? [] : [values];
+}
+
+export const formatTranslationWithValues = (term, values) => {
+     const source = String(term ?? '');
+     const normalizedValues = normalizeTranslationValues(values);
+
+     return normalizedValues.reduce((result, value, index) => {
+          return result.replace(`%${index + 1}%`, String(value ?? ''));
+     }, source);
+};
+
+export async function getTranslationWithValuesText(key, values, language, url, addToDictionary = false) {
+     const fallback = formatTranslationWithValues(getTermFromDictionary(language, key, false), values);
+
+     try {
+          const response = await getTranslationsWithValues(key, values, language, url, addToDictionary);
+          const translated = Array.isArray(response) ? response[0] : response;
+          const resolved = formatTranslationWithValues(translated, values).trim();
+
+          return resolved.includes('%') ? fallback : resolved;
+     } catch (error) {
+          logErrorMessage('getTranslationWithValuesText failed');
+          logErrorMessage(error);
+          return fallback;
+     }
 }
 
 /**
@@ -208,10 +273,30 @@ export function getLanguageDisplayName(code, languages) {
  * Local storage for translated terms
  */
 export let translationsLibrary = helperLibrary;
+let dictionaryHydrationPromise = null;
+
+async function ensureTranslationsLibraryHydrated() {
+     if (!dictionaryHydrationPromise) {
+          dictionaryHydrationPromise = (async () => {
+               try {
+                    const cachedDictionary = await loadDictionary();
+                    if (_.isObject(cachedDictionary) && Object.keys(cachedDictionary).length > 0) {
+                         translationsLibrary = _.merge({}, helperLibrary, cachedDictionary);
+                    }
+               } catch (error) {
+                    logWarnMessage('Failed loading cached translations dictionary from SQLite');
+                    logErrorMessage(error);
+               }
+          })();
+     }
+
+     await dictionaryHydrationPromise;
+}
 
 export function setTranslationsLibrary(dictionary) {
      if (_.isObject(dictionary)) {
-          translationsLibrary = dictionary;
+          translationsLibrary = _.merge({}, helperLibrary, dictionary);
+          dictionaryHydrationPromise = Promise.resolve();
      }
 }
 
