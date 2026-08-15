@@ -3,28 +3,21 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FormControl, FormControlLabel, FormControlLabelText, FormControlHelper, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, Input, InputField, Checkbox, CheckboxLabel, Text, CheckIcon, CheckboxIndicator, CheckboxIcon, FormControlHelperText, SelectScrollView } from '@gluestack-ui/themed';
 import _ from 'lodash';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 
 export const HoldNotificationPreferences = (props) => {
-     const { textColor, theme, user, url, language, emailNotification, setEmailNotification, phoneNotification, setPhoneNotification, smsNotification, setSMSNotification, smsCarrier, setSMSCarrier, smsNumber, setSMSNumber, phoneNumber, setPhoneNumber, colorMode } = props;
+     const { textColor, theme, user, language, emailNotification, setEmailNotification, phoneNotification, setPhoneNotification, smsNotification, setSMSNotification, smsCarrier, setSMSCarrier, smsNumber, setSMSNumber, phoneNumber, setPhoneNumber, colorMode } = props;
      const insets = useSafeAreaInsets();
 
      const holdNotificationInfo = user.holdNotificationInfo;
      const smsCarriers = holdNotificationInfo.smsCarriers;
 
-     const [emailNotificationLabel, setEmailNotificationLabel] = React.useState('Yes, by email');
-     React.useEffect(() => {
-          async function fetchTranslations() {
-               await getTranslationsWithValues('hold_email_notification', user.email ?? null, language, url).then((result) => {
-                    const tmp = _.toString(result);
-                    if (!tmp.includes('%')) {
-                         setEmailNotificationLabel(tmp);
-                    }
-               });
-          }
-
-          fetchTranslations();
-     }, [language]);
+     const { text: emailNotificationLabel } = useTranslationWithValues(
+          'hold_email_notification',
+          user.email ?? null,
+          { enabled: !!user.email, addToDictionary: true, initialValue: 'Yes, by email' }
+     );
 
      return (
           <>

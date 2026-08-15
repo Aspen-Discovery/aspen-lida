@@ -18,9 +18,7 @@ const AccountDrawer = () => {
                     backBehavior: 'none',
                     lazy: false,
                     drawerStyle: {
-                         width: Dimensions.get('window').width * 0.8,
-                    },
-               }}
+                         width: Dimensions.get('window').width * 0.8 } }}
                drawerContent={(props) => <DrawerContent {...props} />}>
                <Drawer.Screen
                     name="TabsNavigator"

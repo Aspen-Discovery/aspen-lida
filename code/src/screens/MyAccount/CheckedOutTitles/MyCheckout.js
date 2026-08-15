@@ -4,14 +4,14 @@ import {
      Actionsheet,
      ActionsheetContent,
      ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast,
-} from '@gluestack-ui/themed';
+     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../../context/initialContext';
+
+import { useUserState } from '../../../hooks/useUserData';
 import {
      getAuthor,
      getCheckedOutTo,
@@ -29,13 +29,17 @@ import { navigate, navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from '../../../util/api/user';
 import { stripHTML, formatDiscoveryVersion } from '../../../helpers/helpers';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const MyCheckout = (props) => {
-     const { user } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const version = formatDiscoveryVersion(library.discoveryVersion);
-     const { colorMode, textColor } = React.useContext(ThemeContext);
+     const { colorMode, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [access, setAccess] = useState(false);
@@ -59,8 +63,7 @@ export const MyCheckout = (props) => {
                url: library.baseUrl,
                userContext: user,
                libraryContext: library,
-               prevRoute: 'MyCheckouts',
-          });
+               prevRoute: 'MyCheckouts' });
      };
      const toggle = () => {
           setIsOpen(!isOpen);
@@ -127,8 +130,7 @@ export const MyCheckout = (props) => {
                          style={{
                               width: 100,
                               height: 150,
-                              borderRadius: "$sm",
-                         }}
+                              borderRadius: "$sm" }}
                          placeholder={blurhash}
                          transition={1000}
                          contentFit="cover"
@@ -176,7 +178,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'renewing', true)}
                                    onPress={() => {
                                         setRenew(true);
-                                        renewCheckout(toast, checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
+                                        renewCheckout(checkout.barcode, record, checkout.source, itemId, library.baseUrl, checkout.userId).then((result) => {
                                              setRenew(false);
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -190,8 +192,7 @@ export const MyCheckout = (props) => {
                                                        source: checkout.source ?? null,
                                                        itemId: itemId ?? null,
                                                        userId: checkout.userId ?? null,
-                                                       renewType: 'single',
-                                                  });
+                                                       renewType: 'single' });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -216,7 +217,7 @@ export const MyCheckout = (props) => {
                                    isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                    onPress={() => {
                                         setAccess(true);
-                                        viewOverDriveItem(toast, checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
+                                        viewOverDriveItem(checkout.userId, checkout.formatId, checkout.overDriveId, library.baseUrl, language).then((result) => {
                                              setAccess(false);
                                              toggle();
                                         });
@@ -243,7 +244,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'accessing', true)}
                                         onPress={() => {
                                              setAccess(true);
-                                             viewOnlineItem(toast, checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
+                                             viewOnlineItem(checkout.userId, checkout.recordId, checkout.source, checkout.accessOnlineUrl, library.baseUrl, language).then((result) => {
                                                   setAccess(false);
                                                   toggle();
                                              });
@@ -259,7 +260,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();
@@ -281,7 +282,7 @@ export const MyCheckout = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'returning', true)}
                                         onPress={() => {
                                              setReturn(true);
-                                             returnCheckout(toast, checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
+                                             returnCheckout(checkout.userId, record, checkout.source, checkout.overDriveId, library.baseUrl, version, checkout.transactionId, language).then((result) => {
                                                   setReturn(false);
                                                   reloadCheckouts();
                                                   toggle();

@@ -15,19 +15,25 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-import { LanguageContext, LibrarySystemContext, ThemeContext, UserContext } from '../../context/initialContext';
+
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 export const Editions = () => {
      // 1. Hooks
      const queryClient = useQueryClient();
      const navigation = useNavigation();
-     const { library } = useContext(LibrarySystemContext);
-     const { user } = useContext(UserContext);
-     const { language } = useContext(LanguageContext);
-     const { colorMode, theme, textColor } = useContext(ThemeContext);
+     const library = useLibrary();
+     const { data: userState } = useUserState();
+     const user = userState?.user ?? {};
+     const updateUserProfile = useUpdateUserProfile();
+     const language = useActiveLanguage();
+     const { colorMode, theme, textColor } = useTheme();
      const insets = useSafeAreaInsets();
 
      const [isLoading, setLoading] = useState(false);
@@ -54,8 +60,7 @@ export const Editions = () => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['records', id, source, format, language, library.baseUrl],
           queryFn: () => getRecords(id, format, source, language, library.baseUrl),
-          enabled: !!id && !!format && !!source,
-     });
+          enabled: !!id && !!format && !!source });
 
      // 3. Helper Functions
      const onResponseClose = () => setResponseIsOpen(false);
@@ -218,7 +223,7 @@ export const Editions = () => {
                                                        queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
                                                        await refreshProfile(library.baseUrl).then((data) => {
                                                             if(data.ok) {
-                                                                 updateUser(data.data.result.profile);
+                                                                 updateUserProfile(data.data.result.profile);
                                                             } else {
                                                                  logWarnMessage('Could not refresh profile after placing hold from volume selection.');
                                                                  logDebugMessage(data);
@@ -297,7 +302,15 @@ export const Editions = () => {
                                                   await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
                                                        setResponse(result);
                                                        queryClient.invalidateQueries({ queryKey: ['holds', holdSelectItemResponse.patronId, library.baseUrl, language] });
-                                                       queryClient.invalidateQueries({ queryKey: ['user', library.baseUrl, language] });
+                                                       await refreshProfile(library.baseUrl).then(async (data) => {
+                                                            if (data.ok) {
+                                                                 await updateUserProfile(data.data.result.profile);
+                                                            } else {
+                                                                 logWarnMessage('Could not refresh profile after placing item hold from edition selection.');
+                                                                 logDebugMessage(data);
+                                                                 getErrorMessage(data.code ?? 0, data.problem);
+                                                            }
+                                                       });
                                                        setHoldItemSelectIsOpen(false);
                                                        setPlacingItemHold(false);
                                                        if (result) {
@@ -318,8 +331,8 @@ export const Editions = () => {
 
 const Edition = (props) => {
      // 1. Hooks
-     const { language } = useContext(LanguageContext);
-     const { theme, textColor, colorMode } = useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
 
      // 2. Props
      const {

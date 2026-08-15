@@ -8,11 +8,13 @@ import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories } from '../../../components/Notifications';
 import { getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
 
-import { LanguageContext, LibrarySystemContext, UserContext } from '../../../context/initialContext';
+import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings, useUpdateExpoToken } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { refreshProfile } from '../../../util/api/user';
 
 import { logDebugMessage, logWarnMessage } from '../../../util/logging.js';
+import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 export const Settings_NotificationOptions = () => {
      const [isLoading, setLoading] = React.useState(false);
@@ -20,9 +22,11 @@ export const Settings_NotificationOptions = () => {
      const [notifyCustom, setNotifyCustom] = React.useState(false);
      const [notifyAccount, setNotifyAccount] = React.useState(false);
 
-     const { notificationSettings, expoToken} = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { language } = React.useContext(LanguageContext);
+     const { data: userState } = useUserState();
+     const expoToken = userState?.expoToken ?? false;
+     const { data: notificationSettings } = useNotificationSettings();
+     const library = useLibrary();
+     const language = useActiveLanguage();
      const toast = useToast();
 
      const isNotificationsEnabled = Boolean(expoToken);
@@ -32,7 +36,7 @@ export const Settings_NotificationOptions = () => {
 
           setLoading(true);
           try {
-               const result = await getNotificationPreferences(toast, library.baseUrl, expoToken);
+               const result = await getNotificationPreferences(library.baseUrl, expoToken);
                // noinspection JSUnresolvedReference
                if (result && result.savedPreferences) {
                     setNotifySavedSearch(Boolean(result.savedPreferences.notifySavedSearch));
@@ -111,9 +115,11 @@ export const Settings_NotificationOptions = () => {
 };
 
 const EnableAllNotifications = (data) => {
-     const { language } = React.useContext(LanguageContext);
-     const { updateUser, updateNotificationSettings, expoToken } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const language = useActiveLanguage();
+     const updateUserProfile = useUpdateUserProfile();
+     const updateNotificationSettings = useUpdateNotificationSettings();
+     const expoToken = userState?.expoToken ?? false;
+     const library = useLibrary();
      const { notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount, setLoading } = data;
      const toast = useToast();
 
@@ -130,16 +136,16 @@ const EnableAllNotifications = (data) => {
                allowAllNotifications = false;
           }
           if (expoToken) {
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
-               await setNotificationPreference(toast, library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifySavedSearch', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifyCustom', allowAllNotifications, false);
+               await setNotificationPreference(library.baseUrl, expoToken, 'notifyAccount', allowAllNotifications, false);
                setNotifySavedSearch(allowAllNotifications);
                setNotifyCustom(allowAllNotifications);
                setNotifyAccount(allowAllNotifications);
                logDebugMessage("Reloading profile as part of enableAllNotifications");
                //TODO: Update this to not do a full reload of the profile
-               await refreshProfile(library.baseUrl).then((data) => {
-                    updateUser(data);
+               await refreshProfile(library.baseUrl).then(async (data) => {
+                    await updateUserProfile(data);
                     updateNotificationSettings(data.notification_preferences, language);
                     setLoading(false);
                });
@@ -167,8 +173,9 @@ const EnableAllNotifications = (data) => {
 };
 
 const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount }) => {
-     const { updateUser, expoToken } = React.useContext(UserContext);
-     const { library } = React.useContext(LibrarySystemContext);
+     const updateUserProfile = useUpdateUserProfile();
+     const expoToken = userState?.expoToken ?? false;
+     const library = useLibrary();
      const toast = useToast();
 
      const preference = data;
@@ -195,12 +202,12 @@ const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, noti
                if (prefOption === 'notifyAccount') setNotifyAccount(newValue);
 
                // Pass `toast` as the 1st parameter to match setNotificationPreference signature
-               await setNotificationPreference(toast, library.baseUrl, expoToken, prefOption, newValue);
+               await setNotificationPreference(library.baseUrl, expoToken, prefOption, newValue);
 
                logDebugMessage("Reloading Profile as part of updatePreference");
                const result = await refreshProfile(library.baseUrl);
                if (result) {
-                    updateUser(result);
+                    await updateUserProfile(result);
                }
           } else {
                logDebugMessage("No expo token in NotificationOptions->updatePreference");

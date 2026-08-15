@@ -2,16 +2,17 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack } from '@gluestack-ui/themed';
+import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack, Pressable, Text } from '@gluestack-ui/themed';
 import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
-import {ThemeContext} from "../context/initialContext";
+
 
 // custom components and helper files
-import { stripHTML } from '../helpers/helpers';
+import { normalizeDisplayText, stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
+import { useTheme } from '../themes/theme';
 
 export async function registerForPushNotificationsAsync(updateUserDebugMessage) {
      try {
@@ -47,8 +48,7 @@ export async function registerForPushNotificationsAsync(updateUserDebugMessage) 
           }else{
                //Real devices
                const response = await Notifications.getExpoPushTokenAsync({
-                    projectId: Constants.expoConfig.extra.eas.projectId,
-               });
+                    projectId: Constants.expoConfig.extra.eas.projectId });
 
                logDebugMessage('Got push token:' + response.data);
                return response.data;
@@ -65,8 +65,7 @@ async function createNotificationChannelGroup(id, name, description = null) {
      if (Platform.OS === 'android') {
           await Notifications.setNotificationChannelGroupAsync(`${id}`, {
                name: `${name}`,
-               description: `${description}`,
-          });
+               description: `${description}` });
      }
 }
 
@@ -85,8 +84,7 @@ async function createNotificationChannel(id, name, groupId) {
                vibrationPattern: [0, 250, 250, 250],
                lightColor: '#FF231F7C',
                groupId: `${groupId}`,
-               showBadge: true,
-          });
+               showBadge: true });
      }
 }
 
@@ -101,8 +99,7 @@ async function createNotificationCategory(id, name, button) {
      await Notifications.setNotificationCategoryAsync(`${id}`, [
           {
                identifier: `${name}`,
-               buttonTitle: `${button}`,
-          },
+               buttonTitle: `${button}` },
      ]);
 }
 
@@ -165,12 +162,15 @@ export function showILSMessage(type, message, index = 0) {
 
 /** status/colorScheme options: success, error, info, warning **/
 export const DisplayMessage = (props) => {
+     const safeMessage = normalizeDisplayText(props.message);
+     const fallbackMessage = getTermFromDictionary('en', 'unknown_error') || 'An unknown error occurred.';
+     const displayMessage = safeMessage || fallbackMessage;
+
      return (
-          <Alert action={props.type} mb="$2" mx="$4">
-               <AlertIcon mr="$3" />
-               <AlertText size="xs" fontWeight="$medium">
-                    {props.message}
-               </AlertText>
+          <Alert action={props.type} variant="solid" mb="$2" py="$3" px="$3" alignItems="flex-start" sx={{ height: 'auto', minHeight: 0 }}>
+               <Text color="$coolGray900" size="sm" fontWeight="$medium" flexShrink={1} style={{ flexWrap: 'wrap' }}>
+                    {displayMessage}
+               </Text>
           </Alert>
      );
 };
@@ -212,45 +212,26 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 export const DisplaySystemMessage = (props) => {
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
-     const {theme} = useContext(ThemeContext);
      let style = props.style;
      if (style === '') {
           style = 'info';
      }
      logDebugMessage("System Message Style is " + style);
-     const getAlertStyle = (style) => {
-          switch (style) {
-               case 'error':
-               case 'danger':
-                    return { action: 'error', variant: 'solid' };
-               case 'warning':
-                    return { action: 'warning', variant: 'accent' };
-               case 'success':
-                    return { action: 'success', variant: 'solid' };
-               default:
-                    return { action: 'info', variant: 'outline' };
-          }
-     };
-     const alertProps = getAlertStyle(style);
 
-     // return a custom alert if the system message style is 'none'
      return (
-          <Alert {...alertProps} mb="$2">
-               <VStack space="xs" width="$full">
+          <Alert height="$50" action={style} variant="solid" mb="$2" borderRadius="$sm">
+               <VStack space="sm" width="$full" p="$3">
                     <HStack alignItems="flex-start" justifyContent="space-between">
-                         <AlertText size="sm">
-                              {props.message}
-                         </AlertText>
-                         <Button size="xs"
-                              bgColor = {theme.tokens.colors.primary['500']}
+                         <AlertText mr="$2">{props.message}</AlertText>
+                         <Pressable
                               onPress={async () => {
                                    await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
                                         queryClient.setQueryData(['system_messages', props.url], result);
                                         updateSystemMessages(result);
                                    });
                               }}>
-                              <ButtonIcon as={CloseIcon} size="md" color={theme.tokens.colors.primary['500-text']} />
-                         </Button>
+                              <CloseIcon color="$black" />
+                         </Pressable>
                     </HStack>
                </VStack>
           </Alert>

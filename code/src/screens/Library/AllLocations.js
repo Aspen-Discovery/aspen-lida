@@ -11,19 +11,23 @@ import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SystemMessagesContext, UserContext, ThemeContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { useAvailableLocations, useUpdateAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLocations } from '../../util/api/system';
-import { PATRON } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const AllLocations = () => {
-     const { library } = React.useContext(LibrarySystemContext);
-     const { locations, updateLocations } = React.useContext(LibraryBranchContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const locations = useAvailableLocations();
+     const updateAvailableLocations = useUpdateAvailableLocations();
+     const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const queryClient = useQueryClient();
 
@@ -51,8 +55,6 @@ export const AllLocations = () => {
                                    longitude = JSON.stringify(location.coords.longitude);
                                    await SecureStore.setItemAsync('latitude', latitude);
                                    await SecureStore.setItemAsync('longitude', longitude);
-                                   PATRON.coords.lat = latitude;
-                                   PATRON.coords.long = longitude;
                               }
                          }
                     }
@@ -81,18 +83,20 @@ export const AllLocations = () => {
                onError: (error) => {
                     logDebugMessage("Error fetching locations");
                     logErrorMessage(error);
-               },
-          }
+               } }
      );
 
-     // Sync API query response to global Context
-     React.useEffect(() => {
-          if (queryData?.ok && queryData?.data?.result?.locations) {
-               updateLocations(queryData.data.result.locations);
-          } else if (queryData && !queryData.ok) {
-               getErrorMessage(queryData.code, queryData.problem);
-          }
-     }, [queryData]);
+      // Sync API query response to global Context
+      React.useEffect(() => {
+           const syncLocations = async () => {
+                if (queryData?.ok && queryData?.data?.result?.locations) {
+                     await updateAvailableLocations(queryData.data.result.locations ?? []);
+                } else if (queryData && !queryData.ok) {
+                     getErrorMessage(queryData.code, queryData.problem);
+                }
+           };
+           syncLocations();
+      }, [queryData, updateAvailableLocations]);
 
      // Derive sorted locations automatically from context state
      const sortedLocations = React.useMemo(() => {
@@ -122,8 +126,7 @@ export const AllLocations = () => {
                     borderBottomWidth="$1"
                     _dark={{
                          borderColor: '$coolGray600',
-                         bgColor: '$coolGray700',
-                    }}
+                         bgColor: '$coolGray700' }}
                     borderColor="$coolGray200">
                     <ButtonGroup alignItems="center" isAttached>
                          <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('alphabetical')}>
@@ -166,8 +169,8 @@ export const AllLocations = () => {
 };
 
 const DisplayLocation = (data) => {
-     const { language } = React.useContext(LanguageContext);
-     const {textColor} = React.useContext(ThemeContext);
+     const language = useActiveLanguage();
+     const {textColor} = useTheme();
      const location = data.data;
 
      let units = false;
@@ -225,8 +228,7 @@ const DisplayLocation = (data) => {
      const goToLocation = () => {
           navigate('Location', {
                data: location,
-               title: location.displayName,
-          });
+               title: location.displayName });
      };
 
      return (

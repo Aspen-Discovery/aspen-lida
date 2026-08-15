@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useNavigation, useNavigationState, StackActions } from '@react-navigation/native';
 import _ from 'lodash';
 import React from 'react';
 import {
@@ -24,7 +24,9 @@ import {
 } from '@gluestack-ui/themed';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 
-import { LanguageContext, LibraryBranchContext, LibrarySystemContext, SearchContext, ThemeContext, UserContext } from '../../context/initialContext';
+import { SearchContext } from '../../context/initialContext';
+import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -32,32 +34,34 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { SearchGlobal } from '../../util/globals';
 import { buildParamsForUrl } from '../../util/api/searchHelper';
 import { UnsavedChangesExit } from './UnsavedChanges';
+import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTheme } from '../../themes/theme';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { ScanBarcode, SearchIcon, XIcon } from 'lucide-react-native';
 
 export const FiltersScreen = () => {
      const [isLoading, setIsLoading] = React.useState(false);
      const navigation = useNavigation();
      const [loading, setLoading] = React.useState(false);
-     const { library } = React.useContext(LibrarySystemContext);
-     const { location } = React.useContext(LibraryBranchContext);
-     const { language } = React.useContext(LanguageContext);
+     const library = useLibrary();
+     const location = useLibraryLocation();
+     const language = useActiveLanguage();
      const { currentIndex, currentSource } = React.useContext(SearchContext);
-     const {theme, textColor, colorMode } = React.useContext(ThemeContext);
+     const {theme, textColor, colorMode } = useTheme();
      const pendingFiltersFromParams = useNavigationState((state) => state.routes[0]['params']['pendingFilters']);
      const [searchTerm, setSearchTerm] = React.useState(SearchGlobal.term ?? '');
 
      let facets = SearchGlobal.availableFacets ? Object.keys(SearchGlobal.availableFacets) : [];
      let pendingFilters = SearchGlobal.pendingFilters ?? [];
-
      React.useEffect(() => {
           if (pendingFilters !== pendingFiltersFromParams) {
                navigation.setOptions({
-                    headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" />,
-               });
+                    headerRight: () => <UnsavedChangesExit language={language} updateSearch={updateSearch} discardChanges={discardChanges} prevRoute="SearchScreen" /> });
           }
      }, [pendingFilters, pendingFiltersFromParams, language]);
 
-     const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
-     const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
+     const locationGroupedWorkDisplaySettings = location?.groupedWorkDisplaySettings ?? [];
+     const libraryGroupedWorkDisplaySettings = library?.groupedWorkDisplaySettings ?? [];
 
      const renderFilter = (label, index) => {
           return (
@@ -193,8 +197,7 @@ export const FiltersScreen = () => {
                term: '',
                facets: obj.facets,
                pendingUpdates: [],
-               extra: obj,
-          });
+               extra: obj });
      };
 
      const openSearchSources = () => {
@@ -208,13 +211,14 @@ export const FiltersScreen = () => {
      const updateSearch = () => {
           const params = buildParamsForUrl();
           SearchGlobal.hasPendingChanges = false;
-          navigation.navigate('BrowseTab', {
-               screen: 'SearchResults',
-               params: {
-                    term: SearchGlobal.term,
-                    pendingParams: params,
-               },
-          });
+
+          // Store updated params in SearchGlobal for SearchResults to pick up
+          SearchGlobal.pendingParams = params;
+
+          // Pop the modal screen to close it
+          // The parent navigator (BrowseStackNavigator) will dismiss the modal
+          const parentNav = navigation.getParent();
+          parentNav.dispatch(StackActions.pop());
      };
 
      const discardChanges = () => {
@@ -229,9 +233,7 @@ export const FiltersScreen = () => {
                screen: 'SearchResults',
                params: {
                     term: SearchGlobal.term,
-                    pendingParams: '',
-               },
-          });
+                    pendingParams: '' } });
      };
 
      const clearSelections = () => {
@@ -246,9 +248,7 @@ export const FiltersScreen = () => {
                screen: 'SearchResults',
                params: {
                     term: SearchGlobal.term,
-                    pendingParams: '',
-               },
-          });
+                    pendingParams: '' } });
      };
 
      const clearSearch = () => {
@@ -264,8 +264,7 @@ export const FiltersScreen = () => {
                term: searchTerm,
                type: 'catalog',
                prevRoute: 'DiscoveryScreen',
-               scannerSearch: false,
-          });
+               scannerSearch: false });
      };
 
      const getSearchIndexLabel = () => {
@@ -300,32 +299,18 @@ export const FiltersScreen = () => {
                     <Box p="$5">
                          <VStack space="md">
                               <FormControl>
-                                   <Input
-                                        borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
-                                        color={textColor}
-                                        variant="outline"
-                                   >
-                                        <InputSlot pl="$2">
-                                             <InputIcon as={Ionicons} name="search" size="md" color={textColor} />
+                                   <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'} color={textColor} variant="outline">
+                                        <InputSlot>
+                                             <InputIcon as={SearchIcon} name="search" color={textColor} ml="$2" />
                                         </InputSlot>
-                                        <InputField
-                                             returnKeyType="search"
-                                             autoCapitalize="none"
-                                             onChangeText={(term) => setSearchTerm(term)}
-                                             placeholder={getTermFromDictionary(language, 'search')}
-                                             onSubmitEditing={search}
-                                             value={searchTerm}
-                                             color={textColor}
-                                        />
-                                        <InputSlot py="$2">
-                                             {searchTerm ? (
-                                                  <Pressable onPress={() => clearSearch()}>
-                                                       <Icon as={MaterialCommunityIcons} name="close-circle" size="xl" color={textColor}  />
-                                                  </Pressable>
-                                             ) : null}
-                                             <Pressable onPress={() => openScanner()} ml="$2" mr={4}>
-                                                  <Icon as={Ionicons} name="barcode-outline" size="xl" color={textColor}  />
-                                             </Pressable>
+                                        <InputField returnKeyType="search" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} color={textColor} />
+                                        {searchTerm ? (
+                                             <InputSlot onPress={() => clearSearch()}>
+                                                  <InputIcon as={XIcon} mr="$2" color={textColor} />
+                                             </InputSlot>
+                                        ) : null}
+                                        <InputSlot onPress={() => openScanner()}>
+                                             <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
                                         </InputSlot>
                                    </Input>
                               </FormControl>
@@ -333,23 +318,31 @@ export const FiltersScreen = () => {
 
                          {!isLoading ? (
                               <>
-                                   <Pressable key={0} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} py="$5" onPress={() => openSearchIndexes()}>
+                                   <Pressable key={0} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} py="$5" onPress={() => openSearchIndexes()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>
-                                                       <Text bold color={textColor}>{getTermFromDictionary(language, 'search_by')}</Text>
-                                                       <Text italic color={textColor}>{getSearchIndexLabel()}</Text>
+                                                       <Text bold color={textColor}>
+                                                            {getTermFromDictionary(language, 'search_by')}
+                                                       </Text>
+                                                       <Text italic color={textColor}>
+                                                            {getSearchIndexLabel()}
+                                                       </Text>
                                                   </VStack>
                                                   <ChevronRightIcon color={textColor} />
                                              </HStack>
                                         </VStack>
                                    </Pressable>
-                                   <Pressable key={1} borderBottomWidth="$1"  borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} py="$5" onPress={() => openSearchSources()}>
+                                   <Pressable key={1} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} py="$5" onPress={() => openSearchSources()}>
                                         <VStack alignContent="center">
                                              <HStack justifyContent="space-between" alignItems="center" alignContent="center">
                                                   <VStack>
-                                                       <Text bold color={textColor}>{getTermFromDictionary(language, 'search_in')}</Text>
-                                                       <Text italic color={textColor}>{getSearchSourceLabel()}</Text>
+                                                       <Text bold color={textColor}>
+                                                            {getTermFromDictionary(language, 'search_in')}
+                                                       </Text>
+                                                       <Text italic color={textColor}>
+                                                            {getSearchSourceLabel()}
+                                                       </Text>
                                                   </VStack>
                                                   <ChevronRightIcon color={textColor} />
                                              </HStack>
@@ -357,7 +350,13 @@ export const FiltersScreen = () => {
                                    </Pressable>
                               </>
                          ) : null}
-                         {!isLoading ? facets.map((item, index, array) => renderFilter(item, index)) : <Box mt="$5"><LoadingSpinner /></Box>}
+                         {!isLoading ? (
+                              facets.map((item, index, array) => renderFilter(item, index))
+                         ) : (
+                              <Box mt="$5">
+                                   <LoadingSpinner />
+                              </Box>
+                         )}
                     </Box>
                </ScrollView>
                {actionButtons()}

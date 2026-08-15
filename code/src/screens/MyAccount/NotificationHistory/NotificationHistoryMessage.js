@@ -1,16 +1,16 @@
 import React from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Heading, Box, ScrollView, Text, VStack } from '@gluestack-ui/themed';
-import {ThemeContext} from "../../../context/initialContext";
+import { useTheme } from '../../../themes/theme';
+
 
 export const NotificationHistoryMessageModal = () => {
-     const { textColor } = React.useContext(ThemeContext);
+     const { textColor } = useTheme();
      const defaultMessage = {
           title: '',
           content: '',
           isRead: 0,
-          dateSent: null,
-     };
+          dateSent: null };
 
      const route = useRoute();
      const message = route.params?.message ?? defaultMessage;

@@ -76,7 +76,12 @@ export function logSentryMessage(message, level = 'error') {
      }
 }
 
-export function getErrorMessage({ statusCode = null, problem, sendToSentry = false }) {
+export function getErrorMessage(arg1, arg2, arg3 = false) {
+     const isObjectArg = arg1 !== null && typeof arg1 === 'object' && !Array.isArray(arg1);
+     const statusCode = isObjectArg ? (arg1.statusCode ?? null) : (arg1 ?? null);
+     const problem = isObjectArg ? arg1.problem : arg2;
+     const sendToSentry = isObjectArg ? (arg1.sendToSentry ?? false) : arg3;
+
      let errorDetails;
      if (problem) {
           switch (problem) {
