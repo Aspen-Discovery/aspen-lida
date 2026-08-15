@@ -23,12 +23,13 @@ import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../.
 import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { getLocationInfo, getCatalogStatus } from '../../util/api/system';
+import { getLocationInfo, getCatalogStatus, getSelfCheckSettings } from '../../util/api/system';
 import { loginToLiDA } from '../../util/api/user';
 import { stripHTML } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
+import { saveAllLibraryBranchData } from '../../util/db';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
@@ -84,6 +85,62 @@ export const GetLoginForm = (props) => {
           };
           prefillUsername();
      }, []);
+
+     const resolveSelfCheckEnabled = (result = {}) => {
+          const candidates = [
+               result?.settings?.isEnabled,
+               result?.settings?.enableSelfCheck,
+               result?.settings?.selfCheckEnabled,
+               result?.isEnabled,
+               result?.enableSelfCheck,
+               result?.selfCheckEnabled,
+          ];
+
+          for (const candidate of candidates) {
+               if (candidate === true || candidate === 1 || candidate === '1') return true;
+               if (candidate === false || candidate === 0 || candidate === '0') return false;
+               if (typeof candidate === 'string') {
+                    const lowered = candidate.toLowerCase();
+                    if (lowered === 'true') return true;
+                    if (lowered === 'false') return false;
+               }
+          }
+
+          return undefined;
+     };
+
+     const persistLibraryBranchDataAfterLogin = async (baseUrl, locationId) => {
+          try {
+               const locationResponse = await getLocationInfo(baseUrl, locationId);
+               const location = locationResponse?.ok ? (locationResponse.data?.result?.location ?? null) : null;
+               if (!location) {
+                    return;
+               }
+
+               const selfCheckResponse = await getSelfCheckSettings(baseUrl, locationId ?? location.locationId ?? null);
+               let selfCheckEnabled;
+               let selfCheckSettings;
+               if (selfCheckResponse?.ok) {
+                    const result = selfCheckResponse.data?.result ?? {};
+                    const parsedEnabled = resolveSelfCheckEnabled(result);
+                    if (typeof parsedEnabled === 'boolean') {
+                         selfCheckEnabled = parsedEnabled;
+                    }
+                    if (result?.settings && typeof result.settings === 'object') {
+                         selfCheckSettings = result.settings;
+                    }
+               }
+
+               await saveAllLibraryBranchData({
+                    location,
+                    ...(typeof selfCheckEnabled === 'boolean' ? { enableSelfCheck: selfCheckEnabled } : {}),
+                    ...(selfCheckSettings ? { selfCheckSettings } : {}),
+               });
+          } catch (_error) {
+               // Keep login resilient if branch-cache warmup fails.
+          }
+     };
+
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
@@ -194,6 +251,8 @@ export const GetLoginForm = (props) => {
            await AsyncStorage.setItem('@userBarcode', username);
            await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
           const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
+          let selectedLocationId = patronsLibrary['locationId'];
+          let selectedBaseUrl = patronsLibrary['baseUrl'];
 
           if (userHomeLocationId && !GLOBALS.slug.startsWith('aspen-lida') && autoPickUserHomeLocation === 1) {
                logDebugMessage('User has a home location set (' + userHomeLocationId + ') and autoPickUserHomeLocation is enabled, attempting to use that location as default');
@@ -212,6 +271,8 @@ export const GetLoginForm = (props) => {
                          await SecureStore.setItemAsync('solrScope', patronHomeLocation.solrScope);
                          await AsyncStorage.setItem('@solrScope', patronHomeLocation.solrScope);
                          await AsyncStorage.setItem('@pathUrl', patronHomeLocation.baseUrl);
+                          selectedLocationId = patronHomeLocation.locationId;
+                          selectedBaseUrl = patronHomeLocation.baseUrl;
                     } else {
                          // just store what we know
                          logDebugMessage('Problem getting location info for user home location. Setting library and location to: ' + patronsLibrary['name']);
@@ -225,6 +286,8 @@ export const GetLoginForm = (props) => {
                          await SecureStore.setItemAsync('solrScope', patronsLibrary['solrScope']);
                          await AsyncStorage.setItem('@solrScope', patronsLibrary['solrScope']);
                          await AsyncStorage.setItem('@pathUrl', patronsLibrary['baseUrl']);
+                          selectedLocationId = patronsLibrary['locationId'];
+                          selectedBaseUrl = patronsLibrary['baseUrl'];
                     }
                });
           } else {
@@ -241,7 +304,11 @@ export const GetLoginForm = (props) => {
 
                await AsyncStorage.setItem('@solrScope', patronsLibrary['solrScope']);
                await AsyncStorage.setItem('@pathUrl', patronsLibrary['baseUrl']);
+               selectedLocationId = patronsLibrary['locationId'];
+               selectedBaseUrl = patronsLibrary['baseUrl'];
           }
+
+          await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
      };
 
      React.useEffect(() => {

@@ -91,8 +91,13 @@ function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
           result?.settings?.enableSelfCheck,
+          result?.settings?.selfCheckEnabled,
           result?.isEnabled,
           result?.enableSelfCheck,
+          result?.selfCheckEnabled,
+          result?.selfCheckSettings?.isEnabled,
+          result?.selfCheckSettings?.enableSelfCheck,
+          result?.selfCheckSettings?.selfCheckEnabled,
      ];
 
      for (const candidate of candidates) {
@@ -208,7 +213,7 @@ export const LoadingScreen = () => {
 
      const applyStaleLibraryBranchFallback = React.useCallback(async () => {
           const cached = await loadAllLibraryBranchData();
-          const hasStaleBranchData = !!cached && (!!cached.location || !!cached.selfCheckSettings);
+          const hasStaleBranchData = !!cached?.location && !!cached.location.locationId;
           if (!hasStaleBranchData) return false;
 
           setLocation(cached?.location || {});
@@ -280,7 +285,8 @@ export const LoadingScreen = () => {
                     logDebugMessage('SQLite migration: Successfully saved user profile');
 
                     // Attempt to fetch and save library branch data
-                    const locationResp = await getLocationInfo(LIBRARY.url);
+                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
+                    const locationResp = await getLocationInfo(LIBRARY.url, configuredLocationId);
                     if (!locationResp?.ok) {
                          throw new Error('Failed to load location info');
                     }
@@ -288,7 +294,6 @@ export const LoadingScreen = () => {
                     if (migrationCancelled) return;
 
                     const location = locationResp.data.result?.location ?? [];
-                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
                     const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
                     const selfCheckResp = await getSelfCheckSettings(LIBRARY.url, selfCheckLocationId);
 
@@ -485,7 +490,8 @@ export const LoadingScreen = () => {
                runInBackground });
           try {
                // Fetch location info
-               const locationResp = await getLocationInfo(LIBRARY.url);
+               const configuredLocationId = await SecureStore.getItemAsync('locationId');
+               const locationResp = await getLocationInfo(LIBRARY.url, configuredLocationId);
                if (!locationResp?.ok) {
                     if (runInBackground) {
                          logWarnMessage('Background location refresh failed. Continuing with cached data.');
@@ -505,7 +511,6 @@ export const LoadingScreen = () => {
                const location = locationResp.data.result?.location ?? [];
 
                // Fetch self-check settings
-               const configuredLocationId = await SecureStore.getItemAsync('locationId');
                const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
                logDebugMessage({
                     event: 'self_check_settings_request',
@@ -519,6 +524,7 @@ export const LoadingScreen = () => {
 
                if (selfCheckResp?.ok) {
                     const result = selfCheckResp.data?.result ?? {};
+                    const settings = isPlainObject(result?.settings) ? result.settings : {};
                     const rawEnabled = result?.settings?.isEnabled;
                     const normalizedEnabled = resolveSelfCheckEnabled(result);
                     const success = result?.success === true || result?.success === 'true';
@@ -532,7 +538,10 @@ export const LoadingScreen = () => {
 
                     if (typeof normalizedEnabled === 'boolean') {
                          selfCheckEnabled = normalizedEnabled;
-                         selfCheckSettings = isPlainObject(result?.settings) ? result.settings : {};
+                    }
+
+                    if (Object.keys(settings).length > 0) {
+                         selfCheckSettings = settings;
                     } else if (success) {
                          logWarnMessage({
                               event: 'self_check_enabled_unrecognized',

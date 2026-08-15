@@ -44,8 +44,13 @@ function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
           result?.settings?.enableSelfCheck,
+          result?.settings?.selfCheckEnabled,
           result?.isEnabled,
           result?.enableSelfCheck,
+          result?.selfCheckEnabled,
+          result?.selfCheckSettings?.isEnabled,
+          result?.selfCheckSettings?.enableSelfCheck,
+          result?.selfCheckSettings?.selfCheckEnabled,
      ];
 
      for (const candidate of candidates) {
@@ -77,7 +82,16 @@ export async function evaluateStartupCache() {
      const matchesLoggedInUser = !normalizedLoginKey || normalizedLoginKey === normalizedCatUsername || normalizedLoginKey === normalizedBarcode;
 
      const hasUsableUserCache = !!cachedUser && matchesLoggedInUser;
-     const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && (!!cachedLibraryBranchState.location || !!cachedLibraryBranchState.selfCheckSettings);
+     const hasCachedLocation =
+          !!cachedLibraryBranchState?.location &&
+          !!cachedLibraryBranchState.location.locationId;
+     const hasCachedSelfCheckSettings =
+          isPlainObject(cachedLibraryBranchState?.selfCheckSettings) &&
+          Object.keys(cachedLibraryBranchState.selfCheckSettings).length > 0;
+     const hasUsableSelfCheckCache =
+          !!cachedLibraryBranchState &&
+          (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
+     const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
      const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
      const hasUsableLanguageCache = !!cachedLanguageState && (Array.isArray(cachedLanguageState.languages) || isPlainObject(cachedLanguageState.dictionary));
 
@@ -164,7 +178,7 @@ export async function evaluateStartupCache() {
       }
 
       // Validate and normalize self-check settings from cache as fallback
-      if (cachedLibraryBranchState && hasUsableLibraryBranchCache) {
+      if (cachedLibraryBranchState && (hasUsableSelfCheckCache || hasCachedLocation)) {
            try {
                 const normalizedEnabled = resolveSelfCheckEnabled(cachedLibraryBranchState);
                 if (typeof normalizedEnabled === 'boolean') {
