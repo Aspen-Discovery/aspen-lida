@@ -413,13 +413,13 @@ const FilterModal = () => {
                <FilterModalStack.Screen
                     name="SearchSource"
                     component={SearchSourceScreen}
-                    options={( { route }) => ({
+                    options={({ route }) => ({
                          title: getTermFromDictionary(language, 'search_in'),
                          headerBackVisible: true,
                          headerBackButtonDisplayMode: 'minimal',
                          header: ({ navigation }) => (
                               <ModalHeader
-                                   title={route.params.title}
+                                   title={getTermFromDictionary(language, 'search_in')}
                                    onBack={() => navigation.goBack()}
                                    onClose={() => {
                                         const parent = navigation.getParent();
@@ -438,13 +438,13 @@ const FilterModal = () => {
                <FilterModalStack.Screen
                     name="SearchIndex"
                     component={SearchIndexScreen}
-                    options={( { route } ) => ({
+                    options={({ route }) => ({
                          title: getTermFromDictionary(language, 'search_by'),
                          headerBackVisible: true,
                          headerBackButtonDisplayMode: 'minimal',
                          header: ({ navigation }) => (
                               <ModalHeader
-                                   title={route.params.title}
+                                   title={getTermFromDictionary(language, 'search_by')}
                                    onBack={() => navigation.goBack()}
                                    onClose={() => {
                                         const parent = navigation.getParent();
