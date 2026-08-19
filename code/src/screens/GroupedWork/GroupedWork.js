@@ -170,7 +170,7 @@ const DisplayGroupedWork = (payload) => {
      return (
           <Box p="$5" width="$full">
                <Center mt="$5" width="100%">
-                    <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: "$sm" }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                    <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
                     <Title title={groupedWork.title} />
                     <Author author={groupedWork.author} />
                </Center>
@@ -206,7 +206,7 @@ const Author = ({ author }) => {
           return (
                <Button size="sm" variant="link" onPress={() => startSearch(author, 'SearchResults', library.baseUrl)}>
                     <ButtonIcon as={SearchIcon} color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} size="xs" mr="$1" />
-                    <ButtonText fontWeight="normal" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>
+                    <ButtonText fontWeight="$normal" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>
                          {author}
                     </ButtonText>
                </Button>

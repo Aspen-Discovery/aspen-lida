@@ -295,8 +295,8 @@ const DisplayResult = (data) => {
           }
 
           return (
-               <Badge key={n.key} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                    <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+               <Badge key={n.key} borderRadius="$sm" borderColor={theme.tokens.colors.primary['400']} variant="outline" bg="transparent">
+                    <BadgeText textTransform="none" color={theme.tokens.colors.primary['400']} fontSize="$xs">
                          {n.name}
                     </BadgeText>
                </Badge>
@@ -385,7 +385,7 @@ const DisplayResult = (data) => {
           let roomData = item?.room ?? null;
 
           return (
-               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? '$warmGray400' : '$warmGray600'} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
                     <HStack space="md">
                          <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
                               <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
@@ -395,7 +395,8 @@ const DisplayResult = (data) => {
                                         style={{
                                              width: '100%',
                                              height: '100%',
-                                             borderRadius: "$sm" }}
+                                             borderRadius: 4,
+                                        }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
@@ -424,8 +425,8 @@ const DisplayResult = (data) => {
                               ) : null}
                               {registrationRequired ? (
                                    <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                                        <Badge key={0} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                                             <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+                                        <Badge key={0} borderRadius="$sm" borderColor={theme.tokens.colors.secondary['400']} variant="outline" bg="transparent">
+                                             <BadgeText textTransform="none" color={theme.tokens.colors.secondary['400']} fontSize="$xs">
                                                   {getTermFromDictionary(language, 'registration_required')}
                                              </BadgeText>
                                         </Badge>
@@ -448,7 +449,7 @@ const DisplayResult = (data) => {
                                    style={{
                                         width: '100%',
                                         height: '100%',
-                                        borderRadius: "$sm" }}
+                                        borderRadius: 4 }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -501,13 +502,7 @@ const FilterBar = ({ navigation }) => {
      }
      if (type === 'catalog') {
           return (
-               <Box
-                    padding="$2"
-                    paddingBottom="$0"
-                    sx={{
-                         bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-                         borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600" }}
-                    flexWrap="nowrap">
+               <Box padding="$2" paddingBottom="$0" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap">
                     <ScrollView horizontal>
                          <Button
                               size="sm"
@@ -518,12 +513,14 @@ const FilterBar = ({ navigation }) => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
                                         params: {
-                                             pendingUpdates: [] } });
+                                             pendingUpdates: [],
+                                        },
+                                   });
                               }}>
                               <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
                               <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
-                         <CreateFilterButton navigation={navigation}/>
+                         <CreateFilterButton navigation={navigation} />
                     </ScrollView>
                </Box>
           );
@@ -549,27 +546,25 @@ const SearchBox = ({term, navigation}) => {
      };
 
      return (
-         <Box padding="$2" sx={{
-              bg: colorMode === 'light' ? "$coolGray100" : "$coolGray700",
-              borderColor: colorMode === 'light' ? "$coolGray200" : "$warmGray600" }} borderBottomWidth="$1">
-              <FormControl pb="$5">
-                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                        <InputSlot>
-                             <InputIcon as={SearchIcon} ml="$2" color={textColor} />
-                        </InputSlot>
-                        <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
-                        {searchTerm ? (
-                             <InputSlot onPress={() => clearSearch()}>
-                                  <InputIcon as={XIcon} mr="$2" color={textColor} />
-                             </InputSlot>
-                        ) : null}
-                        <InputSlot onPress={() => openScanner()}>
-                             <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
-                        </InputSlot>
-                   </Input>
-              </FormControl>
-         </Box>
-     )
+          <Box padding="$2" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} borderBottomWidth="$1">
+               <FormControl pb="$5">
+                    <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
+                         <InputSlot>
+                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
+                         </InputSlot>
+                         <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                         {searchTerm ? (
+                              <InputSlot onPress={() => clearSearch()}>
+                                   <InputIcon as={XIcon} mr="$2" color={textColor} />
+                              </InputSlot>
+                         ) : null}
+                         <InputSlot onPress={() => openScanner()}>
+                              <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                         </InputSlot>
+                    </Input>
+               </FormControl>
+          </Box>
+     );
 }
 
 const CreateFilterButtonDefaults = ({navigation}) => {
@@ -625,8 +620,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                    key={index}
                                    size="sm"
                                    variant="outline"
-                                   sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400" }}
+                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -636,7 +630,9 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                                   title: obj['label'],
                                                   facets: SearchGlobal.availableFacets[obj['label']].facets,
                                                   pendingUpdates: [],
-                                                  extra: obj } });
+                                                  extra: obj,
+                                             },
+                                        });
                                    }}>
                                    <ButtonText color={textColor}>{label}</ButtonText>
                               </Button>
@@ -648,8 +644,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                               key={index}
                               size="sm"
                               variant="outline"
-                              sx={{
-                                   borderColor: colorMode === 'light' ? theme['tokens']['colors']['primary']['400'] : "$warmGray400" }}
+                              borderColor={colorMode === 'light' ? theme.tokens.colors.primary['400'] : '$warmGray400'}
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Facet',
@@ -659,7 +654,9 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                              title: obj['label'],
                                              facets: SearchGlobal.availableFacets[obj['label']].facets,
                                              pendingUpdates: [],
-                                             extra: obj } });
+                                             extra: obj,
+                                        },
+                                   });
                               }}>
                               <ButtonText color={textColor}>{obj['label']}</ButtonText>
                          </Button>
@@ -678,6 +675,7 @@ const CreateFilterButton = ({navigation}) => {
           value: 'relevance' });
 
      if ((_.size(appliedFacets) > 0 && _.size(sort) === 0) || (_.size(appliedFacets) >= 1 && _.size(sort) > 1) || (_.size(appliedFacets) >= 1 && currentSource === 'events')) {
+          console.log("using applied filters bar")
           return (
                <ButtonGroup space="sm" vertical>
                     {_.map(appliedFacets, function (item, index, collection) {
@@ -700,8 +698,7 @@ const CreateFilterButton = ({navigation}) => {
                                    variant="outline"
                                    size="sm"
                                    key={index}
-                                   sx={{
-                                        borderColor: colorMode === 'light' ? "$muted300" : "$warmGray400" }}
+                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -713,7 +710,9 @@ const CreateFilterButton = ({navigation}) => {
                                                   title: cluster[0]['label'],
                                                   facets: item[0]['facets'],
                                                   pendingUpdates: [],
-                                                  extra: cluster[0] } });
+                                                  extra: cluster[0],
+                                             },
+                                        });
                                    }}>
                                    <ButtonText color={textColor}>{label}</ButtonText>
                               </Button>

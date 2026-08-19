@@ -34,11 +34,13 @@ export const LoadError = (props) => {
                </Text>
                {reloadAction ? (
                     <Button mt="$5" colorScheme="primary" onPress={reloadAction} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon><Icon as={MaterialIcons} name="refresh" size="sm" color={theme.tokens.colors.primary['500-text']} /></ButtonIcon>
+                         <ButtonIcon>
+                              <Icon as={MaterialIcons} name="refresh" size="sm" color={theme.tokens.colors.primary['500-text']} />
+                         </ButtonIcon>
                          <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'button_reload')}</ButtonText>
                     </Button>
                ) : null}
-               <Text size="xs" w="75%" mt="$5" color="$muted500" textAlign="center">
+               <Text size="xs" w="75%" mt="$5" color="$trueGray500" textAlign="center">
                     ERROR: {error}
                </Text>
           </Center>

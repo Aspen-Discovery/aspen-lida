@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, HStack, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
 import { colorMode, useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 
@@ -19,6 +19,7 @@ import DisplayMap from './DisplayMap';
 import Hours from './Hours';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -29,9 +30,10 @@ export const MyLibrary = () => {
      const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme } = useTheme();
+     const { textColor, theme, colorMode } = useTheme();
 
-     const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
+     const bgColor = colorMode === 'light' ? '#f5f5f4' : '#111827';
+
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
@@ -101,14 +103,19 @@ export const MyLibrary = () => {
           <ScrollView>
                {location.locationImage ? (
                     <>
+                         <LinearGradient height={200} width="100%" locations={[.25, .90]} colors={['transparent', bgColor]} zIndex={0} position="absolute" left={0} top={0} />
                          <Image
                               alt={location.displayName}
                               source={location.locationImage}
                               style={{
                                    width: '100%',
                                    height: 200,
-                                   borderRadius: "$sm",
-                                   zIndex: -1 }}
+                                   borderRadius: 4,
+                                   zIndex: -1,
+                                   position: 'absolute',
+                                   left: 0,
+                                   top: 0,
+                              }}
                               placeholder={blurhash}
                               transition={1000}
                               contentFit="cover"
@@ -116,18 +123,15 @@ export const MyLibrary = () => {
 
                     </>
                ) : null}
-               <Box safeArea={5} mt={5} mx="$2" zIndex={200}>
+               <Box safeArea={5} mt={location.locationImage ? "$40" : "$0"} mx="$2" zIndex={200}>
                     {showSystemMessage()}
-                    {library.displayName !== location.displayName ? <Heading color={textColor} mb={2}>{location.displayName}</Heading> : <Heading color={textColor} mb={1}>{library.displayName}</Heading>}
+                    {library.displayName !== location.displayName ? <Heading color={textColor} mb="$2">{location.displayName}</Heading> : <Heading color={textColor} mb="$4">{library.displayName}</Heading>}
                     {location.address ? <Text color={textColor}>{location.address}</Text> : null}
                     {location.phone ? (
-                         <Text color={textColor}>
-                              <Text color={textColor}>{getTermFromDictionary(language, 'phone')}: </Text>
-                              <Text color={textColor}>{location.phone}</Text>
-                         </Text>
+                         <Text color={textColor}>{getTermFromDictionary(language, 'phone')}: {location.phone}</Text>
                     ) : null}
                     {hasHours ? (
-                         <Text color={textColor} mt={4} mb={2}>
+                         <Text color={textColor} mt="$4" mb="$2">
                               <Badge colorScheme={isClosedToday ? 'error' : 'success'} alignSelf="flex-start">
                                    <BadgeText>
                                         {hoursLabel}
@@ -136,14 +140,14 @@ export const MyLibrary = () => {
                          </Text>
                     ) : null}
                     <DisplayMap data={location} />
-                    <Box mt={4}>
+                    <Box mt="$4">
                          <ContactButtons data={location} />
                          {hasHours ? <Hours data={location} /> : null}
                          <AdditionalInformation data={location} />
                     </Box>
                     {_.size(locations) > 1 ? (
                          <>
-                              <Divider mt={5} mb={2} />
+                              <Divider mt="$5" mb="$2" />
                               <Button variant="ghost" size="sm" onPress={selectLocations} bgColor={theme.tokens.colors.primary['500']}>
                                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                               </Button>

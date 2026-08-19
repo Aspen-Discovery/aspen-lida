@@ -331,7 +331,7 @@ export const willAutoRenew = (props) => {
      const {textColor} = useTheme();
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
-               <Box mt={1} p={0.5} bgColor="muted.100">
+               <Box mt={1} p={0.5} bgColor="trueGray100">
                     <Text fontSize="$xs" color={textColor}>
                          <Text bold fontSize="$xs" color={textColor}>
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:

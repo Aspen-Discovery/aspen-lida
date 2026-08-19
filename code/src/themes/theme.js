@@ -45,6 +45,29 @@ function buildAlertTheme(actionType) {
      };
 }
 
+function buildBadgeTheme(actionType) {
+     const actionColors = {
+          error: { bg: '#fee2e2', text: '#991b1b' },
+          warning: { bg: '#fef3c7', text: '#92400e' },
+          success: { bg: '#dcfce7', text: '#166534' },
+          info: { bg: '#e0f2fe', text: '#075985' },
+          muted: { bg: '#f3f4f6', text: '#1f2937' },
+     };
+
+     const colors = actionColors[actionType] || actionColors.muted;
+
+     return {
+          backgroundColor: colors.bg,
+          borderRadius: 'sm',
+          _text: {
+               color: colors.text,
+               fontSize: 'xs',
+               fontWeight: 'medium',
+               textTransform: 'none'
+          },
+     };
+}
+
 function buildConfigFromColors(colors) {
      return createConfig({
           ...defaultConfig,
@@ -67,6 +90,34 @@ function buildConfigFromColors(colors) {
                                    warning: buildAlertTheme('warning'),
                                    success: buildAlertTheme('success'),
                                    info: buildAlertTheme('info'),
+                              },
+                         },
+                    },
+               },
+               ButtonText: {
+                    ...defaultConfig.components.ButtonText,
+                    theme: {
+                         ...defaultConfig.components.ButtonText?.theme,
+                         baseStyle: {
+                              ...defaultConfig.components.ButtonText?.theme?.baseStyle,
+                              fontSize: '$sm',
+                              fontWeight: '$normal',
+                         },
+                    },
+               },
+               Badge: {
+                    ...defaultConfig.components.Badge,
+                    theme: {
+                         ...defaultConfig.components.Badge?.theme,
+                         variants: {
+                              ...defaultConfig.components.Badge?.theme?.variants,
+                              action: {
+                                   ...(defaultConfig.components.Badge?.theme?.variants?.action ?? {}),
+                                   error: buildBadgeTheme('error'),
+                                   warning: buildBadgeTheme('warning'),
+                                   success: buildBadgeTheme('success'),
+                                   info: buildBadgeTheme('info'),
+                                   muted: buildBadgeTheme('muted'),
                               },
                          },
                     },

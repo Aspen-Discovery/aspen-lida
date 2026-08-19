@@ -1,20 +1,7 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import {
-     Box,
-     Button,
-     ButtonText,
-     Center,
-     CheckboxGroup, ChevronDownIcon,
-     FormControl,
-     Heading,
-     HStack,
-     Icon,
-     ScrollView,
-     Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput,
-     SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView,
-     Text, AlertIcon, InfoIcon, AlertText, Alert } from '@gluestack-ui/themed';
+import { Box, Button, ButtonText, Center, CheckboxGroup, ChevronDownIcon, FormControl, Heading, HStack, Icon, ScrollView, Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView, Text, AlertIcon, InfoIcon, AlertText, Alert, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, SectionList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -580,28 +567,30 @@ export const MyHolds = () => {
      const displaySectionHeader = (title) => {
           if (title === 'Pending') {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
+                    <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray800'} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap" maxWidth="100%" p="$2">
                          <Heading pb="$1" pt="$3" color={textColor}>
                               {getTermFromDictionary(language, 'pending_holds')}
                          </Heading>
-                         <Alert action="info" mb="$2">
-                              <AlertIcon as={InfoIcon} mr="$3" />
-                              <AlertText fontSize="$xs">
-                                   {getTermFromDictionary(language, 'pending_holds_message')}
-                              </AlertText>
+                         <Alert borderRadius="$sm" action="info" mb="$2">
+                              <HStack p="$3">
+                                   <AlertIcon as={InfoIcon} mr="$3" />
+                                   <AlertText fontSize="$xs">{getTermFromDictionary(language, 'pending_holds_message')}</AlertText>
+                              </HStack>
                          </Alert>
                          {actionButtons('pending')}
                     </Box>
                );
           } else {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
-                         <Heading pb="$1" color={textColor}>{getTermFromDictionary(language, 'holds_ready_for_pickup')}</Heading>
-                         <Alert action="info" mb="$2">
+                    <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray800'} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap" maxWidth="100%" p="$2">
+                         <Heading pb="$1" color={textColor}>
+                              {getTermFromDictionary(language, 'holds_ready_for_pickup')}
+                         </Heading>
+                         <Alert borderRadius="$sm" action="info" mb="$2">
+                              <HStack p="$3">
                               <AlertIcon as={InfoIcon} mr="$3" />
-                              <AlertText fontSize="$xs">
-                                   {getTermFromDictionary(language, 'holds_ready_for_pickup_message')}
-                              </AlertText>
+                              <AlertText fontSize="$xs">{getTermFromDictionary(language, 'holds_ready_for_pickup_message')}</AlertText>
+                              </HStack>
                          </Alert>
                          {actionButtons('ready')}
                     </Box>
