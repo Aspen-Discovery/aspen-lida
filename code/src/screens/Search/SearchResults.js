@@ -54,7 +54,7 @@ export const SearchResults = () => {
      const navigation = useNavigation();
      const route = useRoute();
      const [page, setPage] = React.useState(1);
-     const [storedTerm, setStoredTerm] = React.useState('');
+     const [storedTerm, setStoredTerm] = React.useState(SearchGlobal.term);
       const library = useLibrary();
       const language = useActiveLanguage();
       const scope = useLibraryScope();

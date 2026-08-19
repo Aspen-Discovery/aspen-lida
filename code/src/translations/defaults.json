@@ -691,5 +691,7 @@
   "clear_api_error_log": "Clear Logs",
   "api_error_log_empty": "No API errors in the past 24 hours",
   "total": "Total",
+  "library_updates": "Library Updates",
+  "account_updates": "Account Updates",
   "scanner": "Scanner"
 }

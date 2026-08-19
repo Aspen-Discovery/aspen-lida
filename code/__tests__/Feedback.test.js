@@ -47,7 +47,7 @@ describe('feedback toast service', () => {
 
           expect(toast.show).toHaveBeenCalledTimes(1);
           const showConfig = toast.show.mock.calls[0][0];
-          expect(showConfig.placement).toBe('top');
+          expect(showConfig.placement).toBe('bottom');
           expect(showConfig.duration).toBe(3000);
           expect(showConfig.id).toBe('toast-1700000000000');
 
@@ -68,7 +68,7 @@ describe('feedback toast service', () => {
 
           expect(globalToast.show).toHaveBeenCalledTimes(1);
           const showConfig = globalToast.show.mock.calls[0][0];
-          expect(showConfig.placement).toBe('top');
+          expect(showConfig.placement).toBe('bottom');
           expect(showConfig.duration).toBe(5000);
           expect(showConfig.id).toBe('alert-1700000000000');
 

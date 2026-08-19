@@ -1,4 +1,4 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
@@ -53,6 +53,7 @@ import {
      saveLibrary,
      saveMenu,
      saveHomeScreenLinks,
+     loadBrowseCategories,
       loadThemeState,
       saveThemeState,
       isStoredThemeIdMatch } from '../../util/db';
@@ -111,6 +112,7 @@ export const LoadingScreen = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
      const route = useRoute();
+     const isScreenFocused = useIsFocused();
      const isSQLiteMigrationNeeded = route.params?.isSQLiteMigrationNeeded ?? false;
      const [isFocused, setIsFocused] = React.useState(0);
      const [progress, setProgress] = React.useState(0);
@@ -180,13 +182,80 @@ export const LoadingScreen = () => {
 
      const numSteps = 14;
 
+     const isCachedUserForCurrentLogin = React.useCallback(async (cachedUser) => {
+          if (!cachedUser) return false;
+          const loginUserKey = (await SecureStore.getItemAsync('userKey')) ?? '';
+          const normalizedKey = String(loginUserKey).toLowerCase();
+          const normalizedCat = String(cachedUser?.cat_username ?? '').toLowerCase();
+          const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
+          return !normalizedKey || normalizedKey === normalizedCat || normalizedKey === normalizedBarcode;
+     }, []);
+
+     const applyStaleUserFallback = React.useCallback(async () => {
+          const cached = await loadAllUserData();
+          const cachedUser = cached?.user ?? null;
+          const isCurrentUser = await isCachedUserForCurrentLogin(cachedUser);
+          if (!isCurrentUser) return false;
+
+          setLoadedUser(cachedUser);
+          await updateLanguage(cachedUser.interfaceLanguage ?? 'en');
+          await updateLanguageDisplayName(getLanguageDisplayName(cachedUser.interfaceLanguage ?? 'en', languages));
+          setHasUsableUserCache(true);
+          setShouldBlockUserFetch(false);
+          setIsInitialUserDataReady(true);
+          return true;
+     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName]);
+
+     const applyStaleLibraryBranchFallback = React.useCallback(async () => {
+          const cached = await loadAllLibraryBranchData();
+          const hasStaleBranchData = !!cached && (!!cached.location || !!cached.selfCheckSettings);
+          if (!hasStaleBranchData) return false;
+
+          setLocation(cached?.location || {});
+          setHasUsableLibraryBranchCache(true);
+          setShouldBlockLibraryBranchFetch(false);
+          setIsInitialLibraryBranchDataReady(true);
+          return true;
+     }, []);
+
+     const applyStaleLibrarySystemFallback = React.useCallback(async () => {
+          const cached = await loadAllLibrarySystemData();
+          if (!cached?.library) return false;
+
+          setLibraryData(cached.library);
+          if (cached.library.discoveryVersion) {
+               await updateLibraryVersion(cached.library.discoveryVersion);
+          }
+          setHasUsableLibrarySystemCache(true);
+          setShouldBlockLibrarySystemFetch(false);
+          setIsInitialLibrarySystemDataReady(true);
+          setLibraryLinksQuerySuccess(true);
+          return true;
+     }, [updateLibraryVersion]);
+
+     const applyStaleLanguageFallback = React.useCallback(async () => {
+          const cached = await loadAllLanguageData();
+          const hasStaleLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
+          if (!hasStaleLanguageData) return false;
+
+          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
+          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
+          await updateLanguages(cachedLanguages);
+          setTranslationsLibrary(cachedDictionary);
+          await updateDictionary(cachedDictionary);
+          setHasUsableLanguageCache(true);
+          setShouldBlockLanguageFetch(false);
+          setIsInitialLanguageDataReady(true);
+          return true;
+     }, [updateLanguages, updateDictionary]);
+
      /**
       * Handle silent SQLite migration for users upgrading from Context storage.
       * Attempts to fetch and populate SQLite tables using stored credentials.
       * If migration fails, logs user out and asks them to re-authenticate.
       */
      React.useEffect(() => {
-          if (!isSQLiteMigrationNeeded || !hasResolvedLibraryContext) {
+          if (!isScreenFocused || !isSQLiteMigrationNeeded || !hasResolvedLibraryContext) {
                return;
           }
 
@@ -308,7 +377,7 @@ export const LoadingScreen = () => {
           return () => {
                migrationCancelled = true;
           };
-     }, [isSQLiteMigrationNeeded, hasResolvedLibraryContext, queryClient, navigation]);
+     }, [isScreenFocused, isSQLiteMigrationNeeded, hasResolvedLibraryContext, queryClient, navigation]);
 
      const fetchAndPersistUserData = React.useCallback(async ({ runInBackground = false } = {}) => {
           const invocationId = ++userDataFetchInvocationRef.current;
@@ -321,6 +390,11 @@ export const LoadingScreen = () => {
                const validProfile = profileResp?.ok && profileResp?.data?.result?.success !== false && profileResp?.data?.result?.success !== 'false';
                if (!validProfile) {
                     if (runInBackground) return false;
+                    const usedStaleData = await applyStaleUserFallback();
+                    if (usedStaleData) {
+                         setProgress(prevProgress => prevProgress + (100 / numSteps));
+                         return true;
+                    }
                     const error = getErrorMessage(profileResp?.code ?? 0, profileResp?.problem);
                     setHasError(true);
                     setErrorTitle('Unable to load patron profile');
@@ -382,6 +456,11 @@ export const LoadingScreen = () => {
                     logErrorMessage(error);
                     return false;
                }
+               const usedStaleData = await applyStaleUserFallback();
+               if (usedStaleData) {
+                    setProgress(prevProgress => prevProgress + (100 / numSteps));
+                    return true;
+               }
                logDebugMessage({
                     event: 'fetchAndPersistUserData:error',
                     invocationId,
@@ -392,7 +471,7 @@ export const LoadingScreen = () => {
                logErrorMessage(error);
                return false;
           }
-     }, [library?.barcodeStyle, languages, updateLanguage, updateLanguageDisplayName]);
+     }, [applyStaleUserFallback, library?.barcodeStyle, languages, numSteps, updateLanguage, updateLanguageDisplayName]);
 
       React.useEffect(() => {
            fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
@@ -411,6 +490,10 @@ export const LoadingScreen = () => {
                     if (runInBackground) {
                          logWarnMessage('Background location refresh failed. Continuing with cached data.');
                          return false;
+                    }
+                    const usedStaleData = await applyStaleLibraryBranchFallback();
+                    if (usedStaleData) {
+                         return true;
                     }
                     const error = getErrorMessage(locationResp?.code ?? 0, locationResp?.problem);
                     setHasError(true);
@@ -483,6 +566,10 @@ export const LoadingScreen = () => {
                     logErrorMessage(error);
                     return false;
                }
+               const usedStaleData = await applyStaleLibraryBranchFallback();
+               if (usedStaleData) {
+                    return true;
+               }
                logDebugMessage({
                     event: 'fetchAndPersistLibraryBranchData:error',
                     invocationId,
@@ -493,7 +580,7 @@ export const LoadingScreen = () => {
                logErrorMessage(error);
                return false;
           }
-     }, []);
+     }, [applyStaleLibraryBranchFallback]);
 
       React.useEffect(() => {
            fetchAndPersistLibraryBranchDataRef.current = fetchAndPersistLibraryBranchData;
@@ -523,6 +610,10 @@ export const LoadingScreen = () => {
                      if (runInBackground) {
                           logWarnMessage('Background library info refresh failed. Continuing with cached data.');
                           return false;
+                     }
+                     const usedStaleData = await applyStaleLibrarySystemFallback();
+                     if (usedStaleData) {
+                          return true;
                      }
                      const error = getErrorMessage(libraryResp?.code ?? 0, libraryResp?.problem);
                      setHasError(true);
@@ -565,6 +656,10 @@ export const LoadingScreen = () => {
                      logErrorMessage(error);
                      return false;
                 }
+                const usedStaleData = await applyStaleLibrarySystemFallback();
+                if (usedStaleData) {
+                     return true;
+                }
                 logDebugMessage({
                      event: 'fetchAndPersistLibrarySystemData:error',
                      invocationId,
@@ -575,7 +670,7 @@ export const LoadingScreen = () => {
                 logErrorMessage(error);
                 return false;
            }
-      }, [updateLibraryVersion]);
+      }, [applyStaleLibrarySystemFallback, updateLibraryVersion]);
 
        React.useEffect(() => {
             fetchAndPersistLibrarySystemDataRef.current = fetchAndPersistLibrarySystemData;
@@ -590,6 +685,11 @@ export const LoadingScreen = () => {
                       if (runInBackground) {
                            logWarnMessage('Background language-list refresh failed. Continuing with cached language list.');
                            return false;
+                      }
+                      const usedStaleData = await applyStaleLanguageFallback();
+                      if (usedStaleData) {
+                           setProgress(prevProgress => prevProgress + (100 / numSteps));
+                           return true;
                       }
                       const error = getErrorMessage(languageResponse?.code ?? 0, languageResponse?.problem);
                       setHasError(true);
@@ -621,16 +721,21 @@ export const LoadingScreen = () => {
                       logErrorMessage(error);
                       return false;
                  }
+                 const usedStaleData = await applyStaleLanguageFallback();
+                 if (usedStaleData) {
+                      setProgress(prevProgress => prevProgress + (100 / numSteps));
+                      return true;
+                 }
                  setHasError(true);
                  setErrorTitle(null);
                  setErrorMessage('Error loading language data. Please try again or contact the library.');
                  logErrorMessage(error);
                  return false;
             }
-       }, [language, updateLanguages, updateDictionary, numSteps]);
+       }, [applyStaleLanguageFallback, language, updateLanguages, updateDictionary, numSteps]);
 
        React.useEffect(() => {
-            if (!hasResolvedLibraryContext || hasError) return;
+            if (!isScreenFocused || !hasResolvedLibraryContext || hasError) return;
             let cancelled = false;
 
             const hydrateUserCache = async () => {
@@ -696,7 +801,7 @@ export const LoadingScreen = () => {
             return () => {
                  cancelled = true;
             };
-       }, [hasResolvedLibraryContext, hasError]);
+       }, [isScreenFocused, hasResolvedLibraryContext, hasError]);
 
         React.useEffect(() => {
              if (hasHydratedUserCacheDecision && hasHydratedLibraryBranchCacheDecision && hasHydratedLibrarySystemCacheDecision && hasHydratedLanguageCacheDecision) {
@@ -706,7 +811,14 @@ export const LoadingScreen = () => {
         }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision, hasHydratedLibrarySystemCacheDecision, hasHydratedLanguageCacheDecision]);
 
      React.useEffect(() => {
-          if (!hasResolvedLibraryContext || hasError) return;
+          if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError) {
+               logDebugMessage('All data ready from cache, clearing isReloading');
+               setIsReloading(false);
+          }
+     }, [isSQLiteDataLoaded, isInitialUserDataReady, hasUsableUserCache, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache, isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache, isInitialLanguageDataReady, hasUsableLanguageCache, hasError]);
+
+     React.useEffect(() => {
+          if (!isScreenFocused || !hasResolvedLibraryContext || hasError) return;
           let cancelled = false;
 
           const hydrateLibraryBranchCache = async () => {
@@ -763,10 +875,10 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasResolvedLibraryContext, hasError]);
+      }, [isScreenFocused, hasResolvedLibraryContext, hasError]);
 
       React.useEffect(() => {
-           if (!hasResolvedLibraryContext || hasError) return;
+           if (!isScreenFocused || !hasResolvedLibraryContext || hasError) return;
            let cancelled = false;
 
            const hydrateLibrarySystemCache = async () => {
@@ -829,10 +941,10 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasResolvedLibraryContext, hasError]);
+      }, [isScreenFocused, hasResolvedLibraryContext, hasError]);
 
       React.useEffect(() => {
-           if (!hasResolvedLibraryContext || hasError) return;
+           if (!isScreenFocused || !hasResolvedLibraryContext || hasError) return;
            let cancelled = false;
 
            const hydrateLanguageCache = async () => {
@@ -877,54 +989,61 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasResolvedLibraryContext, hasError, updateLanguages, updateDictionary, fetchAndPersistLanguageData]);
+      }, [isScreenFocused, hasResolvedLibraryContext, hasError, updateLanguages, updateDictionary, fetchAndPersistLanguageData]);
 
       React.useEffect(() => {
-          const unsubscribe = navigation.addListener('focus', async () => {
-               logDebugMessage('Setting up focus listener');
-               //Only invoke the focus event once
-               unsubscribe();
-               if (isFocused === 0) {
-                    setIsFocused(1);
-                    // The screen is focused
-                    logDebugMessage('The Loading screen is focused.');
-                    setIsReloading(true);
-                    setProgress(0);
-                    queryClient.clear();
-                    try {
-                         const currentThemeState = await loadThemeState();
-                         const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
-                         await updateColorMode(mode);
-                         const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
-                         const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
+          if (!isScreenFocused) return;
 
-                         if (!hasStoredTheme || !hasMatchingThemeId) {
-                              const builtTheme = await buildThemeForLibrary(null, LIBRARY.url);
-                              await saveThemeState({
-                                   themeId: builtTheme.themeId,
-                                   colorMode: mode,
-                                   textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                                   themeColors: builtTheme.themeColors });
-                              await updateTheme(builtTheme.theme);
-                         }
-                    } catch (e) {
-                         logErrorMessage('Unable to load theme state in Loading screen');
-                         logErrorMessage(e);
-                    } finally {
+          let cancelled = false;
+          const initializeOnFocus = async () => {
+               logDebugMessage('Loading screen focused');
+               if (isFocused !== 0) {
+                    logDebugMessage('isFocused is not 0.');
+                    return;
+               }
+
+               setIsFocused(1);
+               setIsReloading(true);
+               setProgress(0);
+               queryClient.clear();
+
+               try {
+                    const currentThemeState = await loadThemeState();
+                    const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
+                    await updateColorMode(mode);
+                    const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
+                    const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
+
+                    if (!hasStoredTheme || !hasMatchingThemeId) {
+                         const builtTheme = await buildThemeForLibrary(null, LIBRARY.url);
+                         await saveThemeState({
+                              themeId: builtTheme.themeId,
+                              colorMode: mode,
+                              textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                              themeColors: builtTheme.themeColors });
+                         await updateTheme(builtTheme.theme);
+                    }
+               } catch (e) {
+                    logErrorMessage('Unable to load theme state in Loading screen');
+                    logErrorMessage(e);
+               } finally {
+                    if (!cancelled) {
                          setLoadingTheme(false);
                     }
-
-                    //if we have no library we should set error
-                    //to avoid being stuck on loading screen.
-                    if (LIBRARY.url === null) {
-                         setHasError(true);
-                    }
-               }else{
-                    logDebugMessage('isFocused is not 0.');
                }
-          });
-          return unsubscribe;
-     }, [navigation]);
+
+               //if we have no library we should set error
+               //to avoid being stuck on loading screen.
+               if (!cancelled && LIBRARY.url === null) {
+                    setHasError(true);
+               }
+          };
+
+          initializeOnFocus();
+          return () => {
+               cancelled = true;
+          };
+     }, [isScreenFocused, isFocused, queryClient, updateColorMode, updateTheme]);
 
       /**
        * Load information needed to display the interface. These are done sequentially since some calls may rely on previous data.
@@ -939,7 +1058,7 @@ export const LoadingScreen = () => {
       const [catalogStatus, setCatalogStatusState] = React.useState(0);
 
       React.useEffect(() => {
-           if (!LIBRARY.url || loadingTheme) return;
+           if (!isScreenFocused || !LIBRARY.url || loadingTheme) return;
            let cancelled = false;
 
            (async () => {
@@ -966,31 +1085,51 @@ export const LoadingScreen = () => {
                           catalogStatusSuccess = true;
                           setCatalogStatusData(data);
                      } else {
-                          logWarnMessage("Setting Error to true because catalog status returned not ok");
-                          const error = getErrorMessage(data?.code ?? 0, data?.problem);
-                          setHasError(true);
-                          setErrorMessage(error.message);
-                          setErrorTitle("Unable to determine catalog status");
+                          const staleSystem = await loadAllLibrarySystemData();
+                          const staleStatus = staleSystem?.catalogStatus;
+                          if (typeof staleStatus === 'number') {
+                               logWarnMessage('Catalog status unavailable; using stale cached catalog status');
+                               setCatalogStatusState(staleStatus);
+                               const staleMessage = staleSystem?.catalogStatusMessage ?? '';
+                               await updateCatalogStatus(staleStatus, staleMessage);
+                               setCatalogStatusData({ ok: true, data: { result: { catalogStatus: staleStatus } } });
+                          } else {
+                               logWarnMessage("Setting Error to true because catalog status returned not ok and no stale data exists");
+                               const error = getErrorMessage(data?.code ?? 0, data?.problem);
+                               setHasError(true);
+                               setErrorMessage(error.message);
+                               setErrorTitle("Unable to determine catalog status");
+                          }
                      }
                 } catch (error) {
                      if (cancelled) return;
-                     logDebugMessage("Setting Error to true because loading catalog status failed");
-                     logErrorMessage(error);
-                     setHasError(true);
-                     setErrorTitle(null);
-                     setErrorMessage('Error checking catalog status. Please try again or contact the library.');
+                     const staleSystem = await loadAllLibrarySystemData();
+                     const staleStatus = staleSystem?.catalogStatus;
+                     if (typeof staleStatus === 'number') {
+                          logWarnMessage('Catalog status request failed; using stale cached catalog status');
+                          setCatalogStatusState(staleStatus);
+                          const staleMessage = staleSystem?.catalogStatusMessage ?? '';
+                          await updateCatalogStatus(staleStatus, staleMessage);
+                          setCatalogStatusData({ ok: true, data: { result: { catalogStatus: staleStatus } } });
+                     } else {
+                          logDebugMessage("Setting Error to true because loading catalog status failed and no stale data exists");
+                          logErrorMessage(error);
+                          setHasError(true);
+                          setErrorTitle(null);
+                          setErrorMessage('Error checking catalog status. Please try again or contact the library.');
+                     }
                 }
            })();
 
            return () => {
                 cancelled = true;
            };
-      }, [LIBRARY.url, loadingTheme]);
+      }, [isScreenFocused, LIBRARY.url, loadingTheme]);
 
       const [languagesQuerySuccess, setLanguagesQuerySuccess] = React.useState(false);
 
       React.useEffect(() => {
-           if (!catalogStatusData || hasError || !hasHydratedLanguageCacheDecision || !shouldBlockLanguageFetch || isInitialLanguageDataReady) {
+           if (!isScreenFocused || !catalogStatusData || hasError || !hasHydratedLanguageCacheDecision || !shouldBlockLanguageFetch || isInitialLanguageDataReady) {
                 return;
            }
 
@@ -1017,19 +1156,19 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [catalogStatusData, hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady, fetchAndPersistLanguageData, loadingMessageType, language]);
+      }, [isScreenFocused, catalogStatusData, hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady, fetchAndPersistLanguageData, loadingMessageType, language]);
 
       React.useEffect(() => {
-           if (hasError || !hasHydratedLanguageCacheDecision || shouldBlockLanguageFetch || !isInitialLanguageDataReady) {
+           if (!isScreenFocused || hasError || !hasHydratedLanguageCacheDecision || shouldBlockLanguageFetch || !isInitialLanguageDataReady) {
                 return;
            }
            setLanguagesQuerySuccess(true);
-      }, [hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady]);
+      }, [isScreenFocused, hasError, hasHydratedLanguageCacheDecision, shouldBlockLanguageFetch, isInitialLanguageDataReady]);
 
        let librarySystemQuerySuccess = false;
 
        React.useEffect(() => {
-           if (hasError || !languagesQuerySuccess) return;
+           if (!isScreenFocused || hasError || !languagesQuerySuccess) return;
            let cancelled = false;
 
            (async () => {
@@ -1051,30 +1190,36 @@ export const LoadingScreen = () => {
                            }
                            librarySystemQuerySuccess = true;
                       } else {
-                          logDebugMessage("Error loading library system settings");
-                          logDebugMessage(data);
-                          const error = getErrorMessage(data?.code ?? 0, data?.problem);
-                          setHasError(true);
-                          setErrorMessage(error.message);
-                          setErrorTitle("Unable to load library configuration");
+                          const usedStaleData = await applyStaleLibrarySystemFallback();
+                          if (!usedStaleData) {
+                               logDebugMessage("Error loading library system settings");
+                               logDebugMessage(data);
+                               const error = getErrorMessage(data?.code ?? 0, data?.problem);
+                               setHasError(true);
+                               setErrorMessage(error.message);
+                               setErrorTitle("Unable to load library configuration");
+                          }
                      }
                 } catch (error) {
                      if (cancelled) return;
-                     logWarnMessage("Setting Error to true because loading library system failed");
-                     setHasError(true);
-                     setErrorTitle(null);
-                     setErrorMessage('Error loading library configuration. Please try again or contact the library.');
-                     logErrorMessage(error);
+                     const usedStaleData = await applyStaleLibrarySystemFallback();
+                     if (!usedStaleData) {
+                          logWarnMessage("Setting Error to true because loading library system failed");
+                          setHasError(true);
+                          setErrorTitle(null);
+                          setErrorMessage('Error loading library configuration. Please try again or contact the library.');
+                          logErrorMessage(error);
+                     }
                 }
            })();
 
            return () => {
                 cancelled = true;
            };
-      }, [hasError, languagesQuerySuccess]);
+      }, [applyStaleLibrarySystemFallback, isScreenFocused, hasError, languagesQuerySuccess]);
 
        React.useEffect(() => {
-           if (hasError || (!isInitialUserDataReady && !hasUsableUserCache) || libraryLinksQuerySuccess) return;
+           if (!isScreenFocused || hasError || (!isInitialUserDataReady && !hasUsableUserCache) || libraryLinksQuerySuccess) return;
            let cancelled = false;
 
            if (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) {
@@ -1097,30 +1242,46 @@ export const LoadingScreen = () => {
                           }
                            setLibraryLinksQuerySuccess(true);
                       } else {
-                          logDebugMessage("Error loading library links");
-                          logDebugMessage(data);
-                          const error = getErrorMessage(data?.code ?? 0, data?.problem);
-                          setHasError(true);
-                          setErrorMessage(error.message);
-                          setErrorTitle("Unable to load menu links");
+                          const staleSystem = await loadAllLibrarySystemData();
+                          const staleMenu = Array.isArray(staleSystem?.menu) ? staleSystem.menu : null;
+                          if (staleMenu) {
+                               logWarnMessage('Library links unavailable; using stale cached menu links');
+                               await saveMenu(staleMenu);
+                               setLibraryLinksQuerySuccess(true);
+                          } else {
+                               logDebugMessage("Error loading library links");
+                               logDebugMessage(data);
+                               const error = getErrorMessage(data?.code ?? 0, data?.problem);
+                               setHasError(true);
+                               setErrorMessage(error.message);
+                               setErrorTitle("Unable to load menu links");
+                          }
                      }
                 } catch (error) {
                      if (cancelled) return;
-                     logDebugMessage("Setting Error to true because loading library links failed");
-                     logErrorMessage(error);
-                     setHasError(true);
-                     setErrorTitle(null);
-                     setErrorMessage('Unknown error loading library links. Please try again or contact the library.');
+                     const staleSystem = await loadAllLibrarySystemData();
+                     const staleMenu = Array.isArray(staleSystem?.menu) ? staleSystem.menu : null;
+                     if (staleMenu) {
+                          logWarnMessage('Library links request failed; using stale cached menu links');
+                          await saveMenu(staleMenu);
+                          setLibraryLinksQuerySuccess(true);
+                     } else {
+                          logDebugMessage("Setting Error to true because loading library links failed");
+                          logErrorMessage(error);
+                          setHasError(true);
+                          setErrorTitle(null);
+                          setErrorMessage('Unknown error loading library links. Please try again or contact the library.');
+                     }
                 }
            })();
 
            return () => {
                 cancelled = true;
            };
-      }, [hasError, isInitialUserDataReady, hasUsableUserCache, libraryLinksQuerySuccess, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache]);
+      }, [isScreenFocused, hasError, isInitialUserDataReady, hasUsableUserCache, libraryLinksQuerySuccess, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache]);
 
        React.useEffect(() => {
-           if (hasError || !libraryLinksQuerySuccess) return;
+           if (!isScreenFocused || hasError || !libraryLinksQuerySuccess) return;
            let cancelled = false;
 
            (async () => {
@@ -1132,7 +1293,8 @@ export const LoadingScreen = () => {
                           logDebugMessage("Loaded Home Screen Feed");
                           setProgress(prevProgress => prevProgress + (100 / numSteps));
                           const result = data.data.result;
-                          updateBrowseCategories(result.browseCategories);
+                          // If browse categories are missing, seed empty data and continue startup.
+                          updateBrowseCategories(Array.isArray(result?.browseCategories) ? result.browseCategories : []);
                           updateMaxCategories(5);
                           await saveHomeScreenLinks(result.homeScreenLinks);
                           if (loadingMessageType === 1) {
@@ -1140,30 +1302,33 @@ export const LoadingScreen = () => {
                           }
                            setBrowseCategoryQuerySuccess(true);
                       } else {
-                          logDebugMessage("Error loading browse categories and home screen links");
+                          logWarnMessage("Home screen feed unavailable; continuing with existing/empty browse categories");
                           logDebugMessage(data);
-                          const error = getErrorMessage(data?.code ?? 0, data?.problem);
-                          setHasError(true);
-                          setErrorMessage(error.message);
-                          setErrorTitle("Unable to load browse categories and home screen links");
+                            // Non-fatal: prefer stale cached categories; fall back to empty list.
+                            const staleBrowseCategories = await loadBrowseCategories();
+                            updateBrowseCategories(Array.isArray(staleBrowseCategories?.data) ? staleBrowseCategories.data : []);
+                          await saveHomeScreenLinks([]);
+                          setBrowseCategoryQuerySuccess(true);
                      }
                 } catch (error) {
                      if (cancelled) return;
-                     logDebugMessage("Setting Error to true because loading browse categories and home screen links failed");
+                     logWarnMessage("Home screen feed request failed; continuing without blocking startup");
                      logErrorMessage(error);
-                     setHasError(true);
-                     setErrorTitle(null);
-                     setErrorMessage('Error loading home screen feed. Please try again or contact the library.');
+                       // Non-fatal: prefer stale cached categories; fall back to empty list.
+                       const staleBrowseCategories = await loadBrowseCategories();
+                       updateBrowseCategories(Array.isArray(staleBrowseCategories?.data) ? staleBrowseCategories.data : []);
+                     await saveHomeScreenLinks([]);
+                     setBrowseCategoryQuerySuccess(true);
                 }
            })();
 
            return () => {
                 cancelled = true;
            };
-       }, [hasError, libraryLinksQuerySuccess]);
+       }, [isScreenFocused, hasError, libraryLinksQuerySuccess]);
 
       React.useEffect(() => {
-           if (!hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
+           if (!isScreenFocused || !hasHydratedUserCacheDecision || !shouldBlockUserFetch || !hasResolvedLibraryContext || hasError || isInitialUserDataReady) return;
           let cancelled = false;
 
           const runBlockingUserFetch = async () => {
@@ -1189,10 +1354,10 @@ export const LoadingScreen = () => {
           return () => {
                cancelled = true;
           };
-      }, [hasHydratedUserCacheDecision, shouldBlockUserFetch, hasResolvedLibraryContext, hasError, isInitialUserDataReady, fetchAndPersistUserData]);
+      }, [isScreenFocused, hasHydratedUserCacheDecision, shouldBlockUserFetch, hasResolvedLibraryContext, hasError, isInitialUserDataReady, fetchAndPersistUserData]);
 
      React.useEffect(() => {
-          if (!hasHydratedLibraryBranchCacheDecision || !shouldBlockLibraryBranchFetch || !hasResolvedLibraryContext || hasError || isInitialLibraryBranchDataReady) return;
+          if (!isScreenFocused || !hasHydratedLibraryBranchCacheDecision || !shouldBlockLibraryBranchFetch || !hasResolvedLibraryContext || hasError || isInitialLibraryBranchDataReady) return;
           let cancelled = false;
 
           const runBlockingLibraryBranchFetch = async () => {
@@ -1218,10 +1383,10 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasHydratedLibraryBranchCacheDecision, shouldBlockLibraryBranchFetch, hasResolvedLibraryContext, hasError, isInitialLibraryBranchDataReady, fetchAndPersistLibraryBranchData]);
+      }, [isScreenFocused, hasHydratedLibraryBranchCacheDecision, shouldBlockLibraryBranchFetch, hasResolvedLibraryContext, hasError, isInitialLibraryBranchDataReady, fetchAndPersistLibraryBranchData]);
 
       React.useEffect(() => {
-           if (!hasHydratedLibrarySystemCacheDecision || !shouldBlockLibrarySystemFetch || !hasResolvedLibraryContext || hasError || isInitialLibrarySystemDataReady) return;
+           if (!isScreenFocused || !hasHydratedLibrarySystemCacheDecision || !shouldBlockLibrarySystemFetch || !hasResolvedLibraryContext || hasError || isInitialLibrarySystemDataReady) return;
            let cancelled = false;
 
            const runBlockingLibrarySystemFetch = async () => {
@@ -1247,10 +1412,10 @@ export const LoadingScreen = () => {
            return () => {
                 cancelled = true;
            };
-      }, [hasHydratedLibrarySystemCacheDecision, shouldBlockLibrarySystemFetch, hasResolvedLibraryContext, hasError, isInitialLibrarySystemDataReady, fetchAndPersistLibrarySystemData]);
+      }, [isScreenFocused, hasHydratedLibrarySystemCacheDecision, shouldBlockLibrarySystemFetch, hasResolvedLibraryContext, hasError, isInitialLibrarySystemDataReady, fetchAndPersistLibrarySystemData]);
 
         useQuery(['system_messages', LIBRARY.url], () => getSystemMessages(libraryData?.libraryId, location?.locationId, LIBRARY.url), {
-              enabled: hasError === false && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && !!location?.locationId,
+              enabled: isScreenFocused && hasError === false && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && !!location?.locationId,
           onSuccess: (data) => {
                if(data.ok) {
                     logDebugMessage("Loaded System Messages");
@@ -1284,42 +1449,18 @@ export const LoadingScreen = () => {
           }
      });
 
-       React.useEffect(() => {
-            if (
-                 !isReloading &&
-                 isSQLiteDataLoaded &&
-                 (isInitialUserDataReady || hasUsableUserCache) &&
-                 (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) &&
-                 (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) &&
-                 (isInitialLanguageDataReady || hasUsableLanguageCache) &&
-                 !hasError &&
-                 catalogStatus === 0
-            ) {
+     React.useEffect(() => {
+          if (!isScreenFocused) return;
+          if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError && catalogStatus === 0) {
                setProgress(100);
                navigation.navigate('DrawerStack', {
                     user: user,
                     library: library,
                     location: location,
-                    prevRoute: 'LoadingScreen' });
-           }
-       }, [
-            isReloading,
-            isSQLiteDataLoaded,
-            isInitialUserDataReady,
-            hasUsableUserCache,
-            isInitialLibrarySystemDataReady,
-            hasUsableLibrarySystemCache,
-            isInitialLibraryBranchDataReady,
-            hasUsableLibraryBranchCache,
-            isInitialLanguageDataReady,
-            hasUsableLanguageCache,
-            hasError,
-            catalogStatus,
-            user,
-            library,
-            location,
-            navigation,
-       ]);
+                    prevRoute: 'LoadingScreen',
+               });
+          }
+     }, [isScreenFocused, isSQLiteDataLoaded, isInitialUserDataReady, hasUsableUserCache, isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache, isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache, isInitialLanguageDataReady, hasUsableLanguageCache, hasError, catalogStatus, user, library, location, navigation]);
 
      if (hasError) {
           return <ForceLogout title={errorTitle} reason={errorMessage} />;

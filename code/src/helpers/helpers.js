@@ -167,6 +167,34 @@ export function stripHTML(string) {
 }
 
 /**
+ * Normalize arbitrary text for display by optionally stripping HTML,
+ * collapsing whitespace, and trimming leading/trailing spaces.
+ */
+export function normalizeDisplayText(value, options = {}) {
+     const {
+          stripHtml = true,
+          collapseWhitespace = true,
+          trim = true,
+     } = options;
+
+     let output = String(value ?? '');
+
+     if (stripHtml) {
+          output = stripHTML(output);
+     }
+
+     if (collapseWhitespace) {
+          output = output.replace(/\s+/g, ' ');
+     }
+
+     if (trim) {
+          output = output.trim();
+     }
+
+     return output;
+}
+
+/**
  * Decode HTML entities in a string
  **/
 export function decodeHTML(string) {
@@ -354,15 +382,9 @@ export function generateSwatches(swatch) {
                return saturationDelta >= 0 ? color.saturate(saturationDelta) : color.desaturate(saturationDelta * -1);
           });
 
-     const colorsHueUp = colors.map((color, i) => {
-          const hueDelta = HUE_MAP[i] - HUE_MAP[baseColorIndex];
-          return hueDelta >= 0 ? color.set('hsl.h', `+${hueDelta}`) : color.set('hsl.h', `+${(hueDelta * -1) / 2}`);
-     });
-
-     const colorsHueDown = colors.map((color, i) => {
-          const hueDelta = HUE_MAP[i] - HUE_MAP[baseColorIndex];
-          return hueDelta >= 0 ? color.set('hsl.h', `-${hueDelta}`) : color.set('hsl.h', `-${(hueDelta * -1) / 2}`);
-     });
+     const rawApiColor = chroma(primaryColor);
+     const BASE_500_INDEX = 5;
+     colors[BASE_500_INDEX] = rawApiColor;
 
      const object = {};
      let baseColor;
