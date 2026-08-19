@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Button, ButtonText, ButtonSpinner, useToast } from '@gluestack-ui/themed';
+import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import React from 'react';
 
 // custom components and helper files
@@ -62,7 +62,6 @@ export const PlaceHold = (props = {}) => {
      const { theme } = useTheme() ?? {};
      const primary500 = theme?.tokens?.colors?.primary?.['500'] ?? '$primary500';
      const primary500Text = theme?.tokens?.colors?.primary?.['500-text'] ?? '$primary500-text';
-      const toast = useToast();
       const safeLocations = _.isArray(locations) ? locations : [];
       const safeAccounts = _.isArray(accounts) ? accounts : [];
       const numItemsWithVolumes = _.toNumber(volumeInfo?.numItemsWithVolumes ?? 0);
@@ -217,7 +216,7 @@ export const PlaceHold = (props = {}) => {
                          maxWidth="100%"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(toast, record, type, user.id, '', '', pickupLocation, sublocation, user.rememberHoldPickupLocation, library.baseUrl, volumeId, holdType).then(async (ilsResponse) => {
+                              await completeAction(record, type, user.id, '', '', pickupLocation, sublocation, user.rememberHoldPickupLocation, library.baseUrl, volumeId, holdType).then(async (ilsResponse) => {
                                    setResponse(ilsResponse);
 
                                    if (ilsResponse?.confirmationNeeded && ilsResponse.confirmationNeeded) {

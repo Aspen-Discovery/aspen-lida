@@ -10,8 +10,7 @@ import {
      HStack,
      Text,
      SafeAreaView,
-     ScrollView,
-     useToast
+     ScrollView
 } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';

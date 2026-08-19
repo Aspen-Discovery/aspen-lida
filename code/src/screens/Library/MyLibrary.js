@@ -2,14 +2,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, HStack, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
-import { colorMode, useColorModeValue, useTheme } from '../../themes/theme';
+import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, HStack, ScrollView, Text, VStack } from '@gluestack-ui/themed';
+import { colorMode, useTheme } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useLibraryLocationQuery, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -17,6 +17,7 @@ import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,7 +26,10 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
      const library = useLibrary();
-     const location = useLibraryLocation();
+     const {
+          data: location,
+          isLoading: isLoadingLocation,
+     } = useLibraryLocationQuery();
      const locations = useAvailableLocations();
      const language = useActiveLanguage();
      const queryClient = useQueryClient();
@@ -33,6 +37,10 @@ export const MyLibrary = () => {
      const { textColor, theme, colorMode } = useTheme();
 
      const bgColor = colorMode === 'light' ? '#f5f5f4' : '#111827';
+
+     if (isLoadingLocation || !location) {
+          return <LoadingSpinner />;
+     }
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {

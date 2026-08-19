@@ -138,7 +138,7 @@ export async function loadSelfCheckEnabled() {
           `SELECT self_check_enabled FROM library_branch_state WHERE id = ? LIMIT 1;`,
           [ROW_ID]
      );
-     return intToBool(row?.self_check_enabled) ?? false;
+     return intToBool(row?.self_check_enabled);
 }
 
 /**
@@ -237,7 +237,7 @@ export async function loadAllLibraryBranchData() {
      return {
           location: safeParse(row.location_json),
           scope: row.scope ?? '',
-          enableSelfCheck: intToBool(row.self_check_enabled) ?? false,
+          enableSelfCheck: intToBool(row.self_check_enabled),
           selfCheckSettings: safeParse(row.self_check_settings_json) ?? {},
           locations: safeParse(row.locations_json) ?? [],
           updatedAt: row.updated_at ?? 0,

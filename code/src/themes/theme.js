@@ -134,8 +134,8 @@ function normalizeThemeColors(response = []) {
      };
 }
 
-export async function buildThemeForLibrary(toast, url = null) {
-     const response = await getThemeInfo(toast, url);
+export async function buildThemeForLibrary(url = null) {
+     const response = await getThemeInfo(url);
      const themeColors = normalizeThemeColors(response);
      const theme = buildConfigFromColors(themeColors);
      return {
@@ -197,8 +197,8 @@ export function useTheme() {
           await resetThemeState();
      }, [resetThemeState]);
 
-     const forceRefreshTheme = React.useCallback(async (toast, url = null) => {
-          const builtTheme = await buildThemeForLibrary(toast, url);
+     const forceRefreshTheme = React.useCallback(async (url = null) => {
+          const builtTheme = await buildThemeForLibrary(url);
           await updateTheme(builtTheme.theme);
           return builtTheme;
      }, [updateTheme]);

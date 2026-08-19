@@ -1,26 +1,23 @@
 import { useIsFocused } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
-import { Button, ButtonText, Center, View } from '@gluestack-ui/themed';
+import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
 
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { navigateStack, goBack } from '../helpers/RootNavigator';
+import { useNavigation } from '@react-navigation/native';
+import { navigateStack } from '../helpers/RootNavigator';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { LoadError } from './loadError';
 import { LoadingSpinner } from './loadingSpinner';
 import { useActiveLanguage } from '../hooks/useLanguageData';
-import { useTheme } from '../themes/theme';
 
 export default function Scanner() {
      const navigation = useNavigation();
      const isFocused = useIsFocused();
-     const [isLoading, setLoading] = React.useState(false);
      const [permission, requestPermission] = useCameraPermissions();
      const [scanned, setScanned] = React.useState(false);
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
 
      let allowedBarcodes = ['upc_a', 'upc_e', 'ean13', 'ean8', 'codabar'];
 
@@ -31,14 +28,13 @@ export default function Scanner() {
      }, [permission]);
 
      const handleBarCodeScanned = ({ type, data }) => {
-          setLoading(true);
           if (!scanned) {
                data = cleanBarcode(data, type);
                setScanned(true);
+               if (navigation.canGoBack()) {
+                    navigation.goBack();
+               }
                navigateStack('BrowseTab', 'SearchResults', { term: data, type: 'catalog', prevRoute: 'DiscoveryScreen', scannerSearch: true, barcodeType: type });
-               setLoading(false);
-          } else {
-               setLoading(false);
           }
      };
 

@@ -20,7 +20,7 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text, useToast } from '@gluestack-ui/themed';
+     Text } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -34,7 +34,6 @@ export const ActionButton = (data) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
-     const toast = useToast();
 
      const action = data.actions;
      const {

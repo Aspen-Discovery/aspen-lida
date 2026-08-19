@@ -24,10 +24,10 @@ import {
      ModalContent,
      ModalHeader,
      ModalFooter,
-     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup, useToast
+     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
@@ -315,7 +315,6 @@ const PrivacyPolicy = () => {
      const language = useActiveLanguage();
 
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -359,7 +358,7 @@ const PrivacyPolicy = () => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -386,7 +385,6 @@ const MenuLink = (payload) => {
      categoryLabel = categoryLabel.category;
 
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -457,7 +455,7 @@ const MenuLink = (payload) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

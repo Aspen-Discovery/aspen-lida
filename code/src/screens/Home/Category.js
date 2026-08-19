@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText, useToast } from '@gluestack-ui/themed';
+import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText } from '@gluestack-ui/themed';
 import { ScrollView } from 'react-native';
 import _ from 'lodash';
 import React from 'react';
@@ -12,7 +12,7 @@ import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -20,7 +20,6 @@ import { useTheme } from '../../themes/theme';
 const loggedEmptyCategoryKeys = new Set();
 
 const DisplayBrowseCategory = ({category}) => {
-     const toast = useToast();
      const { theme, colorMode } = useTheme();
      const language = useActiveLanguage();
      const library = useLibrary();
@@ -95,7 +94,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -113,7 +112,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -330,7 +329,6 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 }
 
 const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, isSystemBrowseCategory }) => {
-     const toast = useToast();
      const { theme, textColor, colorMode } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
@@ -364,7 +362,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }

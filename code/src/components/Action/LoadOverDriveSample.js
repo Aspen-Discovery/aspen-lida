@@ -1,5 +1,5 @@
 import React from 'react';
-import { ButtonSpinner, Button, ButtonText, useToast } from '@gluestack-ui/themed';
+import { ButtonSpinner, Button, ButtonText } from '@gluestack-ui/themed';
 
 // custom components and helper files
 
@@ -15,7 +15,6 @@ export const LoadOverDriveSample = (props) => {
      const library = useLibrary();
      const [loading, setLoading] = React.useState(false);
      const { theme } = useTheme();
-     const toast = useToast();
 
      logDebugMessage("Showing overdrive sample, properties are");
      logDebugMessage(props);
@@ -31,7 +30,7 @@ export const LoadOverDriveSample = (props) => {
                borderColor={theme.tokens.colors.primary['500']}
                onPress={() => {
                     setLoading(true);
-                    completeAction(toast, props.id, props.type, user.id, props.formatId, props.sampleNumber, '', '', '', library?.baseUrl ?? '', '', '', '', '').then((r) => {
+                    completeAction(props.id, props.type, user.id, props.formatId, props.sampleNumber, '', '', '', library?.baseUrl ?? '', '', '', '', '').then((r) => {
                          setLoading(false);
                     });
                }}>
