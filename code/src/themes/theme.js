@@ -61,7 +61,7 @@ function buildBadgeTheme(actionType) {
           borderRadius: 'sm',
           _text: {
                color: colors.text,
-               fontSize: 'xs',
+               fontSize: '$xs',
                fontWeight: 'medium',
                textTransform: 'none'
           },

@@ -248,7 +248,7 @@ const MyLibrary = () => {
           <Box m="$4" bgColor={theme['tokens']['colors']['primary']['400']} p="$6" borderRadius="$xl">
                <Pressable display="flex" flexDirection="row" onPress={() => navigate('MyLibrary')} space="sm" alignItems="center" justifyContent="space-between">
                     <VStack>
-                         <Text bold fontSize="md" color={theme['tokens']['colors']['primary']['400-text']}>
+                         <Text bold fontSize="$md" color={theme['tokens']['colors']['primary']['400-text']}>
                               {library.displayName}
                          </Text>
                          {library.displayName !== location?.displayName ? (
