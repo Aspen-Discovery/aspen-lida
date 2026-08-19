@@ -306,7 +306,7 @@ export const LoadingScreen = () => {
                     }
 
                     await saveAllLibraryBranchData({
-                         location,
+                         location: location,
                          ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
                          ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
                     });
@@ -553,7 +553,7 @@ export const LoadingScreen = () => {
 
                 // Save all library branch data in one transaction
                 await saveAllLibraryBranchData({
-                     location,
+                     location: location,
                      ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
                      ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
                 });

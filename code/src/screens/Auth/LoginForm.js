@@ -132,7 +132,7 @@ export const GetLoginForm = (props) => {
                }
 
                await saveAllLibraryBranchData({
-                    location,
+                    location: location,
                     ...(typeof selfCheckEnabled === 'boolean' ? { enableSelfCheck: selfCheckEnabled } : {}),
                     ...(selfCheckSettings ? { selfCheckSettings } : {}),
                });
@@ -273,6 +273,7 @@ export const GetLoginForm = (props) => {
                          await AsyncStorage.setItem('@pathUrl', patronHomeLocation.baseUrl);
                           selectedLocationId = patronHomeLocation.locationId;
                           selectedBaseUrl = patronHomeLocation.baseUrl;
+
                     } else {
                          // just store what we know
                          logDebugMessage('Problem getting location info for user home location. Setting library and location to: ' + patronsLibrary['name']);
