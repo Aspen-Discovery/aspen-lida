@@ -51,7 +51,6 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyHold = (props) => {
      const hold = props.data;
-     const holdSource = props.holdSource
      const resetGroup = props.resetGroup;
      const [pickupLocations, setPickupLocations] = React.useState([]);
      const { data: sublocations } = useSublocations();
@@ -350,10 +349,6 @@ export const MyHold = (props) => {
                return null;
           }
      };
-
-     if (holdSource !== 'all' && holdSource !== hold.source) {
-          return null;
-     }
 
      return (
           <>
