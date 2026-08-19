@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
+import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 
@@ -28,7 +28,7 @@ import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust 
 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
-import { popAlert } from '../../components/feedback/toastService';
+import { popAlert } from '../../components/feedback';
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
@@ -61,7 +61,6 @@ export const LoginScreen = () => {
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
      const { theme, colorMode, textColor } = useTheme();
-     const toast = useToast();
 
      let isCommunity = true;
      if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
@@ -77,10 +76,10 @@ export const LoginScreen = () => {
       // Show migration error message if session expired due to SQLite migration failure
       React.useEffect(() => {
            if (route.params?.migrationError) {
-                popAlert(toast, 'Session expired', 'Your session expired, please log in again.', 'error');
+                popAlert('Session expired', 'Your session expired, please log in again.', 'error');
                 logDebugMessage('Migration error detected, showing toast to user');
            }
-      }, [route.params?.migrationError, toast]);
+      }, [route.params?.migrationError]);
 
       useFocusEffect(
            React.useCallback(() => {
@@ -128,7 +127,7 @@ export const LoginScreen = () => {
                      setIsLoading(false);
                 };
                 bootstrapAsync();
-          }, [toast, isCommunity])
+          }, [isCommunity])
       );
 
      const onLogoTap = () => {

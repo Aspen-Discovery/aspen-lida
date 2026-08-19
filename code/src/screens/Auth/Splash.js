@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { Center, Image, Spinner, VStack, useToast } from '@gluestack-ui/themed';
+import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { buildThemeForLibrary, THEME_STALE_MS, useTheme } from '../../themes/theme';
@@ -228,7 +228,6 @@ export async function evaluateStartupCache() {
 }
 
 export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme = false, onThemeInitialized }) => {
-     const toast = useToast();
      const { updateTheme, updateColorMode } = useTheme();
 
      React.useEffect(() => {
@@ -275,7 +274,7 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          }
 
                          logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl}`);
-                         const builtTheme = await buildThemeForLibrary(toast, themeUrl);
+                         const builtTheme = await buildThemeForLibrary(themeUrl);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
                               colorMode: mode,
@@ -303,7 +302,7 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                logDebugMessage('Splash theme init: cleanup (component unmounted)');
                active = false;
           };
-     }, [forceRefreshTheme, onThemeInitialized, shouldInitializeTheme, toast, updateColorMode, updateTheme]);
+     }, [forceRefreshTheme, onThemeInitialized, shouldInitializeTheme, updateColorMode, updateTheme]);
 
      return (
           <Center testID="splash-center" flex={1} px="$3" style={{ backgroundColor: splashBackgroundColor }}>

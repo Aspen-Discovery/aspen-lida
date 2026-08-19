@@ -5,11 +5,11 @@ import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack, useToast } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
 import { loadError } from '../../../components/loadError';
-import { popAlert, popToast } from '../../../components/feedback/toastService';
+import { popAlert, popToast } from '../../../components/feedback';
 
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
@@ -225,7 +225,6 @@ const Item = (data) => {
      const filterBy = data.filterBy;
      const setLoading = data.setLoading;
      const event = data.data;
-     const toast = useToast();
      const queryClient = useQueryClient();
      const { data: userState2 } = useUserState();
      const user = userState2?.user ?? {};
@@ -349,7 +348,7 @@ const Item = (data) => {
                               logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -363,9 +362,9 @@ const Item = (data) => {
                refreshAndSaveUserProfile();
                queryClient.invalidateQueries({ queryKey: ['event', event.sourceId, source, language, library.baseUrl] });
                if (result.success || result.success === 'true') {
-                    popAlert(toast, getTermFromDictionary(language, 'removed_successfully'), result.message, 'success');
+                    popAlert(getTermFromDictionary(language, 'removed_successfully'), result.message, 'success');
                } else {
-                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };

@@ -347,11 +347,10 @@ export async function getLibraryBranch(data) {
 /**
  * Fetch theme information for the library and generate color swatches for the app
  * with fallback to a default theme if there are any issues with the request or response
- * @param {object} toast - The instance returned by useToast()
  * @param url
  * @returns {Promise<unknown[]>}
  */
-export async function getThemeInfo(toast, url = null) {
+export async function getThemeInfo(url = null) {
      let libraryUrl = LIBRARY.url ?? GLOBALS.url;
      if (url !== null && url !== '') {
           libraryUrl = url;

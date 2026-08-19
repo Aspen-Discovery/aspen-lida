@@ -9,8 +9,7 @@ import {
      Heading,
      HStack,
      ScrollView,
-     Text,
-     useToast
+     Text
 } from '@gluestack-ui/themed';
 import React, { useContext, useLayoutEffect, useState } from 'react';
 

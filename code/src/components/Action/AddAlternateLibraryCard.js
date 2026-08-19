@@ -21,8 +21,7 @@ import {
      Input,
      InputField,
      InputSlot,
-     InputIcon,
-     useToast
+     InputIcon
 } from '@gluestack-ui/themed';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -90,7 +89,6 @@ export const AddAlternateLibraryCard = (props) => {
 
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
-     const toast = useToast();
 
      let cardLabel = getTermFromDictionary(language, 'alternate_library_card');
      let passwordLabel = getTermFromDictionary(language, 'password');
@@ -202,7 +200,7 @@ export const AddAlternateLibraryCard = (props) => {
                                    isDisabled={loading}
                                    onPress={async () => {
                                         setLoading(true);
-                                        await completeAction(toast, id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                        await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              logDebugMessage("Completed Action after add alternate library card");
                                              if (result) {

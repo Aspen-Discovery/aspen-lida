@@ -11,7 +11,7 @@ import {
      Text,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton, useToast
+     ModalBackdrop, CloseIcon, ModalCloseButton
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
@@ -38,7 +38,6 @@ const DisableAccountLinking = () => {
      const updateViewers = useUpdateViewers();
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
-     const toast = useToast();
 
      const toggle = () => {
           setShowModal(!showModal);
