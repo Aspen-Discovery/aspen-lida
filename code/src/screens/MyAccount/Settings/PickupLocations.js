@@ -29,7 +29,7 @@ import {
      CheckIcon,
      CheckboxIndicator,
      CheckboxIcon,
-     ButtonSpinner, useToast
+     ButtonSpinner
 } from '@gluestack-ui/themed';
 import {getPickupLocations, getPickupSublocations, refreshProfile, updateHoldPickupPreferences} from "../../../util/api/user";
 import { formatPickupLocations } from '../../../util/api/userHelper';
@@ -77,7 +77,6 @@ export const Settings_PickupLocations = () => {
     const updateUserProfile = useUpdateUserProfile();
 	const { theme, textColor, colorMode } = useTheme();
 	const insets = useSafeAreaInsets();
-     const toast = useToast();
 	const locationsRef = React.useRef(locations);
 	const sublocationsRef = React.useRef(sublocations);
 

@@ -14,7 +14,7 @@ import {
      Badge,
      BadgeText,
      VStack,
-     Input, InputSlot, InputIcon, InputField, FormControl, useToast
+     Input, InputSlot, InputIcon, InputField, FormControl
 } from '@gluestack-ui/themed';
 import { CommonActions, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -255,7 +255,6 @@ const DisplayResult = (data) => {
      const { theme, textColor, colorMode } = useTheme();
      const { currentSource } = React.useContext(SearchContext);
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
-     const toast = useToast();
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -339,7 +338,7 @@ const DisplayResult = (data) => {
                               logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

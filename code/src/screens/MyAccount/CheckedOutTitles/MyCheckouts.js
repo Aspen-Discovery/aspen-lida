@@ -37,8 +37,7 @@ import {
      VStack,
      CloseIcon,
      Heading,
-     ChevronDownIcon,
-     useToast
+     ChevronDownIcon
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -85,8 +84,6 @@ export const MyCheckouts = () => {
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
      const { theme, textColor, colorMode } = useTheme();
-
-     const toast = useToast();
 
      const [checkoutsBy, setCheckoutBy] = React.useState({
           ils: 'Checked Out Titles for Physical Materials',

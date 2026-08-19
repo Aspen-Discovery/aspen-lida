@@ -4,7 +4,7 @@ import {
      Actionsheet,
      ActionsheetContent,
      ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon, useToast } from '@gluestack-ui/themed';
+     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,8 +46,6 @@ export const MyCheckout = (props) => {
      const [returning, setReturn] = useState(false);
      const [renewing, setRenew] = useState(false);
      const [isOpen, setIsOpen] = React.useState(false);
-
-     const toast = useToast();
 
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

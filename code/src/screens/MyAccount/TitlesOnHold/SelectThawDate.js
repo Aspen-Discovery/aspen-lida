@@ -24,7 +24,7 @@ import {
      ModalCloseButton,
      ModalContent,
      ModalFooter,
-     ModalHeader, useToast
+     ModalHeader
 } from '@gluestack-ui/themed';
 
 import { freezeHold, freezeHolds } from '../../../util/api/user';
@@ -40,7 +40,6 @@ export const SelectThawDate = (props) => {
      const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
      const [showIndefiniteWarning, setShowIndefiniteWarning] = React.useState(false);
      const [freezeIndefinite, setFreezeIndefinite] = React.useState(false);
-     const toast = useToast();
 
      let actionLabel = freezeLabel;
      if (label) {

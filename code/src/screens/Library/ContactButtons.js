@@ -2,11 +2,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
-import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken, useToast} from '@gluestack-ui/themed';
+import {Box, ButtonGroup, Button, ButtonText, ButtonIcon, Center, Icon, useToken} from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../themes/theme';
 import React from 'react';
 import { showLocation } from 'react-native-map-link';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -18,7 +18,6 @@ const ContactButtons = (data) => {
      const location = data.data;
      const language = useActiveLanguage();
      const { textColor: themeTextColor, colorMode } = useTheme();
-     const toast = useToast();
 
      const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
      const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
@@ -73,10 +72,10 @@ const ContactButtons = (data) => {
                                         });
                               } catch (error) {
                                    logDebugMessage('Really borked.');
-                                   logError(error);
+                                   logErrorMessage(error);
                               }
                          } else {
-                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });
@@ -110,7 +109,7 @@ const ContactButtons = (data) => {
                                    logErrorMessage(error);
                               }
                          } else {
-                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                               logErrorMessage(err);
                          }
                     });
