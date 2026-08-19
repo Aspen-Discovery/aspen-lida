@@ -4,6 +4,7 @@ import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/n
 import React from 'react';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
@@ -30,6 +31,7 @@ export const DiscoverHomeScreen = () => {
      const navigation = useNavigation();
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
+     const insets = useSafeAreaInsets();
 
      const { textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -299,9 +301,12 @@ export const DiscoverHomeScreen = () => {
           setSearchTerm('');
      };
 
+     const listBottomPadding = insets.bottom + 96;
+
      return (
           <Box>
                <FlatList
+                    contentContainerStyle={{ paddingBottom: listBottomPadding }}
                     ListHeaderComponent={
                          <Box p="$5">
                               {androidEndSupportMessage()}
