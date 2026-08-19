@@ -3,13 +3,13 @@ import { Image } from 'expo-image';
 import _ from 'lodash';
 import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, useToken } from '@gluestack-ui/themed';
-import { colorMode, useColorModeValue, useTheme } from '../../themes/theme';
+import { colorMode, useTheme } from '../../themes/theme';
 import React from 'react';
 
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useLibraryLocationQuery, useAvailableLocations } from '../../hooks/useLibraryBranchData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
@@ -17,6 +17,7 @@ import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
 // custom components and helper files
 import Hours from './Hours';
+import { LoadingSpinner } from '../../components/loadingSpinner';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
@@ -24,12 +25,20 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyLibrary = () => {
      const library = useLibrary();
-     const location = useLibraryLocation();
+     const {
+          data: location,
+          isLoading: isLoadingLocation,
+     } = useLibraryLocationQuery();
      const locations = useAvailableLocations();
      const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme } = useTheme();
+
+     if (isLoadingLocation || !location) {
+          return <LoadingSpinner />;
+     }
+
 
      const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
      const showSystemMessage = () => {

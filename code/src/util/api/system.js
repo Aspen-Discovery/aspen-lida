@@ -225,6 +225,7 @@ export async function getSelfCheckSettings(url = null, locationIdOverride = null
           }
      }
 
+
      const client = createApiClient({ url, timeout: GLOBALS.timeoutFast });
 
      return await client.get('/SystemAPI?method=getSelfCheckSettings', {
