@@ -255,6 +255,8 @@ export const ActionButton = (data) => {
                );
           } else if (!_.isUndefined(action.redirectUrl)) {
                return <OpenSideLoad title={action.title} url={action.redirectUrl} prevRoute={prevRoute} />;
+          } else if (action.type === "hoopla_access_online") {
+               return <OpenSideLoad title={action.title} url={action.url} prevRoute={prevRoute} />;
           } else {
                return (
                     <CheckOut
