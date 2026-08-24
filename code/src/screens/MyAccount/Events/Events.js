@@ -204,6 +204,8 @@ export const MyEvents = () => {
           return null;
      };
 
+     const savedEventKeys = Object.keys(savedEvents ?? {});
+
      return (
           <Box style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
@@ -214,7 +216,7 @@ export const MyEvents = () => {
                     loadError('Error', '')
                ) : (
                     <>
-                         <FlatList data={Object.keys(savedEvents)} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={savedEvents[item]} filterBy={filterBy} setLoading={setLoading} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
+                         <FlatList data={savedEventKeys} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={savedEvents[item]} filterBy={filterBy} setLoading={setLoading} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
                     </>
                )}
           </Box>

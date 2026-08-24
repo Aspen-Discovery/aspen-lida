@@ -345,8 +345,8 @@ export const SupportScreen = () => {
                                                             Cached: {formatCachedDateTime(cacheItem.updatedAt)}
                                                        </Text>
                                                   </VStack>
-                                                  <Button size="sm" variant="outline" borderColor={theme.tokens.colors.secondary['500']} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
-                                                       <ButtonText color={theme.tokens.colors.secondary['500']}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
+                                                  <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
+                                                       <ButtonText color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
                                                   </Button>
                                              </HStack>
                                         </Box>

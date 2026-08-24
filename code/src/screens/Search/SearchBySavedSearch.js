@@ -6,7 +6,7 @@ import React from 'react';
 
 // custom components and helper files
 import { loadError } from '../../components/loadError';
-import { LoadingSpinner } from '../../components/loadingSpinner';
+import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -45,17 +45,13 @@ export const SearchResultsForSavedSearch = () => {
           }
      });
 
-     const systemMessagesForScreen = [];
-
-     React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
-               systemMessages.map((obj, index, collection) => {
-                    if (obj.showOn === '0') {
-                         systemMessagesForScreen.push(obj);
-                    }
-               });
-          }
-     }, [systemMessages]);
+     const systemMessagesForScreen = React.useMemo(
+          () =>
+               _.isArray(systemMessages)
+                    ? systemMessages.filter((message) => message.showOn === '0')
+                    : [],
+          [systemMessages]
+     );
 
      const Paging = () => {
           if (data.totalPages > 1) {
@@ -93,7 +89,7 @@ export const SearchResultsForSavedSearch = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
                     }
                });
           }
@@ -115,7 +111,7 @@ export const SearchResultsForSavedSearch = () => {
           <SafeAreaView style={{ flex: 1 }}>
                {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
-                    LoadingSpinner('Fetching results...')
+                    loadingSpinner('Fetching results...')
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
