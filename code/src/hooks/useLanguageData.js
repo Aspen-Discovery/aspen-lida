@@ -10,6 +10,7 @@ import {
      saveAllLanguageData,
 } from '../util/db';
 import { GLOBALS } from '../util/globals';
+import {logDebugMessage} from "../util/logging";
 
 const subscribers = new Set();
 const languageSnapshotCache = new Map();
@@ -172,20 +173,26 @@ export const useAllLanguageData = (options) =>
 
 export function useUpdateActiveLanguage() {
      return React.useCallback(async (languageCode) => {
-          GLOBALS.language = languageCode ?? 'en';
-          await saveUserSettings({ language: languageCode ?? 'en' });
+          const updatedLanguageCode = languageCode ?? 'en';
+
+          logDebugMessage("Updating active language to " + updatedLanguageCode);
+
+          GLOBALS.language = updatedLanguageCode;
+          await saveUserSettings({language: updatedLanguageCode});
           notifyLanguageChanged(LANGUAGE_USER_STATE_KEY);
      }, []);
 }
 
-export function useUpdateLanguageDisplayName() {
+export function useUpdateLanguageDisplayName(displayName) {
      return React.useCallback(async (displayName) => {
+          logDebugMessage("Updating language display name to " + displayName);
+
           await saveUserSettings({ languageDisplayName: displayName ?? '' });
           notifyLanguageChanged(LANGUAGE_USER_STATE_KEY);
      }, []);
 }
 
-export function useUpdateAvailableLanguages() {
+export function useUpdateAvailableLanguages(languages) {
      return React.useCallback(async (languages) => {
           await saveAvailableLanguages(languages ?? []);
           notifyLanguageChanged(LANGUAGE_AVAILABLE_KEY);
@@ -193,33 +200,9 @@ export function useUpdateAvailableLanguages() {
      }, []);
 }
 
-export function useUpdateDictionary() {
+export function useUpdateDictionary(dictionary) {
      return React.useCallback(async (dictionary) => {
           await saveDictionary(dictionary ?? {});
-          notifyLanguageChanged(LANGUAGE_DICTIONARY_KEY);
-          notifyLanguageChanged(LANGUAGE_ALL_KEY);
-     }, []);
-}
-
-export function useUpdateAllLanguageData() {
-     return React.useCallback(async (state = {}) => {
-          if (state.language !== undefined || state.languageDisplayName !== undefined) {
-               await saveUserSettings({
-                    language: state.language,
-                    languageDisplayName: state.languageDisplayName,
-               });
-               if (state.language !== undefined) {
-                    GLOBALS.language = state.language ?? 'en';
-               }
-               notifyLanguageChanged(LANGUAGE_USER_STATE_KEY);
-          }
-
-          await saveAllLanguageData({
-               languages: state.languages ?? [],
-               dictionary: state.dictionary ?? {},
-          });
-
-          notifyLanguageChanged(LANGUAGE_AVAILABLE_KEY);
           notifyLanguageChanged(LANGUAGE_DICTIONARY_KEY);
           notifyLanguageChanged(LANGUAGE_ALL_KEY);
      }, []);

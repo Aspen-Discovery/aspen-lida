@@ -54,9 +54,9 @@ import {
      saveMenu,
      saveHomeScreenLinks,
      loadBrowseCategories,
-      loadThemeState,
-      saveThemeState,
-      isStoredThemeIdMatch } from '../../util/db';
+     loadThemeState,
+     saveThemeState,
+     isStoredThemeIdMatch } from '../../util/db';
 import {
      useUpdateLibraryVersion,
      useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
@@ -197,6 +197,7 @@ export const LoadingScreen = () => {
      }, []);
 
      const applyStaleUserFallback = React.useCallback(async () => {
+          logDebugMessage("Applying Stale User Fallback");
           const cached = await loadAllUserData();
           const cachedUser = cached?.user ?? null;
           const isCurrentUser = await isCachedUserForCurrentLogin(cachedUser);
@@ -410,6 +411,7 @@ export const LoadingScreen = () => {
                const profile = profileResp.data.result.profile ?? {};
                await saveUserProfile(profile);
                setLoadedUser(profile);
+               logDebugMessage("Updating language in fetchAndPersistUserData");
                await updateLanguage(profile.interfaceLanguage ?? 'en');
                await updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
 
@@ -707,11 +709,13 @@ export const LoadingScreen = () => {
                       return false;
                  }
 
-                 const fetchedLanguages = orderByFields(
-                      languageResponse?.data?.result?.languages ?? [],
-                      ['weight', 'displayName'],
-                      ['asc', 'asc']
-                 );
+                 //No need to sort these since they are already sorted by the API
+                 const rawLanguageResponse = languageResponse?.data?.result?.languages ?? [];
+                 const fetchedLanguages = Array.isArray(rawLanguageResponse)
+                      ? rawLanguageResponse
+                      : rawLanguageResponse && typeof rawLanguageResponse === 'object'
+                           ? Object.values(rawLanguageResponse)
+                           : [];
                  await updateLanguages(fetchedLanguages);
 
                  await getTranslatedTermsForUserPreferredLanguage(activeLanguage, LIBRARY.url);

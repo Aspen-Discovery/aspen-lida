@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { getTermFromDictionary } from '../../translations/TranslationService';
+import { getTermFromDictionary, ensureTranslationsLibraryHydrated } from '../../translations/TranslationService';
 import { buildThemeForLibrary, THEME_STALE_MS, useTheme } from '../../themes/theme';
 import {
      isStoredThemeIdMatch,
@@ -72,6 +72,7 @@ export async function evaluateStartupCache() {
           loadAllLibraryBranchData(),
           loadAllLibrarySystemData(),
           loadAllLanguageData(),
+          ensureTranslationsLibraryHydrated(),
           SecureStore.getItemAsync('userKey'),
      ]);
 
@@ -93,7 +94,7 @@ export async function evaluateStartupCache() {
           (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
      const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
      const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
-     const hasUsableLanguageCache = !!cachedLanguageState && (Array.isArray(cachedLanguageState.languages) || isPlainObject(cachedLanguageState.dictionary));
+     const hasUsableLanguageCache = !!cachedLanguageState && Array.isArray(cachedLanguageState.languages) && cachedLanguageState.languages.length > 0 && isPlainObject(cachedLanguageState.dictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
@@ -107,6 +108,7 @@ export async function evaluateStartupCache() {
           hasUsableLibraryBranchCache &&
           hasUsableLibrarySystemCache &&
           hasUsableLanguageCache;
+     logDebugMessage("Can bypass loading? " + canBypassLoading);
 
       try {
            const persistedLibraryUrl = await loadLibraryUrl();
