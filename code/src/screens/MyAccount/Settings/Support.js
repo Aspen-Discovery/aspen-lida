@@ -184,7 +184,7 @@ export const SupportScreen = () => {
 
                if (cacheKey === 'theme') {
                     logDebugMessage('Theme cache refresh triggered from Support screen');
-                    const themeResponse = await buildThemeForLibrary(null, libraryUrl);
+                    const themeResponse = await buildThemeForLibrary(libraryUrl);
                     if (themeResponse) {
                          await saveThemeState({
                               themeId: themeResponse.themeId,

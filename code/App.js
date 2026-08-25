@@ -171,7 +171,7 @@ export default function AppContainer() {
                          if (!themeUrl) {
                               logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
                          } else {
-                               const builtTheme = await buildThemeForLibrary(null, themeUrl);
+                              const builtTheme = await buildThemeForLibrary(themeUrl);
                               await saveThemeState({
                                    themeId: builtTheme.themeId,
                                    colorMode: mode,
