@@ -103,9 +103,7 @@ export const DiscoverHomeScreen = () => {
 
                     await getDefaultFacets(library.baseUrl, 5, language);
                };
-               checkSettings().then(() => {
-                    return () => checkSettings();
-               });
+               checkSettings();
           }, [language])
      );
 
@@ -140,16 +138,11 @@ export const DiscoverHomeScreen = () => {
                                const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
 
                                if (browseCategoriesChanged || homeScreenLinksChanged) {
-                                    setLoading(true);
-                                    try {
-                                         if (browseCategoriesChanged) {
-                                              await updateBrowseCategories(nextBrowseCategories);
-                                         }
-                                         if (homeScreenLinksChanged) {
-                                              await updateHomeScreenLinks(nextHomeScreenLinks);
-                                         }
-                                    } finally {
-                                         setLoading(false);
+                                    if (browseCategoriesChanged) {
+                                         await updateBrowseCategories(nextBrowseCategories);
+                                    }
+                                    if (homeScreenLinksChanged) {
+                                         await updateHomeScreenLinks(nextHomeScreenLinks);
                                     }
                                }
 
@@ -333,9 +326,8 @@ export const DiscoverHomeScreen = () => {
                          </Box>
                     }
                     data={category}
-                    keyExtractor={(item, index) => {
-                         const baseKey = item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? 'browse-category';
-                         return `${baseKey}-${index}`;
+                    keyExtractor={(item) => {
+                         return (item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? `${item?.source ?? 'browse'}-${item?.sourceListId ?? 'category'}`).toString();
                     }}
                     renderItem={({ item }) => (
                          <Box px="$5">
