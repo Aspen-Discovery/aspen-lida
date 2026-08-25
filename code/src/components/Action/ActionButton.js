@@ -20,7 +20,7 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text, useToast } from '@gluestack-ui/themed';
+     Text } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -34,7 +34,6 @@ export const ActionButton = (data) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
-     const toast = useToast();
 
      const action = data.actions;
      const {
@@ -256,6 +255,8 @@ export const ActionButton = (data) => {
                );
           } else if (!_.isUndefined(action.redirectUrl)) {
                return <OpenSideLoad title={action.title} url={action.redirectUrl} prevRoute={prevRoute} />;
+          } else if (action.type === "hoopla_access_online") {
+               return <OpenSideLoad title={action.title} url={action.url} prevRoute={prevRoute} />;
           } else {
                return (
                     <CheckOut

@@ -19,8 +19,7 @@ import {
      Pressable,
      Text,
      useToken,
-     VStack,
-     useToast
+     VStack
 } from '@gluestack-ui/themed';
 import { useColorModeValue, UseColorMode, useTheme } from '../../themes/theme';
 import React from 'react';
@@ -495,7 +494,7 @@ export const DrawerContent = (props) => {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
-                     logDebugMessage(data);
+                     //logDebugMessage(data);
                      updateAvailableLocations(data?.data?.result?.locations ?? []);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -1080,7 +1079,6 @@ const Fines = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
 
      const shouldShowFines = library.showFines ?? true;
 
@@ -1159,7 +1157,6 @@ const YearInReview = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const yearInReviewLabel = getTermFromDictionary(language, 'year_in_review');

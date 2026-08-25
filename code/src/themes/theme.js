@@ -45,6 +45,30 @@ function buildAlertTheme(actionType) {
      };
 }
 
+function buildBadgeTheme(actionType) {
+     const actionColors = {
+          error: { bg: '#fee2e2', text: '#991b1b' },
+          warning: { bg: '#fef3c7', text: '#92400e' },
+          success: { bg: '#dcfce7', text: '#166534' },
+          info: { bg: '#e0f2fe', text: '#075985' },
+          muted: { bg: '#f3f4f6', text: '#1f2937' },
+          none: { bg: '#e5e7eb', text: '#1f2937' }
+     };
+
+     const colors = actionColors[actionType] || actionColors.muted;
+
+     return {
+          backgroundColor: colors.bg,
+          borderRadius: 'sm',
+          _text: {
+               color: colors.text,
+               fontSize: '$xs',
+               fontWeight: 'medium',
+               textTransform: 'none'
+          },
+     };
+}
+
 function buildConfigFromColors(colors) {
      return createConfig({
           ...defaultConfig,
@@ -71,6 +95,35 @@ function buildConfigFromColors(colors) {
                          },
                     },
                },
+               ButtonText: {
+                    ...defaultConfig.components.ButtonText,
+                    theme: {
+                         ...defaultConfig.components.ButtonText?.theme,
+                         baseStyle: {
+                              ...defaultConfig.components.ButtonText?.theme?.baseStyle,
+                              fontSize: '$sm',
+                              fontWeight: '$normal',
+                         },
+                    },
+               },
+               Badge: {
+                    ...defaultConfig.components.Badge,
+                    theme: {
+                         ...defaultConfig.components.Badge?.theme,
+                         variants: {
+                              ...defaultConfig.components.Badge?.theme?.variants,
+                              action: {
+                                   ...(defaultConfig.components.Badge?.theme?.variants?.action ?? {}),
+                                   error: buildBadgeTheme('error'),
+                                   warning: buildBadgeTheme('warning'),
+                                   success: buildBadgeTheme('success'),
+                                   info: buildBadgeTheme('info'),
+                                   muted: buildBadgeTheme('muted'),
+                                   none: buildBadgeTheme('none'),
+                              },
+                         },
+                    },
+               },
           },
      });
 }
@@ -83,8 +136,8 @@ function normalizeThemeColors(response = []) {
      };
 }
 
-export async function buildThemeForLibrary(toast, url = null) {
-     const response = await getThemeInfo(toast, url);
+export async function buildThemeForLibrary(url = null) {
+     const response = await getThemeInfo(url);
      const themeColors = normalizeThemeColors(response);
      const theme = buildConfigFromColors(themeColors);
      return {
@@ -146,8 +199,8 @@ export function useTheme() {
           await resetThemeState();
      }, [resetThemeState]);
 
-     const forceRefreshTheme = React.useCallback(async (toast, url = null) => {
-          const builtTheme = await buildThemeForLibrary(toast, url);
+     const forceRefreshTheme = React.useCallback(async (url = null) => {
+          const builtTheme = await buildThemeForLibrary(url);
           await updateTheme(builtTheme.theme);
           return builtTheme;
      }, [updateTheme]);

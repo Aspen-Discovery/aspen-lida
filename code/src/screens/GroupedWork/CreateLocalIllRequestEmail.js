@@ -11,12 +11,12 @@ import {
      Textarea,
      TextareaInput,
      ScrollView,
-     VStack, useToast } from '@gluestack-ui/themed';
+     VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { popAlert } from '../../components/feedback/toastService';
+import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -38,7 +38,6 @@ const Request = (payload) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const {theme, textColor, colorMode} = useTheme();
-     const toast = useToast();
 
      const [userVolumeName, setUserVolumeName] = React.useState(volumeName);
      const [userNote, setUserNote] = React.useState('');
@@ -62,7 +61,7 @@ const Request = (payload) => {
                if (result.success) {
                     navigation.goBack();
                } else {
-                    popAlert(toast, result.api.title, result.api.message, 'error');
+                    popAlert(result.api.title, result.api.message, 'error');
                }
           });
      };

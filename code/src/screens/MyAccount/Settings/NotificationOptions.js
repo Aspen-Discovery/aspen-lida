@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useFocusEffect } from '@react-navigation/native';
 import _ from 'lodash';
-import {Box, FlatList, HStack, Switch, Text, VStack, useToast} from '@gluestack-ui/themed';
+import {Box, FlatList, HStack, Switch, Text, VStack} from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { createChannelsAndCategories } from '../../../components/Notifications';
@@ -27,7 +27,6 @@ export const Settings_NotificationOptions = () => {
      const { data: notificationSettings } = useNotificationSettings();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const toast = useToast();
 
      const isNotificationsEnabled = Boolean(expoToken);
 
@@ -51,7 +50,7 @@ export const Settings_NotificationOptions = () => {
           } finally {
                setLoading(false);
           }
-     }, [expoToken, library.baseUrl, notificationSettings, toast]);
+     }, [expoToken, library.baseUrl, notificationSettings]);
 
      useFocusEffect(
           React.useCallback(() => {
@@ -121,7 +120,6 @@ const EnableAllNotifications = (data) => {
      const expoToken = userState?.expoToken ?? false;
      const library = useLibrary();
      const { notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount, setLoading } = data;
-     const toast = useToast();
 
      let defaultToggleState = notifyCustom && notifyAccount && notifySavedSearch;
      const [toggled, setToggle] = React.useState(defaultToggleState);
@@ -176,7 +174,6 @@ const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, noti
      const updateUserProfile = useUpdateUserProfile();
      const expoToken = userState?.expoToken ?? false;
      const library = useLibrary();
-     const toast = useToast();
 
      const preference = data;
 

@@ -8,9 +8,8 @@ import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCate
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../../util/api/search';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
-import { useToast } from '@gluestack-ui/themed';
 import { useTheme } from '../../../themes/theme';
-import { popToast } from '../../../components/feedback/toastService';
+import { popToast } from '../../../components/feedback';
 
 export const Settings_BrowseCategories = () => {
      const library = useLibrary();
@@ -78,7 +77,6 @@ export const Settings_BrowseCategories = () => {
 };
 
 const DisplayCategory = (data) => {
-     const toast = useToast();
      const category = data.data;
      const allCategories = useBrowseCategoryList();
      const [isUpdating, setIsUpdating] = React.useState(false);
@@ -137,12 +135,12 @@ const DisplayCategory = (data) => {
 
                     if (showFailureToast) {
                          const message = getErrorMessage({ statusCode: error?.status, problem: error?.problem });
-                         popToast(toast, message.title, message.message, 'error');
+                         popToast(message.title, message.message, 'error');
                     }
 
                     return false;
                });
-     }, [getCategoryKey, library.baseUrl, toast, toggleCategoryVisibility]);
+     }, [getCategoryKey, library.baseUrl, toggleCategoryVisibility]);
 
      React.useEffect(() => {
           setShowErrorDialog(false);
@@ -168,7 +166,7 @@ const DisplayCategory = (data) => {
                      setErrorMessage(error.message);
                     logErrorMessage(optimisticResult?.error);
                      setShowErrorDialog(true);
-                     popToast(toast, error.title, error.message, 'error');
+                     popToast(error.title, error.message, 'error');
                     return;
                }
 
@@ -192,7 +190,7 @@ const DisplayCategory = (data) => {
                 const hadBackgroundFailure = results.some((result) => result.status === 'fulfilled' && result.value === false);
 
                 if (hadBackgroundFailure && categoriesNeedingSync.length > 1) {
-                     popToast(toast, 'Update issue', 'Some subcategories could not be updated.', 'error');
+                     popToast('Update issue', 'Some subcategories could not be updated.', 'error');
                 }
 
                 const requestedMax = maxNum > 0 ? maxNum : 5;
