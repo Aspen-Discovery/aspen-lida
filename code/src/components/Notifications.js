@@ -214,7 +214,7 @@ export const DisplaySystemMessage = (props) => {
      const updateSystemMessages = props.updateSystemMessages;
      let style = props.style;
      if (style === '') {
-          style = 'info';
+          style = 'none';
      }else if (style === 'danger') {
           style = 'error';
      }

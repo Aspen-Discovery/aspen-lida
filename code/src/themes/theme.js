@@ -52,6 +52,7 @@ function buildBadgeTheme(actionType) {
           success: { bg: '#dcfce7', text: '#166534' },
           info: { bg: '#e0f2fe', text: '#075985' },
           muted: { bg: '#f3f4f6', text: '#1f2937' },
+          none: { bg: '#e5e7eb', text: '#1f2937' }
      };
 
      const colors = actionColors[actionType] || actionColors.muted;
@@ -118,6 +119,7 @@ function buildConfigFromColors(colors) {
                                    success: buildBadgeTheme('success'),
                                    info: buildBadgeTheme('info'),
                                    muted: buildBadgeTheme('muted'),
+                                   none: buildBadgeTheme('none'),
                               },
                          },
                     },
