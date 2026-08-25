@@ -93,7 +93,7 @@ const CreateListGroup = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                    <SelectScrollView>
                                                         <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                        {toArray(listGroups.groups).map((item, index) => {
+                                                        {toArray(listGroups?.groups ?? []).map((item, index) => {
                                                              return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                         })}
                                                    </SelectScrollView>

@@ -70,7 +70,7 @@ export async function createList(title, description, isPublic = false, url = nul
                     description,
                     isPublic,
                     addToListGroupOption: addToListGroup,
-                    addToListGroupNested: addToListGroup === 'no' ? null : addToListGroupNestedId === '' ? existingListId : addToListGroupNestedId,
+                    addToListGroupNested: (addToListGroup === 'no' || addToListGroupNestedId === 'no') ? null : addToListGroupNestedId === '' ? existingListId : addToListGroupNestedId,
                     addToListGroupNewName,
                },
           }
