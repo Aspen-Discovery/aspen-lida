@@ -215,6 +215,8 @@ export const DisplaySystemMessage = (props) => {
      let style = props.style;
      if (style === '') {
           style = 'info';
+     }else if (style === 'danger') {
+          style = 'error';
      }
      logDebugMessage("System Message Style is " + style);
 
