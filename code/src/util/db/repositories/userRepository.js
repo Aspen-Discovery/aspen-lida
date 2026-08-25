@@ -1,5 +1,6 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
+import {logDebugMessage} from "../../logging";
 
 const ROW_ID = 1;
 
@@ -129,30 +130,47 @@ export async function saveUserSettings(settings = {}) {
      const db = await getDb();
      const now = Date.now();
      await ensureUserStateRow(db, now);
+     const fieldMappings = [
+          ['language', 'language', value => value],
+          ['languageDisplayName', 'language_display_name', value => value],
+          ['notificationOnboard', 'notification_onboard', numberOrNull],
+          ['expoToken', 'expo_token', value => String(value)],
+          ['seenNotificationOnboardPrompt', 'seen_notification_onboard_prompt', boolToInt],
+          ['userCheckoutSortMethod', 'checkout_sort_method', value => value],
+          ['userHoldPendingSortMethod', 'hold_pending_sort_method', value => value],
+          ['userHoldReadySortMethod', 'hold_ready_sort_method', value => value],
+     ];
+
+     const updates = [];
+     const values = [];
+
+     for (const [settingName, columnName, transform] of fieldMappings) {
+          const value = settings[settingName];
+
+          // Skip both null and undefined values.
+          if (value === null || value === undefined) {
+               continue;
+          }
+
+          updates.push(`${columnName} = ?`);
+          values.push(transform(value));
+     }
+
+     // Nothing was supplied that needs updating.
+     if (updates.length === 0) {
+          logDebugMessage("No user settings to update");
+          return;
+     }
+
+     updates.unshift('updated_at = ?');
+     values.unshift(now);
+     values.push(ROW_ID);
+
      await db.runAsync(
-          `UPDATE user_state SET
-                updated_at = ?,
-                language = ?,
-                language_display_name = ?,
-                notification_onboard = ?,
-                expo_token = ?,
-                seen_notification_onboard_prompt = ?,
-                checkout_sort_method = ?,
-                hold_pending_sort_method = ?,
-                hold_ready_sort_method = ?
-           WHERE id = ?;`,
-          [
-               now,
-               settings.language ?? null,
-               settings.languageDisplayName ?? null,
-               numberOrNull(settings.notificationOnboard),
-               settings.expoToken ? String(settings.expoToken) : null,
-               boolToInt(settings.seenNotificationOnboardPrompt),
-               settings.userCheckoutSortMethod ?? null,
-               settings.userHoldPendingSortMethod ?? null,
-               settings.userHoldReadySortMethod ?? null,
-               ROW_ID,
-          ]
+          `UPDATE user_state
+              SET ${updates.join(', ')}
+            WHERE id = ?;`,
+          values
      );
 }
 

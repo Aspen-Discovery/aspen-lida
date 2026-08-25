@@ -1,5 +1,6 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
+import {logDebugMessage} from '../../logging';
 
 const ROW_ID = 1;
 
@@ -23,6 +24,8 @@ export async function saveAvailableLanguages(languages = []) {
      const db = await getDb();
      const now = Date.now();
      await ensureLanguageRow(db, now);
+     logDebugMessage("Saving Available languages ");
+     logDebugMessage(languages);
      await db.runAsync(
           `UPDATE language_state SET
                 updated_at = ?,
@@ -45,6 +48,12 @@ export async function saveDictionary(dictionary = {}) {
      const db = await getDb();
      const now = Date.now();
      await ensureLanguageRow(db, now);
+     logDebugMessage("Saving dictionary");
+     //logDebugMessage(dictionary);
+     Object.keys(dictionary ?? {}).forEach((key) => {
+          logDebugMessage(` - Dictionary key: ${key}`);
+     });
+
      await db.runAsync(
           `UPDATE language_state SET
                 updated_at = ?,
@@ -60,7 +69,12 @@ export async function loadDictionary() {
           `SELECT dictionary_json FROM language_state WHERE id = ? LIMIT 1;`,
           [ROW_ID]
      );
-     return safeParse(row?.dictionary_json) ?? {};
+     const result = safeParse(row?.dictionary_json) ?? {};
+     logDebugMessage("Loading dictionary");
+     Object.keys(result ?? {}).forEach((key) => {
+          logDebugMessage(` - Dictionary key: ${key}`);
+     });
+     return result;
 }
 
 export async function saveAllLanguageData(state = {}) {
@@ -68,6 +82,7 @@ export async function saveAllLanguageData(state = {}) {
      const now = Date.now();
      await ensureLanguageRow(db, now);
 
+     logDebugMessage("Saving allLanguageData ");
      await db.withTransactionAsync(async () => {
           await db.runAsync(
                `UPDATE language_state SET

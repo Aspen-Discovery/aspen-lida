@@ -494,7 +494,7 @@ export const DrawerContent = (props) => {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
-                     logDebugMessage(data);
+                     //logDebugMessage(data);
                      updateAvailableLocations(data?.data?.result?.locations ?? []);
                } else {
                     logDebugMessage("Error fetching locations");

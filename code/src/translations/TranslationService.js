@@ -39,14 +39,16 @@ export const LanguageSwitcher = () => {
      const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
 
      const changeLanguage = async (val) => {
-          const result = await saveLanguage(val, library?.baseUrl ?? '');
+          const result = await saveLanguage(val, library?.baseUrl ?? '', language);
           if (!result) {
                logErrorMessage('there was an error updating the language...');
                return;
           }
 
+          logDebugMessage("Updating language to " + val + " in changeLanguage");
           await updateLanguage(val);
           const nextDisplayName = getLanguageDisplayName(val, languages);
+          logDebugMessage("Updating language display name to " + nextDisplayName + " in changeLanguage");
           await updateLanguageDisplayName(nextDisplayName);
           await getTranslatedTermsForUserPreferredLanguage(val, library?.baseUrl ?? '');
           await updateDictionary(translationsLibrary);
@@ -64,9 +66,9 @@ export const LanguageSwitcher = () => {
                          selectedKeys={language} selectionMode="single"
                          trigger={(triggerProps) => {
                               return (
-                                   <Button size="sm" variant="link" {...triggerProps} onPress={() => {setIsLanguageMenuOpen(true)}}>
-                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['secondary']['500']} />
-                                        <ButtonText color={theme['tokens']['colors']['secondary']['500']}> {languageDisplayName}</ButtonText>
+                                   <Button size="sm" borderRadius="$full" {...triggerProps} onPress={() => {setIsLanguageMenuOpen(true)}}  bg="transparent">
+                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['primary']['500']} />
+                                        <ButtonText color={theme['tokens']['colors']['primary']['500']}> {languageDisplayName}</ButtonText>
                                    </Button>
                               );
                          }}>
@@ -275,10 +277,11 @@ export function getLanguageDisplayName(code, languages) {
 export let translationsLibrary = helperLibrary;
 let dictionaryHydrationPromise = null;
 
-async function ensureTranslationsLibraryHydrated() {
+export async function ensureTranslationsLibraryHydrated() {
      if (!dictionaryHydrationPromise) {
           dictionaryHydrationPromise = (async () => {
                try {
+                    logDebugMessage("Doing initial load of translations from SQL at startup")
                     const cachedDictionary = await loadDictionary();
                     if (_.isObject(cachedDictionary) && Object.keys(cachedDictionary).length > 0) {
                          translationsLibrary = _.merge({}, helperLibrary, cachedDictionary);

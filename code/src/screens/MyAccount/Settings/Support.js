@@ -165,16 +165,20 @@ export const SupportScreen = () => {
                     const activeLanguageCode = activeLanguage ?? 'en';
                     const languageResponse = await getLibraryLanguages(libraryUrl);
                     if (languageResponse?.ok) {
-                         const fetchedLanguages = orderByFields(
-                              languageResponse?.data?.result?.languages ?? [],
-                              ['weight', 'displayName'],
-                              ['asc', 'asc']
-                         );
+                         //No need to sort these since they are already sorted by the API
+                         const rawLanguageResponse = languageResponse?.data?.result?.languages ?? [];
+                         const fetchedLanguages = Array.isArray(rawLanguageResponse)
+                              ? rawLanguageResponse
+                              : rawLanguageResponse && typeof rawLanguageResponse === 'object'
+                                   ? Object.values(rawLanguageResponse)
+                                   : [];
                          await updateLanguages(fetchedLanguages);
 
                          await getTranslatedTermsForUserPreferredLanguage(activeLanguageCode, libraryUrl);
                          setTranslationsLibrary(translationsLibrary);
                          await updateDictionary(translationsLibrary);
+                    }else{
+                         logDebugMessage("Dod not get a successful response loading lanugage data");
                     }
                }
 
