@@ -30,7 +30,7 @@ function buildAlertTheme(actionType) {
           warning: { bg: '#ffd7aa', icon: '#ea580b', text: '#000000' },
           success: { bg: '#bbf7d0', icon: '#17a34a', text: '#000000' },
           info: { bg: '#bae6fe', icon: '#0084c7', text: '#000000' },
-          none: { bg: '#e5e7eb', icon: '#4b5563', text: '#1f2937' },
+          none: { bg: '#e6e7ea', icon: '#4f5562', text: '#000000' },
      };
 
      const colors = actionColors[actionType] || actionColors.info;
@@ -92,6 +92,7 @@ function buildConfigFromColors(colors) {
                                    warning: buildAlertTheme('warning'),
                                    success: buildAlertTheme('success'),
                                    info: buildAlertTheme('info'),
+                                   none: buildAlertTheme('none')
                               },
                          },
                     },
