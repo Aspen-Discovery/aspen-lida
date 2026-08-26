@@ -1,14 +1,13 @@
 import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
 import _ from 'lodash';
-import { Button, ButtonText, Center, View } from '@gluestack-ui/themed';
-import React, {useState, useContext} from 'react';
+import { Button, ButtonText, View } from '@gluestack-ui/themed';
+import React, {useState} from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
 import { LoadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
-import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
@@ -27,9 +26,7 @@ export default function SelfCheckScanner() {
      }
 
      let activeAccount = useRoute().params?.activeAccount ?? false;
-
-     const testBarcodes = ['9031105', '9031106', '9031107'];
-
+     
      React.useEffect(() => {
           if (!permission || permission.status === 'undetermined') {
                requestPermission();
@@ -43,7 +40,7 @@ export default function SelfCheckScanner() {
                     data = cleanBarcode(data, type);
                }
                setScanned(true);
-               navigate('SelfCheckOut', {
+               navigation.replace('SelfCheckOut', {
                     barcode: data,
                     type: type,
                     activeAccount,
