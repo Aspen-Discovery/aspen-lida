@@ -32,8 +32,7 @@ import {
      HStack,
      ChevronDownIcon,
      Alert,
-     AlertText,
-     useToast
+     AlertText
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -124,7 +123,6 @@ const Request = (payload) => {
      const navigation = useNavigation();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
-     const toast = useToast();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
 

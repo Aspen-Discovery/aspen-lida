@@ -51,10 +51,10 @@ export const PreferencesScreen = () => {
      }, [navigation]);
 
      return (
-          <Box safeArea={5}>
-               <VStack divider={<Divider />} space="$md">
-                    <VStack space="$md" mx={4} my={8}>
-                         <VStack>
+          <Box p="$3">
+               <VStack space="sm">
+                    <VStack space="md">
+                         <VStack space="sm">
                               <Pressable py="$2" onPress={() => navigate('MyPreferences_ManageBrowseCategories', { prevRoute: 'Preferences' })}>
                                    <HStack space="xs" alignItems="center">
                                         <Icon as={MaterialIcons} name="chevron-right" size="xl" color={textColor} />
@@ -91,7 +91,8 @@ export const PreferencesScreen = () => {
                               </Pressable>
                          </VStack>
                     </VStack>
-                    <VStack space="$md" mx={12}>
+                    <Divider/>
+                    <VStack>
                          <HStack justifyContent="space-between" alignItems="center">
                               <Text color={textColor} bold>
                                    {getTermFromDictionary(language, 'language')}

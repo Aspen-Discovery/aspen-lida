@@ -1,5 +1,6 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
+import {logDebugMessage} from "../../logging";
 
 const ROW_ID = 1;
 
@@ -28,6 +29,8 @@ export async function saveThemeState(state = {}) {
      const db = await getDb();
      const now = Date.now();
      await ensureThemeRow(db, now);
+     logDebugMessage("Saving Theme State");
+     logDebugMessage(state);
      await db.runAsync(
           `UPDATE theme_state SET
                 updated_at = ?,
@@ -59,13 +62,16 @@ export async function loadThemeState() {
      // Always derive textColor from colorMode so it can never be stale or inconsistent
      // regardless of what was stored (different code paths used different token formats).
      const colorMode = row.color_mode ?? 'light';
-     return {
+     const result = {
           themeId: row.theme_id ?? null,
           colorMode,
           textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
           themeColors: safeParse(row.theme_colors_json),
           updatedAt: row.updated_at ?? 0,
      };
+     //logDebugMessage("Loading theme state");
+     //logDebugMessage(result);
+     return result;
 }
 
 export async function saveThemeColors(themeColors, themeId) {

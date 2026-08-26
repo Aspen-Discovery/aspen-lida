@@ -18,6 +18,7 @@ import {
      getLibraryLanguages,
      getLibraryLinks,
      getLocationInfo,
+      normalizeLibraryLanguagesPayload,
      getSelfCheckSettings,
      getSystemMessages
 } from '../../util/api/system';
@@ -54,9 +55,9 @@ import {
      saveMenu,
      saveHomeScreenLinks,
      loadBrowseCategories,
-      loadThemeState,
-      saveThemeState,
-      isStoredThemeIdMatch } from '../../util/db';
+     loadThemeState,
+     saveThemeState,
+     isStoredThemeIdMatch } from '../../util/db';
 import {
      useUpdateLibraryVersion,
      useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
@@ -91,8 +92,13 @@ function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
           result?.settings?.enableSelfCheck,
+          result?.settings?.selfCheckEnabled,
           result?.isEnabled,
           result?.enableSelfCheck,
+          result?.selfCheckEnabled,
+          result?.selfCheckSettings?.isEnabled,
+          result?.selfCheckSettings?.enableSelfCheck,
+          result?.selfCheckSettings?.selfCheckEnabled,
      ];
 
      for (const candidate of candidates) {
@@ -192,23 +198,33 @@ export const LoadingScreen = () => {
      }, []);
 
      const applyStaleUserFallback = React.useCallback(async () => {
+          logDebugMessage("Applying Stale User Fallback");
           const cached = await loadAllUserData();
           const cachedUser = cached?.user ?? null;
           const isCurrentUser = await isCachedUserForCurrentLogin(cachedUser);
           if (!isCurrentUser) return false;
 
+          const fallbackLanguage = cachedUser.interfaceLanguage ?? 'en';
           setLoadedUser(cachedUser);
-          await updateLanguage(cachedUser.interfaceLanguage ?? 'en');
-          await updateLanguageDisplayName(getLanguageDisplayName(cachedUser.interfaceLanguage ?? 'en', languages));
+          await updateLanguage(fallbackLanguage);
+          await updateLanguageDisplayName(getLanguageDisplayName(fallbackLanguage, languages));
+          try {
+               await getTranslatedTermsForUserPreferredLanguage(fallbackLanguage, LIBRARY.url);
+               setTranslationsLibrary(translationsLibrary);
+               await updateDictionary(translationsLibrary);
+          } catch (translationError) {
+               logWarnMessage('Unable to refresh translations for stale cached user language. Continuing startup with cached dictionary.');
+               logErrorMessage(translationError);
+          }
           setHasUsableUserCache(true);
           setShouldBlockUserFetch(false);
           setIsInitialUserDataReady(true);
           return true;
-     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName]);
+     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName, updateDictionary]);
 
      const applyStaleLibraryBranchFallback = React.useCallback(async () => {
           const cached = await loadAllLibraryBranchData();
-          const hasStaleBranchData = !!cached && (!!cached.location || !!cached.selfCheckSettings);
+          const hasStaleBranchData = !!cached?.location && !!cached.location.locationId;
           if (!hasStaleBranchData) return false;
 
           setLocation(cached?.location || {});
@@ -235,11 +251,11 @@ export const LoadingScreen = () => {
 
      const applyStaleLanguageFallback = React.useCallback(async () => {
           const cached = await loadAllLanguageData();
-          const hasStaleLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
+          const cachedLanguages = Array.isArray(cached?.languages) ? cached.languages : [];
+          const hasStaleLanguageData = cachedLanguages.length > 0;
           if (!hasStaleLanguageData) return false;
 
-          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
-          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
+          const cachedDictionary = isPlainObject(cached?.dictionary) ? cached.dictionary : {};
           await updateLanguages(cachedLanguages);
           setTranslationsLibrary(cachedDictionary);
           await updateDictionary(cachedDictionary);
@@ -280,7 +296,8 @@ export const LoadingScreen = () => {
                     logDebugMessage('SQLite migration: Successfully saved user profile');
 
                     // Attempt to fetch and save library branch data
-                    const locationResp = await getLocationInfo(LIBRARY.url);
+                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
+                    const locationResp = await getLocationInfo(LIBRARY.url, configuredLocationId);
                     if (!locationResp?.ok) {
                          throw new Error('Failed to load location info');
                     }
@@ -288,7 +305,6 @@ export const LoadingScreen = () => {
                     if (migrationCancelled) return;
 
                     const location = locationResp.data.result?.location ?? [];
-                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
                     const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
                     const selfCheckResp = await getSelfCheckSettings(LIBRARY.url, selfCheckLocationId);
 
@@ -301,7 +317,7 @@ export const LoadingScreen = () => {
                     }
 
                     await saveAllLibraryBranchData({
-                         location,
+                         location: location,
                          ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
                          ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
                     });
@@ -405,8 +421,34 @@ export const LoadingScreen = () => {
                const profile = profileResp.data.result.profile ?? {};
                await saveUserProfile(profile);
                setLoadedUser(profile);
-               await updateLanguage(profile.interfaceLanguage ?? 'en');
-               await updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
+               logDebugMessage("Updating language in fetchAndPersistUserData");
+                const profileLanguage = profile.interfaceLanguage ?? 'en';
+                await updateLanguage(profileLanguage);
+                await updateLanguageDisplayName(getLanguageDisplayName(profileLanguage ?? 'en', languages));
+                try {
+                     await getTranslatedTermsForUserPreferredLanguage(profileLanguage, LIBRARY.url);
+                     setTranslationsLibrary(translationsLibrary);
+                     await updateDictionary(translationsLibrary);
+                } catch (translationError) {
+                     logWarnMessage('Unable to refresh translations for interface language after profile load. Continuing startup.');
+                     logErrorMessage(translationError);
+                }
+
+                try {
+                     const languageResponse = await getLibraryLanguages(LIBRARY.url);
+                     if (languageResponse?.ok) {
+                          const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                               languageResponse?.data?.result?.languages
+                          );
+                          await updateLanguages(fetchedLanguages);
+                          if (fetchedLanguages.length > 0) {
+                               setIsInitialLanguageDataReady(true);
+                          }
+                     }
+                } catch (languageListError) {
+                     logWarnMessage('Unable to refresh available language list after profile load. Continuing startup.');
+                     logErrorMessage(languageListError);
+                }
 
                const pickupResp = typeof getPickupLocations === 'function'
                     ? await getPickupLocations(LIBRARY.url)
@@ -485,7 +527,8 @@ export const LoadingScreen = () => {
                runInBackground });
           try {
                // Fetch location info
-               const locationResp = await getLocationInfo(LIBRARY.url);
+               const configuredLocationId = await SecureStore.getItemAsync('locationId');
+               const locationResp = await getLocationInfo(LIBRARY.url, configuredLocationId);
                if (!locationResp?.ok) {
                     if (runInBackground) {
                          logWarnMessage('Background location refresh failed. Continuing with cached data.');
@@ -505,7 +548,6 @@ export const LoadingScreen = () => {
                const location = locationResp.data.result?.location ?? [];
 
                // Fetch self-check settings
-               const configuredLocationId = await SecureStore.getItemAsync('locationId');
                const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
                logDebugMessage({
                     event: 'self_check_settings_request',
@@ -519,6 +561,7 @@ export const LoadingScreen = () => {
 
                if (selfCheckResp?.ok) {
                     const result = selfCheckResp.data?.result ?? {};
+                    const settings = isPlainObject(result?.settings) ? result.settings : {};
                     const rawEnabled = result?.settings?.isEnabled;
                     const normalizedEnabled = resolveSelfCheckEnabled(result);
                     const success = result?.success === true || result?.success === 'true';
@@ -532,7 +575,10 @@ export const LoadingScreen = () => {
 
                     if (typeof normalizedEnabled === 'boolean') {
                          selfCheckEnabled = normalizedEnabled;
-                         selfCheckSettings = isPlainObject(result?.settings) ? result.settings : {};
+                    }
+
+                    if (Object.keys(settings).length > 0) {
+                         selfCheckSettings = settings;
                     } else if (success) {
                          logWarnMessage({
                               event: 'self_check_enabled_unrecognized',
@@ -544,7 +590,7 @@ export const LoadingScreen = () => {
 
                 // Save all library branch data in one transaction
                 await saveAllLibraryBranchData({
-                     location,
+                     location: location,
                      ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
                      ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
                 });
@@ -698,10 +744,9 @@ export const LoadingScreen = () => {
                       return false;
                  }
 
-                 const fetchedLanguages = orderByFields(
-                      languageResponse?.data?.result?.languages ?? [],
-                      ['weight', 'displayName'],
-                      ['asc', 'asc']
+                 //No need to sort these since they are already sorted by the API
+                 const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                      languageResponse?.data?.result?.languages
                  );
                  await updateLanguages(fetchedLanguages);
 
@@ -950,16 +995,20 @@ export const LoadingScreen = () => {
            const hydrateLanguageCache = async () => {
                 try {
                      const cached = await loadAllLanguageData();
-                     const hasCachedLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
+                     const cachedLanguages = Array.isArray(cached?.languages) ? cached.languages : [];
+                     const cachedDictionary = isPlainObject(cached?.dictionary) ? cached.dictionary : {};
+                     const hasCachedLanguageList = cachedLanguages.length > 0;
+                     const hasCachedDictionary = Object.keys(cachedDictionary).length > 0;
 
                      if (cancelled) return;
 
-                     if (hasCachedLanguageData) {
-                          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
-                          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
-                          await updateLanguages(cachedLanguages);
+                     if (hasCachedDictionary) {
                           setTranslationsLibrary(cachedDictionary);
                           await updateDictionary(cachedDictionary);
+                     }
+
+                     if (hasCachedLanguageList) {
+                          await updateLanguages(cachedLanguages);
 
                           setHasUsableLanguageCache(true);
                           setShouldBlockLanguageFetch(false);
@@ -972,6 +1021,7 @@ export const LoadingScreen = () => {
                      } else {
                           setHasUsableLanguageCache(false);
                           setShouldBlockLanguageFetch(true);
+                          setIsInitialLanguageDataReady(false);
                      }
 
                      setHasHydratedLanguageCacheDecision(true);
@@ -1015,7 +1065,7 @@ export const LoadingScreen = () => {
                     const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
 
                     if (!hasStoredTheme || !hasMatchingThemeId) {
-                         const builtTheme = await buildThemeForLibrary(null, LIBRARY.url);
+                         const builtTheme = await buildThemeForLibrary( LIBRARY.url);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
                               colorMode: mode,
