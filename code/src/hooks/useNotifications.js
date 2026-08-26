@@ -6,7 +6,6 @@ import * as Device from 'expo-device';
 import { createChannelsAndCategories, registerForPushNotificationsAsync } from '../components/Notifications';
 import { deletePushToken, getNotificationPreferences, savePushToken, setNotificationPreference } from '../util/api/user';
 import {logSentryMessage, logDebugMessage, logWarnMessage} from '../util/logging';
-import {useToast} from "@gluestack-ui/themed";
 
 // Configure default notification behavior
 Notifications.setNotificationHandler({
@@ -22,7 +21,6 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
      const [isLoading, setLoading] = React.useState(false);
      const appState = React.useRef(AppState.currentState);
      const lastCheckedStatus = React.useRef(false);
-     const toast = useToast();
 
      const pendingPromise = React.useRef(null);
      const checkAndUpdatePermissions = async (source, force = false) => {
@@ -159,9 +157,9 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
                 await deletePushToken(library.baseUrl, tokenData.data);
 
                 // Clear preferences
-                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifySavedSearch', false, false);
-                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifyCustom', false, false);
-                await setNotificationPreference(toast, library.baseUrl, tokenData.data, 'notifyAccount', false, false);
+                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifySavedSearch', false, false);
+                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifyCustom', false, false);
+                await setNotificationPreference(library.baseUrl, tokenData.data, 'notifyAccount', false, false);
             }
 
             // Update local state
@@ -231,7 +229,7 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
     };
 };
 
-export const useNotificationPreferences = (toast, library, expoToken) => {
+export const useNotificationPreferences = (library, expoToken) => {
      const [preferences, setPreferences] = React.useState({
           notifySavedSearch: false,
           notifyCustom: false,
@@ -250,7 +248,7 @@ export const useNotificationPreferences = (toast, library, expoToken) => {
                }
                if (optionChanged) {
                     logDebugMessage("Changing notification preference for " + option);
-                    await setNotificationPreference(toast, library.baseUrl, expoToken, option, value);
+                    await setNotificationPreference(library.baseUrl, expoToken, option, value);
                     setPreferences(prev => ({...prev, [option]: value}));
                }
           } catch (error) {
@@ -262,7 +260,7 @@ export const useNotificationPreferences = (toast, library, expoToken) => {
           try {
                const tokenToUse = overrideToken || expoToken;
                logDebugMessage("Loading preferences for expoToken " + tokenToUse);
-               const preferences = await getNotificationPreferences(toast, library.baseUrl, tokenToUse);
+               const preferences = await getNotificationPreferences(library.baseUrl, tokenToUse);
                if (preferences !== false) {
                     logDebugMessage(preferences);
                     setPreferences({

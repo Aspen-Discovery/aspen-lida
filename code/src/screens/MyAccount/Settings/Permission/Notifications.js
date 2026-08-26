@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, Switch, ScrollView, AlertDialog, AlertDialogBackdrop, HStack, VStack, Pressable, Icon, Text, Center, Button, ButtonText, ButtonIcon, ButtonGroup, Heading, Box, Accordion, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AccordionItem, AccordionContent, AccordionContentText, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon, useToast } from '@gluestack-ui/themed';
+import { ChevronLeftIcon, Switch, ScrollView, AlertDialog, AlertDialogBackdrop, HStack, VStack, Pressable, Icon, Text, Center, Button, ButtonText, ButtonIcon, ButtonGroup, Heading, Box, Accordion, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AccordionItem, AccordionContent, AccordionContentText, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
@@ -82,7 +82,6 @@ export const NotificationPermissionDescription = () => {
     const expoToken = userState?.expoToken ?? false;
     const updateExpoToken = useUpdateExpoToken();
     const addDebugMessage = useAddDebugMessage();
-    const toast = useToast();
 
     const {
         permissionStatus,
@@ -95,7 +94,7 @@ export const NotificationPermissionDescription = () => {
         preferences,
         updatePreference,
         loadPreferences
-    } = useNotificationPreferences(toast, library, expoToken);
+    } = useNotificationPreferences(library, expoToken);
 
     React.useLayoutEffect(() => {
         if (prevRoute === 'notifications_onboard') {
@@ -247,8 +246,7 @@ export const NotificationPermissionDescription = () => {
 
 const NotificationPreferencesSection = ({ preferences, updatePreference, notificationSettings }) => {
     const { textColor } = useTheme();
-
-    console.log(notificationSettings);
+    logDebugMessage(notificationSettings);
     return (
         <>
             {Object.entries(notificationSettings).map(([key, setting]) => (

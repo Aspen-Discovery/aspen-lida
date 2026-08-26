@@ -32,6 +32,7 @@ import { MyCampaigns } from '../../screens/MyAccount/Campaigns/Campaigns';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 import TitleWithLogo from '../../components/TitleWithLogo'
+import { ModalHeader } from '../../components/Headers/ModalHeader';
 
 const Stack = createNativeStackNavigator();
 
@@ -163,6 +164,19 @@ const AccountStackNavigator = () => {
                          options={{
                               headerShown: false,
                               presentation: 'modal',
+                              header: ({ navigation }) => (
+                                   <ModalHeader
+                                        title={getTermFromDictionary(language, 'using_palace_project')}
+                                        onBack={() => navigation.goBack()}
+                                        onClose={() => {
+                                             const parent = navigation.getParent();
+                                             if (parent?.canGoBack()) parent.goBack();
+                                             else if (navigation.canGoBack()) navigation.goBack();
+                                        }}
+                                        showBack={false}
+                                        showClose={true}
+                                   />
+                              ),
                          }}
                     />
                </Stack.Group>
@@ -329,16 +343,21 @@ const AccountStackNavigator = () => {
                          title: getTermFromDictionary(language, 'notification'),
                          headerShown: true,
                          presentation: 'modal',
-                         headerStyle: {
-                              backgroundColor: theme['tokens']['colors']['primary']['500'],
-                         },
-                         headerTintColor: theme['tokens']['colors']['primary']['baseContrast'],
                          headerBackButtonDisplayMode: 'minimal',
-                         headerLeft: () => null,
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} p="$1">
-                                   <CloseIcon color={theme['tokens']['colors']['primary']['baseContrast']} />
-                              </Pressable>
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'notification')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        } else {
+                                             navigation.navigate('MyNotificationHistory');
+                                        }
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
                          ),
                     })}
                />
@@ -356,13 +375,18 @@ const AccountStackNavigator = () => {
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
                          presentation: 'modal',
-                         headerLeft: () => {
-                              return null;
-                         },
-                         headerRight: () => (
-                              <Pressable onPress={() => navigation.goBack()} mr={3} p="$1">
-                                   <CloseIcon size={5} color={textColor} />
-                              </Pressable>
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'where_is_it')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) parent.goBack();
+                                        else if (navigation.canGoBack()) navigation.goBack();
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
                          ),
                     })}
                />
@@ -372,6 +396,19 @@ const AccountStackNavigator = () => {
                     options={{
                          headerShown: false,
                          presentation: 'modal',
+                         header: ({ navigation }) => (
+                              <ModalHeader
+                                   title={getTermFromDictionary(language, 'editions')}
+                                   onBack={() => navigation.goBack()}
+                                   onClose={() => {
+                                        const parent = navigation.getParent();
+                                        if (parent?.canGoBack()) parent.goBack();
+                                        else if (navigation.canGoBack()) navigation.goBack();
+                                   }}
+                                   showBack={false}
+                                   showClose={true}
+                              />
+                         ),
                     }}
                />
           </Stack.Navigator>
@@ -389,13 +426,18 @@ export const PalaceProjectInstructionsModal = () => {
                     headerShown: false,
                     animationTypeForReplace: 'push',
                     gestureEnabled: false,
-                    headerLeft: () => {
-                         return null;
-                    },
-                    headerRight: () => (
-                         <Pressable onPress={() => navigation.getParent().pop()} mr={3} p="$1">
-                              <CloseIcon size={5} color={textColor} />
-                         </Pressable>
+                    header: ({ navigation }) => (
+                         <ModalHeader
+                              title={getTermFromDictionary(language, 'palace_project')}
+                              onBack={() => navigation.goBack()}
+                              onClose={() => {
+                                   const parent = navigation.getParent();
+                                   if (parent?.canGoBack()) parent.goBack();
+                                   else if (navigation.canGoBack()) navigation.goBack();
+                              }}
+                              showBack={false}
+                              showClose={true}
+                         />
                     ),
                })}>
                <PalaceProjectStack.Screen

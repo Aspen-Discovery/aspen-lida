@@ -26,11 +26,12 @@ import {
      SelectPortal,
      SelectScrollView,
      SelectTrigger,
-     Text, useToast,
+     Text,
      VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-import { loadError, popToast } from '../../../components/loadError';
+import { loadError } from '../../../components/loadError';
+import { popToast } from '../../../components/feedback';
 
 // custom components and helper files
 import { loadingSpinner } from '../../../components/loadingSpinner';
@@ -67,7 +68,6 @@ export const MyList = ({ route }) => {
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor, theme, colorMode } = useTheme();
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
-     const toast = useToast();
      const [isLoading, setIsLoading] = React.useState(true);
      const [fetchError, setFetchError] = React.useState(null);
      const [listData, setListData] = React.useState({
@@ -201,7 +201,7 @@ export const MyList = ({ route }) => {
                               logErrorMessage('Really borked.');
                          }
                     } else {
-                         popToast(toast, t('error_no_open_resource', false, 'en'), t('error_device_block_browser', false, 'en'), 'error');
+                         popToast(t('error_no_open_resource', false, 'en'), t('error_device_block_browser', false, 'en'), 'error');
                          logErrorMessage(err);
                     }
                });

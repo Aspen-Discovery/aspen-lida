@@ -1,6 +1,7 @@
 import React from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 import {
      ActionsheetIcon,
      ActionsheetItem,
@@ -24,31 +25,39 @@ import {
      ModalCloseButton,
      ModalContent,
      ModalFooter,
-     ModalHeader, useToast
+     ModalHeader
 } from '@gluestack-ui/themed';
 
 import { freezeHold, freezeHolds } from '../../../util/api/user';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import {logDebugMessage, logWarnMessage} from "../../../util/logging";
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { useTheme } from '../../../themes/theme';
 
 export const SelectThawDate = (props) => {
-     const { freezingLabel, freezeLabel, label, libraryContext, onClose, freezeId, recordId, source, userId, resetGroup, theme, textColor, colorMode } = props;
+     const { freezingLabel, freezeLabel, label, libraryContext, onClose, freezeId, recordId, source, userId, resetGroup } = props;
      let data = props.data;
      const language = useActiveLanguage();
+     const { theme, textColor, colorMode } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
      const [showIndefiniteWarning, setShowIndefiniteWarning] = React.useState(false);
      const [freezeIndefinite, setFreezeIndefinite] = React.useState(false);
-     const toast = useToast();
 
      let actionLabel = freezeLabel;
      if (label) {
           actionLabel = label;
      }
 
+
      const today = new Date();
      const [date, setDate] = React.useState(today);
+     const pickerThemeProps = Platform.OS === 'ios'
+          ? {
+               themeVariant: colorMode === 'dark' ? 'dark' : 'light',
+               textColor: colorMode === 'dark' ? '#ffffff' : undefined,
+          }
+          : {};
 
 
      const showDatePicker = () => {
@@ -76,13 +85,13 @@ export const SelectThawDate = (props) => {
           setDate(date);
           onClose();
           if (data) {
-               freezeHolds(toast, data, libraryContext.baseUrl, date, language, libraryContext.reactivateDateNotRequired ?? false).then((result) => {
+               freezeHolds(data, libraryContext.baseUrl, date, language, libraryContext.reactivateDateNotRequired ?? false).then((result) => {
                     setLoading(false);
                     resetGroup();
                     hideDatePicker();
                });
           } else {
-               freezeHold(toast, freezeId, recordId, source, libraryContext.baseUrl, userId, date, language, libraryContext.reactivateDateNotRequired ?? false).then((result) => {
+               freezeHold(freezeId, recordId, source, libraryContext.baseUrl, userId, date, language, libraryContext.reactivateDateNotRequired ?? false).then((result) => {
                     setLoading(false);
                     resetGroup();
                     hideDatePicker();
@@ -189,10 +198,10 @@ export const SelectThawDate = (props) => {
                     mode="date"
                     onConfirm={onSelectDate}
                     onCancel={hideDatePicker}
-                    isDarkModeEnabled={colorMode === 'dark'}
+                    isDarkModeEnabled={colorMode === "dark"}
                     minimumDate={today}
-                    textColor={textColor}
                     confirmTextIOS={loading ? freezingLabel : actionLabel}
+                    {...pickerThemeProps}
                />
           </>
      );

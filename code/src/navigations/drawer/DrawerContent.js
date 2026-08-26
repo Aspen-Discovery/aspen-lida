@@ -19,8 +19,7 @@ import {
      Pressable,
      Text,
      useToken,
-     VStack,
-     useToast
+     VStack
 } from '@gluestack-ui/themed';
 import { useColorModeValue, UseColorMode, useTheme } from '../../themes/theme';
 import React from 'react';
@@ -56,6 +55,7 @@ import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useTranslationWithValues } from '../../hooks/useTranslationWithValues';
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -494,7 +494,7 @@ export const DrawerContent = (props) => {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
-                     logDebugMessage(data);
+                     //logDebugMessage(data);
                      updateAvailableLocations(data?.data?.result?.locations ?? []);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -897,6 +897,8 @@ const SavedSearches = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { textColor } = useTheme();
+     const updatesCount = user.numSavedSearchesNew ?? 0;
+     const { text: savedSearchSummary } = useTranslationWithValues('num_saved_searches_with_updates', updatesCount, { enabled: updatesCount > 0, addToDictionary: true });
 
      return (
           <Pressable
@@ -919,7 +921,7 @@ const SavedSearches = () => {
                          </HStack>
                          {user.numSavedSearchesNew > 0 ? (
                               <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_searches_with_updates', user.numSavedSearchesNew)}</BadgeText>
+                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -1077,7 +1079,6 @@ const Fines = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
 
      const shouldShowFines = library.showFines ?? true;
 
@@ -1093,7 +1094,7 @@ const Fines = () => {
 
      if (shouldShowFines) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>
@@ -1156,7 +1157,6 @@ const YearInReview = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const yearInReviewLabel = getTermFromDictionary(language, 'year_in_review');
@@ -1166,7 +1166,7 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(toast, library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
                          <VStack>

@@ -41,12 +41,11 @@ import {
      SelectItem,
      SelectScrollView,
      Select,
-     useToast
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback';
 
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -81,7 +80,6 @@ const CreateList = (props) => {
      const [newGroupName, setNewGroupName] = React.useState('');
      const [nestedGroup, setNestedGroup] = React.useState('');
      const [existingGroupId, setExistingGroupId] = React.useState(user.lastListGroupAdded ? user.lastListGroupAdded : (listGroups?.groups[0] ? listGroups.groups[0].id : 0));
-     const toast = useToast();
      const insets = useSafeAreaInsets();
 
      let hasListGroups = false;
@@ -309,11 +307,11 @@ const CreateList = (props) => {
                                                                   unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
                                                         }
                                                         toggle();
-                                                        popAlert(toast, getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                        popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
                                                    });
                                               } catch (error) {
                                                    logErrorMessage("Failed to create list: ", error);
-                                                   popAlert(toast, "Error", "Something went wrong while creating the list.", "danger");
+                                                   popAlert("Error", "Something went wrong while creating the list.", "danger");
                                               } finally {
                                                    setAdding(false);
                                                    setLoading(false);

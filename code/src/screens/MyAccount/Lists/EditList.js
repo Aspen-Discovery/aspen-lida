@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback';
 
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
 import { navigateStack } from '../../../helpers/RootNavigator';
@@ -69,7 +69,7 @@ import {
      SelectDragIndicator,
       SelectItem,
       SelectScrollView,
-      Select, useToast } from '@gluestack-ui/themed';
+      Select } from '@gluestack-ui/themed';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const EditList = (props) => {
@@ -249,7 +249,6 @@ const DeleteList = (props) => {
       const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
       const onClose = () => setIsOpen(false);
       const cancelRef = React.useRef(null);
-      const toast = useToast();
       const user = userState?.user ?? {};
 
      return (
@@ -316,9 +315,9 @@ const DeleteList = (props) => {
                                                    setIsOpen(!isOpen);
                                                    if (res.success === false) {
                                                         status = 'error';
-                                                        popAlert(toast, res.title, res.message, status);
+                                                        popAlert(res.title, res.message, status);
                                                    } else {
-                                                        popAlert(toast, res.title, res.message, status);
+                                                        popAlert(res.title, res.message, status);
                                                         navigateStack('AccountScreenTab', 'MyLists', {
                                                              libraryUrl: library.baseUrl,
                                                              hasPendingChanges: true });

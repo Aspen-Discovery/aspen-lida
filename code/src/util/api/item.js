@@ -152,9 +152,8 @@ export async function getVolumes(id, url = null) {
                ? volumesRaw
                : Object.values(volumesList);
 
-          return volumesArray.sort((a, b) =>
-               (a.key ?? '').toString().localeCompare((b.key ?? '').toString())
-          );
+          //Do not resort volumes since they are already returned in order.
+          return volumesArray;
      }
 
      return [];

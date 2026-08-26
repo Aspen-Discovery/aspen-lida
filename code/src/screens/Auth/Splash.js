@@ -1,8 +1,8 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { Center, Image, Spinner, VStack, useToast } from '@gluestack-ui/themed';
+import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { getTermFromDictionary } from '../../translations/TranslationService';
+import { getTermFromDictionary, ensureTranslationsLibraryHydrated } from '../../translations/TranslationService';
 import { buildThemeForLibrary, THEME_STALE_MS, useTheme } from '../../themes/theme';
 import {
      isStoredThemeIdMatch,
@@ -44,8 +44,13 @@ function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
           result?.settings?.enableSelfCheck,
+          result?.settings?.selfCheckEnabled,
           result?.isEnabled,
           result?.enableSelfCheck,
+          result?.selfCheckEnabled,
+          result?.selfCheckSettings?.isEnabled,
+          result?.selfCheckSettings?.enableSelfCheck,
+          result?.selfCheckSettings?.selfCheckEnabled,
      ];
 
      for (const candidate of candidates) {
@@ -67,6 +72,7 @@ export async function evaluateStartupCache() {
           loadAllLibraryBranchData(),
           loadAllLibrarySystemData(),
           loadAllLanguageData(),
+          ensureTranslationsLibraryHydrated(),
           SecureStore.getItemAsync('userKey'),
      ]);
 
@@ -77,9 +83,18 @@ export async function evaluateStartupCache() {
      const matchesLoggedInUser = !normalizedLoginKey || normalizedLoginKey === normalizedCatUsername || normalizedLoginKey === normalizedBarcode;
 
      const hasUsableUserCache = !!cachedUser && matchesLoggedInUser;
-     const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && (!!cachedLibraryBranchState.location || !!cachedLibraryBranchState.selfCheckSettings);
+     const hasCachedLocation =
+          !!cachedLibraryBranchState?.location &&
+          !!cachedLibraryBranchState.location.locationId;
+     const hasCachedSelfCheckSettings =
+          isPlainObject(cachedLibraryBranchState?.selfCheckSettings) &&
+          Object.keys(cachedLibraryBranchState.selfCheckSettings).length > 0;
+     const hasUsableSelfCheckCache =
+          !!cachedLibraryBranchState &&
+          (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
+     const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
      const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
-     const hasUsableLanguageCache = !!cachedLanguageState && (Array.isArray(cachedLanguageState.languages) || isPlainObject(cachedLanguageState.dictionary));
+     const hasUsableLanguageCache = !!cachedLanguageState && Array.isArray(cachedLanguageState.languages) && cachedLanguageState.languages.length > 0 && isPlainObject(cachedLanguageState.dictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
@@ -93,6 +108,7 @@ export async function evaluateStartupCache() {
           hasUsableLibraryBranchCache &&
           hasUsableLibrarySystemCache &&
           hasUsableLanguageCache;
+     logDebugMessage("Can bypass loading? " + canBypassLoading);
 
       try {
            const persistedLibraryUrl = await loadLibraryUrl();
@@ -164,7 +180,7 @@ export async function evaluateStartupCache() {
       }
 
       // Validate and normalize self-check settings from cache as fallback
-      if (cachedLibraryBranchState && hasUsableLibraryBranchCache) {
+      if (cachedLibraryBranchState && (hasUsableSelfCheckCache || hasCachedLocation)) {
            try {
                 const normalizedEnabled = resolveSelfCheckEnabled(cachedLibraryBranchState);
                 if (typeof normalizedEnabled === 'boolean') {
@@ -214,7 +230,6 @@ export async function evaluateStartupCache() {
 }
 
 export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme = false, onThemeInitialized }) => {
-     const toast = useToast();
      const { updateTheme, updateColorMode } = useTheme();
 
      React.useEffect(() => {
@@ -261,7 +276,7 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          }
 
                          logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl}`);
-                         const builtTheme = await buildThemeForLibrary(toast, themeUrl);
+                         const builtTheme = await buildThemeForLibrary(themeUrl);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
                               colorMode: mode,
@@ -289,7 +304,7 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                logDebugMessage('Splash theme init: cleanup (component unmounted)');
                active = false;
           };
-     }, [forceRefreshTheme, onThemeInitialized, shouldInitializeTheme, toast, updateColorMode, updateTheme]);
+     }, [forceRefreshTheme, onThemeInitialized, shouldInitializeTheme, updateColorMode, updateTheme]);
 
      return (
           <Center testID="splash-center" flex={1} px="$3" style={{ backgroundColor: splashBackgroundColor }}>

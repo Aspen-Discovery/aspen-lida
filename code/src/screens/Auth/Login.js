@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@gluestack-ui/themed';
+import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 
@@ -28,6 +28,7 @@ import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust 
 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
+import { popAlert } from '../../components/feedback';
 
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
@@ -60,7 +61,6 @@ export const LoginScreen = () => {
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
      const { theme, colorMode, textColor } = useTheme();
-     const toast = useToast();
 
      let isCommunity = true;
      if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
@@ -76,27 +76,10 @@ export const LoginScreen = () => {
       // Show migration error message if session expired due to SQLite migration failure
       React.useEffect(() => {
            if (route.params?.migrationError) {
-                toast.show({
-                     placement: 'top',
-                     duration: 3000,
-                     render: ({ id }) => (
-                          <Box
-                               nativeID={`toast-${id}`}
-                               m="$2"
-                               p="$3"
-                               bg="$error600"
-                               rounded="$md"
-                               flexDirection="row"
-                               alignItems="center">
-                               <Text color="$white" fontWeight="$bold">
-                                    Your session expired, please log in again.
-                               </Text>
-                          </Box>
-                     ),
-                });
+                popAlert('Session expired', 'Your session expired, please log in again.', 'error');
                 logDebugMessage('Migration error detected, showing toast to user');
            }
-      }, [route.params?.migrationError, toast]);
+      }, [route.params?.migrationError]);
 
       useFocusEffect(
            React.useCallback(() => {
@@ -114,18 +97,13 @@ export const LoginScreen = () => {
                          }
                     });
 
-                    await fetchNearbyLibrariesFromGreenhouse(toast).then((result) => {
+                    await fetchNearbyLibrariesFromGreenhouse().then((result) => {
                          if (result.success) {
                               setLibraries(result.libraries);
                               if (!result.shouldShowSelectLibrary) {
-                                   if (result.libraries.length === 1) {
-                                        setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
-                                        logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
-                                        updateSelectedLibrary(result.libraries[0]);
-                                   }else{
-                                        logInfoMessage('Found ' + result.libraries.length + ' libraries, but shouldShowSelectLibrary is false');
-                                        setShowShouldSelectLibrary(true);
-                                   }
+                                   setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
+                                   logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
+                                   updateSelectedLibrary(result.libraries[0]);
                               }else{
                                    logInfoMessage('Found ' + result.libraries.length + ' libraries');
                                    setShowShouldSelectLibrary(true);
@@ -149,7 +127,7 @@ export const LoginScreen = () => {
                      setIsLoading(false);
                 };
                 bootstrapAsync();
-          }, [toast, isCommunity])
+          }, [isCommunity])
       );
 
      const onLogoTap = () => {

@@ -1,4 +1,4 @@
-import { Box, Pressable, VStack, Text, useToast } from '@gluestack-ui/themed';
+import { Box, Pressable, VStack, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
@@ -8,7 +8,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
@@ -52,7 +52,6 @@ const Link = ({link}) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { updateCurrentIndex } = React.useContext(SearchContext);
-     const toast = useToast();
 
      const navigation = useNavigation();
 
@@ -68,7 +67,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Error opening link: ' + e);
-               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 
@@ -148,7 +147,7 @@ const Link = ({link}) => {
                }
           } catch (e) {
                logErrorMessage('Navigation error: ' + e.message);
-               popAlert(toast, getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
+               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'error_no_open_resource'), 'error');
           }
      }
 

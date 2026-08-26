@@ -64,10 +64,9 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 
 /**
  * Fetches nearby libraries from Greenhouse based on patron's location and release channel, and determines if the select library screen should be shown
- * @param {object} toast - The instance returned by useToast()
  * @returns {Promise<{success: boolean, libraries, shouldShowSelectLibrary: boolean}|{success: boolean, shouldShowSelectLibrary: boolean, libraries: *[]}>}
  */
-export async function fetchNearbyLibrariesFromGreenhouse(toast) {
+export async function fetchNearbyLibrariesFromGreenhouse() {
      logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
      let latitude = null;
@@ -103,7 +102,7 @@ export async function fetchNearbyLibrariesFromGreenhouse(toast) {
 
           if (isBranded) {
                logDebugMessage("Getting branded app settings");
-               await getAppSettings(toast, GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
+               await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
                logDebugMessage(LIBRARY.appSettings);
 
                const autoPickUserHomeLocation = LIBRARY.appSettings?.autoPickUserHomeLocation ?? false;
@@ -138,7 +137,8 @@ export async function fetchAllLibrariesFromGreenhouse() {
      });
 
      if (response.ok) {
-          const libraries = [...(response.data.libraries ?? [])].sort((a, b) => {
+          const data = response.data?.result;
+          const libraries = [...(data.libraries ?? [])].sort((a, b) => {
                if (a.name !== b.name) return (a.name ?? '').localeCompare(b.name ?? '');
                return (a.librarySystem ?? '').localeCompare(b.librarySystem ?? '');
           });

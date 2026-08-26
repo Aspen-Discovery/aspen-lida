@@ -37,8 +37,7 @@ import {
      VStack,
      CloseIcon,
      Heading,
-     ChevronDownIcon,
-     useToast
+     ChevronDownIcon
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -85,8 +84,6 @@ export const MyCheckouts = () => {
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
      const { theme, textColor, colorMode } = useTheme();
-
-     const toast = useToast();
 
      const [checkoutsBy, setCheckoutBy] = React.useState({
           ils: 'Checked Out Titles for Physical Materials',
@@ -421,7 +418,7 @@ export const MyCheckouts = () => {
                                    onPress={() => {
                                         if (renewAll) return;
                                         setRenewAll(true);
-                                        renewAllCheckouts(toast, library.baseUrl, language).then((result) => {
+                                        renewAllCheckouts(library.baseUrl, language).then((result) => {
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
                                                   setRenewConfirmationResponse({
                                                        message: result.api.message,
@@ -598,14 +595,14 @@ export const MyCheckouts = () => {
                                                   setConfirmingRenewal(true);
 
                                                   if (renewConfirmationResponse.renewType === 'all') {
-                                                       await confirmRenewAllCheckouts(toast, library.baseUrl, language).then(async (result) => {
+                                                       await confirmRenewAllCheckouts(library.baseUrl, language).then(async (result) => {
                                                             await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
                                                             setConfirmingRenewal(false);
                                                        });
                                                   } else {
-                                                       await confirmRenewCheckout(toast, renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
+                                                       await confirmRenewCheckout(renewConfirmationResponse.barcode, renewConfirmationResponse.recordId, renewConfirmationResponse.source, renewConfirmationResponse.itemId, library.baseUrl, renewConfirmationResponse.userId).then(async (result) => {
                                                             await refreshUserAndCheckouts();
 
                                                             setRenewConfirmationIsOpen(false);
@@ -621,8 +618,8 @@ export const MyCheckouts = () => {
                     </AlertDialog>
                </Center>
                <FlatList
-                    data={filteredCheckouts} L
-                    istEmptyComponent={noCheckouts}
+                    data={filteredCheckouts}
+                    ListEmptyComponent={noCheckouts}
                     renderItem={({ item }) =>
                          <MyCheckout data={item}
                                 reloadCheckouts={reloadCheckouts}

@@ -1,10 +1,10 @@
-import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, useToast } from '@gluestack-ui/themed';
+import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import React from 'react';
-import { popToast } from '../../components/loadError';
+import { popToast } from '../../components/feedback';
 
 // custom components and helper files
 
@@ -25,7 +25,6 @@ export const DisplayEventResult = (props) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { theme, textColor, colorMode } = useTheme();
-     const toast = useToast();
 
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
@@ -125,7 +124,7 @@ export const DisplayEventResult = (props) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

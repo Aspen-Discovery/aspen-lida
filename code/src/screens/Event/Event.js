@@ -8,15 +8,12 @@ import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import {
-     useToast,
      Box,
      Divider,
      Pressable,
      ScrollView,
      VStack,
      Text,
-     Alert,
-     AlertIcon,
      Button,
      ButtonGroup,
      ButtonText,
@@ -35,7 +32,8 @@ import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
-import { loadError, popAlert, popToast } from '../../components/loadError';
+import { loadError } from '../../components/loadError';
+import { popAlert, popToast } from '../../components/feedback';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
@@ -135,7 +133,6 @@ const DisplayEvent = (payload) => {
      const source = route.params.source;
      const language = useActiveLanguage();
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
@@ -173,7 +170,7 @@ const DisplayEvent = (payload) => {
                               logDebugMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      };
@@ -320,7 +317,6 @@ const AddToCalendar = ({ start, end, location, event }) => {
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
      const { textColor } = useTheme();
-     const toast = useToast();
 
      let displayDay = false;
      let displayStartTime = false;
@@ -407,32 +403,12 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          id: event.id,
                          location: eventLocation,
                          allDay: event.isAllDay ?? false,
-                         url: event.url }).then(async (result) => {
-                         return toast.show({
-                              duration: 5000,
-                              accessibilityAnnouncement: getTermFromDictionary(language, 'event_added_to_calendar'),
-                              avoidKeyboard: true,
-                              render: () => {
-                                   return (
-                                        <Center>
-                                             <Alert maxW="400" status="success" colorScheme="success">
-                                                  <VStack space="sm" flexShrink={1} width="$full">
-                                                       <HStack flexShrink={1} space="sm" alignItems="center" justifyContent="space-between">
-                                                            <HStack flexShrink={1} space="sm">
-                                                                 <AlertIcon />
-                                                                 <Text size="md" fontWeight="$bold" color={textColor}>
-                                                                      {getTermFromDictionary(language, 'added_successfully')}
-                                                                 </Text>
-                                                            </HStack>
-                                                       </HStack>
-                                                       <Box pl="$6">
-                                                            <Text color={textColor}>{getTermFromDictionary(language, 'event_added_to_calendar')}</Text>
-                                                       </Box>
-                                                  </VStack>
-                                             </Alert>
-                                        </Center>
-                                   );
-                              } });
+                         url: event.url }).then(async () => {
+                         return popAlert(
+                              getTermFromDictionary(language, 'added_successfully'),
+                              getTermFromDictionary(language, 'event_added_to_calendar'),
+                              'success'
+                         );
                     });
                } catch (e) {
                    logDebugMessage(e);
@@ -561,7 +537,6 @@ const AddToYourEvents = ({ id, source }) => {
      const language = useActiveLanguage();
      const { theme } = useTheme();
      const [isLoading, setIsLoading] = React.useState(false);
-     const toast = useToast();
 
      const addToEvents = async () => {
           setIsLoading(true);
@@ -576,9 +551,9 @@ const AddToYourEvents = ({ id, source }) => {
                     await updateUserProfile(profileResponse.data.result.profile);
                }
                if (result.success || result.success === 'true') {
-                    popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
+                    popAlert(getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {
-                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };

@@ -8,8 +8,8 @@ import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCate
 import { updateBrowseCategoryStatus } from '../../../util/api/user';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../../util/api/search';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
-import { useToast } from '@gluestack-ui/themed';
 import { useTheme } from '../../../themes/theme';
+import { popToast } from '../../../components/feedback';
 
 export const Settings_BrowseCategories = () => {
      const library = useLibrary();
@@ -77,7 +77,6 @@ export const Settings_BrowseCategories = () => {
 };
 
 const DisplayCategory = (data) => {
-     const toast = useToast();
      const category = data.data;
      const allCategories = useBrowseCategoryList();
      const [isUpdating, setIsUpdating] = React.useState(false);
@@ -136,21 +135,12 @@ const DisplayCategory = (data) => {
 
                     if (showFailureToast) {
                          const message = getErrorMessage({ statusCode: error?.status, problem: error?.problem });
-                         toast.show({
-                              placement: "bottom",
-                              duration: 3000,
-                              render: () => (
-                                   <Box p="$3" bg="$error500" borderRadius="$md">
-                                        <Text color="$white" bold>{message.title}</Text>
-                                        <Text color="$white">{message.message}</Text>
-                                   </Box>
-                              )
-                         });
+                         popToast(message.title, message.message, 'error');
                     }
 
                     return false;
                });
-     }, [getCategoryKey, library.baseUrl, toast, toggleCategoryVisibility]);
+     }, [getCategoryKey, library.baseUrl, toggleCategoryVisibility]);
 
      React.useEffect(() => {
           setShowErrorDialog(false);
@@ -176,16 +166,7 @@ const DisplayCategory = (data) => {
                      setErrorMessage(error.message);
                     logErrorMessage(optimisticResult?.error);
                      setShowErrorDialog(true);
-                     toast.show({
-                          placement: "bottom",
-                          duration: 3000,
-                          render: () => (
-                               <Box p="$3" bg="$error500" borderRadius="$md">
-                                    <Text color="$white" bold>{error.title}</Text>
-                                    <Text color="$white">{error.message}</Text>
-                               </Box>
-                          )
-                     });
+                     popToast(error.title, error.message, 'error');
                     return;
                }
 
@@ -209,16 +190,7 @@ const DisplayCategory = (data) => {
                 const hadBackgroundFailure = results.some((result) => result.status === 'fulfilled' && result.value === false);
 
                 if (hadBackgroundFailure && categoriesNeedingSync.length > 1) {
-                     toast.show({
-                          placement: "bottom",
-                          duration: 3000,
-                          render: () => (
-                               <Box p="$3" bg="$error500" borderRadius="$md">
-                                    <Text color="$white" bold>Update issue</Text>
-                                    <Text color="$white">Some subcategories could not be updated.</Text>
-                               </Box>
-                          )
-                     });
+                     popToast('Update issue', 'Some subcategories could not be updated.', 'error');
                 }
 
                 const requestedMax = maxNum > 0 ? maxNum : 5;

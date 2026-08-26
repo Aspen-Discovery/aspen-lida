@@ -31,7 +31,7 @@ import {
      ModalCloseButton,
      ModalHeader,
      ModalBody,
-     ModalFooter, useToast,
+     ModalFooter
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
@@ -66,7 +66,6 @@ export const SelectPickupLocation = (props) => {
      const [showModal, setShowModal] = React.useState(false);
      let [location, setLocation] = React.useState(pickupLocation);
      let [activeSublocation, setActiveSublocation] = React.useState(null);
-     const toast = useToast();
 
      return (
           <>
@@ -95,7 +94,7 @@ export const SelectPickupLocation = (props) => {
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <Box pl="$4" pr="$4" _text={{ color: 'text.900' }} _hover={{ bg: 'muted.200' }} _pressed={{ bg: 'muted.300' }} _dark={{ _text: { color: 'text.50' } }}>
+                              <Box pl="$4" pr="$4">
                                    <FormControl>
                                         <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_new_pickup')}</FormControlLabelText></FormControlLabel>
                                         <Select
@@ -162,7 +161,7 @@ export const SelectPickupLocation = (props) => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={() => {
                                              setLoading(true);
-                                             changeHoldPickUpLocation(toast, holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
+                                             changeHoldPickUpLocation(holdId, location, activeSublocation, libraryContext.baseUrl, userId, language).then((r) => {
                                                   setShowModal(false);
                                                   resetGroup();
                                                   onClose(onClose);

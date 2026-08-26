@@ -11,7 +11,7 @@ import {
      Text,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton, useToast
+     ModalBackdrop, CloseIcon, ModalCloseButton
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 
@@ -36,7 +36,6 @@ const EnableAccountLinking = () => {
      const { textColor, theme, colorMode } = useTheme();
      const [loading, setLoading] = useState(false);
      const [showModal, setShowModal] = useState(false);
-     const toast = useToast();
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -90,7 +89,7 @@ const EnableAccountLinking = () => {
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await enableAccountLinking(toast, language, library.baseUrl).then(async (r) => {
+                                             await enableAccountLinking(library.baseUrl).then(async (r) => {
                                                   await refreshLinkedAccounts();
                                                   toggle();
                                              });

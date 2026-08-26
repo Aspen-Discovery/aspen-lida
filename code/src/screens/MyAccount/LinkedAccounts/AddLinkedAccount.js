@@ -16,7 +16,7 @@ import {
      InputField,
      Icon,
      Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton, InputIcon, InputSlot, useToast } from '@gluestack-ui/themed';
+     ModalBackdrop, CloseIcon, ModalCloseButton, InputIcon, InputSlot } from '@gluestack-ui/themed';
 import React, { useState, useRef } from 'react';
 
 
@@ -46,7 +46,6 @@ const AddLinkedAccount = () => {
      const [showPassword, setShowPassword] = useState(false);
      const [newUser, setNewUser] = useState('');
      const [password, setPassword] = useState('');
-     const toast = useToast();
 
      const passwordRef = useRef();
 
@@ -136,7 +135,7 @@ const AddLinkedAccount = () => {
                                         onPress={async () => {
                                              setLoading(true);
                                              try {
-                                                  await addLinkedAccount(toast, newUser, password, library.baseUrl);
+                                                  await addLinkedAccount(newUser, password, library.baseUrl);
                                                   await refreshLinkedAccounts();
                                              }catch (e) {
                                                   logErrorMessage("Error adding linked account");

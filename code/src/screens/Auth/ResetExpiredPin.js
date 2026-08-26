@@ -29,11 +29,11 @@ import {
      FormControlErrorText,
      CloseIcon,
      AlertCircleIcon,
-     Spinner, useToast
+     Spinner
 } from '@gluestack-ui/themed';
 
 import React from 'react';
-import { popAlert } from '../../components/loadError';
+import { popAlert } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useUpdateLibrary, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
@@ -72,7 +72,6 @@ export const ResetExpiredPin = (props) => {
      const [pinConfirmed, setPinConfirmed] = React.useState('');
      const [errors, setErrors] = React.useState({});
      const [hasError, setHasError] = React.useState(false);
-     const toast = useToast();
 
      // show:hide data from password fields
      const [showPin, setShowPin] = React.useState(false);
@@ -135,14 +134,14 @@ export const ResetExpiredPin = (props) => {
                               setIsOpen(false);
                               setHasError(false);
                          } else {
-                              popAlert(toast, getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
+                              popAlert(getTermFromDictionary('en', 'error'), result.message ?? 'Unable to update pin', 'error');
                          }
                     } else {
                          logDebugMessage("Error resetting expired pin");
                          logDebugMessage(result);
                          const error = getErrorMessage(result.code ?? 0, result.problem);
                          setHasError(true);
-                         popAlert(toast, error.title, error.message, 'error');
+                         popAlert(error.title, error.message, 'error');
                     }
                });
           } else {

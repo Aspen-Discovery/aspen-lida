@@ -29,7 +29,7 @@ import {
      CheckIcon,
      CheckboxIndicator,
      CheckboxIcon,
-     ButtonSpinner, useToast
+     ButtonSpinner
 } from '@gluestack-ui/themed';
 import {getPickupLocations, getPickupSublocations, refreshProfile, updateHoldPickupPreferences} from "../../../util/api/user";
 import { formatPickupLocations } from '../../../util/api/userHelper';
@@ -63,6 +63,17 @@ export const Settings_PickupLocations = () => {
 		return JSON.stringify(stableNormalize(currentValue ?? [])) !== JSON.stringify(stableNormalize(nextValue ?? []));
 	}, [stableNormalize]);
 
+  const normalizeRememberPickupLocation = React.useCallback((value) => {
+    if (value === true || value === 1 || value === '1') return true;
+    if (value === false || value === 0 || value === '0') return false;
+    if (typeof value === 'string') {
+      const lowered = value.toLowerCase();
+      if (lowered === 'true') return true;
+      if (lowered === 'false') return false;
+    }
+    return false;
+  }, []);
+
 	const [loading, setLoading] = React.useState(false);
 	const library = useLibrary();
 	const language = useActiveLanguage();
@@ -77,7 +88,6 @@ export const Settings_PickupLocations = () => {
     const updateUserProfile = useUpdateUserProfile();
 	const { theme, textColor, colorMode } = useTheme();
 	const insets = useSafeAreaInsets();
-     const toast = useToast();
 	const locationsRef = React.useRef(locations);
 	const sublocationsRef = React.useRef(sublocations);
 
@@ -145,7 +155,7 @@ export const Settings_PickupLocations = () => {
 	let userPickupLocation2Id = user.myLocation2Id ?? "";
 	let userSublocationPickupId = user.pickupSublocationId ?? "";
 	logDebugMessage("Remember Hold Pickup Location in Preferences is " + user.rememberHoldPickupLocation);
-	const rememberHoldPickupLocation = Boolean(user.rememberHoldPickupLocation);
+  const rememberHoldPickupLocation = normalizeRememberPickupLocation(user.rememberHoldPickupLocation);
 
 	if (Number.isFinite(user.pickupLocationId)) {
 		userPickupLocationId = String(user.pickupLocationId);
@@ -241,7 +251,7 @@ export const Settings_PickupLocations = () => {
 		String(location1Id ?? '') !== String(initialPreferences.location1Id ?? '') ||
 		String(location2Id ?? '') !== String(initialPreferences.location2Id ?? '') ||
 		String(sublocation ?? '') !== String(initialPreferences.sublocation ?? '') ||
-		Boolean(rememberPickupLocation) !== Boolean(initialPreferences.rememberPickupLocation);
+    rememberPickupLocation !== initialPreferences.rememberPickupLocation;
 
 	const selectedLocationObj = locations.find(loc => loc.code === location);
 	const selectedLocation1Obj = locations.find(loc => loc.code === location1Id);
@@ -249,206 +259,214 @@ export const Settings_PickupLocations = () => {
 	const getLocationLabel = React.useCallback((item) => item?.displayName ?? item?.name ?? item?.code ?? '', []);
 
 	return (
-		<Box p="$5">
-			<FormControl mb="$3">
-				<FormControlLabel>
-					<FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'preferred_pickup_branch')}</FormControlLabelText>
-				</FormControlLabel>
-				<Select
-					name="pickupLocations"
-					selectedValue={location}
-					minWidth="200"
-					accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-					mt="$1"
-					mb="$2"
-					onValueChange={(itemValue) => {
-						setIsDirty(true);
-						setLocation(itemValue);
-					}}>
-					<SelectTrigger variant="outline" size="md">
-						{selectedLocationObj ? (
-							<SelectInput py={0} value={getLocationLabel(selectedLocationObj)} color={textColor} />
-						) : (
-							<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
-						)}
-						<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
-					</SelectTrigger>
-					<SelectPortal>
-						<SelectBackdrop />
-						<SelectContent
-							bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-							pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-						>
-							<SelectDragIndicatorWrapper>
-								<SelectDragIndicator />
-							</SelectDragIndicatorWrapper>
-							<SelectScrollView>
-									{locations.map((availableLocations, index) => {
-										const locationLabel = getLocationLabel(availableLocations);
-									if (availableLocations.code === location) {
-											return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
-									}
-										return <SelectItem label={locationLabel} value={availableLocations.code} key={index} sx={{
-										_text: { color: textColor }
-									}} />;
-								})}
-							</SelectScrollView>
-						</SelectContent>
-					</SelectPortal>
-				</Select>
-			</FormControl>
-			{showAlternatePickupLocations ? (
-				<>
-				<FormControl mb="$3">
-					<FormControlLabel>
-						<FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'alternate_pickup_location_1')}</FormControlLabelText>
-					</FormControlLabel>
-					<Select
-						name="pickupLocations1"
-						selectedValue={location1Id}
-						accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-						mt="$1"
-						mb="$2"
-						onValueChange={(itemValue) => {
-							setIsDirty(true);
-							setLocation1Id(itemValue);
-						}}>
-						<SelectTrigger variant="outline" size="md">
-							{selectedLocation1Obj ? (
-								<SelectInput py={0} value={getLocationLabel(selectedLocation1Obj)} color={textColor} />
-							) : (
-								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
-							)}
-							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
-						</SelectTrigger>
-						<SelectPortal>
-							<SelectBackdrop />
-							<SelectContent
-								bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-							>
-								<SelectDragIndicatorWrapper>
-									<SelectDragIndicator />
-								</SelectDragIndicatorWrapper>
-								<SelectScrollView>
-									{locations.map((availableLocations, index) => {
-										const locationLabel = getLocationLabel(availableLocations);
-										if (availableLocations.code === location1Id) {
-											return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
-										}
-										return <SelectItem label={locationLabel} value={availableLocations.code} key={index} sx={{
-											_text: { color: textColor }
-										}} />;
-									})}
-								</SelectScrollView>
-							</SelectContent>
-						</SelectPortal>
-					</Select>
-				</FormControl>
-				<FormControl mb="$5">
-					<FormControlLabel>
-						<FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'alternate_pickup_location_2')}</FormControlLabelText>
-					</FormControlLabel>
-					<Select
-						name="pickupLocation2"
-						selectedValue={location2Id}
-						accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
-						mt="$1"
-						mb="$2"
-						onValueChange={(itemValue) => {
-							setIsDirty(true);
-							setLocation2Id(itemValue);
-						}}>
-						<SelectTrigger variant="outline" size="md">
-							{selectedLocation2Obj ? (
-								<SelectInput py={0} value={getLocationLabel(selectedLocation2Obj)} color={textColor} />
-							) : (
-								<SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />
-							)}
-							<SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
-						</SelectTrigger>
-						<SelectPortal>
-							<SelectBackdrop />
-							<SelectContent
-								bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-								pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-							>
-								<SelectDragIndicatorWrapper>
-									<SelectDragIndicator />
-								</SelectDragIndicatorWrapper>
-								<SelectScrollView>
-									{locations.map((availableLocations, index) => {
-										const locationLabel = getLocationLabel(availableLocations);
-										if (availableLocations.code === location2Id) {
-											return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
-										}
-										return <SelectItem label={locationLabel} value={availableLocations.code} key={index} sx={{
-											_text: { color: textColor }
-										}} />;
-									})}
-								</SelectScrollView>
-							</SelectContent>
-						</SelectPortal>
-					</Select>
-				</FormControl>
-			</>
-			) : null}
-			<SelectNewHoldSublocation
-				sublocations={sublocations}
-				location={location}
-				activeSublocation={sublocation}
-				setActiveSublocation={(value) => {
-					setIsDirty(true);
-					setSublocation(value);
-				}}
-				language={language}
-				textColor={textColor}
-				theme={theme}
-				colorMode={colorMode}
-			/>
-			{library.allowRememberPickupLocation ? (
-				<FormControl mb="$3">
-					<Checkbox
-						size="sm"
-						name="rememberHoldPickupLocation"
-						isChecked={Boolean(rememberPickupLocation)}
-						onChange={(value) => {
-							setIsDirty(true);
-							setRememberPickupLocation(value);
-						}}>
-						<CheckboxIndicator mr="$2">
-							<CheckboxIcon as={CheckIcon} color={textColor} />
-						</CheckboxIndicator>
-						<CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'bypass_pickup_location_prompt')}</CheckboxLabel>
-					</Checkbox>
-				</FormControl>
-			) : null}
-			<ButtonGroup>
-										<Button bgColor={theme.tokens.colors.primary['500']}
-														 onPress={async () => {
-															  if (!hasChanges) {
-																   return;
-															  }
+          <Box p="$5">
+               <FormControl mb="$3">
+                    <FormControlLabel>
+                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'preferred_pickup_branch')}</FormControlLabelText>
+                    </FormControlLabel>
+                    <Select
+                         name="pickupLocations"
+                         selectedValue={location}
+                         minWidth="200"
+                         accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
+                         mt="$1"
+                         mb="$2"
+                         onValueChange={(itemValue) => {
+                              setIsDirty(true);
+                              setLocation(itemValue);
+                         }}>
+                         <SelectTrigger variant="outline" size="md">
+                              {selectedLocationObj ? <SelectInput py={0} value={getLocationLabel(selectedLocationObj)} color={textColor} /> : <SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />}
+                              <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                         </SelectTrigger>
+                         <SelectPortal>
+                              <SelectBackdrop />
+                              <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                   <SelectDragIndicatorWrapper>
+                                        <SelectDragIndicator />
+                                   </SelectDragIndicatorWrapper>
+                                   <SelectScrollView>
+                                        {locations.map((availableLocations, index) => {
+                                             const locationLabel = getLocationLabel(availableLocations);
+                                             if (availableLocations.code === location) {
+                                                  return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                             }
+                                             return (
+                                                  <SelectItem
+                                                       label={locationLabel}
+                                                       value={availableLocations.code}
+                                                       key={index}
+                                                       sx={{
+                                                            _text: { color: textColor },
+                                                       }}
+                                                  />
+                                             );
+                                        })}
+                                   </SelectScrollView>
+                              </SelectContent>
+                         </SelectPortal>
+                    </Select>
+               </FormControl>
+               {showAlternatePickupLocations ? (
+                    <>
+                         <FormControl mb="$3">
+                              <FormControlLabel>
+                                   <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'alternate_pickup_location_1')}</FormControlLabelText>
+                              </FormControlLabel>
+                              <Select
+                                   name="pickupLocations1"
+                                   selectedValue={location1Id}
+                                   accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
+                                   mt="$1"
+                                   mb="$2"
+                                   onValueChange={(itemValue) => {
+                                        setIsDirty(true);
+                                        setLocation1Id(itemValue);
+                                   }}>
+                                   <SelectTrigger variant="outline" size="md">
+                                        {selectedLocation1Obj ? <SelectInput py={0} value={getLocationLabel(selectedLocation1Obj)} color={textColor} /> : <SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />}
+                                        <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                                   </SelectTrigger>
+                                   <SelectPortal>
+                                        <SelectBackdrop />
+                                        <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                             <SelectDragIndicatorWrapper>
+                                                  <SelectDragIndicator />
+                                             </SelectDragIndicatorWrapper>
+                                             <SelectScrollView>
+                                                  {locations.map((availableLocations, index) => {
+                                                       const locationLabel = getLocationLabel(availableLocations);
+                                                       if (availableLocations.code === location1Id) {
+                                                            return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                       }
+                                                       return (
+                                                            <SelectItem
+                                                                 label={locationLabel}
+                                                                 value={availableLocations.code}
+                                                                 key={index}
+                                                                 sx={{
+                                                                      _text: { color: textColor },
+                                                                 }}
+                                                            />
+                                                       );
+                                                  })}
+                                             </SelectScrollView>
+                                        </SelectContent>
+                                   </SelectPortal>
+                              </Select>
+                         </FormControl>
+                         <FormControl mb="$5">
+                              <FormControlLabel>
+                                   <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'alternate_pickup_location_2')}</FormControlLabelText>
+                              </FormControlLabel>
+                              <Select
+                                   name="pickupLocation2"
+                                   selectedValue={location2Id}
+                                   accessibilityLabel={getTermFromDictionary(language, 'select_pickup_location')}
+                                   mt="$1"
+                                   mb="$2"
+                                   onValueChange={(itemValue) => {
+                                        setIsDirty(true);
+                                        setLocation2Id(itemValue);
+                                   }}>
+                                   <SelectTrigger variant="outline" size="md">
+                                        {selectedLocation2Obj ? <SelectInput py={0} value={getLocationLabel(selectedLocation2Obj)} color={textColor} /> : <SelectInput py={0} value={getTermFromDictionary(language, 'select_pickup_location')} color={textColor} />}
+                                        <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                                   </SelectTrigger>
+                                   <SelectPortal>
+                                        <SelectBackdrop />
+                                        <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                             <SelectDragIndicatorWrapper>
+                                                  <SelectDragIndicator />
+                                             </SelectDragIndicatorWrapper>
+                                             <SelectScrollView>
+                                                  {locations.map((availableLocations, index) => {
+                                                       const locationLabel = getLocationLabel(availableLocations);
+                                                       if (availableLocations.code === location2Id) {
+                                                            return <SelectItem label={locationLabel} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                       }
+                                                       return (
+                                                            <SelectItem
+                                                                 label={locationLabel}
+                                                                 value={availableLocations.code}
+                                                                 key={index}
+                                                                 sx={{
+                                                                      _text: { color: textColor },
+                                                                 }}
+                                                            />
+                                                       );
+                                                  })}
+                                             </SelectScrollView>
+                                        </SelectContent>
+                                   </SelectPortal>
+                              </Select>
+                         </FormControl>
+                    </>
+               ) : null}
+               <SelectNewHoldSublocation
+                    sublocations={sublocations}
+                    location={location}
+                    activeSublocation={sublocation}
+                    setActiveSublocation={(value) => {
+                         setIsDirty(true);
+                         setSublocation(value);
+                    }}
+                    language={language}
+                    textColor={textColor}
+                    theme={theme}
+                    colorMode={colorMode}
+               />
+               {library.allowRememberPickupLocation ? (
+                    <FormControl mb="$3">
+                         <Checkbox
+                              size="sm"
+                              name="rememberHoldPickupLocation"
+                              isChecked={rememberPickupLocation}
+                              onChange={() => {
+                                   setIsDirty(true);
+                                   setRememberPickupLocation((prev) => !prev);
+                              }}>
+                              <CheckboxIndicator
+                                   mr="$2"
+                                   sx={{
+                                        ':checked': {
+                                             borderColor: theme['tokens']['colors']['primary']['500'],
+                                             backgroundColor: theme['tokens']['colors']['primary']['500'],
+                                        },
+                                   }}>
+                                   <CheckboxIcon as={CheckIcon} sx={{ color: theme['tokens']['colors']['primary']['500-text'] }} />
+                              </CheckboxIndicator>
+                              <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'bypass_pickup_location_prompt')}</CheckboxLabel>
+                         </Checkbox>
+                    </FormControl>
+               ) : null}
+               <ButtonGroup>
+                    <Button
+                         bgColor={theme.tokens.colors.primary['500']}
+                         onPress={async () => {
+                              if (!hasChanges) {
+                                   return;
+                              }
 
-															  setLoading(true);
-															  try {
-																   await updateHoldPickupPreferences(toast, location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl);
-																																		   const profileResponse = await refreshProfile(library.baseUrl);
-																																		   const refreshedProfile = profileResponse?.data?.result?.profile;
-																																		   if (profileResponse?.ok && refreshedProfile) {
-																																				await updateUserProfile(refreshedProfile);
-																																		   } else {
-																																				logDebugMessage('Refresh profile did not return a valid profile after updating pickup preferences.');
-																																		   }
-																   setIsDirty(false);
-															  } finally {
-																   setLoading(false);
-															  }
-														 }}
-														 isDisabled={loading || !hasChanges}>
-					{loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>}
-				</Button>
-			</ButtonGroup>
-		</Box>
-	)
+                              setLoading(true);
+                              try {
+                                   await updateHoldPickupPreferences(location, location1Id, location2Id, sublocation, rememberPickupLocation, language, library.baseUrl);
+                                   const profileResponse = await refreshProfile(library.baseUrl);
+                                   const refreshedProfile = profileResponse?.data?.result?.profile;
+                                   if (profileResponse?.ok && refreshedProfile) {
+                                        await updateUserProfile(refreshedProfile);
+                                   } else {
+                                        logDebugMessage('Refresh profile did not return a valid profile after updating pickup preferences.');
+                                   }
+                                   setIsDirty(false);
+                              } finally {
+                                   setLoading(false);
+                              }
+                         }}
+                         isDisabled={loading || !hasChanges}>
+                         {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'update')}</ButtonText>}
+                    </Button>
+               </ButtonGroup>
+          </Box>
+     );
 }

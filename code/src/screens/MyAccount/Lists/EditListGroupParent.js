@@ -32,13 +32,12 @@ import {
      SelectDragIndicator,
      SelectItem,
      SelectScrollView,
-     FormControl,
-     useToast
+     FormControl
 } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { editListGroupParent, getLists, getListGroups } from '../../../util/api/list';
-import { popAlert } from '../../../components/loadError';
+import { popAlert } from '../../../components/feedback';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
@@ -61,8 +60,6 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
 
       const insets = useSafeAreaInsets();
-
-      const toast = useToast();
 
       React.useEffect(() => {
            if (listGroups && listGroups.groups && parentId != null) {
@@ -175,9 +172,9 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                       handleUpdate(id);
                                                       if (res.data.result.success === false) {
                                                            status = 'error';
-                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                           popAlert(res.data.result.title, res.data.result.message, status);
                                                       } else {
-                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                           popAlert(res.data.result.title, res.data.result.message, status);
                                                            navigateStack('AccountScreenTab', 'MyLists', {
                                                                 libraryUrl: library.baseUrl,
                                                                 hasPendingChanges: true });

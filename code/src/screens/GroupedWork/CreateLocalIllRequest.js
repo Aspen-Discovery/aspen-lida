@@ -32,8 +32,7 @@ import {
      HStack,
      ChevronDownIcon,
      Alert,
-     AlertText,
-     useToast
+     AlertText
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -124,7 +123,6 @@ const Request = (payload) => {
      const navigation = useNavigation();
      const queryClient = useQueryClient();
      const insets = useSafeAreaInsets();
-     const toast = useToast();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
 
@@ -150,7 +148,7 @@ const Request = (payload) => {
                catalogKey: workId ?? null,
                pickupLocation: pickupLocation ?? null,
                volumeId: volumeId };
-          await submitLocalIllRequest(toast, library.baseUrl, request).then(async (result) => {
+          await submitLocalIllRequest(library.baseUrl, request).then(async (result) => {
                setIsSubmitting(false);
                if (result.success) {
                     setErrorMessage('');
