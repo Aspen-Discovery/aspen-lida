@@ -226,14 +226,13 @@ export const DiscoverHomeScreen = () => {
 
      const onLoadAllCategories = async () => {
           try {
-               await updateMaxCategories(9999);
                const response = await getHomeScreenFeed(9999, library.baseUrl);
                if (response?.ok) {
                     const result = response.data.result;
                     const nextBrowseCategories = result?.browseCategories ?? [];
                     const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
-                    const browseCategoriesChanged = JSON.stringify(category ?? []) !== JSON.stringify(nextBrowseCategories);
-                    const homeScreenLinksChanged = JSON.stringify(homeScreenLinks ?? []) !== JSON.stringify(nextHomeScreenLinks);
+                     const browseCategoriesChanged = JSON.stringify(categoryRef.current ?? []) !== JSON.stringify(nextBrowseCategories);
+                     const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
 
                     if (browseCategoriesChanged || homeScreenLinksChanged) {
                          setLoading(true);
@@ -326,8 +325,8 @@ export const DiscoverHomeScreen = () => {
                          </Box>
                     }
                     data={category}
-                    keyExtractor={(item) => {
-                         return (item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? `${item?.source ?? 'browse'}-${item?.sourceListId ?? 'category'}`).toString();
+                    keyExtractor={(item, index) => {
+                         return `${item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? `${item?.source ?? 'browse'}-${item?.sourceListId ?? 'category'}`}-${index}`;
                     }}
                     renderItem={({ item }) => (
                          <Box px="$5">
@@ -336,7 +335,7 @@ export const DiscoverHomeScreen = () => {
                     )}
                     ListFooterComponent={
                          <Box p="$5">
-                              <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} maxNum={maxNum} onLoadAllCategories={onLoadAllCategories} />
+                              <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} onLoadAllCategories={onLoadAllCategories} />
                               {showErrorDialog && (
                                    <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
                               )}
@@ -351,7 +350,7 @@ const ButtonOptions = (props) => {
      const { theme } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
-     const { language, showManageCategories, onRefreshCategories, maxNum, onLoadAllCategories } = props;
+     const { language, showManageCategories, onRefreshCategories, onLoadAllCategories } = props;
 
      return (
           <Center>
@@ -362,15 +361,16 @@ const ButtonOptions = (props) => {
                          '@lg': {
                               flexDirection: 'row' } }}>
                     <Button
-                         isDisabled={maxNum === 9999}
+                         isDisabled={loading}
                          bg={theme.tokens.colors.primary['500']}
                          size="md"
-                         onPress={() => {
+                         onPress={async () => {
                               setLoading(true);
-                              onLoadAllCategories();
-                              setTimeout(function () {
+                              try {
+                                   await onLoadAllCategories();
+                              } finally {
                                    setLoading(false);
-                              }, 2500);
+                              }
                          }}>
                          {loading ? (
                            <ButtonSpinner key="spinner" color={theme.tokens.colors.primary['500-text']} mr="$1" />
@@ -413,12 +413,13 @@ const ButtonOptions = (props) => {
                     <Button
                          isDisabled={refreshing}
                          bg={theme.tokens.colors.primary['500']}
-                         onPress={() => {
+                          onPress={async () => {
                               setRefreshing(true);
-                              onRefreshCategories();
-                              setTimeout(function () {
+                              try {
+                                   await onRefreshCategories();
+                              } finally {
                                    setRefreshing(false);
-                              }, 2000);
+                              }
                          }}>
                          {refreshing ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonIcon as={RotateCwIcon} color={theme.tokens.colors.primary['500-text']} mr="$1" size="sm" />}
 
