@@ -54,7 +54,7 @@ import { stripHTML } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
-import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useActiveLanguage, useDictionaryQuery } from '../../hooks/useLanguageData';
 import { useTranslationWithValues } from '../../hooks/useTranslationWithValues';
 
 Notifications.setNotificationHandler({
@@ -203,6 +203,7 @@ export const DrawerContent = (props) => {
       const { updateHolds } = React.useContext(HoldsContext);
       const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const language = useActiveLanguage();
+       const { dataUpdatedAt: dictionaryUpdatedAt } = useDictionaryQuery();
        const [invalidSession, setInvalidSession] = React.useState(false);
 
 
@@ -713,7 +714,7 @@ export const DrawerContent = (props) => {
 
                          <Divider my="$3"/>
 
-                         <VStack flex={1}>
+                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} flex={1}>
                               <Checkouts />
                               <Holds />
                               <UserLists />

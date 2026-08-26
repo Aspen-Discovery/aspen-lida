@@ -34,6 +34,11 @@ const DisplayBrowseCategory = ({category}) => {
      const [selectedSubCategoryIndex, setSelectedSubCategoryIndex] = React.useState(0);
      const handleSelectSubCategory = (index) => setSelectedSubCategoryIndex(index);
 
+     React.useEffect(() => {
+          // Reset selected tab when the parent category changes.
+          setSelectedSubCategoryIndex(0);
+     }, [category?.id, category?.textId, category?.sourceListId]);
+
      const subCategories = category.subCategories ?? [];
      const records = category.records ?? [];
 
@@ -312,7 +317,8 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                          height: '100%',
                          borderRadius: "$sm" }}
                     placeholder={blurhash}
-                    transition={1000}
+                    transition={0}
+                    cachePolicy="memory-disk"
                     contentFit="cover"
                />
                {isNew ? (
@@ -371,7 +377,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      return (
          <ButtonGroup vertical space="sm" pb="$2">
                 {subCategories.map((subCategory, index) => (
-                     <Button key={index}
+                     <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()}
                              bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200'] }
                              variant="solid"
                              sx={{ paddingHorizontal: 12, height: 34 }}
@@ -427,4 +433,4 @@ const DisplayMoreResultsButton = ({ category }) => {
      )
 }
 
-export default DisplayBrowseCategory;
+export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => _.isEqual(prevProps.category, nextProps.category));

@@ -20,7 +20,7 @@ import { useAllLibraryBranchData, useLibraryLocationQuery } from '../../../hooks
 import { useThemeStateQuery } from '../../../hooks/useThemeData';
 import { useAllBrowseCategoryData } from '../../../hooks/useBrowseCategoryData';
 import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '../../../util/api/user';
-import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings } from '../../../util/api/system';
+import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '../../../util/api/system';
 import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
 import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
 import { orderByFields, stripHTML } from '../../../helpers/helpers';
@@ -166,12 +166,9 @@ export const SupportScreen = () => {
                     const languageResponse = await getLibraryLanguages(libraryUrl);
                     if (languageResponse?.ok) {
                          //No need to sort these since they are already sorted by the API
-                         const rawLanguageResponse = languageResponse?.data?.result?.languages ?? [];
-                         const fetchedLanguages = Array.isArray(rawLanguageResponse)
-                              ? rawLanguageResponse
-                              : rawLanguageResponse && typeof rawLanguageResponse === 'object'
-                                   ? Object.values(rawLanguageResponse)
-                                   : [];
+                         const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                              languageResponse?.data?.result?.languages
+                         );
                          await updateLanguages(fetchedLanguages);
 
                          await getTranslatedTermsForUserPreferredLanguage(activeLanguageCode, libraryUrl);

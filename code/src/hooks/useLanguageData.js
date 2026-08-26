@@ -2,15 +2,19 @@ import React from 'react';
 import {
      loadUserState,
      saveUserSettings,
-     loadAvailableLanguages,
-     saveAvailableLanguages,
+     loadLibraryLanguages,
+     saveLibraryLanguages,
      loadDictionary,
      saveDictionary,
      loadAllLanguageData,
-     saveAllLanguageData,
 } from '../util/db';
 import { GLOBALS } from '../util/globals';
 import {logDebugMessage} from "../util/logging";
+import {
+     LIBRARY_ALL_SYSTEM_DATA_KEY,
+     LIBRARY_LANGUAGES_KEY,
+     notifyLibrarySystemDataChanged,
+} from './useLibrarySystemData';
 
 const subscribers = new Set();
 const languageSnapshotCache = new Map();
@@ -153,7 +157,7 @@ export function useLanguageDisplayName(options) {
 }
 
 export const useAvailableLanguagesQuery = (options) =>
-     useSqliteReadQuery(LANGUAGE_AVAILABLE_KEY, loadAvailableLanguages, options);
+     useSqliteReadQuery(LANGUAGE_AVAILABLE_KEY, loadLibraryLanguages, options);
 
 export function useAvailableLanguages(options) {
      const { data } = useAvailableLanguagesQuery(options);
@@ -183,7 +187,7 @@ export function useUpdateActiveLanguage() {
      }, []);
 }
 
-export function useUpdateLanguageDisplayName(displayName) {
+export function useUpdateLanguageDisplayName() {
      return React.useCallback(async (displayName) => {
           logDebugMessage("Updating language display name to " + displayName);
 
@@ -192,15 +196,17 @@ export function useUpdateLanguageDisplayName(displayName) {
      }, []);
 }
 
-export function useUpdateAvailableLanguages(languages) {
+export function useUpdateAvailableLanguages() {
      return React.useCallback(async (languages) => {
-          await saveAvailableLanguages(languages ?? []);
+          await saveLibraryLanguages(languages ?? []);
+          notifyLibrarySystemDataChanged(LIBRARY_LANGUAGES_KEY);
+          notifyLibrarySystemDataChanged(LIBRARY_ALL_SYSTEM_DATA_KEY);
           notifyLanguageChanged(LANGUAGE_AVAILABLE_KEY);
           notifyLanguageChanged(LANGUAGE_ALL_KEY);
      }, []);
 }
 
-export function useUpdateDictionary(dictionary) {
+export function useUpdateDictionary() {
      return React.useCallback(async (dictionary) => {
           await saveDictionary(dictionary ?? {});
           notifyLanguageChanged(LANGUAGE_DICTIONARY_KEY);
