@@ -197,10 +197,9 @@ export async function up(db) {
             );
 
             CREATE TABLE IF NOT EXISTS language_state (
-                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                 language_code TEXT PRIMARY KEY,
                  updated_at INTEGER NOT NULL,
-                 languages_json TEXT,
-                 dictionary_json TEXT
+                 dictionary_json TEXT NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS theme_state (

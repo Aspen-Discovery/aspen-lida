@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { getTermFromDictionary, ensureTranslationsLibraryHydrated } from '../../translations/TranslationService';
+import { getTermFromDictionary, ensureTranslationsLibraryHydrated, setTranslationsLibrary } from '../../translations/TranslationService';
 import { buildThemeForLibrary, THEME_STALE_MS, useTheme } from '../../themes/theme';
 import {
      isStoredThemeIdMatch,
@@ -77,6 +77,27 @@ export async function evaluateStartupCache() {
      ]);
 
      const cachedUser = cachedUserState?.user ?? null;
+     const cachedLibraryLanguages = Array.isArray(cachedLibrarySystemState?.languages)
+          ? cachedLibrarySystemState.languages
+          : [];
+     const cachedLanguageDictionary = isPlainObject(cachedLanguageState?.dictionary)
+          ? cachedLanguageState.dictionary
+          : {};
+     const cachedLanguageList = Array.isArray(cachedLanguageState?.languages) && cachedLanguageState.languages.length > 0
+          ? cachedLanguageState.languages
+          : cachedLibraryLanguages;
+     const languageUpdatedAt = cachedLanguageState?.updatedAt ?? cachedLibrarySystemState?.updatedAt ?? 0;
+
+     const resolvedLanguageState = {
+          languages: cachedLanguageList,
+          dictionary: cachedLanguageDictionary,
+          updatedAt: languageUpdatedAt,
+     };
+
+     if (Object.keys(cachedLanguageDictionary).length > 0) {
+          setTranslationsLibrary(cachedLanguageDictionary);
+     }
+
      const normalizedLoginKey = String(loginUserKey ?? '').toLowerCase();
      const normalizedCatUsername = String(cachedUser?.cat_username ?? '').toLowerCase();
      const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
@@ -94,14 +115,16 @@ export async function evaluateStartupCache() {
           (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
      const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
      const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
-     const hasUsableLanguageCache = !!cachedLanguageState && Array.isArray(cachedLanguageState.languages) && cachedLanguageState.languages.length > 0 && isPlainObject(cachedLanguageState.dictionary);
+     const hasUsableLanguageCache =
+          cachedLanguageList.length > 0 &&
+          isPlainObject(cachedLanguageDictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
      const libraryBranchCacheStale = hasUsableLibraryBranchCache && isCacheStale(branchUpdatedAt, LIBRARY_BRANCH_DATA_STALE_MS);
      const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
      const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
-     const languageCacheStale = hasUsableLanguageCache && isCacheStale(cachedLanguageState?.updatedAt, LANGUAGE_DATA_STALE_MS);
+     const languageCacheStale = hasUsableLanguageCache && isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
 
      const canBypassLoading =
           hasUsableUserCache &&
@@ -205,7 +228,7 @@ export async function evaluateStartupCache() {
      // Do this regardless of bypass decision so both paths benefit.
      prehydrateLibrarySystemSnapshotCache(cachedLibrarySystemState);
      prehydrateLibraryBranchSnapshotCache(cachedLibraryBranchState);
-     prehydrateLanguageSnapshotCache(cachedLanguageState);
+     prehydrateLanguageSnapshotCache(resolvedLanguageState);
      prehydrateUserDataSnapshotCache(cachedUserState);
 
      // Seed LIBRARY.version global so formatDiscoveryVersion callers never see undefined
