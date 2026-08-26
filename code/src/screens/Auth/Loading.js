@@ -1065,7 +1065,7 @@ export const LoadingScreen = () => {
                     const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
 
                     if (!hasStoredTheme || !hasMatchingThemeId) {
-                         const builtTheme = await buildThemeForLibrary(null, LIBRARY.url);
+                         const builtTheme = await buildThemeForLibrary( LIBRARY.url);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
                               colorMode: mode,
