@@ -539,6 +539,7 @@ export const DrawerContent = (props) => {
            queryKey: ['system_messages', library.baseUrl],
            queryFn: () => getSystemMessages(library.libraryId ?? null, location?.locationId ?? null, library.baseUrl),
            enabled: !!library.baseUrl,
+           runOnMount: true,
            refetchInterval: 60 * 1000 * 30,
            refetchIntervalInBackground: true,
            refetchOnWindowFocus: 'always' }, {
