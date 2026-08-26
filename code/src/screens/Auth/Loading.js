@@ -18,6 +18,7 @@ import {
      getLibraryLanguages,
      getLibraryLinks,
      getLocationInfo,
+      normalizeLibraryLanguagesPayload,
      getSelfCheckSettings,
      getSystemMessages
 } from '../../util/api/system';
@@ -203,14 +204,23 @@ export const LoadingScreen = () => {
           const isCurrentUser = await isCachedUserForCurrentLogin(cachedUser);
           if (!isCurrentUser) return false;
 
+          const fallbackLanguage = cachedUser.interfaceLanguage ?? 'en';
           setLoadedUser(cachedUser);
-          await updateLanguage(cachedUser.interfaceLanguage ?? 'en');
-          await updateLanguageDisplayName(getLanguageDisplayName(cachedUser.interfaceLanguage ?? 'en', languages));
+          await updateLanguage(fallbackLanguage);
+          await updateLanguageDisplayName(getLanguageDisplayName(fallbackLanguage, languages));
+          try {
+               await getTranslatedTermsForUserPreferredLanguage(fallbackLanguage, LIBRARY.url);
+               setTranslationsLibrary(translationsLibrary);
+               await updateDictionary(translationsLibrary);
+          } catch (translationError) {
+               logWarnMessage('Unable to refresh translations for stale cached user language. Continuing startup with cached dictionary.');
+               logErrorMessage(translationError);
+          }
           setHasUsableUserCache(true);
           setShouldBlockUserFetch(false);
           setIsInitialUserDataReady(true);
           return true;
-     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName]);
+     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName, updateDictionary]);
 
      const applyStaleLibraryBranchFallback = React.useCallback(async () => {
           const cached = await loadAllLibraryBranchData();
@@ -241,11 +251,11 @@ export const LoadingScreen = () => {
 
      const applyStaleLanguageFallback = React.useCallback(async () => {
           const cached = await loadAllLanguageData();
-          const hasStaleLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
+          const cachedLanguages = Array.isArray(cached?.languages) ? cached.languages : [];
+          const hasStaleLanguageData = cachedLanguages.length > 0;
           if (!hasStaleLanguageData) return false;
 
-          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
-          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
+          const cachedDictionary = isPlainObject(cached?.dictionary) ? cached.dictionary : {};
           await updateLanguages(cachedLanguages);
           setTranslationsLibrary(cachedDictionary);
           await updateDictionary(cachedDictionary);
@@ -412,8 +422,33 @@ export const LoadingScreen = () => {
                await saveUserProfile(profile);
                setLoadedUser(profile);
                logDebugMessage("Updating language in fetchAndPersistUserData");
-               await updateLanguage(profile.interfaceLanguage ?? 'en');
-               await updateLanguageDisplayName(getLanguageDisplayName(profile.interfaceLanguage ?? 'en', languages));
+                const profileLanguage = profile.interfaceLanguage ?? 'en';
+                await updateLanguage(profileLanguage);
+                await updateLanguageDisplayName(getLanguageDisplayName(profileLanguage ?? 'en', languages));
+                try {
+                     await getTranslatedTermsForUserPreferredLanguage(profileLanguage, LIBRARY.url);
+                     setTranslationsLibrary(translationsLibrary);
+                     await updateDictionary(translationsLibrary);
+                } catch (translationError) {
+                     logWarnMessage('Unable to refresh translations for interface language after profile load. Continuing startup.');
+                     logErrorMessage(translationError);
+                }
+
+                try {
+                     const languageResponse = await getLibraryLanguages(LIBRARY.url);
+                     if (languageResponse?.ok) {
+                          const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                               languageResponse?.data?.result?.languages
+                          );
+                          await updateLanguages(fetchedLanguages);
+                          if (fetchedLanguages.length > 0) {
+                               setIsInitialLanguageDataReady(true);
+                          }
+                     }
+                } catch (languageListError) {
+                     logWarnMessage('Unable to refresh available language list after profile load. Continuing startup.');
+                     logErrorMessage(languageListError);
+                }
 
                const pickupResp = typeof getPickupLocations === 'function'
                     ? await getPickupLocations(LIBRARY.url)
@@ -710,12 +745,9 @@ export const LoadingScreen = () => {
                  }
 
                  //No need to sort these since they are already sorted by the API
-                 const rawLanguageResponse = languageResponse?.data?.result?.languages ?? [];
-                 const fetchedLanguages = Array.isArray(rawLanguageResponse)
-                      ? rawLanguageResponse
-                      : rawLanguageResponse && typeof rawLanguageResponse === 'object'
-                           ? Object.values(rawLanguageResponse)
-                           : [];
+                 const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                      languageResponse?.data?.result?.languages
+                 );
                  await updateLanguages(fetchedLanguages);
 
                  await getTranslatedTermsForUserPreferredLanguage(activeLanguage, LIBRARY.url);
@@ -963,16 +995,20 @@ export const LoadingScreen = () => {
            const hydrateLanguageCache = async () => {
                 try {
                      const cached = await loadAllLanguageData();
-                     const hasCachedLanguageData = !!cached && (Array.isArray(cached.languages) || isPlainObject(cached.dictionary));
+                     const cachedLanguages = Array.isArray(cached?.languages) ? cached.languages : [];
+                     const cachedDictionary = isPlainObject(cached?.dictionary) ? cached.dictionary : {};
+                     const hasCachedLanguageList = cachedLanguages.length > 0;
+                     const hasCachedDictionary = Object.keys(cachedDictionary).length > 0;
 
                      if (cancelled) return;
 
-                     if (hasCachedLanguageData) {
-                          const cachedLanguages = Array.isArray(cached.languages) ? cached.languages : [];
-                          const cachedDictionary = isPlainObject(cached.dictionary) ? cached.dictionary : {};
-                          await updateLanguages(cachedLanguages);
+                     if (hasCachedDictionary) {
                           setTranslationsLibrary(cachedDictionary);
                           await updateDictionary(cachedDictionary);
+                     }
+
+                     if (hasCachedLanguageList) {
+                          await updateLanguages(cachedLanguages);
 
                           setHasUsableLanguageCache(true);
                           setShouldBlockLanguageFetch(false);
@@ -985,6 +1021,7 @@ export const LoadingScreen = () => {
                      } else {
                           setHasUsableLanguageCache(false);
                           setShouldBlockLanguageFetch(true);
+                          setIsInitialLanguageDataReady(false);
                      }
 
                      setHasHydratedLanguageCacheDecision(true);

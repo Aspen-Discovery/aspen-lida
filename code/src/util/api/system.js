@@ -66,6 +66,21 @@ export async function getLibraryLanguages(url = null) {
 }
 
 /**
+ * Normalizes getLanguages payloads into an array of language rows.
+ */
+export function normalizeLibraryLanguagesPayload(rawLanguages) {
+     if (Array.isArray(rawLanguages)) {
+          return rawLanguages;
+     }
+
+     if (rawLanguages && typeof rawLanguages === 'object') {
+          return Object.values(rawLanguages);
+     }
+
+     return [];
+}
+
+/**
  * Return array of pre-validated system messages
  * @param libraryId
  * @param locationId

@@ -12,6 +12,7 @@ import { logDebugMessage, logErrorMessage } from '../util/logging';
 
 const subscribers = new Set();
 const browseCategorySnapshotCache = new Map();
+const EMPTY_ARRAY = [];
 
 function getSnapshotCacheKey(queryKey) {
      return JSON.stringify(queryKey ?? []);
@@ -156,7 +157,7 @@ export function useBrowseCategoriesQuery(options) {
  */
 export function useBrowseCategories(options) {
      const { data } = useBrowseCategoriesQuery(options);
-     return data?.data ?? [];
+     return data?.data ?? EMPTY_ARRAY;
 }
 
 /**
@@ -174,7 +175,7 @@ export function useBrowseCategoryListQuery(options) {
  */
 export function useBrowseCategoryList(options) {
      const { data } = useBrowseCategoryListQuery(options);
-     return data?.data ?? [];
+     return data?.data ?? EMPTY_ARRAY;
 }
 
 /**

@@ -144,6 +144,7 @@ jest.mock('../src/util/api/system', () => {
      return {
           getCatalogStatus: jest.fn(() => Promise.resolve(catalogOnlineObject)),
           getLibraryLanguages: jest.fn(() => Promise.resolve(englishOnlyLanguageObject)),
+          normalizeLibraryLanguagesPayload: jest.fn((languages) => (Array.isArray(languages) ? languages : Object.values(languages ?? {}))),
           getLibraryInfo: jest.fn(() => Promise.resolve(basicLibraryInfoObject)),
           getLibraryLinks: jest.fn(() => Promise.resolve(noLibraryLinks)),
           getLocationInfo: jest.fn(() => Promise.resolve(basicLocationInfo)),
@@ -189,6 +190,8 @@ jest.mock('../src/util/db', () => ({
       saveAllLanguageData: jest.fn(() => Promise.resolve()),
       loadAvailableLanguages: jest.fn(() => Promise.resolve([])),
       saveAvailableLanguages: jest.fn(() => Promise.resolve()),
+      loadLibraryLanguages: jest.fn(() => Promise.resolve([])),
+      saveLibraryLanguages: jest.fn(() => Promise.resolve()),
       loadDictionary: jest.fn(() => Promise.resolve({})),
       saveDictionary: jest.fn(() => Promise.resolve()),
      loadBrowseCategories: jest.fn(() => Promise.resolve({ data: [], updatedAt: Date.now(), isExpired: false })),
