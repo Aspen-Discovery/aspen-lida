@@ -31,12 +31,12 @@ import { popToast } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
-import { useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
+import { useAppSettings, useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
 import { getLibraryLinks } from '../../util/api/system';
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { GLOBALS } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -313,6 +313,7 @@ const DeleteAccount = () => {
 
 const PrivacyPolicy = () => {
      const language = useActiveLanguage();
+     const appSettings = useAppSettings();
 
      const { textColor, theme, colorMode } = useTheme();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
@@ -326,7 +327,7 @@ const PrivacyPolicy = () => {
           secondaryToolbarColor: backgroundColor };
 
      const openURL = async () => {
-          const url = appendQuery(LIBRARY.appSettings?.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
+          const url = appendQuery(appSettings.settings.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
           logInfoMessage(url);
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
