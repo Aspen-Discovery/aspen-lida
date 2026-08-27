@@ -66,6 +66,14 @@ export const Editions = () => {
      const onResponseClose = () => setResponseIsOpen(false);
      const onHoldConfirmationClose = () => setHoldConfirmationIsOpen(false);
      const onHoldItemSelectClose = () => setHoldItemSelectIsOpen(false);
+     const closeEditionsModal = () => {
+          const parent = navigation.getParent();
+          if (parent?.canGoBack()) {
+               parent.goBack();
+          } else if (navigation.canGoBack()) {
+               navigation.goBack();
+          }
+     };
 
      let shouldPromptAlternateLibraryCard = false;
      let shouldShowAlternateLibraryCard = false;
@@ -167,6 +175,7 @@ export const Editions = () => {
                                              setHoldSelectItemResponse={setHoldSelectItemResponse}
                                              userHasAlternateLibraryCard={userHasAlternateLibraryCard}
                                              shouldPromptAlternateLibraryCard={shouldPromptAlternateLibraryCard}
+                                             closeEditionsModal={closeEditionsModal}
                                         />
                                    ))}
                               </VStack>
@@ -174,7 +183,7 @@ export const Editions = () => {
                     </Box>
                </ScrollView>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose}>
+                    <AlertDialog leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose} useRNModal={true}>
                          <AlertDialogBackdrop />
                          <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <AlertDialogHeader>
@@ -197,7 +206,7 @@ export const Editions = () => {
                               </AlertDialogFooter>
                          </AlertDialogContent>
                     </AlertDialog>
-                    <AlertDialog leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose}>
+                    <AlertDialog leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose} useRNModal={true}>
                          <AlertDialogBackdrop />
                          <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <AlertDialogHeader>
@@ -244,7 +253,7 @@ export const Editions = () => {
                               </AlertDialogFooter>
                          </AlertDialogContent>
                     </AlertDialog>
-                    <AlertDialog leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose}>
+                    <AlertDialog leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose} useRNModal={true}>
                          <AlertDialogBackdrop />
                          <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
                               <AlertDialogHeader>
@@ -357,6 +366,7 @@ const Edition = (props) => {
           userHasAlternateLibraryCard,
           shouldPromptAlternateLibraryCard
      } = props;
+     const closeEditionsModal = props.closeEditionsModal;
 
      const prevRoute = props.prevRoute;
      const records = props.records;
@@ -448,6 +458,7 @@ const Edition = (props) => {
                                    setHoldSelectItemResponse={setHoldSelectItemResponse}
                                    userHasAlternateLibraryCard={userHasAlternateLibraryCard}
                                    shouldPromptAlternateLibraryCard={shouldPromptAlternateLibraryCard}
+                                   onBeforeNavigate={closeEditionsModal}
                               />
                          ))}
                     </ButtonGroup>

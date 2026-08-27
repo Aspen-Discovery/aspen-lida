@@ -290,7 +290,7 @@ export const EditionsModal = () => {
                     options={{
                          title: getTermFromDictionary(language, 'editions'),
                          headerShown: true,
-                         presentation: 'card',
+                         presentation: 'modal',
                          header: ({ navigation }) => (
                               <ModalHeader
                                    title={getTermFromDictionary(language, 'editions')}
@@ -312,7 +312,7 @@ export const EditionsModal = () => {
                     options={{
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
-                         presentation: 'card',
+                         presentation: 'modal',
                          header: ({ navigation }) => (
                               <ModalHeader
                                    title={getTermFromDictionary(language, 'where_is_it')}
