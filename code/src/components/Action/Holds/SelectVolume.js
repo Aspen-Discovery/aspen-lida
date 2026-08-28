@@ -63,15 +63,7 @@ export const SelectVolume = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Select
-                                        name="volumeForHold"
-                                        selectedValue={volume}
-                                        defaultValue={volume}
-                                        minWidth="200"
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_volume')}
-                                        mt="$1"
-                                        mb="$2"
-                                        onValueChange={(itemValue) => setVolume(itemValue)}>
+                                   <Select name="volumeForHold" selectedValue={volume} defaultValue={volume} minWidth="200" accessibilityLabel={getTermFromDictionary(language, 'select_volume')} mt="$1" mb="$2" onValueChange={(itemValue) => setVolume(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
                                              {_.map(data, function (item, index, array) {
                                                   if (item.volumeId === volume) {
@@ -82,19 +74,16 @@ export const SelectVolume = (props) => {
                                                   <Icon as={ChevronDownIcon} color={textColor} />
                                              </SelectIcon>
                                         </SelectTrigger>
-                                        <SelectPortal>
+                                        <SelectPortal useRNModal={true}>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
                                                        {_.map(data, function (item, index, array) {
                                                             if (item.volumeId === volume) {
-                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme.tokens.colors.tertiary['300']}  sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }} />;
+                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                             }
                                                             return <SelectItem label={item.label} value={item.volumeId} key={index} sx={{ _text: { color: textColor } }} />;
                                                        })}
