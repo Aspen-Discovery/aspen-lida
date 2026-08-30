@@ -6,6 +6,9 @@ import { useTheme } from '../../../themes/theme';
 
 export const StartLocalIllRequest = (props) => {
      const openLocalIllRequest = () => {
+          if (typeof props.onBeforeNavigate === 'function') {
+               props.onBeforeNavigate();
+          }
           navigate('CreateLocalIllRequest', {
                id: props.record,
                workTitle: props.workTitle,

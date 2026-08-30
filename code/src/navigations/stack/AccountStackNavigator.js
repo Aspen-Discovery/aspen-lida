@@ -349,9 +349,11 @@ const AccountStackNavigator = () => {
                                    title={getTermFromDictionary(language, 'notification')}
                                    onBack={() => navigation.goBack()}
                                    onClose={() => {
-                                        const parent = navigation.getParent();
-                                        if (parent?.canGoBack()) parent.goBack();
-                                        else if (navigation.canGoBack()) navigation.goBack();
+                                        if (navigation.canGoBack()) {
+                                             navigation.goBack();
+                                        } else {
+                                             navigation.navigate('MyNotificationHistory');
+                                        }
                                    }}
                                    showBack={false}
                                    showClose={true}

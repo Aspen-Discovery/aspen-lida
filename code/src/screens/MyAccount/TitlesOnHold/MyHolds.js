@@ -1,26 +1,13 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import {
-     Box,
-     Button,
-     ButtonText,
-     Center,
-     CheckboxGroup, ChevronDownIcon,
-     FormControl,
-     Heading,
-     HStack,
-     Icon,
-     ScrollView,
-     Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput,
-     SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView,
-     Text, AlertIcon, InfoIcon, AlertText, Alert } from '@gluestack-ui/themed';
+import { Box, Button, ButtonText, Center, CheckboxGroup, ChevronDownIcon, FormControl, Heading, HStack, Icon, ScrollView, Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView, Text, AlertIcon, InfoIcon, AlertText, Alert, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, SectionList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // custom components and helper files
-import { loadingSpinner } from '../../../components/loadingSpinner';
+import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { HoldsContext, SystemMessagesContext } from '../../../context/initialContext';
 import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
@@ -273,9 +260,16 @@ export const MyHolds = () => {
           setLoading(false);
      };
 
-     if (isLoading || (_.isEmpty(holds) && isFetchingHolds)) {
-          return loadingSpinner();
-     }
+     const filteredSections = React.useMemo(() => {
+          if (!Array.isArray(holds)) {
+               return holds;
+          }
+
+          return holds.map((section) => ({
+               ...section,
+               data: holdSource === 'all' ? (section.data ?? []) : (section.data ?? []).filter((item) => item?.source === holdSource),
+          }));
+     }, [holds, holdSource]);
 
      const actionButtons = (section) => {
           let showSelectOptions = false;
@@ -580,28 +574,30 @@ export const MyHolds = () => {
      const displaySectionHeader = (title) => {
           if (title === 'Pending') {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
+                    <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray800'} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap" maxWidth="100%" p="$2">
                          <Heading pb="$1" pt="$3" color={textColor}>
                               {getTermFromDictionary(language, 'pending_holds')}
                          </Heading>
-                         <Alert action="info" mb="$2">
-                              <AlertIcon as={InfoIcon} mr="$3" />
-                              <AlertText fontSize="$xs">
-                                   {getTermFromDictionary(language, 'pending_holds_message')}
-                              </AlertText>
+                         <Alert borderRadius="$sm" action="info" mb="$2">
+                              <HStack p="$3">
+                                   <AlertIcon as={InfoIcon} mr="$3" />
+                                   <AlertText fontSize="$xs">{getTermFromDictionary(language, 'pending_holds_message')}</AlertText>
+                              </HStack>
                          </Alert>
                          {actionButtons('pending')}
                     </Box>
                );
           } else {
                return (
-                    <Box bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray800"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" maxWidth="100%" p="$2">
-                         <Heading pb="$1" color={textColor}>{getTermFromDictionary(language, 'holds_ready_for_pickup')}</Heading>
-                         <Alert action="info" mb="$2">
+                    <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray800'} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap" maxWidth="100%" p="$2">
+                         <Heading pb="$1" color={textColor}>
+                              {getTermFromDictionary(language, 'holds_ready_for_pickup')}
+                         </Heading>
+                         <Alert borderRadius="$sm" action="info" mb="$2">
+                              <HStack p="$3">
                               <AlertIcon as={InfoIcon} mr="$3" />
-                              <AlertText fontSize="$xs">
-                                   {getTermFromDictionary(language, 'holds_ready_for_pickup_message')}
-                              </AlertText>
+                              <AlertText fontSize="$xs">{getTermFromDictionary(language, 'holds_ready_for_pickup_message')}</AlertText>
+                              </HStack>
                          </Alert>
                          {actionButtons('ready')}
                     </Box>
@@ -630,15 +626,16 @@ export const MyHolds = () => {
      };
 
      const displaySectionFooter = (title) => {
-          const sectionData = _.find(holds, { title: title });
+          const sectionData = _.find(filteredSections, { title: title });
+          const sectionItems = sectionData?.data ?? [];
           if (title === 'Pending') {
-               if (_.isEmpty(sectionData.data)) {
+               if (_.isEmpty(sectionItems)) {
                     return noHolds(title);
                } else {
                     return <Box mb="300px"></Box>;
                }
           } else if (title === 'Ready') {
-               if (_.isEmpty(sectionData.data)) {
+               if (_.isEmpty(sectionItems)) {
                     return noHolds(title);
                }
           }
@@ -656,50 +653,60 @@ export const MyHolds = () => {
           return null;
      };
 
+     const showLoading = isLoading || (_.isEmpty(holds) && isFetchingHolds);
+
      return (
           <Box flex={1}>
-               {actionButtons('none')}
-               <Box>
-                    <CheckboxGroup
-                         style={{
-                              maxWidth: '100%',
-                              alignItems: 'center',
-                              _text: {
-                                   textAlign: 'left' },
-                              padding: 0,
-                              margin: 0,
-                              paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30 }}
-                         name="Holds"
-                         value={values}
-                         accessibilityLabel={getTermFromDictionary(language, 'multiple_holds')}
-                         onChange={(newValues) => {
-                              saveGroupValue(newValues);
-                         }}>
-                         {_.isObject(holds) ? (
-                              <SectionList
-                                   style={{width: '100%'}}
-                                   sections={holds}
-                                   renderItem={({ item, section: { title }}) => <MyHold data={item} resetGroup={resetGroup} language={language} pickupLocations={pickupLocations} section={title} holdSource={holdSource} />}
-                                   stickySectionHeadersEnabled={true}
-                                   renderSectionHeader={({ section: { title } }) => displaySectionHeader(title)}
-                                   renderSectionFooter={({ section: { title } }) => displaySectionFooter(title)}
-                                   contentContainerStyle={{ paddingBottom: 30 }}
-                                   keyExtractor={(item, index) => {
-                                        const source = item.source ?? '';
-                                        const itemId = item.cancelId ?? item.id;
-
-                                        // If we have at least one valid identifier, combine them
-                                        if (source || itemId) {
-                                             return `${source}-${itemId}`;
-                                        }
-
-                                        // Fallback to index if the unique identifiers are totally missing
-                                        return `hold-fallback-${index}`;
+               {showLoading ? (
+                    <LoadingSpinner />
+               ) : (
+                    <>
+                         {actionButtons('none')}
+                         <Box>
+                              <CheckboxGroup
+                                   style={{
+                                        maxWidth: '100%',
+                                        alignItems: 'center',
+                                        _text: {
+                                             textAlign: 'left',
+                                        },
+                                        padding: 0,
+                                        margin: 0,
+                                        paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30,
                                    }}
-                              />
-                         ) : null}
-                    </CheckboxGroup>
-               </Box>
+                                   name="Holds"
+                                   value={values}
+                                   accessibilityLabel={getTermFromDictionary(language, 'multiple_holds')}
+                                   onChange={(newValues) => {
+                                        saveGroupValue(newValues);
+                                   }}>
+                                   {_.isObject(holds) ? (
+                                        <SectionList
+                                             style={{ width: '100%' }}
+                                             sections={filteredSections}
+                                             renderItem={({ item, section: { title } }) => <MyHold data={item} resetGroup={resetGroup} language={language} pickupLocations={pickupLocations} section={title} />}
+                                             stickySectionHeadersEnabled={true}
+                                             renderSectionHeader={({ section: { title } }) => displaySectionHeader(title)}
+                                             renderSectionFooter={({ section: { title } }) => displaySectionFooter(title)}
+                                             contentContainerStyle={{ paddingBottom: 30 }}
+                                             keyExtractor={(item, index) => {
+                                                  const source = item.source ?? '';
+                                                  const itemId = item.cancelId ?? item.id;
+
+                                                  // If we have at least one valid identifier, combine them
+                                                  if (source || itemId) {
+                                                       return `${source}-${itemId}`;
+                                                  }
+
+                                                  // Fallback to index if the unique identifiers are totally missing
+                                                  return `hold-fallback-${index}`;
+                                             }}
+                                        />
+                                   ) : null}
+                              </CheckboxGroup>
+                         </Box>
+                    </>
+               )}
           </Box>
      );
 };

@@ -1,4 +1,4 @@
-import {Button, ButtonText, useToast, useToken} from '@gluestack-ui/themed';
+import {Button, ButtonText, useToken} from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../themes/theme';
 
 import { useUserState } from '../../hooks/useUserData';
@@ -13,7 +13,6 @@ export const MoreInfo = (props) => {
     const { data: userState } = useUserState();
     const user = userState?.user ?? {};
     const library = useLibrary();
-    const toast = useToast();
 
     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));

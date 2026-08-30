@@ -11,6 +11,9 @@ export const StartLocalIllRequestEmail = (props) => {
      //logDebugMessage("Props for StartLocalIllRequest");
      //logDebugMessage(props);
      const openLocalIllRequestEmail = () => {
+          if (typeof props.onBeforeNavigate === 'function') {
+               props.onBeforeNavigate();
+          }
           navigate('CreateLocalIllRequestEmail', {
                id: props.record,
                workTitle: props.workTitle,

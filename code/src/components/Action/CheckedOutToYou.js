@@ -9,6 +9,9 @@ import { useTheme } from '../../themes/theme';
 export const CheckedOutToYou = (props) => {
      const { theme } = useTheme();
      const handleNavigation = () => {
+          if (typeof props.onBeforeNavigate === 'function') {
+               props.onBeforeNavigate();
+          }
           if (props.prevRoute === 'DiscoveryScreen' || props.prevRoute === 'SearchResults' || props.prevRoute === 'HomeScreen') {
                navigateStack('AccountScreenTab', 'MyCheckouts', {});
           } else {

@@ -20,13 +20,14 @@ import {
      ModalBody,
      ModalHeader,
      ModalCloseButton,
-     Text, useToast } from '@gluestack-ui/themed';
+     Text } from '@gluestack-ui/themed';
 import React, { useContext, useState } from 'react';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import * as WebBrowser from 'expo-web-browser';
 import { useTheme } from '../../themes/theme';
+import { passUserToDiscovery } from '../../util/api/user';
 
 export const ActionButton = (data) => {
      const {theme, textColor, backgroundColor, colorMode} = useTheme();
@@ -34,7 +35,6 @@ export const ActionButton = (data) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
-     const toast = useToast();
 
      const action = data.actions;
      const {
@@ -70,16 +70,17 @@ export const ActionButton = (data) => {
           onHoldItemSelectClose,
           cancelHoldItemSelectRef,
           userHasAlternateLibraryCard,
-          shouldPromptAlternateLibraryCard } = data;
+          shouldPromptAlternateLibraryCard,
+          onBeforeNavigate } = data;
      if (_.isObject(action)) {
           if (action.type === 'overdrive_sample') {
                return <LoadOverDriveSample title={action.title} prevRoute={prevRoute} id={fullRecordId} type={action.type} sampleNumber={action.sampleNumber} formatId={action.formatId} />;
           } else if (action.type === 'project_palace_sample') {
                return null;
           } else if (action.url === '/MyAccount/CheckedOut') {
-               return <CheckedOutToYou title={action.title} prevRoute={prevRoute} />;
+               return <CheckedOutToYou title={action.title} prevRoute={prevRoute} onBeforeNavigate={onBeforeNavigate} />;
           } else if (action.url === '/MyAccount/Holds') {
-               return <OnHoldForYou title={action.title} prevRoute={prevRoute} />;
+               return <OnHoldForYou title={action.title} prevRoute={prevRoute} onBeforeNavigate={onBeforeNavigate} />;
           } else if (action.type === 'ils_hold') {
                return (
                     <PlaceHold
@@ -142,6 +143,7 @@ export const ActionButton = (data) => {
                          cancelHoldConfirmationRef={cancelHoldConfirmationRef}
                          holdConfirmationResponse={holdConfirmationResponse}
                          setHoldConfirmationResponse={setHoldConfirmationResponse}
+                         onBeforeNavigate={onBeforeNavigate}
                     />
                );
           } else if (action.type === 'local_ill_request_material_request') {
@@ -212,6 +214,7 @@ export const ActionButton = (data) => {
                          workAuthor={action.redirectParams.author}
                          volumeName={action.redirectParams.volume}
                          recordId={action.redirectParams.recordId}
+                         onBeforeNavigate={onBeforeNavigate}
                     />
                );
           } else if (action.type === 'local_ill_request_unavailable') {
@@ -256,6 +259,8 @@ export const ActionButton = (data) => {
                );
           } else if (!_.isUndefined(action.redirectUrl)) {
                return <OpenSideLoad title={action.title} url={action.redirectUrl} prevRoute={prevRoute} />;
+          } else if (action.type === "hoopla_access_online") {
+               return <OpenSideLoad title={action.title} url={action.url} prevRoute={prevRoute} />;
           } else {
                return (
                     <CheckOut

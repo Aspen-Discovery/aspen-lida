@@ -22,8 +22,7 @@ import {
      Input,
      InputField,
      InputSlot,
-     InputIcon,
-     useToast
+     InputIcon
 } from '@gluestack-ui/themed';
 import React from 'react';
 import _ from 'lodash';
@@ -127,7 +126,6 @@ export const CheckOut = (props) => {
           const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
           const [showPassword, setShowPassword] = React.useState(false);
           const toggleShowPassword = () => setShowPassword(!showPassword);
-          const toast = useToast();
 
           const source = {
                baseUrl: library.baseUrl,
@@ -215,7 +213,7 @@ export const CheckOut = (props) => {
                                              onPress={async () => {
                                                   setLoading(true);
                                                   await updateCard();
-                                                  await completeAction(toast, record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (response) => {
+                                                  await completeAction(record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (response) => {
                                                        logDebugMessage("Completed Action - Checkout with alternate card");
                                                        setResponse(response);
                                                        if (response.success) {
@@ -245,7 +243,7 @@ export const CheckOut = (props) => {
                          variant="solid"
                          onPress={async () => {
                               setLoading(true);
-                              await completeAction(toast, record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
+                              await completeAction(record, type, user.id, null, null, null, null, null, library.baseUrl).then(async (eContentResponse) => {
                                    setResponse(eContentResponse);
                                    logDebugMessage("Completed Action - Checkout");
                                    if (eContentResponse.success) {

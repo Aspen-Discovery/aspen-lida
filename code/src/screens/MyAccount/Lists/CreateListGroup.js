@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups } from '../../../hooks/useUserData';
-import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select, useToast } from '@gluestack-ui/themed';
+import { Center, Button, ButtonIcon, ButtonText, CloseIcon, FormControl, FormControlLabel, FormControlLabelText, Heading, Icon, Input, InputField, Modal, ModalBackdrop, ModalCloseButton, ModalHeader, ModalContent, ModalBody, ButtonGroup, ModalFooter, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, Select } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { createListGroup, getListGroups } from '../../../util/api/list';
 import { refreshProfile } from '../../../util/api/user';
-import { popAlert } from '../../../components/feedback/toastService';
+import { popAlert } from '../../../components/feedback';
 import { Platform } from 'react-native';
 import { toArray } from '../../../helpers/helpers';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
@@ -29,8 +29,6 @@ const CreateListGroup = (props) => {
 
      const [title, setTitle] = useState('');
      const [nestedGroupId, setNestedGroupId] = useState("no");
-
-     const toast = useToast();
 
      const insets = useSafeAreaInsets();
 
@@ -95,7 +93,7 @@ const CreateListGroup = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                    <SelectScrollView>
                                                         <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroupId === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                        {toArray(listGroups.groups).map((item, index) => {
+                                                        {toArray(listGroups?.groups ?? []).map((item, index) => {
                                                              return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                         })}
                                                    </SelectScrollView>
@@ -134,7 +132,7 @@ const CreateListGroup = (props) => {
                                                    }
                                                    toggle();
                                                    setLoading(true);
-                                                   popAlert(toast, getTermFromDictionary(language, 'list_created'), res.data.result.message, status);
+                                                   popAlert(getTermFromDictionary(language, 'list_created'), res.data.result.message, status);
                                                    if (res.data.result.groupId) {
                                                         updateSelectedListGroup(res.data.result.groupId);
                                                    }

@@ -85,6 +85,34 @@ export async function loadLibraryVersion() {
 }
 
 /**
+ * Saves available interface languages for the current library.
+ */
+export async function saveLibraryLanguages(languages = []) {
+     const db = await getDb();
+     const now = Date.now();
+     await ensureLibrarySystemRow(db, now);
+     await db.runAsync(
+          `UPDATE library_system_state SET
+                updated_at = ?,
+                languages_json = ?
+           WHERE id = ?;`,
+          [now, safeStringify(Array.isArray(languages) ? languages : []), ROW_ID]
+     );
+}
+
+/**
+ * Loads available interface languages for the current library.
+ */
+export async function loadLibraryLanguages() {
+     const db = await getDb();
+     const row = await db.getFirstAsync(
+          `SELECT languages_json FROM library_system_state WHERE id = ? LIMIT 1;`,
+          [ROW_ID]
+     );
+     return safeParse(row?.languages_json) ?? [];
+}
+
+/**
  * Saves library metadata (name, favicon, library_id, languages, localIll).
  */
 export async function saveLibraryMetadata(metadata = {}) {

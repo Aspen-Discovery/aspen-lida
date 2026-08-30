@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonText, useToast, Center } from '@gluestack-ui/themed';
+import { Button, ButtonText, Center } from '@gluestack-ui/themed';
 
 import { useTheme } from '../themes/theme';
 import { loadLibraryUrl } from '../util/db';
@@ -12,7 +12,6 @@ export const ThemeRefreshButton = ({
      onRefreshed,
      ...buttonProps
 }) => {
-     const toast = useToast();
      const { forceRefreshTheme, theme } = useTheme();
      const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -26,7 +25,7 @@ export const ThemeRefreshButton = ({
                const persistedLibraryUrl = await loadLibraryUrl();
                const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || null;
                logDebugMessage(`Theme refresh button: forcing theme refresh using url=${themeUrl ?? 'none'}`);
-               await forceRefreshTheme(toast, themeUrl);
+               await forceRefreshTheme(themeUrl);
                if (typeof onRefreshed === 'function') {
                     onRefreshed();
                }
@@ -36,7 +35,7 @@ export const ThemeRefreshButton = ({
           } finally {
                setIsRefreshing(false);
           }
-     }, [forceRefreshTheme, isRefreshing, onRefreshed, toast]);
+     }, [forceRefreshTheme, isRefreshing, onRefreshed]);
 
      return (
           <Center>
