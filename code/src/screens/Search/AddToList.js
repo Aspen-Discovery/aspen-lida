@@ -59,7 +59,7 @@ import {
      ModalCloseButton,
      ModalHeader,
      ModalBody,
-     ModalFooter, useToast } from '@gluestack-ui/themed';
+     ModalFooter } from '@gluestack-ui/themed';
 
 const AddToList = (props) => {
      const item = props.itemId;
@@ -89,7 +89,6 @@ const AddToList = (props) => {
      const [newGroupName, setNewGroupName] = React.useState('');
      const [nestedGroup, setNestedGroup] = React.useState('');
      const [existingGroupId, setExistingGroupId] = React.useState(user.lastListGroupAdded ? user.lastListGroupAdded : (listGroups?.groups[0] ? listGroups.groups[0].id : 0));
-     const toast = useToast();
 
      const { data, isLoading } = useQuery(
           ['list_groups', user.id, library.baseUrl, language],

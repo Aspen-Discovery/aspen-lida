@@ -1507,7 +1507,6 @@ export async function saveLanguage(code, url = null, language = 'en') {
           {
                params: {
                     languageCode: code,
-                    language,
                },
           }
      );

@@ -66,6 +66,21 @@ export async function getLibraryLanguages(url = null) {
 }
 
 /**
+ * Normalizes getLanguages payloads into an array of language rows.
+ */
+export function normalizeLibraryLanguagesPayload(rawLanguages) {
+     if (Array.isArray(rawLanguages)) {
+          return rawLanguages;
+     }
+
+     if (rawLanguages && typeof rawLanguages === 'object') {
+          return Object.values(rawLanguages);
+     }
+
+     return [];
+}
+
+/**
  * Return array of pre-validated system messages
  * @param libraryId
  * @param locationId
@@ -225,6 +240,7 @@ export async function getSelfCheckSettings(url = null, locationIdOverride = null
           }
      }
 
+
      const client = createApiClient({ url, timeout: GLOBALS.timeoutFast });
 
      return await client.get('/SystemAPI?method=getSelfCheckSettings', {
@@ -346,11 +362,10 @@ export async function getLibraryBranch(data) {
 /**
  * Fetch theme information for the library and generate color swatches for the app
  * with fallback to a default theme if there are any issues with the request or response
- * @param {object} toast - The instance returned by useToast()
  * @param url
  * @returns {Promise<unknown[]>}
  */
-export async function getThemeInfo(toast, url = null) {
+export async function getThemeInfo(url = null) {
      let libraryUrl = LIBRARY.url ?? GLOBALS.url;
      if (url !== null && url !== '') {
           libraryUrl = url;

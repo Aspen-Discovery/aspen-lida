@@ -4,7 +4,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { HStack, Pressable, Text, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
 
-import { useSelfCheckEnabled } from '../../hooks/useLibraryBranchData';
+import { useSelfCheckEnabled, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
 import AccountStackNavigator from '../stack/AccountStackNavigator';
@@ -21,7 +21,18 @@ const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
      const enableSelfCheck = useSelfCheckEnabled();
+     const selfCheckSettings = useSelfCheckSettings();
      const { colorMode } = useTheme();
+
+     const settingsEnabledCandidates = [
+          selfCheckSettings?.isEnabled,
+          selfCheckSettings?.enableSelfCheck,
+          selfCheckSettings?.selfCheckEnabled,
+     ];
+     const settingsEnableSelfCheck = settingsEnabledCandidates.some((value) =>
+          value === true || value === 1 || value === '1' || (typeof value === 'string' && value.toLowerCase() === 'true')
+     );
+     const showSelfCheckTab = enableSelfCheck === true || settingsEnableSelfCheck;
 
      const activeIcon = colorMode === 'light' ? '$coolGray900' : '$warmGray300';
      const inactiveIcon = colorMode === 'light' ? '$coolGray700' : '$warmGray100';
@@ -42,7 +53,7 @@ export default function TabNavigator() {
                }}>
                <Tab.Screen name="BrowseTab" component={BrowseStackNavigator} />
                <Tab.Screen name="LibraryCardTab" component={LibraryCardStackNavigator} />
-               {enableSelfCheck ? <Tab.Screen name="SelfCheckTab" component={SelfCheckOutStackNavigator} /> : null}
+               {showSelfCheckTab ? <Tab.Screen name="SelfCheckTab" component={SelfCheckOutStackNavigator} /> : null}
                <Tab.Screen
                     name="AccountTab"
                     component={AccountStackNavigator}

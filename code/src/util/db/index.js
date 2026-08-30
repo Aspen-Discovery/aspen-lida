@@ -23,6 +23,7 @@ export {
 export {
      saveLibraryUrl, loadLibraryUrl,
      saveLibraryVersion, loadLibraryVersion,
+     saveLibraryLanguages, loadLibraryLanguages,
      saveLibraryMetadata, loadLibraryMetadata,
      saveLibrary, loadLibrary,
      saveMenu, loadMenu,
@@ -36,6 +37,7 @@ export {
      loadAvailableLanguages,
      saveDictionary,
      loadDictionary,
+     loadDictionaryForLanguage,
      saveAllLanguageData,
      loadAllLanguageData,
      resetLanguageData,

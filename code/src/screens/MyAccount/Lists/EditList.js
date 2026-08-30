@@ -69,7 +69,7 @@ import {
      SelectDragIndicator,
       SelectItem,
       SelectScrollView,
-      Select, useToast } from '@gluestack-ui/themed';
+      Select } from '@gluestack-ui/themed';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const EditList = (props) => {
@@ -238,7 +238,7 @@ const EditList = (props) => {
 
 const DeleteList = (props) => {
       const { listId } = props;
-      const {textColor, colorMode } = useTheme();
+      const {textColor, colorMode, theme } = useTheme();
       const { data: userState } = useUserState();
       const library = useLibrary();
       const language = useActiveLanguage();
@@ -249,41 +249,38 @@ const DeleteList = (props) => {
       const [optOutOfSoftDeletion, setOptOutOfSoftDeletion] = useState(false);
       const onClose = () => setIsOpen(false);
       const cancelRef = React.useRef(null);
-      const toast = useToast();
       const user = userState?.user ?? {};
 
      return (
           <Center>
-               <Button bgColor="$error500" onPress={() => setIsOpen(!isOpen)} size="sm" >
-                    <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1"/>
+               <Button bgColor="$error500" onPress={() => setIsOpen(!isOpen)} size="sm">
+                    <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1" />
                     <ButtonText color="$white">Delete List</ButtonText>
                </Button>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                     <AlertDialogBackdrop />
-                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                          <AlertDialogHeader>
-                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_list')}</Heading>
+                              <Heading size="md" color={textColor}>
+                                   {getTermFromDictionary(language, 'delete_list')}
+                              </Heading>
                               <AlertDialogCloseButton>
                                    <Icon as={CloseIcon} color={textColor} />
                               </AlertDialogCloseButton>
                          </AlertDialogHeader>
                          <AlertDialogBody>
-                              <Text color={textColor}>
-                                   {user.hideSoftDeleteListUI
-                                        ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore')
-                                        : getTermFromDictionary(language, 'delete_list_confirmation')
-                                   }
-                              </Text>
+                              <Text color={textColor}>{user.hideSoftDeleteListUI ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore') : getTermFromDictionary(language, 'delete_list_confirmation')}</Text>
                               {!user.hideSoftDeleteListUI && (
                                    <FormControl pt="$3">
-                                        <Checkbox
-                                             value="optOut"
-                                             isChecked={optOutOfSoftDeletion}
-                                             onChange={(isChecked) => setOptOutOfSoftDeletion(isChecked)}
-                                             alignItems="center"
-                                        >
-                                             <CheckboxIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                  <CheckboxIcon as={CheckIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
+                                        <Checkbox value="optOut" isChecked={optOutOfSoftDeletion} onChange={(isChecked) => setOptOutOfSoftDeletion(isChecked)} alignItems="center">
+                                             <CheckboxIndicator
+                                                  sx={{
+                                                       ':checked': {
+                                                            borderColor: theme.tokens.colors.primary['500'],
+                                                            backgroundColor: theme.tokens.colors.primary['500'],
+                                                       },
+                                                  }}>
+                                                  {optOutOfSoftDeletion && <Icon as={MaterialIcons} name="check" color={theme.tokens.colors.primary['500-text']} size="sm" />}
                                              </CheckboxIndicator>
                                              <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'opt_out_soft_deletion')}</CheckboxLabel>
                                         </Checkbox>
@@ -295,38 +292,39 @@ const DeleteList = (props) => {
                                    <Button variant="link" onPress={onClose} ref={cancelRef}>
                                         <ButtonText color={textColor}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                    <Button
-                                         bgColor="$error500"
-                                         isLoading={loading}
-                                         isLoadingText={getTermFromDictionary(language, 'deleting', true)}
-                                         onPress={() => {
-                                              setLoading(true);
-                                              deleteList(listId, library.baseUrl, optOutOfSoftDeletion).then(async (res) => {
-                                                   // Refresh lists from API and update local database
-                                                   const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
-                                                   if (listsResponse.ok) {
-                                                        await updateLists(listsResponse.data.result);
-                                                   }
-                                                   const profileResponse = await refreshProfile(library.baseUrl);
-                                                   if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
-                                                        await updateUserProfile(profileResponse.data.result.profile);
-                                                   }
-                                                   setLoading(false);
-                                                   let status = 'success';
-                                                   setIsOpen(!isOpen);
-                                                   if (res.success === false) {
-                                                        status = 'error';
-                                                        popAlert(toast, res.title, res.message, status);
-                                                   } else {
-                                                        popAlert(toast, res.title, res.message, status);
-                                                        navigateStack('AccountScreenTab', 'MyLists', {
-                                                             libraryUrl: library.baseUrl,
-                                                             hasPendingChanges: true });
-                                                   }
-                                              });
-                                         }}>
-                                         <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
-                                    </Button>
+                                   <Button
+                                        bgColor="$error500"
+                                        isLoading={loading}
+                                        isLoadingText={getTermFromDictionary(language, 'deleting', true)}
+                                        onPress={() => {
+                                             setLoading(true);
+                                             deleteList(listId, library.baseUrl, optOutOfSoftDeletion).then(async (res) => {
+                                                  // Refresh lists from API and update local database
+                                                  const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                  if (listsResponse.ok) {
+                                                       await updateLists(listsResponse.data.result);
+                                                  }
+                                                  const profileResponse = await refreshProfile(library.baseUrl);
+                                                  if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                       await updateUserProfile(profileResponse.data.result.profile);
+                                                  }
+                                                  setLoading(false);
+                                                  let status = 'success';
+                                                  setIsOpen(!isOpen);
+                                                  if (res.success === false) {
+                                                       status = 'error';
+                                                       popAlert(res.title, res.message, status);
+                                                  } else {
+                                                       popAlert(res.title, res.message, status);
+                                                       navigateStack('AccountScreenTab', 'MyLists', {
+                                                            libraryUrl: library.baseUrl,
+                                                            hasPendingChanges: true,
+                                                       });
+                                                  }
+                                             });
+                                        }}>
+                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                   </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>
                     </AlertDialogContent>

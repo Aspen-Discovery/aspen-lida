@@ -8,32 +8,6 @@ export function registerGlobalToast(toast) {
      globalToastInstance = toast;
 }
 
-function getToastInstance(toast) {
-     if (toast?.show) {
-          return toast;
-     }
-
-     return globalToastInstance;
-}
-
-function parseToastArgs(toastOrTitle, titleOrDescription, descriptionOrStatus, status) {
-     if (toastOrTitle?.show) {
-          return {
-               toast: toastOrTitle,
-               title: titleOrDescription,
-               description: descriptionOrStatus,
-               status,
-          };
-     }
-
-     return {
-          toast: null,
-          title: toastOrTitle,
-          description: titleOrDescription,
-          status: descriptionOrStatus,
-     };
-}
-
 function buildToastRenderer(prefix, actionType, title, description) {
      return ({ id }) => {
           const uniqueToastId = `${prefix}-${id}`;
@@ -48,7 +22,7 @@ function buildToastRenderer(prefix, actionType, title, description) {
      };
 }
 
-function showToastWithRetry(toast, {
+function showToast({
      level,
      idPrefix,
      title,
@@ -56,8 +30,7 @@ function showToastWithRetry(toast, {
      status,
      duration,
 }) {
-     const toastInstance = getToastInstance(toast);
-     if (!toastInstance?.show) {
+     if (!globalToastInstance?.show) {
           logDebugMessage(`Toast instance is unavailable in ${level}`);
           return;
      }
@@ -73,37 +46,33 @@ function showToastWithRetry(toast, {
           render,
      };
 
-     let shownId = toastInstance.show(showConfig);
-     if (!shownId && toastInstance !== globalToastInstance && globalToastInstance?.show) {
-          // Retry with provider-scoped instance when a no-op toast object is passed.
-          shownId = globalToastInstance.show(showConfig);
-     }
+     const shownId = globalToastInstance.show(showConfig);
 
      logDebugMessage(`${level} show returned id: ${shownId}`);
 }
 
-export function popToast(toastOrTitle, titleOrDescription, descriptionOrStatus, status) {
-     const { toast, title, description, status: resolvedStatus } = parseToastArgs(toastOrTitle, titleOrDescription, descriptionOrStatus, status);
+// Use for short, non-blocking feedback (quick confirmations or transient errors).
+export function popToast(title, description, status) {
      logDebugMessage('Popping a toast');
-     showToastWithRetry(toast, {
+     showToast({
           level: 'Toast',
           idPrefix: 'toast',
           title,
           description,
-          status: resolvedStatus,
+          status,
           duration: 3000,
      });
 }
 
-export function popAlert(toastOrTitle, titleOrDescription, descriptionOrStatus, status) {
-     const { toast, title, description, status: resolvedStatus } = parseToastArgs(toastOrTitle, titleOrDescription, descriptionOrStatus, status);
+// Use for higher-priority feedback that should remain visible longer.
+export function popAlert(title, description, status) {
      logDebugMessage('Popping an alert');
-     showToastWithRetry(toast, {
+     showToast({
           level: 'Alert',
           idPrefix: 'alert',
           title,
           description,
-          status: resolvedStatus,
+          status,
           duration: 5000,
      });
 }

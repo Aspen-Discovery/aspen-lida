@@ -24,19 +24,19 @@ import {
      ModalContent,
      ModalHeader,
      ModalFooter,
-     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup, useToast
+     ModalCloseButton, CloseIcon, ModalBody, ButtonText, ButtonGroup
 } from '@gluestack-ui/themed';
 import React from 'react';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
 
 import { useLibraryLocation, useAvailableLocations } from '../../hooks/useLibraryBranchData';
-import { useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
+import { useAppSettings, useLibrary, useLibraryMenu, useUpdateMenu } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { deleteAspenUser } from '../../util/api/user';
 import { getLibraryLinks } from '../../util/api/system';
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { GLOBALS } from '../../util/globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -114,40 +114,39 @@ export const MoreMenu = () => {
                          <MyLibrary />
                          <Divider />
 
-                         <VStack divider={<Divider />} space="md">
-                              {hasMenuItems > 0 ? (
-                                   Object.keys(menu).map((item) => (
-                                        <MenuLink key={item} links={menu[item]} />
-                                   ))
-                              ) : null}
+                         <VStack space="md">
+                              {hasMenuItems > 0 ? Object.keys(menu).map((item) => <MenuLink key={item} links={menu[item]} />) : null}
+                              {hasMenuItems > 0 ? <Divider /> : null}
                               <VStack space="md">
                                    <ViewAllLocations />
                                    <Settings />
                                    <PrivacyPolicy />
                                    {library.catalogRegistrationCapabilities?.enableSelfRegistration === '1' && library.catalogRegistrationCapabilities.enableSelfRegistrationInApp === '1' ? (
-                                   <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
-                                        <HStack space="sm" alignItems="center">
-                                             <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)}/>
-                                             <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Text>
-                                        </HStack>
-                                   </Pressable>
+                                        <Pressable px="$2" py="$3" onPress={toggleDeleteConfirmationModal}>
+                                             <HStack space="sm" alignItems="center">
+                                                  <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} onPress={() => setShowDeleteConfirmationModal(true)} />
+                                                  <Text color={textColor} fontWeight="$medium">
+                                                       {getTermFromDictionary(language, 'delete_account')}
+                                                  </Text>
+                                             </HStack>
+                                        </Pressable>
                                    ) : null}
                               </VStack>
                          </VStack>
                     </VStack>
                     <Modal isOpen={showDeleteConfirmationModal} onClose={toggleDeleteConfirmationModal}>
                          <ModalBackdrop />
-                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <ModalHeader>
-                                   <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
+                                   <Heading size="md" color={textColor}>
+                                        {getTermFromDictionary(language, 'delete_account')}
+                                   </Heading>
                                    <ModalCloseButton p="$3" onPress={toggleDeleteConfirmationModal}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
                               <ModalBody>
-                                   <Text color={textColor}>
-                                        {getTermFromDictionary(language, 'confirm_delete_account_message')}
-                                   </Text>
+                                   <Text color={textColor}>{getTermFromDictionary(language, 'confirm_delete_account_message')}</Text>
                               </ModalBody>
                               <ModalFooter>
                                    <ButtonGroup>
@@ -156,14 +155,14 @@ export const MoreMenu = () => {
                                         </Button>
                                         <Button
                                              bgColor={theme.tokens.colors.primary['500']}
-                                            isLoading={deleting}
-                                            isLoadingText={getTermFromDictionary(language, 'deleting', true)}
-                                            onPress={async () => {
-                                                 await initiateDeleteAspenUser().then(() => {
-                                                      setShowDeleteConfirmationModal(false);
-                                                      setShowDeleteResultsModal(true);
-                                                 });
-                                            }}>
+                                             isLoading={deleting}
+                                             isLoadingText={getTermFromDictionary(language, 'deleting', true)}
+                                             onPress={async () => {
+                                                  await initiateDeleteAspenUser().then(() => {
+                                                       setShowDeleteConfirmationModal(false);
+                                                       setShowDeleteResultsModal(true);
+                                                  });
+                                             }}>
                                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'confirm_delete_account')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
@@ -171,32 +170,27 @@ export const MoreMenu = () => {
                          </ModalContent>
                     </Modal>
                     <Modal isOpen={showDeleteResultsModal}>
-                         <ModalBackdrop/>
-                         <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <ModalBackdrop />
+                         <ModalContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <ModalHeader>
-                                   <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_account')}</Heading>
+                                   <Heading size="md" color={textColor}>
+                                        {getTermFromDictionary(language, 'delete_account')}
+                                   </Heading>
                                    <ModalCloseButton p="$3" onPress={signOut}>
                                         <Icon as={CloseIcon} color={textColor} />
                                    </ModalCloseButton>
                               </ModalHeader>
-                              <ModalBody>
-                                   {deleteResults?.message ? (
-                                       <Text color={textColor}>{deleteResults.message}</Text>
-                                   ) : (
-                                       <Text color={textColor}>{getTermFromDictionary(language, 'error_deleting_account')}</Text>
-                                   )}
-                              </ModalBody>
+                              <ModalBody>{deleteResults?.message ? <Text color={textColor}>{deleteResults.message}</Text> : <Text color={textColor}>{getTermFromDictionary(language, 'error_deleting_account')}</Text>}</ModalBody>
                               <ModalFooter>
-                                        {deleteResults.success === true ? (
-                                            <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
-                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
-                                            </Button>
-                                        ) : (
-                                            <Button bgColor={theme.tokens.colors.primary['500']}  variant="primary" onPress={toggleDeleteResultsModal}>
-                                                 <ButtonText color={theme.tokens.colors.primary['500-text']} >{getTermFromDictionary(language, 'button_ok')}</ButtonText>
-                                            </Button>
-                                        )}
-
+                                   {deleteResults.success === true ? (
+                                        <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut}>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        </Button>
+                                   ) : (
+                                        <Button bgColor={theme.tokens.colors.primary['500']} variant="primary" onPress={toggleDeleteResultsModal}>
+                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                        </Button>
+                                   )}
                               </ModalFooter>
                          </ModalContent>
                     </Modal>
@@ -319,9 +313,9 @@ const DeleteAccount = () => {
 
 const PrivacyPolicy = () => {
      const language = useActiveLanguage();
+     const appSettings = useAppSettings();
 
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -333,7 +327,7 @@ const PrivacyPolicy = () => {
           secondaryToolbarColor: backgroundColor };
 
      const openURL = async () => {
-          const url = appendQuery(LIBRARY.appSettings?.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
+          const url = appendQuery(appSettings.settings.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
           logInfoMessage(url);
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
@@ -365,7 +359,7 @@ const PrivacyPolicy = () => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });
@@ -392,7 +386,6 @@ const MenuLink = (payload) => {
      categoryLabel = categoryLabel.category;
 
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
 
      const browserParams = {
@@ -463,7 +456,7 @@ const MenuLink = (payload) => {
                               logErrorMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          logErrorMessage(err);
                     }
                });

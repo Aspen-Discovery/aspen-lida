@@ -64,7 +64,6 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 
 /**
  * Fetches nearby libraries from Greenhouse based on patron's location and release channel, and determines if the select library screen should be shown
- * @param {object} toast - The instance returned by useToast()
  * @returns {Promise<{success: boolean, libraries, shouldShowSelectLibrary: boolean}|{success: boolean, shouldShowSelectLibrary: boolean, libraries: *[]}>}
  */
 export async function fetchNearbyLibrariesFromGreenhouse() {

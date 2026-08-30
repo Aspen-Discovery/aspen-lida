@@ -25,8 +25,7 @@ import {
      SelectDragIndicator,
      SelectItem,
      Icon,
-     ChevronDownIcon,
-     useToast
+     ChevronDownIcon
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -48,7 +47,6 @@ const SelectPickupLocation = (props) => {
      const { data: locations } = useLocations();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const toast = useToast();
 
      const isPlacingHold = action.includes('hold');
 
@@ -182,7 +180,7 @@ const SelectPickupLocation = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(toast, id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, null, null, location, null, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {

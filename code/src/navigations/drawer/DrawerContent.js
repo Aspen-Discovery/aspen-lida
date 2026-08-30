@@ -19,8 +19,7 @@ import {
      Pressable,
      Text,
      useToken,
-     VStack,
-     useToast
+     VStack
 } from '@gluestack-ui/themed';
 import { useColorModeValue, UseColorMode, useTheme } from '../../themes/theme';
 import React from 'react';
@@ -55,7 +54,8 @@ import { stripHTML } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
 
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
-import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { useActiveLanguage, useDictionaryQuery } from '../../hooks/useLanguageData';
+import { useTranslationWithValues } from '../../hooks/useTranslationWithValues';
 
 Notifications.setNotificationHandler({
      handleNotification: async () => ({
@@ -203,6 +203,7 @@ export const DrawerContent = (props) => {
       const { updateHolds } = React.useContext(HoldsContext);
       const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const language = useActiveLanguage();
+       const { dataUpdatedAt: dictionaryUpdatedAt } = useDictionaryQuery();
        const [invalidSession, setInvalidSession] = React.useState(false);
 
 
@@ -494,7 +495,7 @@ export const DrawerContent = (props) => {
            onSuccess: (data) => {
                 if(data.ok){
                      logDebugMessage("Updating locations");
-                     logDebugMessage(data);
+                     //logDebugMessage(data);
                      updateAvailableLocations(data?.data?.result?.locations ?? []);
                } else {
                     logDebugMessage("Error fetching locations");
@@ -539,6 +540,7 @@ export const DrawerContent = (props) => {
            queryKey: ['system_messages', library.baseUrl],
            queryFn: () => getSystemMessages(library.libraryId ?? null, location?.locationId ?? null, library.baseUrl),
            enabled: !!library.baseUrl,
+           runOnMount: true,
            refetchInterval: 60 * 1000 * 30,
            refetchIntervalInBackground: true,
            refetchOnWindowFocus: 'always' }, {
@@ -712,7 +714,7 @@ export const DrawerContent = (props) => {
 
                          <Divider my="$3"/>
 
-                         <VStack flex={1}>
+                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} flex={1}>
                               <Checkouts />
                               <Holds />
                               <UserLists />
@@ -897,6 +899,8 @@ const SavedSearches = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { textColor } = useTheme();
+     const updatesCount = user.numSavedSearchesNew ?? 0;
+     const { text: savedSearchSummary } = useTranslationWithValues('num_saved_searches_with_updates', updatesCount, { enabled: updatesCount > 0, addToDictionary: true });
 
      return (
           <Pressable
@@ -919,7 +923,7 @@ const SavedSearches = () => {
                          </HStack>
                          {user.numSavedSearchesNew > 0 ? (
                               <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_searches_with_updates', user.numSavedSearchesNew)}</BadgeText>
+                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -1077,7 +1081,6 @@ const Fines = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
 
      const shouldShowFines = library.showFines ?? true;
 
@@ -1156,7 +1159,6 @@ const YearInReview = () => {
      const textMode = useColorModeValue('gray.800', 'coolGray.200');
      const backgroundColor = useToken('colors', bgMode);
      const textColor = useToken('colors', textMode);
-     const toast = useToast();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const yearInReviewLabel = getTermFromDictionary(language, 'year_in_review');

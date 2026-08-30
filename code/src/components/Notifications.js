@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack, Pressable } from '@gluestack-ui/themed';
+import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack, Pressable, Text } from '@gluestack-ui/themed';
 import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary } from '../translations/TranslationService';
@@ -10,7 +10,7 @@ import { dismissSystemMessage } from '../util/api/system';
 
 
 // custom components and helper files
-import { stripHTML } from '../helpers/helpers';
+import { normalizeDisplayText, stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 import { useTheme } from '../themes/theme';
 
@@ -162,12 +162,15 @@ export function showILSMessage(type, message, index = 0) {
 
 /** status/colorScheme options: success, error, info, warning **/
 export const DisplayMessage = (props) => {
+     const safeMessage = normalizeDisplayText(props.message);
+     const fallbackMessage = getTermFromDictionary('en', 'unknown_error') || 'An unknown error occurred.';
+     const displayMessage = safeMessage || fallbackMessage;
+
      return (
-          <Alert action={props.type} mb="$2" mx="$4">
-               <AlertIcon mr="$3" />
-               <AlertText size="xs" fontWeight="$medium">
-                    {props.message}
-               </AlertText>
+          <Alert action={props.type} variant="solid" mb="$2" py="$3" px="$3" alignItems="flex-start" sx={{ height: 'auto', minHeight: 0 }}>
+               <Text color="$coolGray900" size="sm" fontWeight="$medium" flexShrink={1} style={{ flexWrap: 'wrap' }}>
+                    {displayMessage}
+               </Text>
           </Alert>
      );
 };
@@ -211,7 +214,9 @@ export const DisplaySystemMessage = (props) => {
      const updateSystemMessages = props.updateSystemMessages;
      let style = props.style;
      if (style === '') {
-          style = 'info';
+          style = 'none';
+     }else if (style === 'danger') {
+          style = 'error';
      }
      logDebugMessage("System Message Style is " + style);
 

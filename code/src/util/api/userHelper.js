@@ -24,7 +24,6 @@ export function formatPickupLocations(data) {
 /**
  * Complete the action on the item, i.e. checkout, hold, or view sample
  * Parameters:
- * @param {object} toast - The instance returned by useToast()
  * @param {string} id
  * @param {string} actionType
  * @param {string} patronId
@@ -40,7 +39,7 @@ export function formatPickupLocations(data) {
  * @param {string} variationId
  * @param {string} bibId
  **/
-export async function completeAction(toast, id, actionType, patronId, formatId = '', sampleNumber = '', pickupBranch = '', sublocation = '', rememberPickupLocation = '', url, volumeId = '', holdType = '', holdNotificationPreferences, variationId = '', bibId = '') {
+export async function completeAction(id, actionType, patronId, formatId = '', sampleNumber = '', pickupBranch = '', sublocation = '', rememberPickupLocation = '', url, volumeId = '', holdType = '', holdNotificationPreferences, variationId = '', bibId = '') {
      logDebugMessage('Completing action ' + actionType);
      const recordId = id.split(':');
      const source = recordId[0];
@@ -82,7 +81,7 @@ export async function completeAction(toast, id, actionType, patronId, formatId =
      }
 }
 
-export async function openSideLoad(toast, redirectUrl) {
+export async function openSideLoad(redirectUrl) {
      if (redirectUrl) {
           await WebBrowser.openBrowserAsync(redirectUrl)
                .then((res) => {
@@ -100,20 +99,20 @@ export async function openSideLoad(toast, redirectUrl) {
                                    })
                                    .catch(async (error) => {
                                         logWarnMessage('Unable to close previous browser session.');
-                                        popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                                        popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                                    });
                          } catch (error) {
                               logErrorMessage('Tried to open again but still unable');
                               logErrorMessage(error);
-                              popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                              popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                          }
                     } else {
                          logWarnMessage('Unable to open browser window.');
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      } else {
-          popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_no_valid_url'), 'error');
+          popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_no_valid_url'), 'error');
           logErrorMessage('No redirect URL provided for side load');
      }
 }

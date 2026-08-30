@@ -20,20 +20,21 @@ export const Facet_Checkbox = ({ data, category, values = [], updateCheckboxFace
                     accessibilityLabel={data.display}
                     isChecked={isChecked}
                     onChange={(value) => {
-                       handleChange(value);
-                    }}
-               >
+                         handleChange(value);
+                    }}>
                     <CheckboxIndicator
                          sx={{
                               ':checked': {
-                                   borderColor: theme['tokens']['colors']['primary']['500'],
-                                   backgroundColor: theme['tokens']['colors']['primary']['500'] } }}
-                    >
+                                   borderColor: theme.tokens.colors.primary['500'],
+                                   backgroundColor: theme.tokens.colors.primary['500'],
+                              },
+                         }}>
                          {isChecked && <Icon as={MaterialIcons} name="check" color={theme.tokens.colors.primary['500-text']} size="sm" />}
                     </CheckboxIndicator>
                     <CheckboxLabel pl="$2">
                          <Text color={textColor}>
-                              {data.display}{data.count ? ` (${data.count})` : ''}
+                              {data.display}
+                              {data.count ? ` (${data.count})` : ''}
                          </Text>
                     </CheckboxLabel>
                </Checkbox>

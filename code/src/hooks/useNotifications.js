@@ -21,7 +21,6 @@ export const useNotificationPermissions = (library, updateExpoToken, updateUserD
      const [isLoading, setLoading] = React.useState(false);
      const appState = React.useRef(AppState.currentState);
      const lastCheckedStatus = React.useRef(false);
-     const toast = useToast();
 
      const pendingPromise = React.useRef(null);
      const checkAndUpdatePermissions = async (source, force = false) => {
