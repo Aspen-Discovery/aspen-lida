@@ -1,4 +1,4 @@
-import {Button, ButtonText, ButtonSpinner, useToast} from '@gluestack-ui/themed';
+import {Button, ButtonText, ButtonSpinner} from '@gluestack-ui/themed';
 import React from 'react';
 
 import { openSideLoad } from '../../util/api/userHelper';
@@ -9,7 +9,6 @@ import { useTheme } from '../../themes/theme';
 export const OpenSideLoad = (props) => {
      const [loading, setLoading] = React.useState(false);
      const { theme } = useTheme();
-     const toast = useToast();
 
      return (
           <Button
@@ -20,7 +19,7 @@ export const OpenSideLoad = (props) => {
                maxWidth="100%"
                onPress={async () => {
                     setLoading(true);
-                    await openSideLoad(toast, props.url).then((r) => setLoading(false));
+                    await openSideLoad(props.url).then((r) => setLoading(false));
                }}>
                {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{props.title}</ButtonText>}
           </Button>

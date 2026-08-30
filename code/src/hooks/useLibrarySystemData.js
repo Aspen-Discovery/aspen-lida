@@ -137,6 +137,7 @@ function useSqliteReadQuery(queryKey, queryFn, options = {}) {
 
 export const LIBRARY_URL_KEY = ['library_url'];
 export const LIBRARY_VERSION_KEY = ['library_version'];
+export const LIBRARY_LANGUAGES_KEY = ['library_languages'];
 export const LIBRARY_METADATA_KEY = ['library_metadata'];
 export const LIBRARY_KEY = ['library'];
 export const LIBRARY_MENU_KEY = ['library_menu'];
@@ -144,6 +145,10 @@ export const CATALOG_STATUS_KEY = ['catalog_status'];
 export const HOME_SCREEN_LINKS_KEY = ['home_screen_links'];
 export const APP_SETTINGS_KEY = ['app_settings'];
 export const LIBRARY_ALL_SYSTEM_DATA_KEY = ['library_all_system_data'];
+
+export function notifyLibrarySystemDataChanged(queryKey) {
+     notifyLibrarySystemChanged(queryKey);
+}
 
 // ─── Read Hooks ───────────────────────────────────────────────────────────────
 
@@ -386,6 +391,7 @@ export function useCatalogStatusData(options = {}) {
  */
 export function prehydrateLibrarySystemSnapshotCache(allData) {
      if (!allData) return;
+     librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_LANGUAGES_KEY), allData.languages ?? []);
      librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_KEY), allData.library ?? {});
      librarySystemSnapshotCache.set(JSON.stringify(LIBRARY_MENU_KEY), allData.menu ?? []);
      librarySystemSnapshotCache.set(JSON.stringify(CATALOG_STATUS_KEY), {

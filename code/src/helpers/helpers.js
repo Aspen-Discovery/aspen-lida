@@ -167,6 +167,34 @@ export function stripHTML(string) {
 }
 
 /**
+ * Normalize arbitrary text for display by optionally stripping HTML,
+ * collapsing whitespace, and trimming leading/trailing spaces.
+ */
+export function normalizeDisplayText(value, options = {}) {
+     const {
+          stripHtml = true,
+          collapseWhitespace = true,
+          trim = true,
+     } = options;
+
+     let output = String(value ?? '');
+
+     if (stripHtml) {
+          output = stripHTML(output);
+     }
+
+     if (collapseWhitespace) {
+          output = output.replace(/\s+/g, ' ');
+     }
+
+     if (trim) {
+          output = output.trim();
+     }
+
+     return output;
+}
+
+/**
  * Decode HTML entities in a string
  **/
 export function decodeHTML(string) {

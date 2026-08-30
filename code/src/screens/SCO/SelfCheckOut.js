@@ -290,9 +290,9 @@ export const SelfCheckOut = () => {
                                         </ButtonGroup>
                                    </Center>
                               </FormControl>
-                              <Modal isOpen={showModal} onClose={toggle} size="md" avoidKeyboard>
+                              <Modal isOpen={showModal} onClose={toggle} size="md" avoidKeyboard useRNModal={true}>
                                    <ModalBackdrop />
-                                   <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                                   <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                                         <ModalHeader>
                                              <Heading size="md" color={textColor}>
                                                   {getTermFromDictionary(language, 'add_new_item')}
@@ -303,7 +303,7 @@ export const SelfCheckOut = () => {
                                         </ModalHeader>
                                         <ModalBody>
                                              <FormControl pb="$5">
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                                        <InputField color={textColor} keyboardType={keyboardType === 1 ? 'number-pad' : 'default'} variant="outline" autoCapitalize="none" placeholder={getTermFromDictionary(language, 'enter_barcode')} size="$lg" defaultValue={newBarcode} onChangeText={(text) => setNewBarcode(text)} />
                                                   </Input>
                                              </FormControl>
@@ -321,7 +321,8 @@ export const SelfCheckOut = () => {
                                                                  type: null,
                                                                  activeAccount,
                                                                  startNew: false,
-                                                                 items });
+                                                                 items,
+                                                            });
                                                        }}>
                                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'add_new_item')}</ButtonText>
                                                   </Button>
@@ -351,9 +352,9 @@ export const SelfCheckOut = () => {
                     </Button>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false}>
+                    <AlertDialog leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false} useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading color={textColor}>{getTermFromDictionary(language, 'notice_about_item')}</Heading>
                               </AlertDialogHeader>
@@ -371,9 +372,9 @@ export const SelfCheckOut = () => {
                     </AlertDialog>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading size="md" color={textColor}>
                                         {errorTitle}
@@ -387,7 +388,7 @@ export const SelfCheckOut = () => {
                                                   <FormControlLabel>
                                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'does_barcode_match_item')}</FormControlLabelText>
                                                   </FormControlLabel>
-                                                  <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                                  <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                                        <InputField id="barcode" autoCapitalize="none" autoCorrect={false} onChangeText={(text) => setTempBarcode(text)} defaultValue={tempBarcode} color={textColor} />
                                                   </Input>
                                              </FormControl>
@@ -408,7 +409,8 @@ export const SelfCheckOut = () => {
                                                             type: null,
                                                             activeAccount,
                                                             startNew: false,
-                                                            items });
+                                                            items,
+                                                       });
                                                   }}>
                                                   <ButtonText textColor={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'try_again')}</ButtonText>
                                              </Button>
@@ -419,9 +421,9 @@ export const SelfCheckOut = () => {
                     </AlertDialog>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg">
+                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg" useRNModal={true}>
                          <AlertDialogBackdrop />
-                         <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                         <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
                               <AlertDialogHeader>
                                    <Heading color={textColor}>{getTermFromDictionary(language, 'finish_checkout_session')}</Heading>
                                    <Button variant="link" onPress={() => setShowFinishModal(false)} position="absolute" right="$3" top="$1" bg="transparent">

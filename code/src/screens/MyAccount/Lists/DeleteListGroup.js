@@ -1,12 +1,12 @@
 import React from 'react';
 
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '../../../hooks/useUserData';
-import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text, useToast } from '@gluestack-ui/themed';
+import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text } from '@gluestack-ui/themed';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { deleteListGroup, getLists, getListGroups } from '../../../util/api/list';
 import { refreshProfile } from '../../../util/api/user';
-import { popAlert } from '../../../components/feedback/toastService';
+import { popAlert } from '../../../components/feedback';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
@@ -23,7 +23,6 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
       const { textColor, theme, colorMode } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
-      const toast = useToast();
 
      const toggle = () => {
           setShowModal(!showModal);
@@ -79,9 +78,9 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
                                                       setShowModal(false);
                                                       if (res.data.result.success === false) {
                                                            status = 'error';
-                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                           popAlert(res.data.result.title, res.data.result.message, status);
                                                       } else {
-                                                           popAlert(toast, res.data.result.title, res.data.result.message, status);
+                                                           popAlert(res.data.result.title, res.data.result.message, status);
                                                            navigateStack('AccountScreenTab', 'MyLists', {
                                                                 libraryUrl: library.baseUrl,
                                                                 hasPendingChanges: true });

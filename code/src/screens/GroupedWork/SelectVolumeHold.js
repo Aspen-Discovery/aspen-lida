@@ -33,8 +33,7 @@ import {
      SelectItem,
      SelectScrollView,
      Icon,
-     ChevronDownIcon,
-     useToast
+     ChevronDownIcon
 } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { loadError } from '../../components/loadError';
@@ -61,7 +60,6 @@ const SelectVolumeHold = (props) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const toast = useToast();
 
      const isPlacingHold = action.includes('hold');
 
@@ -256,7 +254,7 @@ const SelectVolumeHold = (props) => {
                                         isDisabled={loading}
                                         onPress={async () => {
                                              setLoading(true);
-                                             await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
+                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, library.baseUrl, volume, holdType).then(async (result) => {
                                                   setResponse(result);
                                                   setShowModal(false);
                                                   if (result) {

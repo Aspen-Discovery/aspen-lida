@@ -12,7 +12,6 @@ jest.mock('../src/util/logging.js', () => ({
 }));
 
 jest.mock('@gluestack-ui/themed', () => {
-     const ReactModule = require('react');
      const { View: RNView, Text: RNText } = require('react-native');
 
      return {
@@ -39,14 +38,15 @@ describe('feedback toast service', () => {
           jest.restoreAllMocks();
      });
 
-     it('shows popToast with explicit toast instance and renders expected content', async () => {
-          const toast = buildToastMock('toast-shown-id');
+     it('shows popToast using global toast registration and renders expected content', async () => {
+          const globalToast = buildToastMock('toast-shown-id');
+          registerGlobalToast(globalToast);
           const { title, description, status } = feedbackToastMessages.toast;
 
-          popToast(toast, title, description, status);
+          popToast(title, description, status);
 
-          expect(toast.show).toHaveBeenCalledTimes(1);
-          const showConfig = toast.show.mock.calls[0][0];
+          expect(globalToast.show).toHaveBeenCalledTimes(1);
+          const showConfig = globalToast.show.mock.calls[0][0];
           expect(showConfig.placement).toBe('bottom');
           expect(showConfig.duration).toBe(3000);
           expect(showConfig.id).toBe('toast-1700000000000');
@@ -80,22 +80,6 @@ describe('feedback toast service', () => {
           expect(screen.getByTestId('toast-root').props.nativeID).toBe('alert-123');
      });
 
-     it('retries with global toast when local toast returns a falsy show id', () => {
-          const localToast = buildToastMock('');
-          const globalToast = buildToastMock('global-shown-id');
-          registerGlobalToast(globalToast);
-
-          const { title, description, status } = feedbackToastMessages.retry;
-          popAlert(localToast, title, description, status);
-
-          expect(localToast.show).toHaveBeenCalledTimes(1);
-          expect(globalToast.show).toHaveBeenCalledTimes(1);
-
-          const localConfig = localToast.show.mock.calls[0][0];
-          const globalConfig = globalToast.show.mock.calls[0][0];
-          expect(localConfig.id).toBe('alert-1700000000000');
-          expect(globalConfig.id).toBe('alert-1700000000000');
-     });
 
      it('does not throw when no toast instance is available', () => {
           registerGlobalToast(null);

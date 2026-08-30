@@ -68,12 +68,9 @@ export const SelectItemHold = (props) => {
                                         <Icon as={ChevronDownIcon} color={textColor} />
                                    </SelectIcon>
                               </SelectTrigger>
-                              <SelectPortal>
+                              <SelectPortal useRNModal={true}>
                                    <SelectBackdrop />
-                                   <SelectContent
-                                        bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                        pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                   >
+                                   <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                         <SelectDragIndicatorWrapper>
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
@@ -81,7 +78,7 @@ export const SelectItemHold = (props) => {
                                              {_.map(Object.keys(copies), function (item, index, array) {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']}  sx={{ _text: { color: theme.tokens.colors.tertiary['500-text']} }}/>;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                   }
                                                   return <SelectItem label={copy.location} value={copy.id} key={copy.id} sx={{ _text: { color: textColor } }} />;
                                              })}

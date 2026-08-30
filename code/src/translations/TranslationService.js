@@ -2,8 +2,9 @@ import { translationsLibrary as helperLibrary, getTermFromDictionary as helperGe
 import { MaterialIcons } from '@expo/vector-icons';
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, Button, ButtonText, ButtonIcon, Menu, MenuItem, MenuItemLabel } from '@gluestack-ui/themed';
+import { Box, Button, ButtonText, ButtonIcon, Menu, MenuItem, MenuItemLabel, Spinner, Text } from '@gluestack-ui/themed';
 import React from 'react';
+import { Modal, StyleSheet, View } from 'react-native';
 
 import { saveLanguage } from '../util/api/user';
 import { useLibrary } from '../hooks/useLibrarySystemData';
@@ -20,6 +21,7 @@ import { GLOBALS } from '../util/globals';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
 import { createApiClient } from '../util/api/apiFactory';
+import { loadDictionary, loadDictionaryForLanguage, saveDictionary } from '../util/db';
 import { useTheme } from '../themes/theme';
 
 /** *******************************************************************
@@ -36,25 +38,53 @@ export const LanguageSwitcher = () => {
      const updateLanguageDisplayName = useUpdateLanguageDisplayName();
 
      const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
+     const [isSwitchingLanguage, setIsSwitchingLanguage] = React.useState(false);
 
      const changeLanguage = async (val) => {
-          const result = await saveLanguage(val, library?.baseUrl ?? '');
-          if (!result) {
-               logErrorMessage('there was an error updating the language...');
-               return;
-          }
+          if (isSwitchingLanguage) return;
+          setIsSwitchingLanguage(true);
+          try {
+               const result = await saveLanguage(val, library?.baseUrl ?? '', language);
+               if (!result) {
+                    logErrorMessage('there was an error updating the language...');
+                    return;
+               }
 
-          await updateLanguage(val);
-          const nextDisplayName = getLanguageDisplayName(val, languages);
-          await updateLanguageDisplayName(nextDisplayName);
-          await getTranslatedTermsForUserPreferredLanguage(val, library?.baseUrl ?? '');
-          await updateDictionary(translationsLibrary);
+               const nextDisplayName = getLanguageDisplayName(val, languages);
+               const languageUrl = library?.baseUrl ?? '';
+
+               // Hydrate selected language terms from SQLite immediately so UI reads the correct row
+               // while fresh translations are fetched.
+               const cachedTerms = await loadDictionaryForLanguage(val);
+               if (_.isObject(cachedTerms) && Object.keys(cachedTerms).length > 0) {
+                    setTranslationsLibrary(_.merge({}, translationsLibrary, { [val]: cachedTerms }));
+               }
+
+               await getTranslatedTermsForUserPreferredLanguage(val, languageUrl);
+               setTranslationsLibrary(translationsLibrary);
+               await updateDictionary(translationsLibrary);
+
+               // Flip active language only after dictionary is ready to avoid flashing defaults.
+               logDebugMessage("Updating language to " + val + " in changeLanguage");
+               await updateLanguage(val);
+               logDebugMessage("Updating language display name to " + nextDisplayName + " in changeLanguage");
+               await updateLanguageDisplayName(nextDisplayName);
+          } catch (error) {
+               logWarnMessage('Language switch translation fetch failed; applying language selection with current dictionary.');
+               logErrorMessage(error);
+               await updateLanguage(val);
+               const fallbackDisplayName = getLanguageDisplayName(val, languages);
+               await updateLanguageDisplayName(fallbackDisplayName);
+          } finally {
+               setIsSwitchingLanguage(false);
+          }
      };
 
      if (_.isArray(languages) && _.size(languages) > 1) {
           return (
-               <Box>
-                    <Menu
+               <>
+                    <Box>
+                         <Menu
                          bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
                          isOpen={isLanguageMenuOpen}
                          onClose={() => setIsLanguageMenuOpen(false)}
@@ -63,19 +93,31 @@ export const LanguageSwitcher = () => {
                          selectedKeys={language} selectionMode="single"
                          trigger={(triggerProps) => {
                               return (
-                                   <Button size="sm" variant="link" {...triggerProps} onPress={() => {setIsLanguageMenuOpen(true)}}>
-                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['secondary']['500']} />
-                                        <ButtonText color={theme['tokens']['colors']['secondary']['500']}> {languageDisplayName}</ButtonText>
+                                   <Button
+                                        size="sm"
+                                        borderRadius="$full"
+                                        {...triggerProps}
+                                        isDisabled={isSwitchingLanguage}
+                                        onPress={() => {
+                                             if (!isSwitchingLanguage) {
+                                                  setIsLanguageMenuOpen(true);
+                                             }
+                                        }}
+                                        bg="transparent"
+                                   >
+                                        <ButtonIcon as={MaterialIcons} name="language" color={theme['tokens']['colors']['primary']['500']} />
+                                        <ButtonText color={theme['tokens']['colors']['primary']['500']}> {languageDisplayName}</ButtonText>
                                    </Button>
                               );
                          }}>
                          {_.isArray(languages) ? (
                               <>
-                                   {languages.map((language, index) => {
+                                   {languages.map((language) => {
                                         return (
                                              <MenuItem
                                                   key={language.code}
                                                   textValue={language.code}
+                                                   isDisabled={isSwitchingLanguage}
                                                   onPress={() => {
                                                        setIsLanguageMenuOpen(false);
                                                        changeLanguage(language.code);
@@ -87,8 +129,29 @@ export const LanguageSwitcher = () => {
                                    })}
                               </>
                          ) : null}
-                    </Menu>
-               </Box>
+                         </Menu>
+                    </Box>
+                    <Modal transparent animationType="fade" visible={isSwitchingLanguage}>
+                         <View
+                              style={[
+                                   styles.languageSwitchOverlay,
+                                   colorMode === 'dark' ? styles.languageSwitchOverlayDark : styles.languageSwitchOverlayLight,
+                              ]}
+                         >
+                              <Box
+                                   bg={colorMode === 'dark' ? '$coolGray800' : '$warmGray50'}
+                                   borderRadius="$xl"
+                                   px="$6"
+                                   py="$5"
+                                   alignItems="center"
+                                   justifyContent="center"
+                              >
+                                   <Spinner size="large" color={theme['tokens']['colors']['primary']['500']} />
+                                    <Text mt="$3" color={textColor}>Switching language...</Text>
+                              </Box>
+                         </View>
+                    </Modal>
+               </>
           );
      }
 
@@ -158,8 +221,31 @@ export async function getTranslations(terms, language, url) {
  * @returns {Promise<unknown[]|string>}
  */
 export async function getTranslationsWithValues(key, values, language, url, addToDictionary = false) {
+     await ensureTranslationsLibraryHydrated();
+
      const defaults = require('../translations/defaults.json');
      const term = defaults[key];
+     const normalizedValues = normalizeTranslationValues(values);
+     const valuesCacheKey = `${key}::${JSON.stringify(normalizedValues)}`;
+
+     const cachedDictionary = translationsLibrary?.[language] ?? {};
+     const cachedValueTranslation = cachedDictionary[valuesCacheKey];
+     if (cachedValueTranslation) {
+          return [formatTranslationWithValues(cachedValueTranslation, normalizedValues)];
+     }
+
+     const cachedTermTranslation = cachedDictionary[key];
+     if (cachedTermTranslation) {
+          const cachedTermText = String(cachedTermTranslation ?? '');
+          const canUseBaseTermCache = normalizedValues.length === 0 || cachedTermText.includes('%');
+
+          if (canUseBaseTermCache) {
+               const resolvedCachedTerm = formatTranslationWithValues(cachedTermText, normalizedValues);
+               if (!resolvedCachedTerm.includes('%')) {
+                    return [resolvedCachedTerm];
+               }
+          }
+     }
 
      const client = createApiClient({
           url,
@@ -173,22 +259,63 @@ export async function getTranslationsWithValues(key, values, language, url, addT
 
      if (response.ok) {
           if (response.data?.result?.translation) {
+               const translation = Object.values(response.data?.result?.translation);
                if (Object.values(response.data?.result?.translation) && addToDictionary) {
                     const lastUpdated = {
                          lastUpdated: moment() };
                     translationsLibrary = _.merge(translationsLibrary, lastUpdated);
 
-                    const translation = Object.values(response.data?.result?.translation);
+                    const resolvedTranslation = formatTranslationWithValues(translation[0], normalizedValues);
                     const obj = {
                          [language]: {
-                              [key]: translation[0] } };
+                              [key]: translation[0],
+                              [valuesCacheKey]: resolvedTranslation } };
                     translationsLibrary = _.merge(translationsLibrary, obj);
+
+                    try {
+                         await saveDictionary(translationsLibrary);
+                    } catch (error) {
+                         logWarnMessage('Failed to persist value translation to SQLite dictionary');
+                         logErrorMessage(error);
+                    }
                }
-               return Object.values(response.data?.result?.translation);
+               return translation;
           }
      }
 
      return decodeHTML(term);
+}
+
+function normalizeTranslationValues(values) {
+     if (Array.isArray(values)) {
+          return values;
+     }
+     return typeof values === 'undefined' || values === null ? [] : [values];
+}
+
+export const formatTranslationWithValues = (term, values) => {
+     const source = String(term ?? '');
+     const normalizedValues = normalizeTranslationValues(values);
+
+     return normalizedValues.reduce((result, value, index) => {
+          return result.replace(`%${index + 1}%`, String(value ?? ''));
+     }, source);
+};
+
+export async function getTranslationWithValuesText(key, values, language, url, addToDictionary = false) {
+     const fallback = formatTranslationWithValues(getTermFromDictionary(language, key, false), values);
+
+     try {
+          const response = await getTranslationsWithValues(key, values, language, url, addToDictionary);
+          const translated = Array.isArray(response) ? response[0] : response;
+          const resolved = formatTranslationWithValues(translated, values).trim();
+
+          return resolved.includes('%') ? fallback : resolved;
+     } catch (error) {
+          logErrorMessage('getTranslationWithValuesText failed');
+          logErrorMessage(error);
+          return fallback;
+     }
 }
 
 /**
@@ -208,10 +335,31 @@ export function getLanguageDisplayName(code, languages) {
  * Local storage for translated terms
  */
 export let translationsLibrary = helperLibrary;
+let dictionaryHydrationPromise = null;
+
+export async function ensureTranslationsLibraryHydrated() {
+     if (!dictionaryHydrationPromise) {
+          dictionaryHydrationPromise = (async () => {
+               try {
+                    logDebugMessage("Doing initial load of translations from SQL at startup")
+                    const cachedDictionary = await loadDictionary();
+                    if (_.isObject(cachedDictionary) && Object.keys(cachedDictionary).length > 0) {
+                         translationsLibrary = _.merge({}, helperLibrary, cachedDictionary);
+                    }
+               } catch (error) {
+                    logWarnMessage('Failed loading cached translations dictionary from SQLite');
+                    logErrorMessage(error);
+               }
+          })();
+     }
+
+     await dictionaryHydrationPromise;
+}
 
 export function setTranslationsLibrary(dictionary) {
      if (_.isObject(dictionary)) {
-          translationsLibrary = dictionary;
+          translationsLibrary = _.merge({}, helperLibrary, dictionary);
+          dictionaryHydrationPromise = Promise.resolve();
      }
 }
 
@@ -305,18 +453,6 @@ export async function loadTranslationsFromDiscovery(language, url) {
 }
 
 /**
- * Returns translation of terms used in Aspen LiDA for the given language
- * @param {array} terms
- * @param {string} language
- * @param {string} url
- **/
-async function getTranslatedTermWithValues(terms, language, url) {
-     _.map(terms, async function (term) {
-          await getTranslationsWithValues(term.key, term.value, language, url, true);
-     });
-}
-
-/**
  * Updates dictionary for translations used in Aspen LiDA for the given language
  * @param {string} language // the language code used in Aspen Discovery
  * @param {string} url
@@ -332,28 +468,17 @@ export const getTermFromDictionary = (language = 'en', key, ellipsis = false) =>
      return helperGetTermFromDictionary(language, key, ellipsis, translationsLibrary);
 };
 
-export const getVariableTermFromDictionary = async (language, key, url) => {
-     if (language && key) {
-          const tmpDictionary = translationsLibrary;
-          if (tmpDictionary[language]) {
-               const thisDictionary = tmpDictionary[language];
-               if (thisDictionary[key]) {
-                    logDebugMessage("Got variable term from dictionary");
-                    logDebugMessage(Object.values(tmpDictionary[language][key]));
-                    return Object.values(tmpDictionary[language][key]);
-               } else {
-                    // fetch translated term from Discovery and add to dictionary for later
-                    //const {library} = React.useContext(LibrarySystemContext);
-                    let localDictionary = tmpDictionary;
-                    const term = await getTranslation(key, language, url);
-                    const obj = {
-                         [language]: {
-                              [key]: term } };
-                    localDictionary = _.merge(localDictionary, obj);
-                    translationsLibrary = _.merge(translationsLibrary, obj);
-                    //updateDictionary(localDictionary);
-               }
-          }
-     }
-     return key;
-};
+const styles = StyleSheet.create({
+     languageSwitchOverlay: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+     },
+     languageSwitchOverlayLight: {
+          backgroundColor: 'rgba(15, 23, 42, 0.35)',
+     },
+     languageSwitchOverlayDark: {
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+     },
+});
+

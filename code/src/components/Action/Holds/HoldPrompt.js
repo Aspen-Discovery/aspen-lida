@@ -39,8 +39,7 @@ import {
      InputField,
      InputSlot,
      InputIcon,
-     Text,
-     useToast
+     Text
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { EyeOff, Eye } from 'lucide-react-native';
@@ -176,7 +175,6 @@ export const HoldPrompt = (props) => {
      const [sublocation, setSublocation] = React.useState(null);
      const rememberHoldPickupLocation = user.rememberHoldPickupLocation ? 1 : 0;
      const [rememberPickupLocation, setRememberPickupLocation] = React.useState(rememberHoldPickupLocation);
-     const toast = useToast();
 
      // TanStack useQuery Hook
      const { status, data, error, isFetching } = useQuery({
@@ -354,14 +352,18 @@ export const HoldPrompt = (props) => {
                <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowModal(true)}>
                     <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>
                </Button>
-               <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg">
+               <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg" useRNModal={true}>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
+                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
                               <Heading size="md" color={textColor}>
                                    {getTermFromDictionary(language, 'add_alternate_library_card')}
                               </Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowAddAlternateLibraryCardModal(false); }}>
+                              <ModalCloseButton
+                                   p="$3"
+                                   onPress={() => {
+                                        setShowAddAlternateLibraryCardModal(false);
+                                   }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -373,7 +375,7 @@ export const HoldPrompt = (props) => {
                                              {cardLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                   <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                         <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                    </Input>
                               </FormControl>
@@ -384,7 +386,7 @@ export const HoldPrompt = (props) => {
                                                   {passwordLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                                        <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
                                              <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
                                              <InputSlot onPress={toggleShowPassword}>
                                                   <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
@@ -393,16 +395,16 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
+                                        borderColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}
                                         onPress={() => {
                                              setShowAddAlternateLibraryCardModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? '$warmGray500' : '$coolGray300'}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
                                         bgColor={theme.tokens.colors.primary['500']}
@@ -410,8 +412,8 @@ export const HoldPrompt = (props) => {
                                         onPress={async () => {
                                              setLoading(true);
                                              await updateCard();
-                                             await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
-                                                  logDebugMessage("Completed Action - Hold Prompt footer");
+                                             await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  logDebugMessage('Completed Action - Hold Prompt footer');
 
                                                   setResponse(result);
                                                   if (result) {
@@ -427,7 +429,8 @@ export const HoldPrompt = (props) => {
                                                                  title: result.title,
                                                                  confirmationNeeded: result.confirmationNeeded ?? false,
                                                                  confirmationId: result.confirmationId ?? null,
-                                                                 recordId: id ?? null };
+                                                                 recordId: id ?? null,
+                                                            };
                                                             tmp = _.merge(obj, tmp);
                                                             setHoldConfirmationResponse(tmp);
                                                        }
@@ -440,7 +443,8 @@ export const HoldPrompt = (props) => {
                                                                  patronId: activeAccount,
                                                                  pickupLocation: location,
                                                                  bibId: id ?? null,
-                                                                 items: result.items ?? [] };
+                                                                 items: result.items ?? [],
+                                                            };
 
                                                             tmp = _.merge(obj, tmp);
                                                             setHoldSelectItemResponse(tmp);
@@ -464,22 +468,24 @@ export const HoldPrompt = (props) => {
                          </ModalFooter>
                     </ModalContent>
                </Modal>
-               <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
+               <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg" useRNModal={true}>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
+                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
                               <Heading size="md" color={textColor}>
                                    {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                               </Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
+                              <ModalCloseButton
+                                   p="$3"
+                                   onPress={() => {
+                                        setShowModal(false);
+                                   }}>
                                    <Icon as={CloseIcon} color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody mt="$3">
-                              {alreadyOnHold ? (
-                                   <Text color={textColor}>{getTermFromDictionary(language, 'already_on_hold')}</Text>
-                              ) : null}
-                              {!preferredPickupLocationIsValid ? (<Text color={textColor}>{preferredPickupLocationWarning}</Text>) : null}
+                              {alreadyOnHold ? <Text color={textColor}>{getTermFromDictionary(language, 'already_on_hold')}</Text> : null}
+                              {!preferredPickupLocationIsValid ? <Text color={textColor}>{preferredPickupLocationWarning}</Text> : null}
                               {promptForHoldNotifications ? (
                                    <HoldNotificationPreferences
                                         user={user}
@@ -503,7 +509,7 @@ export const HoldPrompt = (props) => {
                                    />
                               ) : null}
                               {data !== undefined && !isFetching && _.isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
-                              {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode}  /> : null}
+                              {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
                               {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
                                    <FormControl mt="$1">
                                         <FormControlLabel>
@@ -520,32 +526,26 @@ export const HoldPrompt = (props) => {
                                                   })}
                                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
-                                             <SelectPortal>
+                                             <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent
-                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                                  >
+                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
                                                             {locations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index}  bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === (availableLocations.code) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (availableLocations.code) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === availableLocations.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === availableLocations.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
                                              </SelectPortal>
                                         </Select>
                                    </FormControl>
-
                               ) : null}
-                              {!user.rememberHoldPickupLocation ? (
-                                   <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} />
-                              ) : null}
+                              {!user.rememberHoldPickupLocation ? <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} /> : null}
                               {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
                                    <FormControl mb="$3">
                                         <Checkbox
@@ -571,17 +571,13 @@ export const HoldPrompt = (props) => {
                                              <SelectTrigger variant="outline" size="md">
                                                   <SelectInput
                                                        py={0}
-                                                       value={
-                                                            (() => {
-                                                                 if (activeAccount === (user.id)) {
-                                                                      return user.displayName;
-                                                                 }
-                                                                 const found = accounts.find(
-                                                                      item => activeAccount === (item.id)
-                                                                 );
-                                                                 return found ? found.displayName : '';
-                                                            })()
-                                                       }
+                                                       value={(() => {
+                                                            if (activeAccount === user.id) {
+                                                                 return user.displayName;
+                                                            }
+                                                            const found = accounts.find((item) => activeAccount === item.id);
+                                                            return found ? found.displayName : '';
+                                                       })()}
                                                        color={textColor}
                                                        placeholder={getTermFromDictionary(language, 'select_an_account')}
                                                   />
@@ -589,19 +585,16 @@ export const HoldPrompt = (props) => {
                                                        <Icon as={ChevronDownIcon} color={textColor} />
                                                   </SelectIcon>
                                              </SelectTrigger>
-                                             <SelectPortal>
+                                             <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent
-                                                       bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                       pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                                  >
+                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === (user.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (user.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === user.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === user.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === (item.id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === (item.id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}  />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -610,16 +603,16 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
+                                        borderColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}
                                         onPress={() => {
                                              setShowModal(false);
                                              setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText color={colorMode === 'light' ? '$warmGray500' : '$coolGray300'}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button
@@ -636,13 +629,13 @@ export const HoldPrompt = (props) => {
                                              isDisabled={loading}
                                              onPress={async () => {
                                                   setLoading(true);
-                                                  await completeAction(toast, id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, (volumeId ?? volume), holdType, holdNotificationPreferences, item).then(async (result) => {
+                                                  await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, volumeId ?? volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
-                                                       logDebugMessage("Completed Action Hold Prompt Alternate Library Card");
+                                                       logDebugMessage('Completed Action Hold Prompt Alternate Library Card');
 
                                                        if (result) {
                                                             if (result.success === true || result.success === 'true') {
-                                                                 logDebugMessage("Placing succeeded, invalidating queries for user " + user.id + " baseUrl " + library.baseUrl + " language " + language);
+                                                                 logDebugMessage('Placing succeeded, invalidating queries for user ' + user.id + ' baseUrl ' + library.baseUrl + ' language ' + language);
                                                                  logDebugMessage(result);
                                                                  queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                                                                  queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
@@ -653,9 +646,9 @@ export const HoldPrompt = (props) => {
                                                                       queryClient.invalidateQueries({ queryKey: ['checkouts', user.id, library.baseUrl, language] });
                                                                       refreshAndSaveUserProfile();
                                                                  }, 45 * 1000);
-                                                                 logDebugMessage("Query invalidation complete");
-                                                            }else{
-                                                                 logInfoMessage("Placing hold failed");
+                                                                 logDebugMessage('Query invalidation complete');
+                                                            } else {
+                                                                 logInfoMessage('Placing hold failed');
                                                                  logInfoMessage(result);
                                                             }
 
@@ -666,7 +659,8 @@ export const HoldPrompt = (props) => {
                                                                       title: result.title,
                                                                       confirmationNeeded: result.confirmationNeeded ?? false,
                                                                       confirmationId: result.confirmationId ?? null,
-                                                                      recordId: id ?? null };
+                                                                      recordId: id ?? null,
+                                                                 };
                                                                  tmp = _.merge(obj, tmp);
                                                                  setHoldConfirmationResponse(tmp);
                                                             }
@@ -679,14 +673,15 @@ export const HoldPrompt = (props) => {
                                                                       patronId: activeAccount,
                                                                       pickupLocation: location,
                                                                       bibId: id ?? null,
-                                                                      items: result.items ?? [] };
+                                                                      items: result.items ?? [],
+                                                                 };
 
                                                                  tmp = _.merge(obj, tmp);
                                                                  setHoldSelectItemResponse(tmp);
                                                             }
 
                                                             if (result?.needsIllRequest && result.needsIllRequest === true) {
-                                                                 result.message = result.message + "\n" + "You may be able to request this title from another library using our web based catalog or by visiting the library.";
+                                                                 result.message = result.message + '\n' + 'You may be able to request this title from another library using our web based catalog or by visiting the library.';
                                                                  setResponse(result);
                                                             }
 
@@ -697,13 +692,14 @@ export const HoldPrompt = (props) => {
                                                             } else if (result?.shouldBeItemHold && result.shouldBeItemHold) {
                                                                  setHoldItemSelectIsOpen(true);
                                                             } else if (result?.needsIllRequest && result.needsIllRequest === true) {
-                                                                 logDebugMessage("Need to show local ILL form");
+                                                                 logDebugMessage('Need to show local ILL form');
                                                                  logDebugMessage(response);
-                                                            } {
+                                                            }
+                                                            {
                                                                  setResponseIsOpen(true);
                                                             }
-                                                       }else{
-                                                            logWarnMessage("Did not get a good result completing action");
+                                                       } else {
+                                                            logWarnMessage('Did not get a good result completing action');
                                                        }
                                                   });
                                              }}>
