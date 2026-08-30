@@ -22,13 +22,12 @@ import {
      Icon,
      Pressable,
      ActionsheetIcon,
-     VStack,
-     useToast
+     VStack
 } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { popAlert } from '../../../components/feedback/toastService';
+import { popAlert } from '../../../components/feedback';
 import { HoldsContext } from '../../../context/initialContext';
 import { useUserState, useSublocations } from '../../../hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '../../../helpers/item';
@@ -51,7 +50,6 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
 export const MyHold = (props) => {
      const hold = props.data;
-     const holdSource = props.holdSource
      const resetGroup = props.resetGroup;
      const [pickupLocations, setPickupLocations] = React.useState([]);
      const { data: sublocations } = useSublocations();
@@ -70,7 +68,6 @@ export const MyHold = (props) => {
      let label, method, icon, canCancel;
      const [usesHoldPosition, setUsesHoldPosition] = React.useState(false);
      const [holdPosition, setHoldPosition] = React.useState(null);
-     const toast = useToast();
 
      const [showActionsheet, setShowActionsheet] = React.useState(false)
      const handleOpen = () => setShowActionsheet(true);
@@ -236,7 +233,7 @@ export const MyHold = (props) => {
                               handleClose();
                               startCheckingOut(true);
                               await checkoutItem(library.baseUrl, hold.sourceId, hold.source, hold.userId, '', '', '', language).then((result) => {
-                                   popAlert(toast, result.title, result.message, result.success ? 'success' : 'error');
+                                   popAlert(result.title, result.message, result.success ? 'success' : 'error');
                                    resetGroup();
                                    startCheckingOut(false);
                               });
@@ -351,10 +348,6 @@ export const MyHold = (props) => {
           }
      };
 
-     if (holdSource !== 'all' && holdSource !== hold.source) {
-          return null;
-     }
-
      return (
           <>
                <Pressable onPress={handleOpen} borderBottomWidth="$1" borderColor={colorMode === 'light' ? '$none' : "$warmGray400"} pl="$4" pr="$20" py="$2">
@@ -414,8 +407,6 @@ export const ManageSelectedHolds = (props) => {
      const [cancelling, startCancelling] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
      const [freezing, startFreezing] = React.useState(false);
-
-     const toast = useToast();
 
      let titlesToFreeze = [];
      let titlesToThaw = [];
@@ -580,8 +571,6 @@ export const ManageAllHolds = (props) => {
      const [cancelling, startCancelling] = React.useState(false);
      const [thawing, startThawing] = React.useState(false);
      const [freezing, startFreezing] = React.useState(false);
-
-     const toast = useToast();
 
      let titlesToFreeze = [];
      let titlesToThaw = [];

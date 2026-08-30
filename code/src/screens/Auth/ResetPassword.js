@@ -23,8 +23,8 @@ import React from 'react';
 import { loadingSpinner } from '../../components/loadingSpinner';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../translations/TranslationService';
-import { stripHTML } from '../../helpers/helpers';
+import { getTermFromDictionary, getTranslationWithValuesText } from '../../translations/TranslationService';
+import { normalizeDisplayText } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
@@ -49,72 +49,23 @@ export const ResetPassword = (props) => {
           setIsLoading(true);
 
           async function fetchTranslations() {
-               await getTranslationsWithValues('forgot_password_link', passwordLabel, language, libraryUrl).then((result) => {
-                    let term = _.toString(result);
-                    if (!term.includes('%')) {
-                         setButtonLabel(term);
-                    }
-               });
-               await getTranslationsWithValues('forgot_password_title', passwordLabel, language, libraryUrl).then((result) => {
-                    let term = _.toString(result);
-                    if (!term.includes('%')) {
-                         setModalTitle(term);
-                    }
-               });
-               await getTranslationsWithValues('reset_my_password', passwordLabel, language, libraryUrl).then((result) => {
-                    let term = _.toString(result);
-                    if (!term.includes('%')) {
-                         setModalButtonLabel(term);
-                    }
-               });
+               setButtonLabel(await getTranslationWithValuesText('forgot_password_link', passwordLabel, language, libraryUrl, true));
+               setModalTitle(await getTranslationWithValuesText('forgot_password_title', passwordLabel, language, libraryUrl, true));
+               setModalButtonLabel(await getTranslationWithValuesText('reset_my_password', passwordLabel, language, libraryUrl, true));
+
                if (ils === 'koha') {
-                    await getTranslationsWithValues('koha_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('koha_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
                } else if (ils === 'sirsi' || ils === 'horizon') {
-                    await getTranslationsWithValues('sirsi_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('sirsi_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'evergreen') {
-                    await getTranslationsWithValues('evergreen_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('evergreen_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'millennium') {
-                    await getTranslationsWithValues('millennium_password_reset_body', [_.lowerCase(usernameLabel), _.lowerCase(passwordLabel)], language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
-                    await getTranslationsWithValues('request_pin_reset', passwordLabel, language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setModalButtonLabel(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('millennium_password_reset_body', [_.lowerCase(usernameLabel), _.lowerCase(passwordLabel)], language, libraryUrl, true));
+                    setModalButtonLabel(await getTranslationWithValuesText('request_pin_reset', passwordLabel, language, libraryUrl, true));
                } else if (ils === 'symphony') {
-                    await getTranslationsWithValues('symphony_password_reset_body', _.lowerCase(usernameLabel), language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('symphony_password_reset_body', _.lowerCase(usernameLabel), language, libraryUrl, true));
                } else {
-                    await getTranslationsWithValues('aspen_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl).then((result) => {
-                         let term = _.toString(result);
-                         if (!term.includes('%')) {
-                              setResetBody(term);
-                         }
-                    });
+                    setResetBody(await getTranslationWithValuesText('aspen_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
                }
                setIsLoading(false);
           }
@@ -222,7 +173,7 @@ const AspenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -240,7 +191,7 @@ const AspenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -274,7 +225,7 @@ const AspenResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -337,6 +288,7 @@ const KohaResetPassword = (props) => {
           setIsProcessing(true);
           await resetPassword(username, email, resend, 'koha', libraryUrl).then((response) => {
                if(response.ok) {
+                    console.log(response.data.result);
                     setResults(response.data.result);
                     setShowResults(true);
                     setHasError(false);
@@ -363,7 +315,7 @@ const KohaResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -381,7 +333,7 @@ const KohaResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -426,7 +378,7 @@ const KohaResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -515,7 +467,7 @@ const SirsiResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -533,7 +485,7 @@ const SirsiResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -567,7 +519,7 @@ const SirsiResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -654,7 +606,7 @@ const EvergreenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -672,7 +624,7 @@ const EvergreenResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -717,7 +669,7 @@ const EvergreenResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -806,7 +758,7 @@ const SymphonyResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.error)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -824,7 +776,7 @@ const SymphonyResetPassword = (props) => {
                return (
                     <>
                          <ModalBody>
-                              <Text color={textColor}>{stripHTML(results.message)}</Text>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="$2">
@@ -858,7 +810,7 @@ const SymphonyResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -940,7 +892,7 @@ const MillenniumResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results.message)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">
@@ -962,7 +914,7 @@ const MillenniumResetPassword = (props) => {
           return (
                <>
                     <ModalBody>
-                         <Text color={textColor}>{stripHTML(results)}</Text>
+                         <Text color={textColor}>{normalizeDisplayText(results)}</Text>
                     </ModalBody>
                     <ModalFooter>
                          <ButtonGroup space="$2">

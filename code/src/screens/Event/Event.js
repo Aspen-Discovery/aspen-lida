@@ -8,7 +8,6 @@ import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import {
-     useToast,
      Box,
      Divider,
      Pressable,
@@ -34,7 +33,7 @@ import { showLocation } from 'react-native-map-link';
 
 // custom components and helper files
 import { loadError } from '../../components/loadError';
-import { popAlert, popToast } from '../../components/feedback/toastService';
+import { popAlert, popToast } from '../../components/feedback';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
@@ -134,7 +133,6 @@ const DisplayEvent = (payload) => {
      const source = route.params.source;
      const language = useActiveLanguage();
      const { textColor, theme, colorMode } = useTheme();
-     const toast = useToast();
      const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
      const openLink = async () => {
           const browserParams = {
@@ -172,7 +170,7 @@ const DisplayEvent = (payload) => {
                               logDebugMessage(error);
                          }
                     } else {
-                         popToast(toast, getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
+                         popToast(getTermFromDictionary('en', 'error_no_open_resource'), getTermFromDictionary('en', 'error_device_block_browser'), 'error');
                     }
                });
      };
@@ -319,7 +317,6 @@ const AddToCalendar = ({ start, end, location, event }) => {
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
      const { textColor } = useTheme();
-     const toast = useToast();
 
      let displayDay = false;
      let displayStartTime = false;
@@ -408,7 +405,6 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          allDay: event.isAllDay ?? false,
                          url: event.url }).then(async () => {
                          return popAlert(
-                              toast,
                               getTermFromDictionary(language, 'added_successfully'),
                               getTermFromDictionary(language, 'event_added_to_calendar'),
                               'success'
@@ -541,7 +537,6 @@ const AddToYourEvents = ({ id, source }) => {
      const language = useActiveLanguage();
      const { theme } = useTheme();
      const [isLoading, setIsLoading] = React.useState(false);
-     const toast = useToast();
 
      const addToEvents = async () => {
           setIsLoading(true);
@@ -556,9 +551,9 @@ const AddToYourEvents = ({ id, source }) => {
                     await updateUserProfile(profileResponse.data.result.profile);
                }
                if (result.success || result.success === 'true') {
-                    popAlert(toast, getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
+                    popAlert(getTermFromDictionary(language, 'added_successfully'), result.message, 'success');
                } else {
-                    popAlert(toast, getTermFromDictionary(language, 'error'), result.message, 'error');
+                    popAlert(getTermFromDictionary(language, 'error'), result.message, 'error');
                }
           });
      };

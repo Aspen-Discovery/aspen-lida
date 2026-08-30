@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import _ from 'lodash';
-import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider } from '@gluestack-ui/themed';
+import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
@@ -20,7 +20,7 @@ import { useAllLibraryBranchData, useLibraryLocationQuery } from '../../../hooks
 import { useThemeStateQuery } from '../../../hooks/useThemeData';
 import { useAllBrowseCategoryData } from '../../../hooks/useBrowseCategoryData';
 import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '../../../util/api/user';
-import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings } from '../../../util/api/system';
+import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '../../../util/api/system';
 import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
 import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
 import { orderByFields, stripHTML } from '../../../helpers/helpers';
@@ -165,22 +165,23 @@ export const SupportScreen = () => {
                     const activeLanguageCode = activeLanguage ?? 'en';
                     const languageResponse = await getLibraryLanguages(libraryUrl);
                     if (languageResponse?.ok) {
-                         const fetchedLanguages = orderByFields(
-                              languageResponse?.data?.result?.languages ?? [],
-                              ['weight', 'displayName'],
-                              ['asc', 'asc']
+                         //No need to sort these since they are already sorted by the API
+                         const fetchedLanguages = normalizeLibraryLanguagesPayload(
+                              languageResponse?.data?.result?.languages
                          );
                          await updateLanguages(fetchedLanguages);
 
                          await getTranslatedTermsForUserPreferredLanguage(activeLanguageCode, libraryUrl);
                          setTranslationsLibrary(translationsLibrary);
                          await updateDictionary(translationsLibrary);
+                    }else{
+                         logDebugMessage("Dod not get a successful response loading lanugage data");
                     }
                }
 
                if (cacheKey === 'theme') {
                     logDebugMessage('Theme cache refresh triggered from Support screen');
-                    const themeResponse = await buildThemeForLibrary(null, libraryUrl);
+                    const themeResponse = await buildThemeForLibrary(libraryUrl);
                     if (themeResponse) {
                          await saveThemeState({
                               themeId: themeResponse.themeId,
@@ -273,9 +274,9 @@ export const SupportScreen = () => {
      return (
           <Box safeArea={5} flex={1}>
                <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-                    <VStack space="$1" px="$4" py="$2">
+                    <VStack space="sm" px="$4" py="$2">
                          <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs"  bold color={textColor}>
+                              <Text fontSize="$xs" bold color={textColor}>
                                    {getTermFromDictionary(language, 'app_name')}
                               </Text>
                               <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>
@@ -345,8 +346,8 @@ export const SupportScreen = () => {
                                                             Cached: {formatCachedDateTime(cacheItem.updatedAt)}
                                                        </Text>
                                                   </VStack>
-                                                  <Button size="sm" variant="outline" action="secondary" isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
-                                                       <ButtonText>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
+                                                  <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
+                                                       <ButtonText color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
                                                   </Button>
                                              </HStack>
                                         </Box>
@@ -378,29 +379,18 @@ export const SupportScreen = () => {
                          </Button>
                     </Center>
                     {status.needsUpdate ? (
-                         <Center mt={5} px="$4">
-                              <Alert variant="left-accent" width="$full" status="warning">
-                                   <VStack space={2} flexShrink={1} width="$full">
-                                        <HStack flexShrink={1} space={2} alignItems="center" justifyContent="space-between">
-                                             <HStack flexShrink={1} space={2} alignItems="center">
-                                                  <Alert.Icon />
-                                                  <Text fontSize="md" fontWeight="medium" color="coolGray.800">
-                                                       {status.latest} Is Available
-                                                  </Text>
-                                             </HStack>
-                                        </HStack>
-                                        <Box
-                                             pl="6"
-                                             _text={{
-                                                  color: 'coolGray.600',
-                                             }}>
-                                             Please update your app for the latest features and fixes.
-                                             {status.canOpenUrl ? (
-                                                  <Pressable mt={3} variant="ghost" onPress={() => openAppStore()}>
-                                                       <Text bold>Update now</Text>
-                                                  </Pressable>
-                                             ) : null}
-                                        </Box>
+                         <Center mt="$5" px="$4">
+                              <Alert action="warning" variant="solid" mb="$2" borderRadius="$sm">
+                                   <VStack space="sm" width="$full" p="$3">
+                                        <AlertText mr="$2" fontWeight="$bold">
+                                             {status.latest} Is Available
+                                        </AlertText>
+                                        <AlertText mr="$2">Please update your app for the latest features and fixes.</AlertText>
+                                        {status.canOpenUrl ? (
+                                             <Button action="secondary" onPress={() => openAppStore()}>
+                                                  <ButtonText>Update now</ButtonText>
+                                             </Button>
+                                        ) : null}
                                    </VStack>
                               </Alert>
                          </Center>

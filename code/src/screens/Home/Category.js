@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText, useToast } from '@gluestack-ui/themed';
+import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText } from '@gluestack-ui/themed';
 import { ScrollView } from 'react-native';
 import _ from 'lodash';
 import React from 'react';
@@ -12,7 +12,7 @@ import { getHomeScreenFeed } from '../../util/api/search';
 import { updateBrowseCategoryStatus } from '../../util/api/user';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useMaxCategories, useToggleBrowseCategoryVisibility, useUpdateBrowseCategories } from '../../hooks/useBrowseCategoryData';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -20,7 +20,6 @@ import { useTheme } from '../../themes/theme';
 const loggedEmptyCategoryKeys = new Set();
 
 const DisplayBrowseCategory = ({category}) => {
-     const toast = useToast();
      const { theme, colorMode } = useTheme();
      const language = useActiveLanguage();
      const library = useLibrary();
@@ -34,6 +33,11 @@ const DisplayBrowseCategory = ({category}) => {
 
      const [selectedSubCategoryIndex, setSelectedSubCategoryIndex] = React.useState(0);
      const handleSelectSubCategory = (index) => setSelectedSubCategoryIndex(index);
+
+     React.useEffect(() => {
+          // Reset selected tab when the parent category changes.
+          setSelectedSubCategoryIndex(0);
+     }, [category?.id, category?.textId, category?.sourceListId]);
 
      const subCategories = category.subCategories ?? [];
      const records = category.records ?? [];
@@ -95,7 +99,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -113,7 +117,7 @@ const DisplayBrowseCategory = ({category}) => {
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -313,7 +317,8 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                          height: '100%',
                          borderRadius: "$sm" }}
                     placeholder={blurhash}
-                    transition={1000}
+                    transition={0}
+                    cachePolicy="memory-disk"
                     contentFit="cover"
                />
                {isNew ? (
@@ -330,7 +335,6 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 }
 
 const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, isSystemBrowseCategory }) => {
-     const toast = useToast();
      const { theme, textColor, colorMode } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
@@ -364,7 +368,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
                setErrorMessage(error.message);
                logErrorMessage(result.error);
                setShowErrorDialog(true);
-               popToast(toast, error.title, error.message, 'error');
+               popToast(error.title, error.message, 'error');
           } else {
                await refreshHomeFeed();
           }
@@ -373,7 +377,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      return (
          <ButtonGroup vertical space="sm" pb="$2">
                 {subCategories.map((subCategory, index) => (
-                     <Button key={index}
+                     <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()}
                              bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200'] }
                              variant="solid"
                              sx={{ paddingHorizontal: 12, height: 34 }}
@@ -429,4 +433,4 @@ const DisplayMoreResultsButton = ({ category }) => {
      )
 }
 
-export default DisplayBrowseCategory;
+export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => _.isEqual(prevProps.category, nextProps.category));
