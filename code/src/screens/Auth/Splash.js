@@ -11,11 +11,12 @@ import {
      loadAllLibrarySystemData,
      loadAllUserData,
      loadLibraryUrl,
+     loadLocation,
      loadThemeState,
      saveThemeState,
 } from '../../util/db';
 import { isPlainObject } from '../../helpers/helpers';
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { GLOBALS, LIBRARY, isBrandedApp } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { prehydrateLibrarySystemSnapshotCache } from '../../hooks/useLibrarySystemData';
 import { prehydrateLibraryBranchSnapshotCache, invalidateSelfCheckSnapshot } from '../../hooks/useLibraryBranchData';
@@ -270,12 +271,20 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
 
                try {
                     const currentThemeState = await loadThemeState();
+                    const currentLocation = await loadLocation();
+                    const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                     const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
                     logDebugMessage(`Splash theme init: loaded state mode=${mode} hasColors=${Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary)}`);
                     await updateColorMode(mode);
 
                     const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
-                    const hasMatchingThemeId = await isStoredThemeIdMatch(Constants.expoConfig.extra.themeId ?? 1);
+                    // Branded apps pick their themeId from a per-location catalog, not the static
+                    // app-config value, so there's no single expected id to compare against - instead,
+                    // the stored theme only counts as "matching" if it was fetched for the SAME location
+                    // that's currently active, so switching locations (e.g. at login) always refetches.
+                    const hasMatchingThemeId = isBrandedApp()
+                         ? currentThemeState?.themeId != null && currentThemeState?.locationId === currentLocationId
+                         : await isStoredThemeIdMatch(Constants.expoConfig.extra.themeId ?? 1);
                     const themeAgeMs = currentThemeState?.updatedAt ? Date.now() - currentThemeState.updatedAt : Number.POSITIVE_INFINITY;
                     const isThemeStale = themeAgeMs > THEME_STALE_MS;
                     logDebugMessage(`Splash theme init: validation hasStoredTheme=${hasStoredTheme} hasMatchingThemeId=${hasMatchingThemeId} expectedThemeId=${Constants.expoConfig.extra.themeId ?? 1}`);
@@ -299,15 +308,17 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          }
 
                          logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl}`);
-                         const builtTheme = await buildThemeForLibrary(themeUrl);
+                         const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
                               colorMode: mode,
                               textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
                               themeColors: builtTheme.themeColors,
+                              header: builtTheme.header,
                            });
                          logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
-                         await updateTheme(builtTheme.theme);
+                         await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
                     }
                     logDebugMessage('Splash theme init: complete');
                } catch (error) {
