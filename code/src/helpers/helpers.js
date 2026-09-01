@@ -410,6 +410,38 @@ export function generateSwatches(swatch) {
      return object;
 }
 
+/**
+ * Build a gluestack-v1 swatch object from an AspenLiDA theme color group ({lighter, base, darker, text}),
+ * using the provided values as-is for the 300/500/700 shades instead of deriving them, so branded colors
+ * are reproduced exactly. Shades the API doesn't provide (50/100/200/400/600/800/900) are filled in from
+ * a chroma-interpolated scaffold based on the base color, so the swatch is still complete.
+ * @param colorGroup
+ * @returns {{}}
+ */
+export function buildSwatchFromThemeTokens(colorGroup = {}) {
+     const { lighter, base, darker, text } = colorGroup ?? {};
+     const swatch = generateSwatches(base ?? '#3dbdd6');
+
+     if (base) {
+          swatch['500'] = base;
+          swatch.base = base;
+     }
+     if (lighter) {
+          swatch['300'] = lighter;
+     }
+     if (darker) {
+          swatch['700'] = darker;
+     }
+     if (text) {
+          swatch['300-text'] = text;
+          swatch['500-text'] = text;
+          swatch['700-text'] = text;
+          swatch.baseContrast = text;
+     }
+
+     return swatch;
+}
+
 export const getColorNumber = (index) => (index === 0 ? 50 : index * 100);
 
 export const getContrastText = (color) => {

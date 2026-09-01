@@ -1,6 +1,20 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Box, createConfig, HStack, Button, ButtonIcon, ButtonText, ChevronLeftIcon } from '@gluestack-ui/themed';
+import { Modal, StyleSheet, View } from 'react-native';
+import {
+     Box,
+     createConfig,
+     HStack,
+     Button,
+     ButtonIcon,
+     ButtonText,
+     ChevronLeftIcon,
+     Menu,
+     MenuItem,
+     MenuItemLabel,
+     Spinner,
+     Text,
+} from '@gluestack-ui/themed';
 import { config as defaultConfig } from '@gluestack-ui/config';
 import { GLOBALS } from '../util/globals';
 import {
@@ -9,10 +23,14 @@ import {
      useUpdateThemeColors,
      useUpdateThemeTextColor,
      useResetThemeState,
+     useAvailableThemes,
 } from '../hooks/useThemeData';
+import { useLibraryLocation } from '../hooks/useLibraryBranchData';
 
 import { logDebugMessage } from '../util/logging.js';
 import { getThemeInfo } from '../util/api/system';
+import { loadThemeCatalog } from '../util/db';
+import { buildSwatchFromThemeTokens } from '../helpers/helpers';
 
 export function useColorModeValue(lightValue, darkValue) {
      const { colorMode } = useThemeState();
@@ -138,19 +156,59 @@ function normalizeThemeColors(response = []) {
      };
 }
 
-export async function buildThemeForLibrary(url = null) {
-     const response = await getThemeInfo(url);
-     const themeColors = normalizeThemeColors(response);
+export async function buildThemeForLibrary(url = null, locationId = null) {
+     const response = await getThemeInfo(url, locationId);
+     const themeColors = normalizeThemeColors(response?.palettes);
      const theme = buildConfigFromColors(themeColors);
      return {
           theme,
           themeColors,
-          themeId: Number(GLOBALS.themeId ?? 1),
+          themeId: response?.themeId ?? Number(GLOBALS.themeId ?? 1),
+          locationId: response?.locationId ?? null,
+          header: response?.header ?? null,
      };
 }
 
+/**
+ * Build a themeColors + gluestack config pair from a single theme_catalog entry
+ * ({id, themeId, name, baseMode, logo, header, primary, secondary, tertiary}). Goes through
+ * buildConfigFromColors so Alert/Badge/etc. component theming stays consistent with the
+ * single-theme flow.
+ * @param themeEntry
+ * @returns {{id, themeId, name, baseMode, logo, header, themeColors, theme}}
+ */
+export function buildThemeConfigFromCatalogEntry(themeEntry = {}) {
+     const themeColors = {
+          primary: buildSwatchFromThemeTokens(themeEntry?.primary),
+          secondary: buildSwatchFromThemeTokens(themeEntry?.secondary),
+          tertiary: buildSwatchFromThemeTokens(themeEntry?.tertiary),
+     };
+
+     return {
+          id: themeEntry?.id ?? null,
+          themeId: themeEntry?.themeId ?? themeEntry?.id ?? null,
+          name: themeEntry?.name ?? null,
+          baseMode: themeEntry?.baseMode ?? null,
+          logo: themeEntry?.logo ?? null,
+          header: themeEntry?.header ?? null,
+          themeColors,
+          theme: buildConfigFromColors(themeColors),
+     };
+}
+
+/**
+ * Build a ready-to-apply gluestack config for every theme available at a location (from the
+ * locally stored theme catalog), so the app can switch between them without a network round trip.
+ * @param locationId
+ * @returns {Promise<Array>}
+ */
+export async function loadThemeConfigsForLocation(locationId) {
+     const themes = await loadThemeCatalog(locationId);
+     return themes.map(buildThemeConfigFromCatalogEntry);
+}
+
 export function useThemeForDisplay() {
-     const { themeColors, colorMode, textColor, themeId } = useThemeState();
+     const { themeColors, colorMode, textColor, themeId, header } = useThemeState();
      const theme = React.useMemo(() => {
           if (!themeColors?.primary || !themeColors?.secondary || !themeColors?.tertiary) {
                return defaultConfig;
@@ -164,26 +222,32 @@ export function useThemeForDisplay() {
           themeId,
           colorMode,
           textColor,
+          header,
      };
 }
 
 export function useTheme() {
-     const { theme, themeColors, themeId, colorMode, textColor } = useThemeForDisplay();
+     const { theme, themeColors, themeId, colorMode, textColor, header } = useThemeForDisplay();
      const updateThemeColors = useUpdateThemeColors();
      const updateColorModeValue = useUpdateThemeColorMode();
      const updateTextColorValue = useUpdateThemeTextColor();
      const resetThemeState = useResetThemeState();
 
-     const updateTheme = React.useCallback(async (data) => {
+     const updateTheme = React.useCallback(async (data, themeId, locationId, header) => {
           const primary = data?.tokens?.colors?.primary;
           const secondary = data?.tokens?.colors?.secondary;
           const tertiary = data?.tokens?.colors?.tertiary;
           if (!primary || !secondary || !tertiary) {
                return;
           }
+          // themeId/locationId/header are optional: omit them to preserve whatever is already
+          // stored (e.g. when the caller already persisted the correct values itself, or is just
+          // re-applying cached colors) rather than stamping a static fallback over real values.
           await updateThemeColors(
                { primary, secondary, tertiary },
-               Number(GLOBALS.themeId ?? 1)
+               themeId,
+               locationId,
+               header
           );
      }, [updateThemeColors]);
 
@@ -201,9 +265,9 @@ export function useTheme() {
           await resetThemeState();
      }, [resetThemeState]);
 
-     const forceRefreshTheme = React.useCallback(async (url = null) => {
-          const builtTheme = await buildThemeForLibrary(url);
-          await updateTheme(builtTheme.theme);
+     const forceRefreshTheme = React.useCallback(async (url = null, locationId = null) => {
+          const builtTheme = await buildThemeForLibrary(url, locationId);
+          await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
           return builtTheme;
      }, [updateTheme]);
 
@@ -213,6 +277,7 @@ export function useTheme() {
           themeId,
           colorMode,
           textColor,
+          header,
           updateTheme,
           updateColorMode,
           updateTextColor,
@@ -224,12 +289,22 @@ export function useTheme() {
 export function UseColorMode(props) {
      const { showText } = props;
      const { colorMode, theme } = useThemeForDisplay();
+     const location = useLibraryLocation();
+     const themes = useAvailableThemes(location?.locationId);
      const updateTextColor = useUpdateThemeTextColor();
      const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
      const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
      const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
      const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
      const updateColorMode = useUpdateThemeColorMode();
+
+     // Prefer the theme switcher whenever theme catalog data exists for this location, even if
+     // there's only one theme, so branded locations get theme switching instead of a plain
+     // light/dark toggle. Falls back to the original color-mode toggle otherwise, for
+     // backwards compatibility with libraries that have no theme catalog data at all.
+     if (Array.isArray(themes) && themes.length > 0) {
+          return <ThemeSwitcher showText={showText} />;
+     }
 
      const switchColorMode = async () => {
           let newColorMode;
@@ -263,5 +338,132 @@ export function UseColorMode(props) {
           </Box>
      );
 }
+
+/**
+ * Lets the user switch between the themes available at their location (from the locally
+ * stored theme catalog), applying the selected theme's colors and baseMode immediately.
+ * Mirrors LanguageSwitcher's menu + switching-overlay pattern.
+ * @param showText whether to show the active theme's name next to the trigger icon, mirroring UseColorMode's prop
+ */
+export const ThemeSwitcher = ({ showText = true } = {}) => {
+     const { theme, themeId, colorMode, textColor } = useTheme();
+     const location = useLibraryLocation();
+     const themes = useAvailableThemes(location?.locationId);
+     const updateThemeColors = useUpdateThemeColors();
+     const updateColorMode = useUpdateThemeColorMode();
+
+     const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
+     const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
+
+     const activeTheme = themes.find((entry) => entry.id === themeId);
+     const activeThemeName = activeTheme?.name ?? '';
+
+     const changeTheme = async (themeEntry) => {
+          if (isSwitchingTheme) return;
+          setIsSwitchingTheme(true);
+          try {
+               logDebugMessage('Switching theme to ' + themeEntry?.id);
+               const builtTheme = buildThemeConfigFromCatalogEntry(themeEntry);
+               await updateThemeColors(builtTheme.themeColors, builtTheme.themeId, location?.locationId, builtTheme.header);
+               if (builtTheme.baseMode === 'dark' || builtTheme.baseMode === 'light') {
+                    await updateColorMode(builtTheme.baseMode);
+               }
+          } catch (error) {
+               logDebugMessage('Theme switch failed');
+               logDebugMessage(error);
+          } finally {
+               setIsSwitchingTheme(false);
+          }
+     };
+
+     if (!Array.isArray(themes) || themes.length === 0) {
+          return null;
+     }
+
+     return (
+          <>
+               <Box alignItems="center">
+                    <Menu
+                    bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
+                    isOpen={isThemeMenuOpen}
+                    onClose={() => setIsThemeMenuOpen(false)}
+                    onOpen={() => setIsThemeMenuOpen(true)}
+                    placement="top"
+                    selectedKeys={themeId} selectionMode="single"
+                    trigger={(triggerProps) => {
+                         return (
+                              <Button
+                                   size="sm"
+                                   borderRadius="$full"
+                                   {...triggerProps}
+                                   isDisabled={isSwitchingTheme}
+                                   onPress={() => {
+                                        if (!isSwitchingTheme) {
+                                             setIsThemeMenuOpen(true);
+                                        }
+                                   }}
+                                   bg="transparent"
+                              >
+                                   <ButtonIcon as={MaterialIcons} name="palette" color={theme['tokens']['colors']['primary']['500']} />
+                                   {showText ? (
+                                        <ButtonText color={theme['tokens']['colors']['primary']['500']}> {activeThemeName}</ButtonText>
+                                   ) : null}
+                              </Button>
+                         );
+                    }}>
+                    {themes.map((themeEntry) => {
+                         return (
+                              <MenuItem
+                                   key={themeEntry.id}
+                                   textValue={String(themeEntry.id)}
+                                   isDisabled={isSwitchingTheme}
+                                   onPress={() => {
+                                        setIsThemeMenuOpen(false);
+                                        changeTheme(themeEntry);
+                                   }}
+                              >
+                                   <MenuItemLabel color={textColor}>{themeEntry.name}</MenuItemLabel>
+                              </MenuItem>
+                         );
+                    })}
+                    </Menu>
+               </Box>
+               <Modal transparent animationType="fade" visible={isSwitchingTheme}>
+                    <View
+                         style={[
+                              themeSwitcherStyles.overlay,
+                              colorMode === 'dark' ? themeSwitcherStyles.overlayDark : themeSwitcherStyles.overlayLight,
+                         ]}
+                    >
+                         <Box
+                              bg={colorMode === 'dark' ? '$coolGray800' : '$warmGray50'}
+                              borderRadius="$xl"
+                              px="$6"
+                              py="$5"
+                              alignItems="center"
+                              justifyContent="center"
+                         >
+                              <Spinner size="large" color={theme['tokens']['colors']['primary']['500']} />
+                              <Text mt="$3" color={textColor}>Switching theme...</Text>
+                         </Box>
+                    </View>
+               </Modal>
+          </>
+     );
+};
+
+const themeSwitcherStyles = StyleSheet.create({
+     overlay: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+     },
+     overlayLight: {
+          backgroundColor: 'rgba(15, 23, 42, 0.35)',
+     },
+     overlayDark: {
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+     },
+});
 
 export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

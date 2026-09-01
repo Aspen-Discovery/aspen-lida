@@ -1,11 +1,12 @@
-import { LIBRARY } from '../globals';
+import { LIBRARY, isBrandedApp } from '../globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
 import { GLOBALS } from '../globals';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '../../components/feedback';
 import { createApiClient } from './apiFactory';
-import { generateSwatches } from '../../helpers/helpers';
+import { generateSwatches, buildSwatchFromThemeTokens } from '../../helpers/helpers';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
+import { notifyThemeCatalogChanged } from '../../hooks/useThemeData';
 
 /**
  * Return basic information about the library
@@ -359,33 +360,185 @@ export async function getLibraryBranch(data) {
      return [];
 }
 
+function toNumberOrNull(value) {
+     const num = Number(value);
+     return Number.isFinite(num) ? num : null;
+}
+
+/**
+ * Ensures a color string is in leading-# hex form, tolerating values the API sends without one.
+ * Malformed values are returned unchanged rather than discarded.
+ */
+export function normalizeHexColor(value) {
+     if (typeof value !== 'string') return null;
+     const stripped = value.trim().replace(/^#/, '');
+     if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(stripped)) {
+          return value;
+     }
+     return `#${stripped.toLowerCase()}`;
+}
+
+function normalizeColorGroup(group) {
+     if (!group || typeof group !== 'object') return null;
+     return {
+          ...group,
+          lighter: normalizeHexColor(group.lighter),
+          base: normalizeHexColor(group.base),
+          darker: normalizeHexColor(group.darker),
+          text: normalizeHexColor(group.text),
+     };
+}
+
+/**
+ * Normalizes getAspenLiDAThemesByLocation's `result.themes` payload into an ordered array of theme rows.
+ *
+ * The raw payload is a single object keyed by arbitrary indices, mixing two row shapes together:
+ *  - location/theme assignment rows: { id, themeId, locationId, weight } (no styling)
+ *  - theme definition rows: { id, name, baseMode, logo, header, primary, secondary, tertiary }
+ * Assignment rows are matched to their definition by themeId === definition.id, and their `weight`
+ * determines display order. If no assignment rows are present, all definitions are returned as-is.
+ */
+export function normalizeAspenLiDAThemesPayload(rawThemes) {
+     const entries = Array.isArray(rawThemes)
+          ? rawThemes
+          : rawThemes && typeof rawThemes === 'object'
+               ? Object.values(rawThemes)
+               : [];
+
+     const definitionsById = new Map();
+     const assignments = [];
+
+     for (const entry of entries) {
+          if (!entry || typeof entry !== 'object') continue;
+          if (entry.primary && typeof entry.primary === 'object') {
+               definitionsById.set(toNumberOrNull(entry.id), entry);
+          } else if (entry.themeId !== undefined) {
+               assignments.push(entry);
+          }
+     }
+
+     let ordered;
+     if (assignments.length > 0) {
+          const seen = new Set();
+          ordered = [];
+          for (const assignment of assignments) {
+               const themeId = toNumberOrNull(assignment.themeId);
+               if (themeId === null || seen.has(themeId)) continue;
+               const definition = definitionsById.get(themeId);
+               if (!definition) continue;
+               seen.add(themeId);
+               ordered.push({ definition, weight: toNumberOrNull(assignment.weight) ?? 0 });
+          }
+     } else {
+          ordered = Array.from(definitionsById.values()).map((definition, index) => ({
+               definition,
+               weight: index,
+          }));
+     }
+
+     ordered.sort((a, b) => a.weight - b.weight || toNumberOrNull(a.definition.id) - toNumberOrNull(b.definition.id));
+
+     return ordered.map(({ definition, weight }) => ({
+          id: toNumberOrNull(definition.id),
+          themeId: toNumberOrNull(definition.id),
+          name: definition.name ?? null,
+          baseMode: definition.baseMode ?? null,
+          logo: definition.logo ?? null,
+          weight,
+          header: definition.header && typeof definition.header === 'object'
+               ? { ...definition.header, backgroundColor: normalizeHexColor(definition.header.backgroundColor) }
+               : definition.header ?? null,
+          primary: normalizeColorGroup(definition.primary),
+          secondary: normalizeColorGroup(definition.secondary),
+          tertiary: normalizeColorGroup(definition.tertiary),
+     }));
+}
+
 /**
  * Fetch theme information for the library and generate color swatches for the app
- * with fallback to a default theme if there are any issues with the request or response
+ * with fallback to a default theme if there are any issues with the request or response.
  * @param url
- * @returns {Promise<unknown[]>}
+ * @param locationId
+ * @returns {Promise<{palettes: unknown[], themeId: (number|null), locationId: (number|null), header: (object|null)}>}
+ *   palettes is always 3 swatch objects (primary/secondary/tertiary); themeId identifies which
+ *   theme they came from - a real theme_catalog id for branded locations, or the static
+ *   app-config themeId otherwise; locationId is whichever location was actually resolved (passed
+ *   in, or loaded from storage); header is the selected theme's {logo, alignment, backgroundColor}
+ *   from the catalog, or null when there's no catalog data (legacy endpoint has no equivalent).
+ *   Callers should persist all of these so a stored theme can be tied to the location it was
+ *   fetched for, instead of just re-resolving it from scratch.
  */
-export async function getThemeInfo(url = null) {
+export async function getThemeInfo(url = null, locationId = null) {
      let libraryUrl = LIBRARY.url ?? GLOBALS.url;
      if (url !== null && url !== '') {
           libraryUrl = url;
      }
 
+     const isBranded = isBrandedApp();
+     const fallbackThemeId = Number(GLOBALS.themeId ?? 1);
+
+     const { loadLibrary, loadLocation } = require('../db');
+     const library = (await loadLibrary()) ?? {};
+     const location = await loadLocation();
+
+     if(isBranded && library.baseUrl) {
+          libraryUrl = library.baseUrl;
+     }
+
+     if(location && !locationId) {
+          locationId = location.locationId;
+     }
+
+     const resolvedLocationId = locationId != null ? Number(locationId) : null;
+
      if (!libraryUrl) {
           logWarnMessage('No library URL provided, returning backup theme');
           const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
-          return COLOR_SCHEMES.map(generateSwatches);
+          return { palettes: COLOR_SCHEMES.map(generateSwatches), themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
      }
 
      await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
+
+     if (isBranded && locationId) {
+          const aspenLiDAThemesClient = createApiClient({
+               url: libraryUrl,
+               timeout: 10000,
+          });
+          const aspenLiDAThemesResponse = await aspenLiDAThemesClient.get('SystemAPI?method=getAspenLiDAThemesByLocation', {
+               id: locationId,
+          });
+          if (aspenLiDAThemesResponse.ok && aspenLiDAThemesResponse.data?.result?.success) {
+               const themes = normalizeAspenLiDAThemesPayload(aspenLiDAThemesResponse.data.result.themes);
+               if (themes.length > 0) {
+                    const { saveThemeCatalog, loadThemeState } = require('../db');
+                    await saveThemeCatalog(locationId, themes);
+                    notifyThemeCatalogChanged();
+
+                    const currentThemeState = await loadThemeState();
+                    const isSameLocationAsStored = currentThemeState?.locationId === resolvedLocationId;
+                    const selectedTheme = (isSameLocationAsStored && themes.find((theme) => theme.id === currentThemeState?.themeId)) || themes[0];
+
+                    const COLOR_GROUPS = [selectedTheme.primary, selectedTheme.secondary, selectedTheme.tertiary];
+                    if (COLOR_GROUPS.every((group) => typeof group?.base === 'string' && group.base.length > 0)) {
+                         logDebugMessage(`Loaded AspenLiDA theme catalog (${themes.length} themes), using themeId=${selectedTheme.id}`);
+                         return {
+                              palettes: COLOR_GROUPS.map(buildSwatchFromThemeTokens),
+                              themeId: selectedTheme.id,
+                              locationId: resolvedLocationId,
+                              header: selectedTheme.header ?? null,
+                         };
+                    }
+                    logWarnMessage(`AspenLiDA theme catalog themeId=${selectedTheme.id} is missing color data, falling back to getThemeInfo`);
+               }
+          }
+     }
 
      const client = createApiClient({
           url: libraryUrl,
           timeout: 10000,
      });
-
      const response = await client.get('/SystemAPI?method=getThemeInfo', {
-          id: GLOBALS.themeId ?? 1,
+          id: isBranded ? locationId : GLOBALS.themeId,
      });
 
      if (response.ok) {
@@ -394,19 +547,19 @@ export async function getThemeInfo(url = null) {
                const COLOR_SCHEMES = [result.primaryBackgroundColor, result.secondaryBackgroundColor, result.tertiaryBackgroundColor];
                const palettes = COLOR_SCHEMES.map(generateSwatches);
                logDebugMessage('Theme downloaded and swatches generated.');
-               return palettes;
+               return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
           }
 
           const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
           const palettes = COLOR_SCHEMES.map(generateSwatches);
           logInfoMessage('Backup theme loaded due to unexpected response.');
           logErrorMessage(response);
-          return palettes;
+          return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
      }
 
      const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
      const palettes = COLOR_SCHEMES.map(generateSwatches);
      logInfoMessage('Backup theme loaded due to server or client issue.');
      logErrorMessage(response);
-     return palettes;
+     return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
 }
