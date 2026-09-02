@@ -31,7 +31,7 @@ export const DisplayEventResult = (props) => {
      const id = item.key ?? item.id;
      const keyParts = item.key.split('_');
 
-     let url = library.baseUrl + '/bookcover.php?id=' + item.key + '&size=medium&type=' + keyParts[0] + '_event';
+     let url = item.image ?? library.baseUrl + '/bookcover.php?id=' + item.key + '&size=medium&type=' + keyParts[0] + '_event';
 
      let registrationRequired = false;
      if (!_.isUndefined(item.registration_required)) {
