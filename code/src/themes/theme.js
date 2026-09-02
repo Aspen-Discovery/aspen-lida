@@ -298,12 +298,14 @@ export function UseColorMode(props) {
      const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
      const updateColorMode = useUpdateThemeColorMode();
 
-     // Prefer the theme switcher whenever theme catalog data exists for this location, even if
-     // there's only one theme, so branded locations get theme switching instead of a plain
-     // light/dark toggle. Falls back to the original color-mode toggle otherwise, for
-     // backwards compatibility with libraries that have no theme catalog data at all.
-     if (Array.isArray(themes) && themes.length > 0) {
+     // If Aspen LiDA Themes are present and 2 or more exist, then display ThemeSwitcher
+     if (Array.isArray(themes) && themes.length > 1) {
           return <ThemeSwitcher showText={showText} />;
+     }
+
+     // if Aspen LiDA Themes are present, but only 1 exists, we display nothing.
+     if (Array.isArray(themes) && themes.length === 1) {
+          return null;
      }
 
      const switchColorMode = async () => {
@@ -354,6 +356,7 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
 
      const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
      const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
+     const selectedThemeKeys = React.useMemo(() => (themeId == null ? [] : [String(themeId)]), [themeId]);
 
      const activeTheme = themes.find((entry) => entry.id === themeId);
      const activeThemeName = activeTheme?.name ?? '';
@@ -389,7 +392,8 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
                     onClose={() => setIsThemeMenuOpen(false)}
                     onOpen={() => setIsThemeMenuOpen(true)}
                     placement="top"
-                    selectedKeys={themeId} selectionMode="single"
+                    selectedKeys={selectedThemeKeys}
+                    selectionMode="single"
                     trigger={(triggerProps) => {
                          return (
                               <Button
