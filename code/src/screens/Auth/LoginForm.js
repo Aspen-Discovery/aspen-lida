@@ -36,7 +36,7 @@ import { createApiClient } from '../../util/api/apiFactory';
 import { useTheme } from '../../themes/theme';
 
 export const GetLoginForm = (props) => {
-     const {theme, textColor, colorMode} = useTheme();
+     const {theme, textColor, colorMode, forceRefreshTheme} = useTheme();
      const navigation = useNavigation();
      const barcode = useRoute().params?.barcode ?? null;
      const [loading, setLoading] = React.useState(false);
@@ -114,7 +114,7 @@ export const GetLoginForm = (props) => {
                const locationResponse = await getLocationInfo(baseUrl, locationId);
                const location = locationResponse?.ok ? (locationResponse.data?.result?.location ?? null) : null;
                if (!location) {
-                    return;
+                    return null;
                }
 
                const selfCheckResponse = await getSelfCheckSettings(baseUrl, locationId ?? location.locationId ?? null);
@@ -136,8 +136,11 @@ export const GetLoginForm = (props) => {
                     ...(typeof selfCheckEnabled === 'boolean' ? { enableSelfCheck: selfCheckEnabled } : {}),
                     ...(selfCheckSettings ? { selfCheckSettings } : {}),
                });
+
+               return location;
           } catch (_error) {
                // Keep login resilient if branch-cache warmup fails.
+               return null;
           }
      };
 
@@ -309,7 +312,16 @@ export const GetLoginForm = (props) => {
                selectedBaseUrl = patronsLibrary['baseUrl'];
           }
 
-          await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
+          const activeLocation = await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
+
+          try {
+               const activeLocationId = activeLocation?.locationId ?? selectedLocationId;
+               logDebugMessage('Fetching theme for active location after login: ' + activeLocationId);
+               await forceRefreshTheme(selectedBaseUrl, activeLocationId);
+          } catch (error) {
+               logWarnMessage('Failed to initialize theme for the active location after login');
+               logDebugMessage(error);
+          }
      };
 
      React.useEffect(() => {

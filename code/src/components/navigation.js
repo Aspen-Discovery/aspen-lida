@@ -332,22 +332,24 @@ function AppContent({state}) {
      const language = useActiveLanguage();
      const { colorMode } = useTheme();
 
-     const primaryColor = useToken('colors', 'primary.base');
-     const primaryColorContrast = useToken('colors', 'primary.baseContrast');
      const lightTheme = {
           ...DefaultTheme,
           colors: {
                ...DefaultTheme.colors,
-               background: '#f5f5f4', // Equivalent to $backgroundLight50
-               card: '#ffffff',
-               text: '#171717' } };
+               background: '#f3f4f6', //coolGray.100
+               card: '#f9fafb', //coolGray.50
+               text: '#1c1917', //coolGray.900
+          },
+     };
      const darkTheme = {
           ...DarkTheme,
           colors: {
                ...DarkTheme.colors,
-               background: '#111827', // Equivalent to $backgroundDark900
-               card: '#1f2937',
-               text: '#fafafa' } };
+               background: '#111827', //coolGray.900
+               card: '#1f2937', //coolGray.800
+               text: '#f3f4f6', //coolGray.100
+          },
+     };
 
      return (
           <NavigationContainer

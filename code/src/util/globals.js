@@ -107,3 +107,13 @@ export const ALL_LOCATIONS = {
 
 export const ALL_BRANCHES = {};
 
+/**
+ * Whether this app build is a branded (library-specific) app rather than the generic Aspen LiDA app.
+ * Branded apps use per-location theme catalogs (getAspenLiDAThemesByLocation) instead of the
+ * single static app-config themeId.
+ * @returns {boolean}
+ */
+export function isBrandedApp() {
+     return !GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws';
+}
+
