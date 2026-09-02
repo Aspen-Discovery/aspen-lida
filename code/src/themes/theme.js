@@ -253,7 +253,7 @@ export function useTheme() {
 
      const updateColorMode = React.useCallback(async (mode) => {
           await updateColorModeValue(mode);
-          const nextTextColor = mode === 'light' ? '$warmGray600' : '$coolGray200';
+          const nextTextColor = mode === 'light' ? '#1c1917' : '#f3f4f6';
           await updateTextColorValue(nextTextColor);
      }, [updateColorModeValue, updateTextColorValue]);
 
@@ -318,7 +318,7 @@ export function UseColorMode(props) {
 
           logDebugMessage("Switching color mode to: " + newColorMode);
           await updateColorMode(newColorMode);
-          await updateTextColor(newColorMode === 'light' ? '$warmGray600' : '$coolGray200');
+          await updateTextColor(newColorMode === 'light' ? '#1c1917' : '#f3f4f6');
      };
 
      if (showText) {
