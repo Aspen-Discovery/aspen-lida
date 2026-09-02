@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { View, Image, Text, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
 import { Platform, useWindowDimensions } from 'react-native';
-import { decodeHTML } from '../helpers/helpers';
+import { decodeHTML, isValidUrl } from '../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../themes/theme';
 
@@ -17,9 +17,8 @@ const HeaderLogoBar = (props) => {
      // theme catalog actually provides a logo; otherwise fall back to the library's
      // headerLogo* app settings for backwards compatibility.
      if (header?.logo) {
-          const localBrandingLogoUri = header.logo;
+          const localBrandingLogoUri = isValidUrl(header.logo) ? header.logo : library.baseUrl + '/files/original/' + header.logo;
           const backgroundColor = header.backgroundColor ?? '#FFFFFF';
-
           let headerLogoAlignment = 'center';
           if (header.alignment == 1) {
                headerLogoAlignment = 'flex-start';
