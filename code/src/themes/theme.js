@@ -1,6 +1,6 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Modal, StyleSheet, View } from 'react-native';
+import { findNodeHandle, Modal, ScrollView, StyleSheet, UIManager, View } from 'react-native';
 import {
      Box,
      createConfig,
@@ -13,7 +13,7 @@ import {
      MenuItem,
      MenuItemLabel,
      Spinner,
-     Text,
+     Text, Icon,
 } from '@gluestack-ui/themed';
 import { config as defaultConfig } from '@gluestack-ui/config';
 import { GLOBALS } from '../util/globals';
@@ -356,8 +356,27 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
 
      const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
      const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
-     const selectedThemeKeys = React.useMemo(() => (themeId == null ? [] : [String(themeId)]), [themeId]);
 
+     const buttonRef = React.useRef(null);
+     const [buttonY, setButtonY] = React.useState(0);
+
+     const measureButton = React.useCallback(() => {
+          if (buttonRef.current) {
+               buttonRef.current.measureInWindow((x, y, width, height) => {
+                    setButtonY(y + height + 8); // 8 for small padding below button
+               });
+          }
+     }, []);
+
+     const selectedThemeKey = React.useMemo(() => {
+          if (themeId != null && themes.some((t) => t.id === themeId)) {
+               return new Set([String(themeId)]);
+          }
+          if (Array.isArray(themes) && themes.length > 0) {
+               return new Set([String(themes[0].id)]);
+          }
+          return new Set();
+     }, [themeId, themes]);
      const activeTheme = themes.find((entry) => entry.id === themeId);
      const activeThemeName = activeTheme?.name ?? '';
 
@@ -385,70 +404,62 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
 
      return (
           <>
+               {isThemeMenuOpen && (
+                    <Modal transparent animationType="fade" visible={isThemeMenuOpen}>
+                         <View
+                              style={{
+                                   flex: 1,
+                              }}
+                              onTouchEnd={() => setIsThemeMenuOpen(false)}>
+                              <Box flex={1} justifyContent="flex-end" alignItems="flex-start" pb="$12" pl="$10">
+                                   <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} borderRadius="$md" p="$1" height={themes.length > 4 ? '150px' : undefined} width="200">
+                                        <ScrollView nestedScrollEnabled={true} scrollEnabled={true}>
+                                             {themes.map((themeEntry) => {
+                                                  const isActive = themeEntry.id === themeId;
+                                                  return (
+                                                       <Box
+                                                            key={themeEntry.id}
+                                                            px="$4"
+                                                            py="$3"
+                                                            onTouchEnd={() => {
+                                                                 setIsThemeMenuOpen(false);
+                                                                 changeTheme(themeEntry);
+                                                            }}>
+                                                            <HStack space="md">
+                                                                 <Text color={textColor}>{themeEntry.name}</Text>
+                                                                 {isActive ? <Icon as={MaterialIcons} name="check" size="md" color={textColor} /> : null}
+                                                            </HStack>
+                                                       </Box>
+                                                  );
+                                             })}
+                                        </ScrollView>
+                                   </Box>
+                              </Box>
+                         </View>
+                    </Modal>
+               )}
                <Box alignItems="center">
-                    <Menu
-                    bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                    isOpen={isThemeMenuOpen}
-                    onClose={() => setIsThemeMenuOpen(false)}
-                    onOpen={() => setIsThemeMenuOpen(true)}
-                    placement="top"
-                    selectedKeys={selectedThemeKeys}
-                    selectionMode="single"
-                    trigger={(triggerProps) => {
-                         return (
-                              <Button
-                                   size="sm"
-                                   borderRadius="$full"
-                                   {...triggerProps}
-                                   isDisabled={isSwitchingTheme}
-                                   onPress={() => {
-                                        if (!isSwitchingTheme) {
-                                             setIsThemeMenuOpen(true);
-                                        }
-                                   }}
-                                   bg="transparent"
-                              >
-                                   <ButtonIcon as={MaterialIcons} name="palette" color={theme['tokens']['colors']['primary']['500']} />
-                                   {showText ? (
-                                        <ButtonText color={theme['tokens']['colors']['primary']['500']}> {activeThemeName}</ButtonText>
-                                   ) : null}
-                              </Button>
-                         );
-                    }}>
-                    {themes.map((themeEntry) => {
-                         return (
-                              <MenuItem
-                                   key={themeEntry.id}
-                                   textValue={String(themeEntry.id)}
-                                   isDisabled={isSwitchingTheme}
-                                   onPress={() => {
-                                        setIsThemeMenuOpen(false);
-                                        changeTheme(themeEntry);
-                                   }}
-                              >
-                                   <MenuItemLabel color={textColor}>{themeEntry.name}</MenuItemLabel>
-                              </MenuItem>
-                         );
-                    })}
-                    </Menu>
+                    <Button
+                         ref={buttonRef}
+                         size="sm"
+                         borderRadius="$full"
+                         isDisabled={isSwitchingTheme}
+                         onPress={() => {
+                              measureButton();
+                              setIsThemeMenuOpen(true);
+                         }}
+                         bg="transparent">
+                         <ButtonIcon as={MaterialIcons} name="palette" color={theme['tokens']['colors']['primary']['500']} />
+                         {showText ? <ButtonText color={theme['tokens']['colors']['primary']['500']}> {activeThemeName}</ButtonText> : null}
+                    </Button>
                </Box>
                <Modal transparent animationType="fade" visible={isSwitchingTheme}>
-                    <View
-                         style={[
-                              themeSwitcherStyles.overlay,
-                              colorMode === 'dark' ? themeSwitcherStyles.overlayDark : themeSwitcherStyles.overlayLight,
-                         ]}
-                    >
-                         <Box
-                              bg={colorMode === 'dark' ? '$coolGray800' : '$warmGray50'}
-                              borderRadius="$xl"
-                              px="$6"
-                              py="$5"
-                              alignItems="center"
-                              justifyContent="center"
-                         >
+                    <View style={[themeSwitcherStyles.overlay, colorMode === 'dark' ? themeSwitcherStyles.overlayDark : themeSwitcherStyles.overlayLight]}>
+                         <Box bg={colorMode === 'dark' ? '$coolGray800' : '$warmGray50'} borderRadius="$xl" px="$6" py="$5" alignItems="center" justifyContent="center">
                               <Spinner size="large" color={theme['tokens']['colors']['primary']['500']} />
-                              <Text mt="$3" color={textColor}>Switching theme...</Text>
+                              <Text mt="$3" color={textColor}>
+                                   Switching theme...
+                              </Text>
                          </Box>
                     </View>
                </Modal>
