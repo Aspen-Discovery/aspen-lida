@@ -390,6 +390,38 @@ function normalizeColorGroup(group) {
 }
 
 /**
+ * For Discovery web theme payloads (when Aspen LiDA Themes are not setup), pick the themeId with the
+ * lowest weight (primary) so legacy getThemeInfo can fetch the theme definition.
+ */
+export function resolveThemeInfoIdFromWebThemes(rawThemes) {
+     const entries = Array.isArray(rawThemes)
+          ? rawThemes
+          : rawThemes && typeof rawThemes === 'object'
+               ? Object.values(rawThemes)
+               : [];
+
+     let best = null;
+     for (const entry of entries) {
+          if (!entry || typeof entry !== 'object') continue;
+          if (entry.themeId === undefined || entry.themeId === null) continue;
+
+          const themeId = toNumberOrNull(entry.themeId);
+          if (themeId === null) continue;
+
+          const weight = toNumberOrNull(entry.weight) ?? Number.MAX_SAFE_INTEGER;
+          if (
+               !best ||
+               weight < best.weight ||
+               (weight === best.weight && themeId < best.themeId)
+          ) {
+               best = { themeId, weight };
+          }
+     }
+
+     return best?.themeId ?? null;
+ }
+
+/**
  * Normalizes getAspenLiDAThemesByLocation's `result.themes` payload into an ordered array of theme rows.
  *
  * The raw payload is a single object keyed by arbitrary indices, mixing two row shapes together:
@@ -490,6 +522,7 @@ export async function getThemeInfo(url = null, locationId = null) {
      }
 
      const resolvedLocationId = locationId != null ? Number(locationId) : null;
+     let fallbackThemeInfoId = null;
 
      if (!libraryUrl) {
           logWarnMessage('No library URL provided, returning backup theme');
@@ -508,6 +541,7 @@ export async function getThemeInfo(url = null, locationId = null) {
                id: locationId,
           });
           if (aspenLiDAThemesResponse.ok && aspenLiDAThemesResponse.data?.result?.success) {
+               fallbackThemeInfoId = resolveThemeInfoIdFromWebThemes(aspenLiDAThemesResponse.data.result.themes);
                const themes = normalizeAspenLiDAThemesPayload(aspenLiDAThemesResponse.data.result.themes);
                if (themes.length > 0) {
                     const { saveThemeCatalog, loadThemeState } = require('../db');
@@ -517,6 +551,7 @@ export async function getThemeInfo(url = null, locationId = null) {
                     const currentThemeState = await loadThemeState();
                     const isSameLocationAsStored = currentThemeState?.locationId === resolvedLocationId;
                     const selectedTheme = (isSameLocationAsStored && themes.find((theme) => theme.id === currentThemeState?.themeId)) || themes[0];
+                    fallbackThemeInfoId = selectedTheme?.id ?? fallbackThemeInfoId;
 
                     const COLOR_GROUPS = [selectedTheme.primary, selectedTheme.secondary, selectedTheme.tertiary];
                     if (COLOR_GROUPS.every((group) => typeof group?.base === 'string' && group.base.length > 0)) {
@@ -529,6 +564,10 @@ export async function getThemeInfo(url = null, locationId = null) {
                          };
                     }
                     logWarnMessage(`AspenLiDA theme catalog themeId=${selectedTheme.id} is missing color data, falling back to getThemeInfo`);
+               } else if (fallbackThemeInfoId !== null) {
+                    logDebugMessage(
+                         `AspenLiDA theme catalog returned assignment-only rows, falling back to getThemeInfo with themeId=${fallbackThemeInfoId}`
+                    );
                }
           }
      }
@@ -538,7 +577,7 @@ export async function getThemeInfo(url = null, locationId = null) {
           timeout: 10000,
      });
      const response = await client.get('/SystemAPI?method=getThemeInfo', {
-          id: isBranded ? locationId : GLOBALS.themeId,
+          id: isBranded ? (fallbackThemeInfoId ?? locationId) : GLOBALS.themeId,
      });
 
      if (response.ok) {
