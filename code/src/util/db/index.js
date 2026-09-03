@@ -50,6 +50,8 @@ export {
      saveThemeTextColor,
      resetThemeState,
      isStoredThemeIdMatch,
+     saveThemeCatalog,
+     loadThemeCatalog,
 } from './repositories/themeRepository';
 export {
      saveUserProfile,
