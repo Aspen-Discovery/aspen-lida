@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import _ from 'lodash';
-import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
+import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, ButtonGroup, Heading, Icon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
@@ -69,6 +69,7 @@ export const SupportScreen = () => {
           latest: GLOBALS.appVersion,
           canOpenUrl: false,
      });
+     const [pendingDumpCacheKey, setPendingDumpCacheKey] = React.useState(null);
 
 
      // Debug mode: tap "Data Caches" title 5 times to enable dump buttons
@@ -145,6 +146,29 @@ export const SupportScreen = () => {
                setDumpingCache((prev) => ({ ...prev, [cacheKey]: false }));
           }
       }, []);
+
+      const handleDumpCachePress = React.useCallback((cacheKey) => {
+           if (cacheKey !== 'accounts') {
+                dumpCacheToSentry(cacheKey);
+                return;
+           }
+
+           setPendingDumpCacheKey(cacheKey);
+      }, [dumpCacheToSentry]);
+
+      const dismissDumpConfirm = React.useCallback(() => {
+           setPendingDumpCacheKey(null);
+      }, []);
+
+      const confirmDumpCache = React.useCallback(() => {
+           if (!pendingDumpCacheKey) {
+                return;
+           }
+
+           const cacheKey = pendingDumpCacheKey;
+           setPendingDumpCacheKey(null);
+           dumpCacheToSentry(cacheKey);
+      }, [dumpCacheToSentry, pendingDumpCacheKey]);
 
       const refreshCache = React.useCallback(
           async (cacheKey, refetch) => {
@@ -340,6 +364,34 @@ export const SupportScreen = () => {
 
      return (
           <Box safeArea={5} flex={1}>
+               <Modal isOpen={pendingDumpCacheKey === 'accounts'} onClose={dismissDumpConfirm} closeOnOverlayClick={true} size="md">
+                    <ModalBackdrop />
+                    <ModalContent maxWidth="90%" bg={colorMode === 'light' ? '$warmGray50' : '$coolGray800'}>
+                         <ModalHeader>
+                              <Heading size="$md" color={textColor}>
+                                   Confirm User Data Share
+                              </Heading>
+                              <ModalCloseButton p="$3" onPress={dismissDumpConfirm}>
+                                   <Icon as={CloseIcon} color={textColor} />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
+                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} fontSize="$sm">
+                                   This data may include personally identifiable information, is strictly for diagnostic purposes, and is removed after 30 days. Only continue if you are being requested to do so.
+                              </Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space={2} size="sm">
+                                   <Button variant="outline" onPress={dismissDumpConfirm}>
+                                        <ButtonText>Cancel</ButtonText>
+                                   </Button>
+                                   <Button action="negative" onPress={confirmDumpCache}>
+                                        <ButtonText>Continue</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
                <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
                     <VStack space="sm" px="$4" py="$2">
                          <VStack justifyContent="space-between" py="$1">
@@ -396,13 +448,13 @@ export const SupportScreen = () => {
                               </Text>
                               <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{numLinkedAccounts}</Text>
                          </VStack>
-                          <Divider my="$2" />
-                          <VStack justifyContent="space-between" py="$1">
-                               <Pressable onPress={handleDataCachesTitleTap}>
-                                    <Text bold color={textColor}>
-                                         Data Caches
-                                    </Text>
-                               </Pressable>
+                         <Divider my="$2" />
+                         <VStack justifyContent="space-between" py="$1">
+                              <Pressable onPress={handleDataCachesTitleTap}>
+                                   <Text bold color={textColor}>
+                                        Data Caches
+                                   </Text>
+                              </Pressable>
                               <VStack space="$2" mt="$2">
                                    {cacheItems.map((cacheItem) => (
                                         <Box key={cacheItem.key} py="$2">
@@ -415,10 +467,10 @@ export const SupportScreen = () => {
                                                             Cached: {formatCachedDateTime(cacheItem.updatedAt)}
                                                        </Text>
                                                   </VStack>
-                                                   <HStack space="sm" alignItems="center">
+                                                  <HStack space="sm" alignItems="center">
                                                        {showDumpButtons && (
-                                                            <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$red600' : '$red400'} isDisabled={Boolean(dumpingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => dumpCacheToSentry(cacheItem.key)}>
-                                                                 <ButtonText color={colorMode === 'light' ? '$red600' : '$red400'}>{dumpingCache[cacheItem.key] ? 'Dumping...' : 'Dump'}</ButtonText>
+                                                            <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$red600' : '$red400'} isDisabled={Boolean(dumpingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => handleDumpCachePress(cacheItem.key)}>
+                                                                 <ButtonText color={colorMode === 'light' ? '$red600' : '$red400'}>{dumpingCache[cacheItem.key] ? 'Sharing...' : 'Share'}</ButtonText>
                                                             </Button>
                                                        )}
                                                        <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
