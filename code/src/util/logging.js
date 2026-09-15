@@ -319,19 +319,52 @@ export async function testSentryConnection(testMessage = 'Error Logging Connecti
      }
 }
 
+const USER_ACCOUNT_DUMP_TABLES = [
+     'user_accounts',
+     'user_app_preferences',
+     'user_cards',
+     'user_inbox',
+     'user_list_groups',
+     'user_lists',
+     'user_locations',
+     'user_notification_settings',
+     'user_notification_history',
+     'user_reading_history',
+     'user_saved_events',
+     'user_saved_searches',
+     'user_state',
+     'user_sublocations',
+     'user_viewers',
+ ];
+
+const THEME_DUMP_TABLES = [
+     'theme_state',
+     'theme_catalog',
+];
+
+const SQLITE_DUMP_TABLE_LIMITS = {
+     user_notification_history: 50,
+     user_reading_history: 50,
+ };
+
+async function getSQLiteTableRows(db, tableName, limit) {
+     return await db.getAllAsync(
+          `SELECT * FROM "${tableName}" LIMIT ?`,
+          [limit]
+     );
+ }
+
 /**
  * Retrieves all data from a specified SQLite table and sends it to the configured Error Logger
  * @param {string} tableName - The name of the table to dump
  * @param {object} options - Optional configuration
  * @param {number} options.limit - Maximum number of rows to retrieve (default: 1000)
- * @param {boolean} options.includeSchema - Whether to include table schema info (default: true)
  * @param {string} options.level - Sentry log level (default: 'info')
  * @returns {Promise<{success: boolean, rowCount: number, tableName: string, eventId: string|null}>}
  */
 export async function dumpSQLiteTable(tableName, options = {}) {
      const {
           limit = 1000,
-          includeSchema = true,
           level = 'info',
      } = options;
 
@@ -342,25 +375,39 @@ export async function dumpSQLiteTable(tableName, options = {}) {
 
           const db = await getDb();
 
-          // Get table data
-          const rows = await db.getAllAsync(
-               `SELECT * FROM "${tableName}" LIMIT ?`,
-               [limit]
-          );
+          let tablesToDump = [tableName];
+          if (tableName === 'user_accounts') {
+               tablesToDump = USER_ACCOUNT_DUMP_TABLES;
+          } else if (tableName === 'theme_state') {
+               tablesToDump = THEME_DUMP_TABLES;
+          }
 
-          const rowCount = rows?.length ?? 0;
+          const dumpPayload = {};
+          let rowCount = 0;
+          let totalRows = 0;
 
-          // Get total row count
-          const countResult = await db.getFirstAsync(
-               `SELECT COUNT(*) as total FROM "${tableName}"`
-          );
-          const totalRows = countResult?.total ?? 0;
+          for (const currentTableName of tablesToDump) {
+               const tableLimit = Math.min(limit, SQLITE_DUMP_TABLE_LIMITS[currentTableName] ?? limit);
+               const rows = await getSQLiteTableRows(db, currentTableName, tableLimit);
+               const countResult = await db.getFirstAsync(
+                    `SELECT COUNT(*) as total FROM "${currentTableName}"`
+               );
+               const currentTotalRows = countResult?.total ?? 0;
 
-            // Prepare the dump data with stringified data
-            const dumpData = {
-                 tableName,
-                 data: JSON.parse(JSON.stringify(rows)),
-            };
+               dumpPayload[currentTableName] = JSON.parse(JSON.stringify(rows ?? []));
+
+               if (currentTableName === tableName) {
+                    rowCount = rows?.length ?? 0;
+                    totalRows = currentTotalRows;
+               }
+          }
+
+          const dumpData = {
+               tableName,
+               data: tableName === 'user_accounts' || tableName === 'theme_state'
+                    ? dumpPayload
+                    : (dumpPayload[tableName] ?? []),
+          };
 
             // Create unique message with timestamp so each dump gets its own issue
             const timestamp = new Date().toISOString();
