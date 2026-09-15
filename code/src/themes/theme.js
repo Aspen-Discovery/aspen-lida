@@ -481,4 +481,3 @@ const themeSwitcherStyles = StyleSheet.create({
      },
 });
 
-export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

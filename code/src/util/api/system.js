@@ -345,6 +345,17 @@ function buildThemeResultFromAspenLiDATheme(result, themeId, locationId = null) 
      };
 }
 
+async function replaceStoredThemeCatalog(locationId, themes = []) {
+     const normalizedLocationId = toNumberOrNull(locationId);
+     if (normalizedLocationId === null) {
+          return;
+     }
+
+     const { saveThemeCatalog } = require('../db');
+     await saveThemeCatalog(normalizedLocationId, Array.isArray(themes) ? themes : []);
+     notifyThemeCatalogChanged();
+}
+
 export function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
@@ -621,6 +632,7 @@ export async function getThemeInfo(url = null, locationId = null) {
 
      if (typeof rawUseSingleTheme === 'undefined') {
           logDebugMessage('App settings missing useSingleTheme, using legacy getThemeInfo with GLOBALS.themeId');
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
 
           const legacyClient = createApiClient({
                url: libraryUrl,
@@ -648,6 +660,8 @@ export async function getThemeInfo(url = null, locationId = null) {
      }
 
      if (useSingleTheme === true) {
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
+
           const singleThemeClient = createApiClient({
                url: libraryUrl,
                timeout: 10000,
@@ -711,10 +725,9 @@ export async function getThemeInfo(url = null, locationId = null) {
           if (aspenLiDAThemesResponse.ok && aspenLiDAThemesResponse.data?.result?.success) {
                fallbackThemeInfoId = resolveThemeInfoIdFromWebThemes(aspenLiDAThemesResponse.data.result.themes);
                const themes = normalizeAspenLiDAThemesPayload(aspenLiDAThemesResponse.data.result.themes);
+               await replaceStoredThemeCatalog(locationId, themes);
                if (themes.length > 0) {
-                    const { saveThemeCatalog, loadThemeState } = require('../db');
-                    await saveThemeCatalog(locationId, themes);
-                    notifyThemeCatalogChanged();
+                    const { loadThemeState } = require('../db');
 
                     const currentThemeState = await loadThemeState();
                     const isSameLocationAsStored = currentThemeState?.locationId === resolvedLocationId;
@@ -738,6 +751,10 @@ export async function getThemeInfo(url = null, locationId = null) {
                     );
                }
           }
+     }
+
+     if (!isBranded) {
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
      }
 
      const client = createApiClient({
