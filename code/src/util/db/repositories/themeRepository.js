@@ -30,7 +30,6 @@ export async function saveThemeState(state = {}) {
      const now = Date.now();
      await ensureThemeRow(db, now);
      logDebugMessage("Saving Theme State");
-     logDebugMessage(state);
      await db.runAsync(
           `UPDATE theme_state SET
                 updated_at = ?,
