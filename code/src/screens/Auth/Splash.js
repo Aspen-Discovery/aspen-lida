@@ -108,6 +108,7 @@ export async function evaluateStartupCache() {
      const hasCachedLocation =
           !!cachedLibraryBranchState?.location &&
           !!cachedLibraryBranchState.location.locationId;
+     const hasCachedLibrary = !!cachedLibrarySystemState?.library && !!cachedLibrarySystemState.library.libraryId;
      const hasCachedSelfCheckSettings =
           isPlainObject(cachedLibraryBranchState?.selfCheckSettings) &&
           Object.keys(cachedLibraryBranchState.selfCheckSettings).length > 0;
@@ -115,16 +116,17 @@ export async function evaluateStartupCache() {
           !!cachedLibraryBranchState &&
           (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
      const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
-     const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
+     const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && hasCachedLibrary;
      const hasUsableLanguageCache =
           cachedLanguageList.length > 0 &&
           isPlainObject(cachedLanguageDictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
+     const libraryUpdatedAt = cachedLibrarySystemState?.updatedAt ?? cachedLibrarySystemState.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
      const libraryBranchCacheStale = hasUsableLibraryBranchCache && isCacheStale(branchUpdatedAt, LIBRARY_BRANCH_DATA_STALE_MS);
-     const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
-     const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
+     const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
+     const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
      const languageCacheStale = hasUsableLanguageCache && isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
 
      const canBypassLoading =
@@ -138,7 +140,7 @@ export async function evaluateStartupCache() {
            const persistedLibraryUrl = await loadLibraryUrl();
            const libraryUrl = LIBRARY.url || persistedLibraryUrl;
 
-           if (libraryUrl && cachedLibraryBranchState?.location?.locationId) {
+           if (libraryUrl && cachedLibraryBranchState?.location?.locationId && cachedLibrarySystemState?.library?.libraryId) {
                 const configuredLocationId = await SecureStore.getItemAsync('locationId');
                 const selfCheckLocationId = configuredLocationId ?? cachedLibraryBranchState.location.locationId;
 

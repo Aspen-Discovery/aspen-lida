@@ -1,5 +1,6 @@
 import { GLOBALS } from './globals';
 import * as Sentry from '@sentry/react-native';
+import { getDb } from './db';
 
 /**
  * Does logging of messages to console.log depending on the value of logLevel within the app config.
@@ -268,4 +269,194 @@ export function getErrorMessage(arg1, arg2, arg3 = false) {
      }
 
      return errorDetails;
+}
+
+/**
+ * Test Error logging connection and force a new captureMessage
+ * @param {string} testMessage - Optional custom message to send (defaults to test message)
+ * @returns {Promise<void>}
+ */
+export async function testSentryConnection(testMessage = 'Error Logging Connection Test') {
+     try {
+          // Test 1: Capture a test message
+          const messageId = Sentry.captureMessage(
+               testMessage,
+               {
+                    level: 'info',
+                    tags: {
+                         test: 'connection-test',
+                         timestamp: new Date().toISOString(),
+                    },
+                    extra: {
+                         deviceInfo: 'Test message sent from device',
+                    },
+               }
+          );
+
+          logInfoMessage(`Error logging test message captured with ID: ${messageId}`);
+
+          // Test 2: Capture an exception to verify error handling
+          try {
+               throw new Error('Error logging Test Error - This is intentional');
+          } catch (error) {
+               const errorId = Sentry.captureException(error, {
+                    level: 'warning',
+                    tags: {
+                         test: 'error-test',
+                    },
+               });
+               logInfoMessage(`Error logging test error captured with ID: ${errorId}`);
+          }
+
+          // Test 3: Flush to ensure messages are sent
+          await Sentry.close(2000); // Wait up to 2 seconds for messages to be sent
+          logInfoMessage('Error logging connection test completed successfully');
+
+          return messageId;
+     } catch (error) {
+          logErrorMessage(`Error logging connection test failed: ${error.message}`);
+          throw error;
+     }
+}
+
+const USER_ACCOUNT_DUMP_TABLES = [
+     'user_accounts',
+     'user_app_preferences',
+     'user_cards',
+     'user_inbox',
+     'user_list_groups',
+     'user_lists',
+     'user_locations',
+     'user_notification_settings',
+     'user_notification_history',
+     'user_reading_history',
+     'user_saved_events',
+     'user_saved_searches',
+     'user_state',
+     'user_sublocations',
+     'user_viewers',
+ ];
+
+const THEME_DUMP_TABLES = [
+     'theme_state',
+     'theme_catalog',
+];
+
+const SQLITE_DUMP_TABLE_LIMITS = {
+     user_notification_history: 50,
+     user_reading_history: 50,
+ };
+
+async function getSQLiteTableRows(db, tableName, limit) {
+     return await db.getAllAsync(
+          `SELECT * FROM "${tableName}" LIMIT ?`,
+          [limit]
+     );
+ }
+
+/**
+ * Retrieves all data from a specified SQLite table and sends it to the configured Error Logger
+ * @param {string} tableName - The name of the table to dump
+ * @param {object} options - Optional configuration
+ * @param {number} options.limit - Maximum number of rows to retrieve (default: 1000)
+ * @param {string} options.level - Sentry log level (default: 'info')
+ * @returns {Promise<{success: boolean, rowCount: number, tableName: string, eventId: string|null}>}
+ */
+export async function dumpSQLiteTable(tableName, options = {}) {
+     const {
+          limit = 1000,
+          level = 'info',
+     } = options;
+
+     try {
+          if (!tableName || typeof tableName !== 'string') {
+               throw new Error('tableName must be a non-empty string');
+          }
+
+          const db = await getDb();
+
+          let tablesToDump = [tableName];
+          if (tableName === 'user_accounts') {
+               tablesToDump = USER_ACCOUNT_DUMP_TABLES;
+          } else if (tableName === 'theme_state') {
+               tablesToDump = THEME_DUMP_TABLES;
+          }
+
+          const dumpPayload = {};
+          let rowCount = 0;
+          let totalRows = 0;
+
+          for (const currentTableName of tablesToDump) {
+               const tableLimit = Math.min(limit, SQLITE_DUMP_TABLE_LIMITS[currentTableName] ?? limit);
+               const rows = await getSQLiteTableRows(db, currentTableName, tableLimit);
+               const countResult = await db.getFirstAsync(
+                    `SELECT COUNT(*) as total FROM "${currentTableName}"`
+               );
+               const currentTotalRows = countResult?.total ?? 0;
+
+               dumpPayload[currentTableName] = JSON.parse(JSON.stringify(rows ?? []));
+
+               if (currentTableName === tableName) {
+                    rowCount = rows?.length ?? 0;
+                    totalRows = currentTotalRows;
+               }
+          }
+
+          const dumpData = {
+               tableName,
+               data: tableName === 'user_accounts' || tableName === 'theme_state'
+                    ? dumpPayload
+                    : (dumpPayload[tableName] ?? []),
+          };
+
+            // Create unique message with timestamp so each dump gets its own issue
+            const timestamp = new Date().toISOString();
+            const messageTitle = `SQLite Table Dump: ${tableName} - ${timestamp}`;
+
+            // Send to Sentry with custom fingerprint to create unique issues per dump
+            const eventId = Sentry.captureMessage(messageTitle + '\n\n' + JSON.stringify(dumpData, null, 2), {
+                 level,
+                 tags: {
+                      table: tableName,
+                      dumpType: 'sqlite-table',
+                 },
+                 fingerprint: [tableName, timestamp],
+            });
+
+          logInfoMessage(
+               `SQLite table "${tableName}" dumped to Error Logger (${rowCount}/${totalRows} rows)`
+          );
+
+          return {
+               success: true,
+               rowCount,
+               totalRows,
+               tableName,
+               eventId,
+          };
+     } catch (error) {
+          logErrorMessage(`Failed to dump SQLite table "${tableName}" to Error Logger: ${error.message}`);
+
+          // Send error to Sentry
+          Sentry.captureException(error, {
+               level: 'error',
+               tags: {
+                    table: tableName,
+                    dumpType: 'sqlite-table-error',
+               },
+               extra: {
+                    tableName,
+                    error: error.message,
+               },
+          });
+
+          return {
+               success: false,
+               rowCount: 0,
+               totalRows: 0,
+               tableName,
+               eventId: null,
+               error: error.message,
+          };
+     }
 }
