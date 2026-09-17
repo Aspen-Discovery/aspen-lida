@@ -375,21 +375,17 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, data, i
      }
 
      return (
-         <ButtonGroup vertical space="sm" pb="$2">
-                {subCategories.map((subCategory, index) => (
-                     <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()}
-                             bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200'] }
-                             variant="solid"
-                             sx={{ paddingHorizontal: 12, height: 34 }}
-                             onPress={() => onSelect(index)}>
-                          <ButtonText fontWeight="$medium" color="$warmGray800" >
-                               {subCategory.label}
-                          </ButtonText>
-                          {!isSystemBrowseCategory && (<ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$warmGray800" ml="$4" />)}
-                     </Button>
-                ))}
-         </ButtonGroup>
-     )
+          <ButtonGroup vertical space="sm" pb="$2">
+               {subCategories.map((subCategory, index) => (
+                    <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()} bgColor={selectedIndex === index ? theme['tokens']['colors']['primary']['500'] : theme['tokens']['colors']['primary']['200']} variant="solid" sx={{ paddingHorizontal: 12, height: 34 }} onPress={() => onSelect(index)}>
+                         <ButtonText fontWeight="$medium" color={theme['tokens']['colors']['primary']['500-text']}>
+                              {subCategory.label}
+                         </ButtonText>
+                         {!isSystemBrowseCategory && <ButtonIcon as={MaterialIcons} name="close" onPress={() => onPressHideSubCategory(index)} size="sm" color="$warmGray800" ml="$4" />}
+                    </Button>
+               ))}
+          </ButtonGroup>
+     );
 }
 
 const DisplayMoreResultsButton = ({ category }) => {
