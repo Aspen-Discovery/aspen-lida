@@ -33,7 +33,7 @@ import {
 } from '../../util/api/user';
 import {formatLinkedAccounts, formatNotificationHistory, formatPickupLocations} from '../../util/api/userHelper';
 
-import { GLOBALS, LIBRARY, isBrandedApp } from '../../util/globals';
+import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -57,7 +57,6 @@ import {
      loadBrowseCategories,
      loadThemeState,
      saveThemeState,
-     isStoredThemeIdMatch,
      loadLocation } from '../../util/db';
 import {
      useUpdateLibraryVersion,
@@ -1064,16 +1063,7 @@ export const LoadingScreen = () => {
                     const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                     const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
                     await updateColorMode(mode);
-                    const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
-                    // Branded apps pick their themeId from a per-location catalog, not the static
-                    // app-config value, so there's no single expected id to compare against - instead,
-                    // the stored theme only counts as "matching" if it was fetched for the SAME location
-                    // that's currently active, so switching locations (e.g. at login) always refetches.
-                    const hasMatchingThemeId = isBrandedApp()
-                         ? currentThemeState?.themeId != null && currentThemeState?.locationId === currentLocationId
-                         : await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
-
-                    if (!hasStoredTheme || !hasMatchingThemeId) {
+                    if (LIBRARY.url) {
                          const builtTheme = await buildThemeForLibrary(LIBRARY.url, currentLocationId);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
@@ -1083,6 +1073,12 @@ export const LoadingScreen = () => {
                               themeColors: builtTheme.themeColors,
                               header: builtTheme.header });
                          await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                    } else if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
+                         await updateTheme({
+                              tokens: {
+                                   colors: currentThemeState.themeColors,
+                              },
+                         }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
                     }
                } catch (e) {
                     logErrorMessage('Unable to load theme state in Loading screen');
