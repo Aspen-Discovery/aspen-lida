@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
@@ -13,9 +14,15 @@ import {
      loadLocation,
      loadThemeState,
      saveThemeState,
+     setCurrentUserId,
+     setCurrentLocationId,
+     setCurrentLibraryId,
+     findCachedUserIdForUsername,
+     backfillLegacyUserId,
+     backfillLegacyBrowseCategoryScope,
 } from '../../util/db';
-import { isPlainObject } from '../../helpers/helpers';
-import { GLOBALS, LIBRARY, isBrandedApp } from '../../util/globals';
+import { isPlainObject, parseStoredNumber } from '../../helpers/helpers';
+import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { prehydrateLibrarySystemSnapshotCache } from '../../hooks/useLibrarySystemData';
 import { prehydrateLibraryBranchSnapshotCache, invalidateSelfCheckSnapshot } from '../../hooks/useLibraryBranchData';
@@ -67,13 +74,46 @@ function resolveSelfCheckEnabled(result = {}) {
 }
 
 export async function evaluateStartupCache() {
-     const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState, loginUserKey] = await Promise.all([
+     // Resolve the current user/location/library identity before loading any cache.
+     // locationId/libraryId are already persisted as numbers; the logged-in
+     // user is only known by username at this point.
+     const [loginUserKey, storedLocationId, storedLibraryId, _translationsHydrated] = await Promise.all([
+          SecureStore.getItemAsync('userKey'),
+          SecureStore.getItemAsync('locationId'),
+          AsyncStorage.getItem('@libraryId'),
+          ensureTranslationsLibraryHydrated(),
+     ]);
+
+     const locationId = parseStoredNumber(storedLocationId);
+     if (locationId != null) {
+          setCurrentLocationId(locationId);
+     }
+
+     const libraryId = parseStoredNumber(storedLibraryId);
+     if (libraryId != null) {
+          setCurrentLibraryId(libraryId);
+     }
+
+     const cachedUserId = await findCachedUserIdForUsername(loginUserKey);
+     if (cachedUserId != null) {
+          setCurrentUserId(cachedUserId);
+
+          // One-time backfill for installs upgrading from the pre-26.09.01 singleton-row
+          // schema: user_state already had user_id, but the other user_* tables and the
+          // browse category tables didn't, so their legacy row is still unclaimed until this
+          // runs. Must happen before the cache loads below, or this boot would see them as
+          // cache misses. No-op on every subsequent boot once the legacy rows are claimed.
+          await backfillLegacyUserId(cachedUserId);
+          if (locationId != null) {
+               await backfillLegacyBrowseCategoryScope(cachedUserId, locationId);
+          }
+     }
+
+     const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState] = await Promise.all([
           loadAllUserData(),
           loadAllLibraryBranchData(),
           loadAllLibrarySystemData(),
           loadAllLanguageData(),
-          ensureTranslationsLibraryHydrated(),
-          SecureStore.getItemAsync('userKey'),
      ]);
 
      const cachedUser = cachedUserState?.user ?? null;
@@ -98,12 +138,7 @@ export async function evaluateStartupCache() {
           setTranslationsLibrary(cachedLanguageDictionary);
      }
 
-     const normalizedLoginKey = String(loginUserKey ?? '').toLowerCase();
-     const normalizedCatUsername = String(cachedUser?.cat_username ?? '').toLowerCase();
-     const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
-     const matchesLoggedInUser = !normalizedLoginKey || normalizedLoginKey === normalizedCatUsername || normalizedLoginKey === normalizedBarcode;
-
-     const hasUsableUserCache = !!cachedUser && matchesLoggedInUser;
+     const hasUsableUserCache = !!cachedUser;
      const hasCachedLocation =
           !!cachedLibraryBranchState?.location &&
           !!cachedLibraryBranchState.location.locationId;
@@ -121,7 +156,7 @@ export async function evaluateStartupCache() {
           isPlainObject(cachedLanguageDictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
-     const libraryUpdatedAt = cachedLibrarySystemState?.updatedAt ?? cachedLibrarySystemState.updated_at ?? 0;
+     const libraryUpdatedAt = cachedLibrarySystemState?.updatedAt ?? cachedLibrarySystemState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
      const libraryBranchCacheStale = hasUsableLibraryBranchCache && isCacheStale(branchUpdatedAt, LIBRARY_BRANCH_DATA_STALE_MS);
      const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);

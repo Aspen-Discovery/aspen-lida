@@ -22,8 +22,8 @@ import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
-import { RemoveData } from '../helpers/helpers';
-import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
+import { parseStoredNumber, RemoveData } from '../helpers/helpers';
+import { saveLibraryUrl, isSQLiteMigrationNeeded, setCurrentLibraryId } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
@@ -201,6 +201,11 @@ export function App() {
                            await checkCachedUrl(libraryUrl).then(async (result) => {
                                 if (result) {
                                      LIBRARY.url = libraryUrl;
+                                     const storedLibraryId = await AsyncStorage.getItem('@libraryId');
+                                     const resolvedLibraryId = parseStoredNumber(storedLibraryId);
+                                     if (resolvedLibraryId != null) {
+                                          setCurrentLibraryId(resolvedLibraryId);
+                                     }
                                      await saveLibraryUrl(libraryUrl);
                                      logDebugMessage('Connection successful. Continuing...');
 

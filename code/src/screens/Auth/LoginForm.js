@@ -29,7 +29,7 @@ import { stripHTML } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
-import { saveAllLibraryBranchData } from '../../util/db';
+import { saveAllLibraryBranchData, setCurrentLocationId, setCurrentLibraryId } from '../../util/db';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
@@ -147,6 +147,7 @@ export const GetLoginForm = (props) => {
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
+           setCurrentLibraryId(patronsLibrary['libraryId']);
            updateCatalogStatus(0, null);
            logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
            const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
@@ -266,6 +267,8 @@ export const GetLoginForm = (props) => {
                          updateSelectedLibrary(patronHomeLocation);
                          LIBRARY.url = patronHomeLocation.baseUrl;
                          LIBRARY.id = patronHomeLocation.libraryId;
+                         setCurrentLibraryId(patronHomeLocation.libraryId);
+                         setCurrentLocationId(patronHomeLocation.locationId);
                          await SecureStore.setItemAsync('library', JSON.stringify(patronHomeLocation.libraryId));
                          await AsyncStorage.setItem('@libraryId', JSON.stringify(patronHomeLocation.libraryId));
                          await SecureStore.setItemAsync('libraryName', patronHomeLocation.displayName);
@@ -282,6 +285,8 @@ export const GetLoginForm = (props) => {
                          logDebugMessage('Problem getting location info for user home location. Setting library and location to: ' + patronsLibrary['name']);
                          LIBRARY.url = patronsLibrary['baseUrl'];
                          LIBRARY.id = patronsLibrary['libraryId'];
+                         setCurrentLibraryId(patronsLibrary['libraryId']);
+                         setCurrentLocationId(patronsLibrary['locationId']);
                          await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                          await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
                          await SecureStore.setItemAsync('libraryName', patronsLibrary['name']);
@@ -298,6 +303,8 @@ export const GetLoginForm = (props) => {
                logDebugMessage('No home location set for user or autoPickUserHomeLocation is disabled, setting library and location to: ' + patronsLibrary['name']);
                LIBRARY.url = patronsLibrary['baseUrl'];
                LIBRARY.id = patronsLibrary['libraryId'];
+               setCurrentLibraryId(patronsLibrary['libraryId']);
+               setCurrentLocationId(patronsLibrary['locationId']);
                updateSelectedLibrary(patronsLibrary);
                await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
@@ -312,6 +319,7 @@ export const GetLoginForm = (props) => {
                selectedBaseUrl = patronsLibrary['baseUrl'];
           }
 
+          setCurrentLocationId(selectedLocationId);
           const activeLocation = await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
 
           try {
