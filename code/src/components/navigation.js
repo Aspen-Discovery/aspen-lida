@@ -22,8 +22,8 @@ import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
-import { RemoveData } from '../helpers/helpers';
-import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
+import { parseStoredNumber, RemoveData } from '../helpers/helpers';
+import { saveLibraryUrl, isSQLiteMigrationNeeded, setCurrentLibraryId } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
@@ -79,8 +79,8 @@ try {
           enableAutoSessionTracking: true,
           sessionTrackingIntervalMillis: 10000,
           debug: false,
-          tracesSampleRate: 0.1,
-          sampleRate: 0.1,
+          tracesSampleRate: 0.5,
+          sampleRate: 1,
           environment: Updates.channel ?? Updates.releaseChannel,
           release: releaseCode,
           dist: distribution,
@@ -201,6 +201,11 @@ export function App() {
                            await checkCachedUrl(libraryUrl).then(async (result) => {
                                 if (result) {
                                      LIBRARY.url = libraryUrl;
+                                     const storedLibraryId = await AsyncStorage.getItem('@libraryId');
+                                     const resolvedLibraryId = parseStoredNumber(storedLibraryId);
+                                     if (resolvedLibraryId != null) {
+                                          setCurrentLibraryId(resolvedLibraryId);
+                                     }
                                      await saveLibraryUrl(libraryUrl);
                                      logDebugMessage('Connection successful. Continuing...');
 
@@ -332,22 +337,24 @@ function AppContent({state}) {
      const language = useActiveLanguage();
      const { colorMode } = useTheme();
 
-     const primaryColor = useToken('colors', 'primary.base');
-     const primaryColorContrast = useToken('colors', 'primary.baseContrast');
      const lightTheme = {
           ...DefaultTheme,
           colors: {
                ...DefaultTheme.colors,
-               background: '#f5f5f4', // Equivalent to $backgroundLight50
-               card: '#ffffff',
-               text: '#171717' } };
+               background: '#f3f4f6', //coolGray.100
+               card: '#f9fafb', //coolGray.50
+               text: '#1c1917', //coolGray.900
+          },
+     };
      const darkTheme = {
           ...DarkTheme,
           colors: {
                ...DarkTheme.colors,
-               background: '#111827', // Equivalent to $backgroundDark900
-               card: '#1f2937',
-               text: '#fafafa' } };
+               background: '#111827', //coolGray.900
+               card: '#1f2937', //coolGray.800
+               text: '#f3f4f6', //coolGray.100
+          },
+     };
 
      return (
           <NavigationContainer

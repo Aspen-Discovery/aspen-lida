@@ -34,9 +34,9 @@ export default function TabNavigator() {
      );
      const showSelfCheckTab = enableSelfCheck === true || settingsEnableSelfCheck;
 
-     const activeIcon = colorMode === 'light' ? '$coolGray900' : '$warmGray300';
-     const inactiveIcon = colorMode === 'light' ? '$coolGray700' : '$warmGray100';
-     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray100' : '$coolGray900';
+     const activeIcon = useToken('colors', colorMode === 'light' ? 'coolGray900' : 'coolGray100');
+     const inactiveIcon = useToken('colors', colorMode === 'light' ? 'coolGray500' : 'coolGray400');
+     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray50' : '$coolGray800';
 
      return (
           <Tab.Navigator
@@ -82,10 +82,10 @@ export default function TabNavigator() {
 export const TabItem = ({ state, descriptors, navigation }) => {
      const language = useActiveLanguage();
      const { colorMode } = useTheme();
-     const activeIconColor = useToken('colors', colorMode === 'light' ? 'coolGray700' : 'coolGray300');
+     const activeIconColor = useToken('colors', colorMode === 'light' ? 'coolGray900' : 'coolGray100');
      const inactiveIconColor = useToken('colors', colorMode === 'light' ? 'coolGray500' : 'coolGray400');
-     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray100' : '$coolGray900';
-     const tabBarBorderColor = colorMode === 'light' ? '$coolGray200' : '$coolGray300';
+     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray50' : '$coolGray800';
+     const tabBarBorderColor = '$coolGray400';
      const insets = useSafeAreaInsets();
 
      const [browseTabLabel, setBrowseTabLabel] = React.useState(getTermFromDictionary(language, 'nav_discover'));

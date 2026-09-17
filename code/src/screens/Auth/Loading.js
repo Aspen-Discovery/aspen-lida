@@ -33,7 +33,7 @@ import {
 } from '../../util/api/user';
 import {formatLinkedAccounts, formatNotificationHistory, formatPickupLocations} from '../../util/api/userHelper';
 
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -57,7 +57,13 @@ import {
      loadBrowseCategories,
      loadThemeState,
      saveThemeState,
-     isStoredThemeIdMatch } from '../../util/db';
+     isStoredThemeIdMatch,
+     loadLocation,
+     setCurrentUserId,
+     setCurrentLocationId,
+     setCurrentLibraryId,
+     findCachedUserIdForUsername,
+     backfillLegacyUserId} from '../../util/db';
 import {
      useUpdateLibraryVersion,
      useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
@@ -73,7 +79,7 @@ import {
      useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
 
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
-import {isPlainObject, orderByFields, stripHTML, RemoveData} from '../../helpers/helpers';
+import { isPlainObject, orderByFields, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
@@ -326,6 +332,7 @@ export const LoadingScreen = () => {
                     if (migrationCancelled) return;
 
                     // Attempt to fetch and save library system data
+                    setCurrentLibraryId(LIBRARY.id);
                     const catalogResp = await getCatalogStatus(LIBRARY.url);
                     let catalogStatus = 0;
                     let catalogStatusMessage = '';
@@ -639,6 +646,8 @@ export const LoadingScreen = () => {
                 invocationId,
                 runInBackground });
            try {
+                setCurrentLibraryId(LIBRARY.id);
+
                 // Fetch catalog status
                 const catalogResp = await getCatalogStatus(LIBRARY.url);
                 let catalogStatus = 0;
@@ -786,23 +795,24 @@ export const LoadingScreen = () => {
             const hydrateUserCache = async () => {
                  try {
                       logDebugMessage('hydrateUserCache: starting SQLite hydration');
-                      const cached = await loadAllUserData();
                       const loginUserKey = (await SecureStore.getItemAsync('userKey')) ?? '';
+                      const resolvedUserId = await findCachedUserIdForUsername(loginUserKey);
+                      if (resolvedUserId != null) {
+                           setCurrentUserId(resolvedUserId);
+                           // One-time backfill for installs upgrading from the pre-26.09.01 singleton-row schema - safe/no-op once legacy rows are claimed.
+                           await backfillLegacyUserId(resolvedUserId);
+                      }
+
+                      const cached = await loadAllUserData();
                       const cachedUser = cached?.user ?? null;
-                      const normalizedKey = String(loginUserKey).toLowerCase();
-                      const normalizedCat = String(cachedUser?.cat_username ?? '').toLowerCase();
-                      const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
-                      const matchesLoggedInUser = !normalizedKey || normalizedKey === normalizedCat || normalizedKey === normalizedBarcode;
-                      const hasAnyCachedUserData = !!cachedUser && matchesLoggedInUser;
+                      const hasAnyCachedUserData = !!cachedUser;
 
                       logDebugMessage('hydrateUserCache: cache snapshot');
                       logDebugMessage({
                            hasCachedUser: !!cachedUser,
                            hasUpdatedAt: !!cached?.updatedAt,
-                           loginKeyPresent: normalizedKey.length > 0,
-                           matchesCatUsername: !!normalizedKey && normalizedKey === normalizedCat,
-                           matchesBarcode: !!normalizedKey && normalizedKey === normalizedBarcode,
-                           matchesLoggedInUser,
+                           loginKeyPresent: !!loginUserKey,
+                           resolvedUserId,
                            hasAnyCachedUserData });
 
                       if (cancelled) return;
@@ -856,6 +866,15 @@ export const LoadingScreen = () => {
         }, [hasHydratedUserCacheDecision, hasHydratedLibraryBranchCacheDecision, hasHydratedLibrarySystemCacheDecision, hasHydratedLanguageCacheDecision]);
 
      React.useEffect(() => {
+          logDebugMessage({
+               event: 'isReloading gate snapshot',
+               isSQLiteDataLoaded,
+               isInitialUserDataReady, hasUsableUserCache,
+               isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache,
+               isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache,
+               isInitialLanguageDataReady, hasUsableLanguageCache,
+               hasError,
+          });
           if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError) {
                logDebugMessage('All data ready from cache, clearing isReloading');
                setIsReloading(false);
@@ -869,6 +888,12 @@ export const LoadingScreen = () => {
           const hydrateLibraryBranchCache = async () => {
                try {
                     logDebugMessage('hydrateLibraryBranchCache: starting SQLite hydration');
+                    const configuredLocationId = await SecureStore.getItemAsync('locationId');
+                    const resolvedLocationId = parseStoredNumber(configuredLocationId);
+                    if (resolvedLocationId != null) {
+                         setCurrentLocationId(resolvedLocationId);
+                    }
+
                     const cached = await loadAllLibraryBranchData();
                     const hasAnyCachedLibraryBranchData = !!cached && (!!cached.location || !!cached.selfCheckSettings);
 
@@ -929,6 +954,8 @@ export const LoadingScreen = () => {
            const hydrateLibrarySystemCache = async () => {
                 try {
                      logDebugMessage('hydrateLibrarySystemCache: starting SQLite hydration');
+                     setCurrentLibraryId(LIBRARY.id);
+
                      const cached = await loadAllLibrarySystemData();
                      const hasAnyCachedLibrarySystemData = !!cached && !!cached.library;
 
@@ -1059,27 +1086,32 @@ export const LoadingScreen = () => {
 
                try {
                     const currentThemeState = await loadThemeState();
+                    const currentLocation = await loadLocation();
+                    const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                     const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
                     await updateColorMode(mode);
-                    const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
-                    const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
-
-                    if (!hasStoredTheme || !hasMatchingThemeId) {
-                         const builtTheme = await buildThemeForLibrary( LIBRARY.url);
+                    if (LIBRARY.url) {
+                         const builtTheme = await buildThemeForLibrary(LIBRARY.url, currentLocationId);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
                               colorMode: mode,
                               textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                              themeColors: builtTheme.themeColors });
-                         await updateTheme(builtTheme.theme);
+                              themeColors: builtTheme.themeColors,
+                              header: builtTheme.header });
+                         await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                    } else if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
+                         await updateTheme({
+                              tokens: {
+                                   colors: currentThemeState.themeColors,
+                              },
+                         }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
                     }
                } catch (e) {
                     logErrorMessage('Unable to load theme state in Loading screen');
                     logErrorMessage(e);
                } finally {
-                    if (!cancelled) {
-                         setLoadingTheme(false);
-                    }
+                    setLoadingTheme(false);
                }
 
                //if we have no library we should set error
@@ -1223,6 +1255,8 @@ export const LoadingScreen = () => {
 
            (async () => {
                 try {
+                     setCurrentLibraryId(LIBRARY.id);
+
                      const data = await getLibraryInfo(LIBRARY.url, LIBRARY.id);
                      if (cancelled) return;
 
@@ -1501,6 +1535,15 @@ export const LoadingScreen = () => {
 
      React.useEffect(() => {
           if (!isScreenFocused) return;
+          logDebugMessage({
+               event: 'navigate-away gate snapshot',
+               isSQLiteDataLoaded,
+               isInitialUserDataReady, hasUsableUserCache,
+               isInitialLibrarySystemDataReady, hasUsableLibrarySystemCache,
+               isInitialLibraryBranchDataReady, hasUsableLibraryBranchCache,
+               isInitialLanguageDataReady, hasUsableLanguageCache,
+               hasError, catalogStatus,
+          });
           if (isSQLiteDataLoaded && (isInitialUserDataReady || hasUsableUserCache) && (isInitialLibrarySystemDataReady || hasUsableLibrarySystemCache) && (isInitialLibraryBranchDataReady || hasUsableLibraryBranchCache) && (isInitialLanguageDataReady || hasUsableLanguageCache) && !hasError && catalogStatus === 0) {
                setProgress(100);
                navigation.navigate('DrawerStack', {

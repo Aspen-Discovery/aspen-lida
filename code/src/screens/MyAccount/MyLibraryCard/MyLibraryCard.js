@@ -382,7 +382,7 @@ const CreateLibraryCard = (data) => {
           );
      }
 
-     let cardBg = colorMode === 'light' ? "$warmGray50" : "$coolGray700";
+     let cardBg = colorMode === 'light' ? "$warmGray50" : "$coolGray800";
 
      return (
           <VStack bg={cardBg} px="$8" py="$5" borderRadius="$lg" shadow="$1">

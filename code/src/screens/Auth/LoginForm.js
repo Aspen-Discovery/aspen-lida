@@ -29,14 +29,14 @@ import { stripHTML } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
-import { saveAllLibraryBranchData } from '../../util/db';
+import { saveAllLibraryBranchData, setCurrentLocationId, setCurrentLibraryId } from '../../util/db';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
 import { useTheme } from '../../themes/theme';
 
 export const GetLoginForm = (props) => {
-     const {theme, textColor, colorMode} = useTheme();
+     const {theme, textColor, colorMode, forceRefreshTheme} = useTheme();
      const navigation = useNavigation();
      const barcode = useRoute().params?.barcode ?? null;
      const [loading, setLoading] = React.useState(false);
@@ -114,7 +114,7 @@ export const GetLoginForm = (props) => {
                const locationResponse = await getLocationInfo(baseUrl, locationId);
                const location = locationResponse?.ok ? (locationResponse.data?.result?.location ?? null) : null;
                if (!location) {
-                    return;
+                    return null;
                }
 
                const selfCheckResponse = await getSelfCheckSettings(baseUrl, locationId ?? location.locationId ?? null);
@@ -136,14 +136,18 @@ export const GetLoginForm = (props) => {
                     ...(typeof selfCheckEnabled === 'boolean' ? { enableSelfCheck: selfCheckEnabled } : {}),
                     ...(selfCheckSettings ? { selfCheckSettings } : {}),
                });
+
+               return location;
           } catch (_error) {
                // Keep login resilient if branch-cache warmup fails.
+               return null;
           }
      };
 
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
+           setCurrentLibraryId(patronsLibrary['libraryId']);
            updateCatalogStatus(0, null);
            logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
            const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
@@ -263,6 +267,8 @@ export const GetLoginForm = (props) => {
                          updateSelectedLibrary(patronHomeLocation);
                          LIBRARY.url = patronHomeLocation.baseUrl;
                          LIBRARY.id = patronHomeLocation.libraryId;
+                         setCurrentLibraryId(patronHomeLocation.libraryId);
+                         setCurrentLocationId(patronHomeLocation.locationId);
                          await SecureStore.setItemAsync('library', JSON.stringify(patronHomeLocation.libraryId));
                          await AsyncStorage.setItem('@libraryId', JSON.stringify(patronHomeLocation.libraryId));
                          await SecureStore.setItemAsync('libraryName', patronHomeLocation.displayName);
@@ -279,6 +285,8 @@ export const GetLoginForm = (props) => {
                          logDebugMessage('Problem getting location info for user home location. Setting library and location to: ' + patronsLibrary['name']);
                          LIBRARY.url = patronsLibrary['baseUrl'];
                          LIBRARY.id = patronsLibrary['libraryId'];
+                         setCurrentLibraryId(patronsLibrary['libraryId']);
+                         setCurrentLocationId(patronsLibrary['locationId']);
                          await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                          await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
                          await SecureStore.setItemAsync('libraryName', patronsLibrary['name']);
@@ -295,6 +303,8 @@ export const GetLoginForm = (props) => {
                logDebugMessage('No home location set for user or autoPickUserHomeLocation is disabled, setting library and location to: ' + patronsLibrary['name']);
                LIBRARY.url = patronsLibrary['baseUrl'];
                LIBRARY.id = patronsLibrary['libraryId'];
+               setCurrentLibraryId(patronsLibrary['libraryId']);
+               setCurrentLocationId(patronsLibrary['locationId']);
                updateSelectedLibrary(patronsLibrary);
                await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
@@ -309,7 +319,17 @@ export const GetLoginForm = (props) => {
                selectedBaseUrl = patronsLibrary['baseUrl'];
           }
 
-          await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
+          setCurrentLocationId(selectedLocationId);
+          const activeLocation = await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
+
+          try {
+               const activeLocationId = activeLocation?.locationId ?? selectedLocationId;
+               logDebugMessage('Fetching theme for active location after login: ' + activeLocationId);
+               await forceRefreshTheme(selectedBaseUrl, activeLocationId);
+          } catch (error) {
+               logWarnMessage('Failed to initialize theme for the active location after login');
+               logDebugMessage(error);
+          }
      };
 
      React.useEffect(() => {

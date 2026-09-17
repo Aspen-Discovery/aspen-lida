@@ -4,14 +4,39 @@ import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { View, Image, Text, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
 import { Platform, useWindowDimensions } from 'react-native';
-import { decodeHTML } from '../helpers/helpers';
+import { decodeHTML, isValidUrl } from '../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../themes/theme';
 
 const HeaderLogoBar = (props) => {
-     const { theme, colorMode } = useTheme();
+     const { theme, colorMode, header } = useTheme();
      const library = useLibrary();
      const { width, height } = useWindowDimensions();
+
+     // Prefer the active theme's header data (logo/backgroundColor/alignment) when the
+     // theme catalog actually provides a logo; otherwise fall back to the library's
+     // headerLogo* app settings for backwards compatibility.
+     if (header?.logo) {
+          const localBrandingLogoUri = isValidUrl(header.logo) ? header.logo : library.baseUrl + '/files/original/' + header.logo;
+          const backgroundColor = header.backgroundColor ?? '#FFFFFF';
+          let headerLogoAlignment = 'center';
+          if (header.alignment == 1) {
+               headerLogoAlignment = 'flex-start';
+          } else if (header.alignment == 3) {
+               headerLogoAlignment = 'flex-end';
+          }
+
+          const originalHeight = library.headerLogoHeight ?? 200;
+          const originalWidth = library.headerLogoWidth ?? 1536;
+
+          const dims = logoSize(width, 50, originalWidth, originalHeight);
+
+          return (
+               <HStack backgroundColor={backgroundColor} safeAreaTop='1' safeAreaBottom='1' justifyContent={headerLogoAlignment} flexDirection='row' height={dims.height}>
+                         <Image source={{uri: localBrandingLogoUri}} alt={library.displayName ?? ''} placeholder="" width={dims.width} height={dims.height} resizeMode='contain' />
+               </HStack>
+          );
+     }
 
      if (library?.headerLogoApp){
           const localBrandingLogoUri = library.headerLogoApp;

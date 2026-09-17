@@ -6,6 +6,7 @@ import {
      saveThemeColorMode,
      saveThemeTextColor,
      resetThemeState,
+     loadThemeCatalog,
 } from '../util/db';
 
 const subscribers = new Set();
@@ -143,9 +144,11 @@ export function useThemeState(options) {
      const colorMode = data?.colorMode ?? 'light';
      return {
           themeId: data?.themeId ?? null,
+          locationId: data?.locationId ?? null,
           colorMode,
           textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
           themeColors: data?.themeColors ?? null,
+          header: data?.header ?? null,
           updatedAt: data?.updatedAt ?? 0,
      };
 }
@@ -158,8 +161,8 @@ export function useUpdateThemeState() {
 }
 
 export function useUpdateThemeColors() {
-     return React.useCallback(async (themeColors, themeId) => {
-          await saveThemeColors(themeColors, themeId);
+     return React.useCallback(async (themeColors, themeId, locationId, header) => {
+          await saveThemeColors(themeColors, themeId, locationId, header);
           notifyThemeChanged(THEME_STATE_KEY);
      }, []);
 }
@@ -183,4 +186,26 @@ export function useResetThemeState() {
           await resetThemeState();
           notifyThemeChanged(THEME_STATE_KEY);
      }, []);
+}
+
+export const THEME_CATALOG_KEY = ['theme_catalog'];
+
+export function useThemeCatalogQuery(locationId, options) {
+     const queryKey = React.useMemo(() => [...THEME_CATALOG_KEY, locationId ?? null], [locationId]);
+     const enabled = (options?.enabled ?? true) && locationId != null;
+     const queryFn = React.useCallback(() => loadThemeCatalog(locationId), [locationId]);
+     return useSqliteReadQuery(queryKey, queryFn, { ...options, enabled });
+}
+
+export function useAvailableThemes(locationId, options) {
+     const { data } = useThemeCatalogQuery(locationId, options);
+     return data ?? [];
+}
+
+/**
+ * Notify any mounted useAvailableThemes subscribers that the stored theme_catalog has changed.
+ * Plain function (not a hook) so non-component callers, like getThemeInfo's network refresh, can call it too.
+ */
+export function notifyThemeCatalogChanged() {
+     notifyThemeChanged(THEME_CATALOG_KEY);
 }

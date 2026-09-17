@@ -105,29 +105,27 @@ export async function RemoveData(queryClient, preserveUsername = true) {
           logErrorMessage(e);
      }
 
-      try {
-           const { clearAllUserData, resetAllLibrarySystemData, resetAllLibraryBranchData } = require('../util/db');
-           await clearAllUserData();
-           await resetAllLibrarySystemData();
-           await resetAllLibraryBranchData();
-           logDebugMessage('Cleared all SQLite data');
-      } catch (e) {
-           logErrorMessage('Error clearing data from SQLite');
-           logErrorMessage(e);
-      }
+     try {
+          const { clearSessionContext } = require('../util/db');
+          clearSessionContext();
+          logDebugMessage('Cleared current user/location/library session context');
+     } catch (e) {
+          logErrorMessage('Error clearing session context');
+          logErrorMessage(e);
+     }
 
-      // Restore username if it was preserved for user convenience
-      if (preserveUsername && savedUsername) {
-           try {
-                await AsyncStorage.setItem('@userBarcode', savedUsername);
-                logDebugMessage('Preserved username for next login');
-           } catch (e) {
-                logWarnMessage('Failed to preserve username for next login');
-                logErrorMessage(e);
-           }
-      }
+     // Restore username if it was preserved for user convenience
+     if (preserveUsername && savedUsername) {
+          try {
+               await AsyncStorage.setItem('@userBarcode', savedUsername);
+               logDebugMessage('Preserved username for next login');
+          } catch (e) {
+               logWarnMessage('Failed to preserve username for next login');
+               logErrorMessage(e);
+          }
+     }
 
-      logDebugMessage('Storage data cleansed.');
+     logDebugMessage('Storage data cleansed.');
 }
 
 /** *******************************************************************
@@ -171,11 +169,7 @@ export function stripHTML(string) {
  * collapsing whitespace, and trimming leading/trailing spaces.
  */
 export function normalizeDisplayText(value, options = {}) {
-     const {
-          stripHtml = true,
-          collapseWhitespace = true,
-          trim = true,
-     } = options;
+     const { stripHtml = true, collapseWhitespace = true, trim = true } = options;
 
      let output = String(value ?? '');
 
@@ -410,6 +404,38 @@ export function generateSwatches(swatch) {
      return object;
 }
 
+/**
+ * Build a gluestack-v1 swatch object from an AspenLiDA theme color group ({lighter, base, darker, text}),
+ * using the provided values as-is for the 300/500/700 shades instead of deriving them, so branded colors
+ * are reproduced exactly. Shades the API doesn't provide (50/100/200/400/600/800/900) are filled in from
+ * a chroma-interpolated scaffold based on the base color, so the swatch is still complete.
+ * @param colorGroup
+ * @returns {{}}
+ */
+export function buildSwatchFromThemeTokens(colorGroup = {}) {
+     const { lighter, base, darker, text } = colorGroup ?? {};
+     const swatch = generateSwatches(base ?? '#3dbdd6');
+
+     if (base) {
+          swatch['500'] = base;
+          swatch.base = base;
+     }
+     if (lighter) {
+          swatch['300'] = lighter;
+     }
+     if (darker) {
+          swatch['700'] = darker;
+     }
+     if (text) {
+          swatch['300-text'] = text;
+          swatch['500-text'] = text;
+          swatch['700-text'] = text;
+          swatch.baseContrast = text;
+     }
+
+     return swatch;
+}
+
 export const getColorNumber = (index) => (index === 0 ? 50 : index * 100);
 
 export const getContrastText = (color) => {
@@ -470,5 +496,68 @@ export function problemCodeMap(code) {
                };
           default:
                return null;
+     }
+}
+
+/**
+ * Convert a value to a number if possible, returning null for null, undefined, or non-finite values.
+ * This is useful for handling optional numeric fields where a missing value should be treated as "unset" rather than 0.
+ * @param {*} value - The value to convert to a number
+ * @returns {number|null}
+ */
+export function numberOrNull(value) {
+     if (value == null) return null;
+     const num = Number(value);
+     return Number.isFinite(num) ? num : null;
+}
+
+/**
+ * Convert an integer value to a boolean, returning true for 1, false for 0, and null for any other value.
+ * @param value
+ * @returns {null|boolean}
+ */
+export function intToBool(value) {
+     if (value === 1) return true;
+     if (value === 0) return false;
+     return null;
+}
+
+/**
+ * Convert a boolean or boolean-like value to an integer, returning 1 for true, 0 for false, and null for any other value.
+ * @param value
+ * @returns {number|number|null}
+ */
+export function boolToInt(value) {
+     if (typeof value === 'boolean') return value ? 1 : 0;
+     if (value === 1 || value === '1' || value === 'true') return 1;
+     if (value === 0 || value === '0' || value === 'false') return 0;
+     return null;
+}
+
+/**
+ * Safely parse a JSON string, returning the parsed object or null if parsing fails or the input is not a string.
+ * @param json
+ * @returns {any|null}
+ */
+export function safeParse(json) {
+     if (!json || typeof json !== 'string') return null;
+     try {
+          return JSON.parse(json);
+     } catch {
+          return null;
+     }
+}
+
+/**
+ * Safely stringify a value to JSON, returning null if the value is undefined or cannot be stringified.
+ * @param raw
+ * @returns {number|null}
+ */
+export function parseStoredNumber(raw) {
+     if (raw == null) return null;
+     try {
+          return numberOrNull(JSON.parse(raw));
+     } catch {
+          return numberOrNull(raw);
      }
 }
