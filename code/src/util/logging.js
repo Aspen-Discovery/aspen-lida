@@ -27,23 +27,29 @@ export function logInfoMessage(message) {
      }
 }
 
-export function logWarnMessage(message) {
+export function logWarnMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=3) {
                logMessage("WARN", message);
+               if (error !== undefined) {
+                    logMessage("WARN", error);
+               }
           }
      }else{
-          logSentryMessage(message, 'warning');
+          logSentryMessage(message, 'warning', error);
      }
 }
 
-export function logErrorMessage(message) {
+export function logErrorMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=4) {
                logMessage('ERROR', message);
+               if (error !== undefined) {
+                    logMessage('ERROR', error);
+               }
           }
      }else{
-          logSentryMessage(message, 'error');
+          logSentryMessage(message, 'error', error);
      }
 }
 
@@ -66,12 +72,34 @@ function logMessage(type, message) {
      }
 }
 
-export function logSentryMessage(message, level = 'error') {
-     if (!__DEV__) {
+/**
+ * Sends a message or error to Sentry with as much context as is available.
+ * Accepts either a bare string/Error as `message`, or a descriptive string
+ * `message` paired with the actual Error as `error` (the common
+ * `logErrorMessage('doing X failed:', error)` call pattern) - in either case,
+ * a real Error is always sent via captureException so the stack trace and
+ * exception type aren't lost, with the descriptive string attached as extra
+ * context rather than discarded.
+ */
+export function logSentryMessage(message, level = 'error', error) {
+     if (__DEV__) {
+          return;
+     }
+
+     const exception = error instanceof Error ? error : (message instanceof Error ? message : null);
+
+     if (exception) {
+          const contextLabel = exception === message ? undefined : message;
+          Sentry.captureException(exception, {
+               level,
+               extra: contextLabel !== undefined ? { context: contextLabel } : undefined,
+          });
+     } else {
           Sentry.captureMessage(
-                message,
+               typeof message === 'string' ? message : JSON.stringify(message),
                {
-                    level: level,
+                    level,
+                    extra: error !== undefined ? { error } : undefined,
                }
           );
      }

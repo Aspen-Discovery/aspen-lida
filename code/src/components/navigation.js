@@ -89,6 +89,9 @@ try {
 
      Sentry.setTag('patch', GLOBALS.appPatch);
      Sentry.setTag('stage', GLOBALS.appStage);
+     Sentry.setTag('slug', GLOBALS.slug);
+     Sentry.setTag('libraryId', GLOBALS.libraryId);
+     Sentry.setTag('releaseChannel', GLOBALS.releaseChannel);
 }catch(e) {
      logErrorMessage("Could not initialize sentry " + e);
 }
@@ -138,6 +141,15 @@ export function App() {
                isSQLiteMigrationNeeded: false,
                migrationError: false }
       );
+
+     React.useEffect(() => {
+          // Keep Sentry's user context in sync with auth state (sign in, sign
+          // out, and cold-start session restoration) so every error reported
+          // while a session is active can be tied back to that session, and
+          // to which library server it was talking to.
+          Sentry.setUser(state.userToken ? { id: state.userToken } : null);
+          Sentry.setTag('libraryUrl', LIBRARY.url ?? undefined);
+     }, [state.userToken]);
 
      React.useEffect(() => {
           const timer = setInterval(async () => {
