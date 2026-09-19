@@ -762,7 +762,7 @@ export async function getThemeInfo(url = null, locationId = null) {
           timeout: 10000,
      });
      const response = await client.get('/SystemAPI?method=getThemeInfo', {
-          id: isBranded ? (fallbackThemeInfoId ?? locationId) : GLOBALS.themeId,
+          id: isBranded ? (fallbackThemeInfoId ?? locationId ?? fallbackThemeId) : GLOBALS.themeId,
      });
 
      if (response.ok) {

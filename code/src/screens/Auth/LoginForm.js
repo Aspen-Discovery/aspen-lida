@@ -65,6 +65,7 @@ export const GetLoginForm = (props) => {
       const { status: catalogStatus } = useCatalogStatus();
       const updateLibrary = useUpdateLibrary();
      const updateLanguage = useUpdateActiveLanguage();
+     const appSettings = useAppSettings();
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
@@ -254,7 +255,6 @@ export const GetLoginForm = (props) => {
            // Save username for convenience on next login
            await AsyncStorage.setItem('@userBarcode', username);
            await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
-           const appSettings = useAppSettings();
           const autoPickUserHomeLocation = parseInt(appSettings?.autoPickUserHomeLocation ?? 0);
           let selectedLocationId = patronsLibrary['locationId'];
           let selectedBaseUrl = patronsLibrary['baseUrl'];
