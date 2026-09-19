@@ -95,10 +95,18 @@ export function logSentryMessage(message, level = 'error', error) {
                extra: contextLabel !== undefined ? { context: contextLabel } : undefined,
           });
      } else {
+          const normalizedMessage = typeof message === 'string' ? message : JSON.stringify(message);
           Sentry.captureMessage(
-               typeof message === 'string' ? message : JSON.stringify(message),
+               normalizedMessage,
                {
                     level,
+                    // logSentryMessage is always the closest in-app frame on the
+                    // synthetic stack trace Sentry builds for plain-string
+                    // messages, so every call site would otherwise group/title
+                    // as "logSentryMessage" regardless of the actual message.
+                    // Fingerprinting on the message text itself keeps distinct
+                    // messages as distinct, filterable issues.
+                    fingerprint: [normalizedMessage],
                     extra: error !== undefined ? { error } : undefined,
                }
           );
@@ -292,6 +300,15 @@ export function getErrorMessage(arg1, arg2, arg3 = false) {
      if (!__DEV__ || (__DEV__ && sendToSentry)) {
           Sentry.captureMessage(`[${errorDetails.title}] ${errorDetails.message}`, {
                level: 'error',
+               // getErrorMessage is always the closest in-app frame on the
+               // synthetic stack trace for these calls, so without an explicit
+               // fingerprint every status code/problem would otherwise group
+               // together under that shared call site. Fingerprint on the
+               // status code + problem type so different error kinds stay
+               // distinct, filterable issues (note: this still merges the same
+               // status/problem across different endpoints, since the endpoint
+               // isn't passed into getErrorMessage).
+               fingerprint: [String(statusCode ?? 'none'), String(problem ?? 'none')],
                extra: { code: errorDetails.code, problem, statusCode },
           });
      }

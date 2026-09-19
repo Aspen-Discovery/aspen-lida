@@ -38,11 +38,15 @@ enableScreens();
 
 const Stack = createNativeStackNavigator();
 
-let routingInstrumentation = null;
+// `Sentry.ReactNavigationInstrumentation` was removed from @sentry/react-native
+// in favor of this integration-based API - the old class silently no-op'd here
+// (caught by try/catch, leaving `integrations` empty), meaning no navigation
+// breadcrumbs or performance transactions were ever actually being captured.
+let navigationIntegration = null;
 try {
-     routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+     navigationIntegration = Sentry.reactNavigationIntegration();
 }catch (e) {
-     routingInstrumentation = null;
+     navigationIntegration = null;
      logWarnMessage("Could not create sentry routing instrumentation " + e);
 }
 
@@ -71,8 +75,8 @@ distribution = distribution.toString();
 try {
      logDebugMessage("Initializing sentry");
      let integrations = [];
-     if (routingInstrumentation != null) {
-          integrations.push(routingInstrumentation);
+     if (navigationIntegration != null) {
+          integrations.push(navigationIntegration);
      }
      Sentry.init({
           dsn: Constants.expoConfig.extra.sentryDSN,
@@ -340,6 +344,10 @@ function AppContent({state}) {
                RemoveData(queryClient);
           }
      }, [state.isSignOut]);
+
+     React.useEffect(() => {
+          navigationIntegration?.registerNavigationContainer(navigationRef);
+     }, []);
 
      const language = useActiveLanguage();
      const { colorMode } = useTheme();
