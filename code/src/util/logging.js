@@ -1,6 +1,6 @@
 import { GLOBALS } from './globals';
 import * as Sentry from '@sentry/react-native';
-import { getDb } from './db';
+import { getCurrentUserId, getCurrentLocationId, getCurrentLibraryId } from './db/sessionContext';
 
 /**
  * Does logging of messages to console.log depending on the value of logLevel within the app config.
@@ -27,23 +27,29 @@ export function logInfoMessage(message) {
      }
 }
 
-export function logWarnMessage(message) {
+export function logWarnMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=3) {
                logMessage("WARN", message);
+               if (error !== undefined) {
+                    logMessage("WARN", error);
+               }
           }
      }else{
-          logSentryMessage(message, 'warning');
+          logSentryMessage(message, 'warning', error);
      }
 }
 
-export function logErrorMessage(message) {
+export function logErrorMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=4) {
                logMessage('ERROR', message);
+               if (error !== undefined) {
+                    logMessage('ERROR', error);
+               }
           }
      }else{
-          logSentryMessage(message, 'error');
+          logSentryMessage(message, 'error', error);
      }
 }
 
@@ -66,12 +72,42 @@ function logMessage(type, message) {
      }
 }
 
-export function logSentryMessage(message, level = 'error') {
-     if (!__DEV__) {
+/**
+ * Sends a message or error to Sentry with as much context as is available.
+ * Accepts either a bare string/Error as `message`, or a descriptive string
+ * `message` paired with the actual Error as `error` (the common
+ * `logErrorMessage('doing X failed:', error)` call pattern) - in either case,
+ * a real Error is always sent via captureException so the stack trace and
+ * exception type aren't lost, with the descriptive string attached as extra
+ * context rather than discarded.
+ */
+export function logSentryMessage(message, level = 'error', error) {
+     if (__DEV__) {
+          return;
+     }
+
+     const exception = error instanceof Error ? error : (message instanceof Error ? message : null);
+
+     if (exception) {
+          const contextLabel = exception === message ? undefined : message;
+          Sentry.captureException(exception, {
+               level,
+               extra: contextLabel !== undefined ? { context: contextLabel } : undefined,
+          });
+     } else {
+          const normalizedMessage = typeof message === 'string' ? message : JSON.stringify(message);
           Sentry.captureMessage(
-                message,
+               normalizedMessage,
                {
-                    level: level,
+                    level,
+                    // logSentryMessage is always the closest in-app frame on the
+                    // synthetic stack trace Sentry builds for plain-string
+                    // messages, so every call site would otherwise group/title
+                    // as "logSentryMessage" regardless of the actual message.
+                    // Fingerprinting on the message text itself keeps distinct
+                    // messages as distinct, filterable issues.
+                    fingerprint: [normalizedMessage],
+                    extra: error !== undefined ? { error } : undefined,
                }
           );
      }
@@ -264,6 +300,15 @@ export function getErrorMessage(arg1, arg2, arg3 = false) {
      if (!__DEV__ || (__DEV__ && sendToSentry)) {
           Sentry.captureMessage(`[${errorDetails.title}] ${errorDetails.message}`, {
                level: 'error',
+               // getErrorMessage is always the closest in-app frame on the
+               // synthetic stack trace for these calls, so without an explicit
+               // fingerprint every status code/problem would otherwise group
+               // together under that shared call site. Fingerprint on the
+               // status code + problem type so different error kinds stay
+               // distinct, filterable issues (note: this still merges the same
+               // status/problem across different endpoints, since the endpoint
+               // isn't passed into getErrorMessage).
+               fingerprint: [String(statusCode ?? 'none'), String(problem ?? 'none')],
                extra: { code: errorDetails.code, problem, statusCode },
           });
      }
@@ -347,12 +392,80 @@ const SQLITE_DUMP_TABLE_LIMITS = {
      user_reading_history: 50,
  };
 
+const USER_SCOPED_TABLES = new Set([
+     'user_state', 'user_accounts', 'user_viewers', 'user_lists', 'user_list_groups',
+     'user_locations', 'user_reading_history', 'user_saved_events', 'user_cards',
+     'user_notification_settings', 'user_app_preferences', 'user_debug_messages',
+     'user_notification_history', 'user_inbox', 'user_sublocations', 'user_saved_searches',
+]);
+const LOCATION_SCOPED_TABLES = new Set(['library_branch_state', 'theme_state', 'theme_catalog']);
+const LIBRARY_SCOPED_TABLES = new Set(['library_system_state']);
+const USER_AND_LOCATION_SCOPED_TABLES = new Set(['browse_category_state', 'browse_category_list']);
+
+/**
+ * Returns the WHERE-clause column(s)/value(s) that scope a table to the currently active
+ * user/location/library, or null if the table isn't scoped at all (e.g. language_state).
+ * If the table IS scoped but the relevant identity isn't currently known, `resolvable` is
+ * false - callers should return no rows rather than fall back to an unscoped dump.
+ */
+function getTableDumpScope(tableName) {
+     if (USER_SCOPED_TABLES.has(tableName)) {
+          const userId = getCurrentUserId();
+          return { columns: ['user_id'], values: [userId], resolvable: userId != null };
+     }
+     if (LOCATION_SCOPED_TABLES.has(tableName)) {
+          const locationId = getCurrentLocationId();
+          return { columns: ['location_id'], values: [locationId], resolvable: locationId != null };
+     }
+     if (LIBRARY_SCOPED_TABLES.has(tableName)) {
+          const libraryId = getCurrentLibraryId();
+          return { columns: ['library_id'], values: [libraryId], resolvable: libraryId != null };
+     }
+     if (USER_AND_LOCATION_SCOPED_TABLES.has(tableName)) {
+          const userId = getCurrentUserId();
+          const locationId = getCurrentLocationId();
+          return { columns: ['user_id', 'location_id'], values: [userId, locationId], resolvable: userId != null && locationId != null };
+     }
+     return null;
+}
+
+function buildScopedWhere(tableName) {
+     const scope = getTableDumpScope(tableName);
+     if (!scope) {
+          return { clause: '', params: [], blocked: false };
+     }
+     if (!scope.resolvable) {
+          return { clause: '', params: [], blocked: true };
+     }
+     return {
+          clause: ` WHERE ${scope.columns.map((column) => `"${column}" = ?`).join(' AND ')}`,
+          params: scope.values,
+          blocked: false,
+     };
+}
+
 async function getSQLiteTableRows(db, tableName, limit) {
+     const { clause, params, blocked } = buildScopedWhere(tableName);
+     if (blocked) {
+          return [];
+     }
      return await db.getAllAsync(
-          `SELECT * FROM "${tableName}" LIMIT ?`,
-          [limit]
+          `SELECT * FROM "${tableName}"${clause} LIMIT ?`,
+          [...params, limit]
      );
  }
+
+async function getSQLiteTableRowCount(db, tableName) {
+     const { clause, params, blocked } = buildScopedWhere(tableName);
+     if (blocked) {
+          return 0;
+     }
+     const result = await db.getFirstAsync(
+          `SELECT COUNT(*) as total FROM "${tableName}"${clause}`,
+          params
+     );
+     return result?.total ?? 0;
+}
 
 /**
  * Retrieves all data from a specified SQLite table and sends it to the configured Error Logger
@@ -373,6 +486,8 @@ export async function dumpSQLiteTable(tableName, options = {}) {
                throw new Error('tableName must be a non-empty string');
           }
 
+          const { getDb } = require('./db/sqlite');
+
           const db = await getDb();
 
           let tablesToDump = [tableName];
@@ -389,10 +504,7 @@ export async function dumpSQLiteTable(tableName, options = {}) {
           for (const currentTableName of tablesToDump) {
                const tableLimit = Math.min(limit, SQLITE_DUMP_TABLE_LIMITS[currentTableName] ?? limit);
                const rows = await getSQLiteTableRows(db, currentTableName, tableLimit);
-               const countResult = await db.getFirstAsync(
-                    `SELECT COUNT(*) as total FROM "${currentTableName}"`
-               );
-               const currentTotalRows = countResult?.total ?? 0;
+               const currentTotalRows = await getSQLiteTableRowCount(db, currentTableName);
 
                dumpPayload[currentTableName] = JSON.parse(JSON.stringify(rows ?? []));
 
