@@ -104,8 +104,7 @@ const AddLinkedAccount = () => {
                                                       onSubmitEditing={() => {
                                                            passwordRef.current.focus();
                                                       }}
-                                                      blurOnSubmit={false}
-                                                      value={newUser}/>
+                                                      blurOnSubmit={false}/>
                                    </Input>
                               </FormControl>
                               <FormControl mt="$3">
@@ -113,7 +112,7 @@ const AddLinkedAccount = () => {
                                         <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'password')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                        <InputField onChangeText={(text) => setPassword(text)} value={password} color={textColor} autoCorrect={false}
+                                        <InputField onChangeText={(text) => setPassword(text)} color={textColor} autoCorrect={false}
                                                     autoCapitalize="none" id="password" returnKeyType="next"
                                                     textContentType="password" required size="$lg" type={showPassword ? 'text' : 'password'} ref={passwordRef}
                                         />
